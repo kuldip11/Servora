@@ -1,0 +1,154 @@
+# ============================================================
+# Servora - Root Git Ignore
+# ============================================================
+
+# ============================================================
+# Dependencies
+# ============================================================
+
+node_modules/
+
+# Bun
+.bun/
+
+# Package manager artifacts
+.pnp/
+.pnp.js
+
+# ============================================================
+# Environment & Secrets
+# ============================================================
+
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Local secret/config files
+*.local
+
+# ============================================================
+# Build Output
+# ============================================================
+
+dist/
+build/
+out/
+
+# Vite
+.vite/
+
+# Next/Nuxt/Svelte (in case a future app uses them)
+.next/
+.nuxt/
+.svelte-kit/
+
+# Turborepo
+.turbo/
+
+# General caches
+.cache/
+
+# TypeScript incremental builds
+*.tsbuildinfo
+
+# ============================================================
+# Testing & Coverage
+# ============================================================
+
+coverage/
+.nyc_output/
+
+test-results/
+playwright-report/
+blob-report/
+
+# ============================================================
+# Logs
+# ============================================================
+
+*.log
+logs/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+bun-debug.log*
+
+# ============================================================
+# Temporary / Runtime Files
+# ============================================================
+
+tmp/
+temp/
+
+*.tmp
+*.temp
+
+# ============================================================
+# Docker Local Data
+# ============================================================
+
+# PostgreSQL / Redis persistent development data
+postgres-data/
+redis-data/
+
+docker-data/
+
+# Docker local state
+.docker/
+
+# ============================================================
+# Local Database Files
+# ============================================================
+
+*.sqlite
+*.sqlite3
+*.db
+
+# ============================================================
+# Certificates / Private Keys
+# ============================================================
+
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Do NOT commit private certificates/keys.
+# Public certificate files may be committed only when
+# intentionally required by the application.
+
+# ============================================================
+# IDE / Editors
+# ============================================================
+
+.idea/
+*.iml
+
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# ============================================================
+# OS Files
+# ============================================================
+
+.DS_Store
+.DS_Store?
+._*
+
+.Spotlight-V100
+.Trashes
+
+Thumbs.db
+Desktop.ini
+
+# ============================================================
+# Generated Files
+# ============================================================
+
+*.generated.*

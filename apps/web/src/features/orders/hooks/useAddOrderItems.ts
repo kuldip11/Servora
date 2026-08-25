@@ -1,0 +1,17 @@
+import { useMutation } from '@tanstack/react-query';
+import { queryClient } from '../../../shared/lib/query-client';
+import { notifyError, notifySuccess } from '../../../shared/lib/notify';
+import { ordersService, type AddOrderItemsInput } from '../services/orders.service';
+import { orderKeys } from '../query-keys';
+
+export function useAddOrderItems(orderId: string) {
+  return useMutation({
+    mutationFn: (input: AddOrderItemsInput) => ordersService.addItems(orderId, input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: orderKeys.detail(orderId) });
+      queryClient.invalidateQueries({ queryKey: orderKeys.all });
+      notifySuccess('Items added to order');
+    },
+    onError: (err) => notifyError(err, 'Failed to add items'),
+  });
+}

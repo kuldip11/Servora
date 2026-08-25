@@ -1,0 +1,18 @@
+import { describe, expect, it, vi } from 'vitest';
+const api = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), patch: vi.fn() }));
+vi.mock('../../../../shared/lib/api-client', () => ({ apiClient: api }));
+import { inventoryService } from '../inventory.service';
+
+describe('inventoryService', () => {
+  it('lists inventory', async () => { api.get.mockResolvedValue({ data: { data: ['i'] } }); await expect(inventoryService.list()).resolves.toEqual(['i']); });
+  it('normalizes numeric fields when adding', async () => {
+    api.post.mockResolvedValue({});
+    await inventoryService.add({ name: 'Rice', unit: 'kg', currentStock: '12.5', minimumStock: '2', reorderPoint: '4.5', costPerUnit: '30', branchId: '' });
+    expect(api.post).toHaveBeenCalledWith('/inventory/items', { name: 'Rice', unit: 'kg', currentStock: 12.5, minimumStock: 2, reorderPoint: 4.5, costPerUnit: 30, branchId: undefined });
+  });
+  it('updates stock with parsed quantity and optional notes', async () => {
+    api.patch.mockResolvedValue({});
+    await inventoryService.updateStock('i1', { quantity: '3.5', transactionType: 'ADD', notes: '' });
+    expect(api.patch).toHaveBeenCalledWith('/inventory/items/i1/stock', { quantity: 3.5, transactionType: 'ADD', notes: undefined });
+  });
+});

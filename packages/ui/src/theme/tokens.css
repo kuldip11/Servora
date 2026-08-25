@@ -1,0 +1,193 @@
+/**
+ * Semantic design tokens — single source of truth for color, radius,
+ * shadow, and spacing across all 3 apps (Admin, Waiter App, Kitchen Display).
+ *
+ * Consumed via `packages/ui/tailwind-preset.js`, which maps these CSS
+ * variables onto Tailwind's theme so components can use classes like
+ * `bg-surface` / `text-text-primary` instead of raw `bg-white` / `text-gray-900`.
+ *
+ * Values are NOT invented — they're pulled 1:1 from current usage:
+ * - Light: Admin + Waiter App's existing gray/violet palette
+ *   (see docs/design-system/phase-0-ui-audit.md §4).
+ * - Dark: Kitchen Display's existing gray-950/900/800 + amber/emerald
+ *   palette, since Dark is KDS's native (only) theme, not an afterthought.
+ * - High-contrast: not extracted from existing usage (nothing in the
+ *   apps implements this today) — built fresh against WCAG AAA contrast
+ *   targets (7:1 for body text).
+ *
+ * See docs/design-system/README.md "Phase 1 detail" for the full list
+ * and docs/design-system/00-PLAN.md Phase 1 exit criteria.
+ */
+
+:root,
+[data-theme='light'] {
+  /* Surfaces */
+  --background: #f9fafb; /* gray-50 */
+  --surface: #ffffff;
+  --surface-secondary: #f3f4f6; /* gray-100 */
+
+  /* Text */
+  --text-primary: #111827; /* gray-900 */
+  --text-secondary: #4b5563; /* gray-600 — 6.87:1 on surface-secondary */
+  --text-disabled: #6b7280; /* gray-500 — 4.83:1 on white */
+
+  /* Borders */
+  --border: #e5e7eb; /* gray-200 */
+  --divider: #f3f4f6; /* gray-100 */
+
+  /* Primary (violet — Admin/Waiter App's actual primary, not the dead
+     `brand` fuchsia scale in Admin's old tailwind.config.js) */
+  --primary: #7c3aed; /* violet-600 */
+  --primary-hover: #6d28d9; /* violet-700 */
+  --primary-surface: #f5f3ff; /* violet-50 */
+  --primary-border: #ddd6fe; /* violet-200 */
+  /* Phase 9: white on violet-600 is 5.70:1 (passes AA) — see file's top comment. */
+  --primary-foreground: #ffffff;
+
+  /* Status */
+  --success: #047857; /* emerald-700 — 4.84:1 on success-surface */
+  --success-surface: #d1fae5; /* emerald-100 */
+  --warning: #92400e; /* amber-800 — 6.37:1 on warning-surface */
+  --warning-surface: #fef3c7; /* amber-100 */
+  --danger: #b91c1c; /* red-700 — 5.30:1 on danger-surface */
+  --danger-surface: #fee2e2; /* red-100 */
+  --info: #1d4ed8; /* blue-700 — 5.49:1 on info-surface */
+  --info-surface: #dbeafe; /* blue-100 */
+  /* Foreground colors for text placed directly on the solid status colors.
+     Light-theme status badges use the dark semantic text colors above; solid
+     buttons use these foreground tokens instead. */
+  --success-foreground: #ffffff;
+  --warning-foreground: #111827;
+  --danger-foreground: #ffffff;
+  --info-foreground: #ffffff;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* Shadow */
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+  --shadow-md: 0 10px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.08);
+  --shadow-dropdown: 0 4px 16px -2px rgb(0 0 0 / 0.12), 0 2px 6px -1px rgb(0 0 0 / 0.06);
+
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+}
+
+/* Dark — Kitchen Display's native theme, also selectable in Admin/Waiter App */
+[data-theme='dark'] {
+  --background: #030712; /* gray-950 */
+  --surface: #111827; /* gray-900 */
+  --surface-secondary: #1f2937; /* gray-800 */
+
+  --text-primary: #f9fafb; /* gray-50 */
+  --text-secondary: #9ca3af; /* gray-400 */
+  --text-disabled: #4b5563; /* gray-600 */
+
+  --border: #1f2937; /* gray-800 */
+  --divider: #1f2937; /* gray-800 */
+
+  /* KDS's actual primary accent is amber, not violet */
+  --primary: #f59e0b; /* amber-500 */
+  --primary-hover: #d97706; /* amber-600 */
+  --primary-surface: rgb(245 158 11 / 0.15);
+  --primary-border: #92400e; /* amber-800 */
+  /* Phase 9 fix — this was the worst finding of the hardening pass: white
+     text on amber-500 (this theme's --primary, and its --warning too) is
+     only 2.15:1, nowhere near WCAG AA's 4.5:1 floor. Every component that
+     hardcoded `text-white` on a `bg-primary` (`Button`, `SplitButton`,
+     `Pagination`'s active page) was silently unreadable in dark theme
+     before this fix — dark theme wasn't in scope when those were
+     originally styled against light theme's violet, where white does
+     pass. The dark-ink `#111827` used below measures 8.26:1 against this
+     amber. */
+  --primary-foreground: #111827;
+
+  --success: #10b981; /* emerald-500 */
+  --success-surface: rgb(16 185 129 / 0.15);
+  --warning: #f59e0b; /* amber-500 */
+  --warning-surface: rgb(245 158 11 / 0.15);
+  --danger: #ef4444; /* red-500 */
+  --danger-surface: rgb(239 68 68 / 0.15);
+  --info: #3b82f6; /* blue-500 */
+  --info-surface: rgb(59 130 246 / 0.15);
+  /* White fails against all four of these at dark theme's lighter (500,
+     not 600) status shades: success 2.54:1, warning 2.15:1 (shares
+     --primary's amber), danger 3.76:1, info 3.68:1. Dark ink passes all
+     four (6.99 / 8.26 / 4.71 / 4.82 respectively). */
+  --success-foreground: #111827;
+  --warning-foreground: #111827;
+  --danger-foreground: #111827;
+  --info-foreground: #111827;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+  --shadow-md: 0 10px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.4);
+  --shadow-dropdown: 0 4px 16px -2px rgb(0 0 0 / 0.5), 0 2px 6px -1px rgb(0 0 0 / 0.3);
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+}
+
+/* High-contrast — built against WCAG AAA (7:1) text contrast targets;
+   no existing app implements this today, so nothing to extract from. */
+[data-theme='high-contrast'] {
+  --background: #ffffff;
+  --surface: #ffffff;
+  --surface-secondary: #ececec;
+
+  --text-primary: #000000;
+  --text-secondary: #1a1a1a;
+  --text-disabled: #595959;
+
+  --border: #000000;
+  --divider: #000000;
+
+  --primary: #3b0764; /* violet-950 — darker than default violet for max contrast on white */
+  --primary-hover: #2e055a;
+  --primary-surface: #ede9fe;
+  --primary-border: #000000;
+  /* This theme's colors were already built dark enough that white text
+     passes comfortably everywhere (15.00:1 on --primary alone), unlike
+     light/dark above — no dark-ink fallback needed here. */
+  --primary-foreground: #ffffff;
+
+  --success: #05442f;
+  --success-surface: #d1fae5;
+  --warning: #7c2d12;
+  --warning-surface: #fef3c7;
+  --danger: #7f1d1d;
+  --danger-surface: #fee2e2;
+  --info: #1e3a8a;
+  --info-surface: #dbeafe;
+  --success-foreground: #ffffff;
+  --warning-foreground: #ffffff;
+  --danger-foreground: #ffffff;
+  --info-foreground: #ffffff;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* High-contrast mode relies on borders, not shadows, for depth cues */
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-dropdown: 0 0 0 2px #000000;
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+}

@@ -1,0 +1,68 @@
+import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+import * as schema from './schema';
+
+/**
+ * Lazy connection setup.
+ *
+ * Several modules (e.g. `core/auth/auth-context.ts`, `core/audit/audit.ts`)
+ * import `db` purely alongside pure helper functions that never touch the
+ * database (e.g. `requirePermission`, `requireRoles`). Unit tests for those
+ * helpers mock the *repository* layer, not this module, so simply importing
+ * `db` must not throw when `DATABASE_URL` is unset (e.g. in a test
+ * environment). The connection (and the "DATABASE_URL is required" check) is
+ * therefore deferred until the database is actually used.
+ */
+function getConnectionString(): string {
+  const connectionString = process.env['DATABASE_URL'];
+  if (!connectionString) {
+    throw new Error('DATABASE_URL environment variable is required');
+  }
+  return connectionString;
+}
+
+let queryClient: ReturnType<typeof postgres> | undefined;
+let migrationClientInstance: ReturnType<typeof postgres> | undefined;
+let dbInstance: PostgresJsDatabase<typeof schema> | undefined;
+
+function getQueryClient() {
+  if (!queryClient) {
+    queryClient = postgres(getConnectionString(), {
+      max: 20,
+      idle_timeout: 20,
+      connect_timeout: 10,
+    });
+  }
+  return queryClient;
+}
+
+function getDb(): PostgresJsDatabase<typeof schema> {
+  if (!dbInstance) {
+    dbInstance = drizzle(getQueryClient(), { schema, logger: process.env['NODE_ENV'] === 'development' });
+  }
+  return dbInstance;
+}
+
+// Migration client (single connection) — also lazy, for the same reason.
+export const migrationClient: ReturnType<typeof postgres> = new Proxy({} as ReturnType<typeof postgres>, {
+  get(_target, prop, receiver) {
+    if (!migrationClientInstance) {
+      migrationClientInstance = postgres(getConnectionString(), { max: 1 });
+    }
+    return Reflect.get(migrationClientInstance, prop, receiver);
+  },
+  apply(_target, thisArg, args) {
+    if (!migrationClientInstance) {
+      migrationClientInstance = postgres(getConnectionString(), { max: 1 });
+    }
+    return Reflect.apply(migrationClientInstance as unknown as (...a: unknown[]) => unknown, thisArg, args);
+  },
+}) as ReturnType<typeof postgres>;
+
+export const db: PostgresJsDatabase<typeof schema> = new Proxy({} as PostgresJsDatabase<typeof schema>, {
+  get(_target, prop, receiver) {
+    return Reflect.get(getDb(), prop, receiver);
+  },
+}) as PostgresJsDatabase<typeof schema>;
+
+export type Database = typeof db;

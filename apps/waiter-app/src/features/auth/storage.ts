@@ -1,0 +1,37 @@
+import { STORAGE_KEYS } from '../../shared/constants/storage-keys';
+import type { User } from '@pos/types';
+
+export function saveTokens(accessToken: string, refreshToken: string) {
+  localStorage.setItem(STORAGE_KEYS.token, accessToken);
+  localStorage.setItem(STORAGE_KEYS.refresh, refreshToken);
+}
+
+export function clearTokens() {
+  localStorage.removeItem(STORAGE_KEYS.token);
+  localStorage.removeItem(STORAGE_KEYS.refresh);
+  localStorage.removeItem(STORAGE_KEYS.tenant);
+  localStorage.removeItem(STORAGE_KEYS.branch);
+}
+
+export function saveContext(franchiseId: string, branchId: string | null) {
+  localStorage.setItem(STORAGE_KEYS.tenant, franchiseId);
+  if (branchId) localStorage.setItem(STORAGE_KEYS.branch, branchId);
+  else localStorage.removeItem(STORAGE_KEYS.branch);
+}
+
+
+export function saveProfile(user: User) {
+  localStorage.setItem(STORAGE_KEYS.name, `${user.firstName} ${user.lastName}`);
+}
+
+export function getToken(): string | null {
+  return localStorage.getItem(STORAGE_KEYS.token);
+}
+
+export function getWaiterName(): string {
+  return localStorage.getItem(STORAGE_KEYS.name) ?? 'Waiter';
+}
+
+export function logout() {
+  Object.values(STORAGE_KEYS).forEach((key) => localStorage.removeItem(key));
+}

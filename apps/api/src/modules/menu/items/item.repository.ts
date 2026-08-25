@@ -1,0 +1,430 @@
+/**
+ * Menu item repository — data access for the "items" sub-domain only.
+ * Extracted from the monolithic `modules/menu/repository.ts` (still used
+ * by categories, modifier groups, tags, allergens, recipes, scheduling,
+ * branch overrides, bulk ops, import/export, and templates — none of
+ * those have been split out yet, see docs/NEXT_STEPS.md).
+ *
+ * `findByIds` and `getEffectiveItem` deliberately stayed in the legacy
+ * `menu/repository.ts` rather than moving here: they're order-time
+ * pricing/availability reads used cross-module by
+ * `orders/order.service.ts`, and conceptually belong with a future
+ * "availability" sub-domain more than with item CRUD. Moving them now
+ * would touch a working, already-migrated integration point for no
+ * behavioral benefit.
+ */
+import { eq, and, isNull, or, inArray } from 'drizzle-orm';
+import type { FoodType, MenuItemStatus, SpiceLevel } from '@pos/types';
+import { db } from '../../../db';
+import {
+  menuItems,
+  menuItemVariants,
+  menuItemModifierGroups,
+  menuItemTags,
+  menuItemAllergens,
+  menuItemImages,
+  menuCategories,
+  menuItemSchedules,
+  recipes,
+} from '../../../db/schema';
+
+// Full relation tree for a menu item — used wherever the frontend needs to
+// render/edit everything about an item (order-time resolution just needs
+// the pricing bits, see orders/order-pricing.ts / order.service.ts, which
+// call availabilityRepository.findByIds separately).
+//
+// Exported (not just used internally) because `categories/category.repository.ts`
+// needs the exact same shape for its nested `menuItems` join — better to
+// share one definition than maintain a third copy alongside this one and
+// the original still in the legacy `menu/repository.ts`.
+export const ITEM_DETAIL_RELATIONS = {
+  variants: true,
+  images: { orderBy: (t: any, { asc }: any) => [asc(t.sortOrder)] },
+  modifierGroupLinks: {
+    with: {
+      group: {
+        with: { options: { orderBy: (t: any, { asc }: any) => [asc(t.sortOrder)] } },
+      },
+    },
+  },
+  tagLinks: { with: { tag: true } },
+  allergenLinks: { with: { allergen: true } },
+  recipeLinks: { with: { inventoryItem: true } },
+} as const;
+
+export const itemRepository = {
+  async findCategory(tenantId: string, categoryId: string) {
+    return db.query.menuCategories.findFirst({
+      where: and(eq(menuCategories.id, categoryId), eq(menuCategories.tenantId, tenantId)),
+      columns: { id: true, branchId: true },
+    });
+  },
+
+  async findById(tenantId: string, itemId: string) {
+    return db.query.menuItems.findFirst({
+      where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)),
+      with: ITEM_DETAIL_RELATIONS,
+    });
+  },
+
+  async create(data: {
+    tenantId: string;
+    branchId?: string | undefined;
+    categoryId: string;
+    name: string;
+    description?: string | undefined;
+    basePrice: string;
+    taxRate?: string | undefined;
+    foodType?: FoodType | undefined;
+    spiceLevel?: SpiceLevel | undefined;
+    sku?: string | undefined;
+    prepTimeMinutes?: number | undefined;
+    sortOrder?: number | undefined;
+    hsnCode?: string | undefined;
+    status?: MenuItemStatus | undefined;
+    enableRecipeDeduction?: boolean | undefined;
+    isPublished?: boolean | undefined;
+    variants?: Array<{ name: string; price: string }> | undefined;
+    modifierGroupIds?: string[] | undefined;
+    tagIds?: string[] | undefined;
+    allergenIds?: string[] | undefined;
+    imageUrls?: string[] | undefined;
+  }) {
+    return db.transaction(async (tx) => {
+      const [item] = await tx
+        .insert(menuItems)
+        .values({
+          tenantId: data.tenantId,
+          branchId: data.branchId ?? null,
+          categoryId: data.categoryId,
+          name: data.name,
+          description: data.description ?? null,
+          basePrice: data.basePrice,
+          taxRate: data.taxRate ?? '0',
+          foodType: data.foodType ?? 'VEG',
+          spiceLevel: data.spiceLevel ?? null,
+          sku: data.sku ?? null,
+          prepTimeMinutes: data.prepTimeMinutes ?? null,
+          sortOrder: data.sortOrder ?? 0,
+          hsnCode: data.hsnCode ?? null,
+          status: data.status ?? 'ACTIVE',
+          isAvailable: (data.status ?? 'ACTIVE') === 'ACTIVE',
+          enableRecipeDeduction: data.enableRecipeDeduction ?? true,
+          isPublished: data.isPublished ?? true,
+          publishedAt: (data.isPublished ?? true) ? new Date() : null,
+        })
+        .returning();
+
+      if (data.variants?.length) {
+        await tx.insert(menuItemVariants).values(
+          data.variants.map((v) => ({ menuItemId: item!.id, ...v })),
+        );
+      }
+
+      if (data.modifierGroupIds?.length) {
+        await tx.insert(menuItemModifierGroups).values(
+          data.modifierGroupIds.map((modifierGroupId, i) => ({
+            menuItemId: item!.id,
+            modifierGroupId,
+            sortOrder: i,
+          })),
+        );
+      }
+
+      if (data.tagIds?.length) {
+        await tx.insert(menuItemTags).values(
+          data.tagIds.map((tagId) => ({ menuItemId: item!.id, tagId })),
+        );
+      }
+
+      if (data.allergenIds?.length) {
+        await tx.insert(menuItemAllergens).values(
+          data.allergenIds.map((allergenId) => ({ menuItemId: item!.id, allergenId })),
+        );
+      }
+
+      if (data.imageUrls?.length) {
+        await tx.insert(menuItemImages).values(
+          data.imageUrls.map((url, i) => ({ menuItemId: item!.id, url, sortOrder: i })),
+        );
+      }
+
+      return tx.query.menuItems.findFirst({
+        where: eq(menuItems.id, item!.id),
+        with: ITEM_DETAIL_RELATIONS,
+      });
+    });
+  },
+
+  async update(
+    tenantId: string,
+    itemId: string,
+    data: {
+      name?: string | undefined;
+      description?: string | undefined;
+      basePrice?: string | undefined;
+      taxRate?: string | undefined;
+      isAvailable?: boolean | undefined;
+      foodType?: FoodType | undefined;
+      spiceLevel?: SpiceLevel | null | undefined;
+      sku?: string | null | undefined;
+      prepTimeMinutes?: number | null | undefined;
+      sortOrder?: number | undefined;
+      hsnCode?: string | null | undefined;
+      status?: MenuItemStatus | undefined;
+      availabilityReason?: string | null | undefined;
+      enableRecipeDeduction?: boolean | undefined;
+    },
+  ) {
+    // `isAvailable` is a derived flag the waiter-app ordering views read
+    // directly — keep it in sync with `status` whenever status changes,
+    // unless the caller also explicitly sent isAvailable (rare/legacy path).
+    const patch: Record<string, unknown> = { ...data, updatedAt: new Date() };
+    if (data.status !== undefined && data.isAvailable === undefined) {
+      patch['isAvailable'] = data.status === 'ACTIVE';
+    }
+    if (data.status !== undefined) {
+      patch['statusChangedAt'] = new Date();
+    }
+    const [updated] = await db
+      .update(menuItems)
+      .set(patch)
+      .where(and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)))
+      .returning();
+    return updated;
+  },
+
+  // Copies the item plus variants/tags/allergens/modifier-group links
+  // (always — cheap and near-always wanted), and optionally
+  // recipes/schedules (opt-in, since those represent decisions specific
+  // to the original item). Never copies sales, inventory deductions, or
+  // order history — a duplicate is a brand-new item with no history.
+  //
+  // Returns `undefined` (rather than throwing) when the source item
+  // doesn't exist, so the service layer decides how to surface that —
+  // same convention as every other migrated module's repository.
+  async duplicate(
+    tenantId: string,
+    itemId: string,
+    options: {
+      name?: string | undefined;
+      copyRecipes?: boolean | undefined;
+      copySchedules?: boolean | undefined;
+      copyModifiers?: boolean | undefined;
+    } = {},
+  ) {
+    const source = await db.query.menuItems.findFirst({
+      where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId), isNull(menuItems.deletedAt)),
+      with: {
+        variants: true,
+        tagLinks: true,
+        allergenLinks: true,
+        modifierGroupLinks: true,
+        recipeLinks: true,
+      },
+    });
+    if (!source) return undefined;
+
+    const copyModifiers = options.copyModifiers ?? true;
+    const copyRecipes = options.copyRecipes ?? false;
+    const copySchedules = options.copySchedules ?? false;
+
+    return db.transaction(async (tx) => {
+      const [copy] = await tx
+        .insert(menuItems)
+        .values({
+          tenantId,
+          branchId: source.branchId,
+          categoryId: source.categoryId,
+          name: options.name?.trim() || `${source.name} (Copy)`,
+          description: source.description,
+          basePrice: source.basePrice,
+          taxRate: source.taxRate,
+          foodType: source.foodType,
+          spiceLevel: source.spiceLevel,
+          sku: null, // SKUs are meant to be unique — never duplicate one verbatim
+          prepTimeMinutes: source.prepTimeMinutes,
+          sortOrder: source.sortOrder,
+          hsnCode: source.hsnCode,
+          status: source.status,
+          isAvailable: source.isAvailable,
+          enableRecipeDeduction: source.enableRecipeDeduction,
+        })
+        .returning();
+      const newItemId = copy!.id;
+
+      if (source.variants.length) {
+        await tx.insert(menuItemVariants).values(
+          source.variants.map((v) => ({ menuItemId: newItemId, name: v.name, price: v.price })),
+        );
+      }
+
+      if (source.tagLinks.length) {
+        await tx.insert(menuItemTags).values(
+          source.tagLinks.map((l) => ({ menuItemId: newItemId, tagId: l.tagId })),
+        );
+      }
+
+      if (source.allergenLinks.length) {
+        await tx.insert(menuItemAllergens).values(
+          source.allergenLinks.map((l) => ({ menuItemId: newItemId, allergenId: l.allergenId })),
+        );
+      }
+
+      if (copyModifiers && source.modifierGroupLinks.length) {
+        await tx.insert(menuItemModifierGroups).values(
+          source.modifierGroupLinks.map((l) => ({
+            menuItemId: newItemId,
+            modifierGroupId: l.modifierGroupId,
+            sortOrder: l.sortOrder,
+          })),
+        );
+      }
+
+      if (copyRecipes && source.recipeLinks.length) {
+        await tx.insert(recipes).values(
+          source.recipeLinks.map((r) => ({
+            menuItemId: newItemId,
+            inventoryItemId: r.inventoryItemId,
+            quantityRequired: r.quantityRequired,
+            unit: r.unit,
+            isOptional: r.isOptional,
+          })),
+        );
+      }
+
+      if (copySchedules) {
+        const schedules = await tx.query.menuItemSchedules.findMany({
+          where: eq(menuItemSchedules.menuItemId, itemId),
+        });
+        if (schedules.length) {
+          await tx.insert(menuItemSchedules).values(
+            schedules.map((s) => ({
+              tenantId,
+              menuItemId: newItemId,
+              branchId: s.branchId,
+              scheduleType: s.scheduleType,
+              startTime: s.startTime,
+              endTime: s.endTime,
+              dayOfWeek: s.dayOfWeek,
+              startDate: s.startDate,
+              endDate: s.endDate,
+              holidayName: s.holidayName,
+              statusDuringPeriod: s.statusDuringPeriod,
+              isActive: s.isActive,
+            })),
+          );
+        }
+      }
+
+      return tx.query.menuItems.findFirst({
+        where: eq(menuItems.id, newItemId),
+        with: ITEM_DETAIL_RELATIONS,
+      });
+    });
+  },
+
+  async updateStatus(tenantId: string, itemId: string, status: MenuItemStatus, reason?: string | undefined) {
+    const [updated] = await db
+      .update(menuItems)
+      .set({
+        status,
+        availabilityReason: reason ?? null,
+        statusChangedAt: new Date(),
+        isAvailable: status === 'ACTIVE',
+        updatedAt: new Date(),
+      })
+      .where(and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId), isNull(menuItems.deletedAt)))
+      .returning();
+    return updated;
+  },
+
+  async findByStatus(
+    tenantId: string,
+    branchId: string | null | undefined,
+    statuses: MenuItemStatus[],
+    categoryId?: string | undefined,
+  ) {
+    return db.query.menuItems.findMany({
+      where: and(
+        eq(menuItems.tenantId, tenantId),
+        isNull(menuItems.deletedAt),
+        inArray(menuItems.status, statuses),
+        branchId ? or(eq(menuItems.branchId, branchId), isNull(menuItems.branchId)) : undefined,
+        categoryId ? eq(menuItems.categoryId, categoryId) : undefined,
+      ),
+      orderBy: (t, { asc }) => [asc(t.sortOrder)],
+      with: ITEM_DETAIL_RELATIONS,
+    });
+  },
+
+  // Full replace of an item's tag/allergen/modifier-group/image links — the
+  // edit form always sends the complete desired set, simpler than diffing.
+  async setTags(tenantId: string, itemId: string, tagIds: string[]) {
+    const item = await db.query.menuItems.findFirst({ where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)), columns: { id: true } });
+    if (!item) return;
+    await db.delete(menuItemTags).where(eq(menuItemTags.menuItemId, itemId));
+    if (tagIds.length) {
+      await db.insert(menuItemTags).values(tagIds.map((tagId) => ({ menuItemId: itemId, tagId })));
+    }
+  },
+
+  async setAllergens(tenantId: string, itemId: string, allergenIds: string[]) {
+    const item = await db.query.menuItems.findFirst({ where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)), columns: { id: true } });
+    if (!item) return;
+    await db.delete(menuItemAllergens).where(eq(menuItemAllergens.menuItemId, itemId));
+    if (allergenIds.length) {
+      await db.insert(menuItemAllergens).values(
+        allergenIds.map((allergenId) => ({ menuItemId: itemId, allergenId })),
+      );
+    }
+  },
+
+  async setModifierGroups(tenantId: string, itemId: string, modifierGroupIds: string[]) {
+    const item = await db.query.menuItems.findFirst({ where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)), columns: { id: true } });
+    if (!item) return;
+    await db.delete(menuItemModifierGroups).where(eq(menuItemModifierGroups.menuItemId, itemId));
+    if (modifierGroupIds.length) {
+      await db.insert(menuItemModifierGroups).values(
+        modifierGroupIds.map((modifierGroupId, i) => ({ menuItemId: itemId, modifierGroupId, sortOrder: i })),
+      );
+    }
+  },
+
+  async setImages(tenantId: string, itemId: string, urls: string[]) {
+    const item = await db.query.menuItems.findFirst({ where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)), columns: { id: true } });
+    if (!item) return;
+    await db.delete(menuItemImages).where(eq(menuItemImages.menuItemId, itemId));
+    if (urls.length) {
+      await db.insert(menuItemImages).values(urls.map((url, i) => ({ menuItemId: itemId, url, sortOrder: i })));
+    }
+  },
+
+  async softDelete(tenantId: string, itemId: string) {
+    await db
+      .update(menuItems)
+      .set({ deletedAt: new Date() })
+      .where(and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)));
+  },
+
+  async publish(tenantId: string, itemId: string) {
+    const [updated] = await db
+      .update(menuItems)
+      .set({ isPublished: true, publishedAt: new Date() })
+      .where(and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId), isNull(menuItems.deletedAt)))
+      .returning();
+    return updated;
+  },
+
+  // Unpublishing doesn't touch `status` — an item can go back to draft and
+  // still remember it was e.g. OUT_OF_STOCK, so re-publishing restores the
+  // same availability state rather than resetting it.
+  async unpublish(tenantId: string, itemId: string) {
+    const [updated] = await db
+      .update(menuItems)
+      .set({ isPublished: false })
+      .where(and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId), isNull(menuItems.deletedAt)))
+      .returning();
+    return updated;
+  },
+};

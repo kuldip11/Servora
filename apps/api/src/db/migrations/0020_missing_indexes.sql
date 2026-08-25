@@ -1,0 +1,4 @@
+-- No-op compatibility migration.
+-- The indexes that belong to the Drizzle schema are defined in 0016_indexes.sql.
+-- This migration is intentionally retained so the existing 0000-0020 journal
+-- remains stable while keeping the migration history compatible with schema.ts.

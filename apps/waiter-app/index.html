@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+    <title>Waiter App</title>
+    <!-- Phase 16 — theme-flash prevention. See `apps/web/index.html`'s
+         identical script for the full rationale; same `pos-theme` key
+         and same `light` fallback (`ThemeProvider`'s default), mirrored
+         here rather than shared as a file since neither app currently
+         serves a common static asset between them. -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('pos-theme');
+          var valid = t === 'light' || t === 'dark' || t === 'high-contrast';
+          document.documentElement.setAttribute('data-theme', valid ? t : 'light');
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

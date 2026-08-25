@@ -1,0 +1,33 @@
+/**
+ * Reduced-motion override — Phase 8 (docs/design-system/00-PLAN.md).
+ *
+ * Belt: this global rule means every current and future component's
+ * `animate-in`/`animate-out`/`transition-*` class is automatically
+ * neutralized for anyone with `prefers-reduced-motion: reduce` set,
+ * with zero per-component opt-in required — nobody has to remember to
+ * add `motion-reduce:transition-none` to a new `hover:` class for this
+ * to work. Suspenders: Tailwind's own `motion-safe:`/`motion-reduce:`
+ * variants (built into core, no plugin needed) are still there for
+ * the rare case a component wants to swap to a *different*, motion-safe
+ * treatment rather than merely a near-zero-duration one.
+ *
+ * `0.01ms` rather than `0s`: some browsers/testing tools (this is the
+ * widely-used a11y snippet, not invented here) treat a `0s` duration
+ * as "no transition," which can skip `transitionend`/`animationend`
+ * event firing that a component's JS might depend on. `0.01ms` still
+ * fires the event, just imperceptibly.
+ *
+ * Imported once per app, immediately after `theme/tokens.css` — see
+ * each app's `src/index.css`.
+ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

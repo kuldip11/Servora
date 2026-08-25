@@ -1,0 +1,53 @@
+{
+  "name": "restaurant-pos-saas",
+  "private": true,
+  "packageManager": "bun@1.3.14",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "lint": "eslint 'apps/**/*.{ts,tsx}' 'packages/**/*.{ts,tsx}'",
+    "typecheck": "turbo run typecheck",
+    "db:migrate": "cd apps/api && bun run db:migrate",
+    "db:reset": "cd apps/api && bun run db:reset",
+    "db:seed": "cd apps/api && bun run db:seed",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "test:a11y": "cd apps/web && bun run test:a11y",
+    "a11y:lighthouse": "bash scripts/accessibility/lighthouse.sh",
+    "audit:rbac": "bash scripts/audit/rbac-static.sh",
+    "audit:rbac:baseline": "bash scripts/audit/rbac-baseline.sh",
+    "audit:rbac:e2e": "bash scripts/audit/rbac-e2e.sh",
+    "audit:rbac:certify": "bash scripts/audit/rbac-certification.sh",
+    "test:coverage": "bun run test:coverage:validation && bun run test:coverage:api-client && bun run test:coverage:realtime && bun run test:coverage:api && bun run test:coverage:ui && bun run test:coverage:web && bun run test:coverage:waiter && bun run test:coverage:kitchen",
+    "test:coverage:api": "cd apps/api && bun run test:coverage",
+    "test:coverage:ui": "cd packages/ui && bun run test:coverage",
+    "test:e2e": "cd apps/web && bun run test:e2e",
+    "test:e2e:ui": "cd apps/web && bun run test:watch",
+    "test:coverage:all": "bun run test:coverage",
+    "test:coverage:web": "cd apps/web && bun run test:coverage",
+    "test:coverage:waiter": "cd apps/waiter-app && bun run test:coverage",
+    "test:coverage:kitchen": "cd apps/kitchen-display && bun run test:coverage",
+    "test:coverage:validation": "cd packages/validation && bun run test:coverage",
+    "test:coverage:api-client": "cd packages/api-client && bun run test:coverage",
+    "test:coverage:realtime": "cd packages/realtime && bun run test:coverage"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "eslint": "^9.39.5",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.5"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "bun": ">=1.1.0"
+  },
+  "dependencies": {
+    "@typescript-eslint/parser": "^8.66.0"
+  }
+}

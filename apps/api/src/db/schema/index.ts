@@ -1,0 +1,18 @@
+// This file is the central export point for the database schema. The schema
+// itself is organized by domain under this directory — see each file below.
+// Domain modules only import from each other's schema files (never from this
+// index), which keeps the dependency graph a DAG. Re-exporting everything
+// here preserves every existing import of `db/schema` unchanged.
+export * from './tenant.schema';
+export * from './branch.schema';
+export * from './auth.schema';
+export * from './staff.schema';
+export * from './restaurant-table.schema';
+export * from './menu.schema';
+export * from './menu-recipe.schema';
+export * from './inventory.schema';
+export * from './order.schema';
+export * from './kitchen.schema';
+export * from './billing.schema';
+export * from './analytics.schema';
+export * from './relations';

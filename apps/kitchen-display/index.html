@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kitchen Display</title>
+    <!-- Phase 16 — theme-flash prevention. Runs before the app mounts
+         (and before first paint) so `<html data-theme>` is correct
+         immediately, instead of a beat of the wrong theme while React
+         boots and `ThemeProvider` reads localStorage. Mirrors
+         `ThemeProvider`'s own read logic exactly (`packages/ui/src/
+         theme/ThemeProvider.tsx`'s `getInitialTheme`/`isTheme` and the
+         same `pos-theme` key) so the two never disagree — this script
+         only decides the *first* paint's attribute; `ThemeProvider`
+         remains the single source of truth once React mounts. Falls
+         back to `dark`, matching this app's `defaultTheme="dark"`
+         (`src/main.tsx`), not `light` like the other two apps' scripts. -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('pos-theme');
+          var valid = t === 'light' || t === 'dark' || t === 'high-contrast';
+          document.documentElement.setAttribute('data-theme', valid ? t : 'dark');
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

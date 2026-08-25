@@ -1,0 +1,66 @@
+/**
+ * Modifier-groups/tags/allergens controller — thin handlers only.
+ * Auth/branch resolution comes from `requireAuthPlugin` (applied in
+ * `modifier.route.ts`); business rules live in `modifier.service.ts`.
+ */
+import type { AuthContext } from '../../../core/auth';
+import { successResponse, createdResponse } from '../../../core/response';
+import {
+  modifierService,
+  type CreateModifierGroupInput,
+  type UpdateModifierGroupInput,
+  type CreateTagInput,
+} from './modifier.service';
+
+export const modifierController = {
+  // ─── Modifier Groups ───────────────────────────────────────────────────────
+
+  async listGroups(auth: AuthContext) {
+    const groups = await modifierService.listGroups(auth);
+    return successResponse(groups);
+  },
+
+  async createGroup(auth: AuthContext, input: CreateModifierGroupInput) {
+    const group = await modifierService.createGroup(auth, input);
+    return createdResponse(group);
+  },
+
+  async updateGroup(auth: AuthContext, groupId: string, input: UpdateModifierGroupInput) {
+    const group = await modifierService.updateGroup(auth, groupId, input);
+    return successResponse(group);
+  },
+
+  async deleteGroup(auth: AuthContext, groupId: string) {
+    await modifierService.deleteGroup(auth, groupId);
+    return successResponse(null);
+  },
+
+  async setOptionAvailability(auth: AuthContext, optionId: string, isAvailable: boolean) {
+    const option = await modifierService.setOptionAvailability(auth, optionId, isAvailable);
+    return successResponse(option);
+  },
+
+  // ─── Tags ──────────────────────────────────────────────────────────────────
+
+  async listTags(auth: AuthContext) {
+    const tags = await modifierService.listTags(auth);
+    return successResponse(tags);
+  },
+
+  async createTag(auth: AuthContext, input: CreateTagInput) {
+    const tag = await modifierService.createTag(auth, input);
+    return createdResponse(tag);
+  },
+
+  async deleteTag(auth: AuthContext, tagId: string) {
+    await modifierService.deleteTag(auth, tagId);
+    return successResponse(null);
+  },
+
+  // ─── Allergens ──────────────────────────────────────────────────────────────
+
+  async listAllergens(_auth: AuthContext) {
+    const allergens = await modifierService.listAllergens();
+    return successResponse(allergens);
+  },
+};

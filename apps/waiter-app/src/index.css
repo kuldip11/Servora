@@ -1,0 +1,31 @@
+@import '../../../packages/ui/src/theme/tokens.css';
+@import '../../../packages/ui/src/theme/motion.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    /* Phase 16 token audit — was `bg-gray-50 text-gray-900`, hardcoded
+       light-only pair. */
+    @apply bg-background text-text-primary antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
+  }
+  * { -webkit-tap-highlight-color: transparent; }
+  html, body, #root { height: 100%; }
+}
+
+@layer utilities {
+  /* Hide scrollbar but keep scrolling */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Safe area for notched phones */
+  .safe-area-top { padding-top: env(safe-area-inset-top, 0px); }
+  .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom, 12px); }
+
+  .active\:scale-98:active { transform: scale(0.98); }
+}
