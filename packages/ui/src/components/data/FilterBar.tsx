@@ -1,7 +1,7 @@
-import type { ReactNode } from 'react';
-import { X } from 'lucide-react';
-import { cn } from '../../utils/cn';
-import { Button } from '../Button';
+import type { ReactNode } from "react";
+import { X } from "lucide-react";
+import { cn } from "../../utils/cn";
+import { Button } from "../Button";
 
 /**
  * Phase 7 (Part 1) — `FilterBar`. A layout wrapper for the row of
@@ -28,7 +28,7 @@ export interface FilterBarProps {
 
 export function FilterBar({ children, onClearAll, className }: FilterBarProps) {
   return (
-    <div className={cn('flex items-center gap-3 flex-wrap', className)}>
+    <div className={cn("flex items-center gap-3 flex-wrap", className)}>
       {children}
       {onClearAll && (
         <Button variant="ghost" size="sm" onClick={onClearAll}>

@@ -4,18 +4,24 @@
  * the repository (transition validity) and the controller (auth/branch
  * resolution, event publishing) now live, so both layers stay thin.
  */
-import type { KitchenTicket, KitchenTicketStatus } from '@pos/types';
-import type { AuthContext } from '../../core/auth';
-import type { Logger } from '../../core/logger';
-import { eventBus } from '../../lib/event-bus';
-import { ticketRepository } from './ticket.repository';
-import { assertValidTransition, timestampFieldsFor } from './ticket-status.machine';
-import { ticketNotFound, branchRequired } from './ticket.errors';
-import { assertKitchenTicketAccess, requireKitchenPermission } from './ticket-authorization';
+import type { KitchenTicket, KitchenTicketStatus } from "@pos/types";
+import type { AuthContext } from "../../core/auth";
+import type { Logger } from "../../core/logger";
+import { eventBus } from "../../lib/event-bus";
+import { ticketRepository } from "./ticket.repository";
+import {
+  assertValidTransition,
+  timestampFieldsFor,
+} from "./ticket-status.machine";
+import { ticketNotFound, branchRequired } from "./ticket.errors";
+import {
+  assertKitchenTicketAccess,
+  requireKitchenPermission,
+} from "./ticket-authorization";
 
 export const ticketService = {
   async getQueueForCurrentBranch(auth: AuthContext) {
-    requireKitchenPermission(auth, 'kitchen:read');
+    requireKitchenPermission(auth, "kitchen:read");
     const branchId = requireBranchOrThrow(auth);
     return ticketRepository.getQueue(auth.tenantId, branchId);
   },
@@ -26,7 +32,7 @@ export const ticketService = {
     ticketId: string,
     newStatus: KitchenTicketStatus,
   ) {
-    requireKitchenPermission(auth, 'kitchen:update');
+    requireKitchenPermission(auth, "kitchen:update");
     const current = await ticketRepository.findById(auth.tenantId, ticketId);
     if (!current) throw ticketNotFound(ticketId);
     assertKitchenTicketAccess(auth, current.branchId);
@@ -41,14 +47,17 @@ export const ticketService = {
     );
     if (!updated) throw ticketNotFound(ticketId);
 
-    logger.info('Kitchen ticket status updated', {
+    logger.info("Kitchen ticket status updated", {
       ticketId,
       from: current.status,
       to: newStatus,
     });
 
     await eventBus.publish(
-      { type: 'kitchen.ticket.updated', payload: updated as unknown as KitchenTicket },
+      {
+        type: "kitchen.ticket.updated",
+        payload: updated as unknown as KitchenTicket,
+      },
       auth.tenantId,
       updated.branchId,
     );

@@ -1,1 +1,11 @@
-import { describe,expect,it } from 'vitest'; import { STORAGE_KEYS } from '../storage-keys'; describe('storage keys',()=>it('uses kds namespace',()=>{expect(Object.values(STORAGE_KEYS)).toEqual(['kds_token','kds_refresh','kds_branch','kds_tenant']);}));
+import { describe, expect, it } from "vitest";
+import { STORAGE_KEYS } from "../storage-keys";
+describe("storage keys", () =>
+  it("uses kds namespace", () => {
+    expect(Object.values(STORAGE_KEYS)).toEqual([
+      "kds_token",
+      "kds_refresh",
+      "kds_branch",
+      "kds_tenant",
+    ]);
+  }));

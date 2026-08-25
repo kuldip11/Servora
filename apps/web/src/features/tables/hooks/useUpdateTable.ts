@@ -1,18 +1,23 @@
-import { useMutation } from '@tanstack/react-query';
-import { queryClient } from '../../../shared/lib/query-client';
-import { notifyError, notifySuccess } from '../../../shared/lib/notify';
-import { tablesService } from '../services/tables.service';
-import { tableKeys } from '../query-keys';
-import type { TableFormInput } from '../types';
+import { useMutation } from "@tanstack/react-query";
+import { queryClient } from "../../../shared/lib/query-client";
+import { notifyError, notifySuccess } from "../../../shared/lib/notify";
+import { tablesService } from "../services/tables.service";
+import { tableKeys } from "../query-keys";
+import type { TableFormInput } from "../types";
 
 export function useUpdateTable() {
   return useMutation({
-    mutationFn: ({ id, input }: { id: string; input: Omit<TableFormInput, 'branchId'> }) =>
-      tablesService.update(id, input),
+    mutationFn: ({
+      id,
+      input,
+    }: {
+      id: string;
+      input: Omit<TableFormInput, "branchId">;
+    }) => tablesService.update(id, input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: tableKeys.all });
-      notifySuccess('Table updated');
+      notifySuccess("Table updated");
     },
-    onError: (err) => notifyError(err, 'Failed to update table'),
+    onError: (err) => notifyError(err, "Failed to update table"),
   });
 }

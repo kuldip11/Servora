@@ -1,6 +1,9 @@
-import { queryOptions } from '@tanstack/react-query';
-import { ordersService, type OrdersListFilters } from './services/orders.service';
-import { orderKeys } from './query-keys';
+import { queryOptions } from "@tanstack/react-query";
+import {
+  ordersService,
+  type OrdersListFilters,
+} from "./services/orders.service";
+import { orderKeys } from "./query-keys";
 
 export function ordersListQuery(filters: OrdersListFilters) {
   return queryOptions({

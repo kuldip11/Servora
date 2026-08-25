@@ -1,8 +1,12 @@
-import { t } from 'elysia';
+import { t } from "elysia";
 
 const INVENTORY_UNIT = t.Union([
-  t.Literal('KG'), t.Literal('GRAMS'), t.Literal('LITERS'),
-  t.Literal('ML'), t.Literal('PIECES'), t.Literal('PACKETS'),
+  t.Literal("KG"),
+  t.Literal("GRAMS"),
+  t.Literal("LITERS"),
+  t.Literal("ML"),
+  t.Literal("PIECES"),
+  t.Literal("PACKETS"),
 ]);
 
 export const setRecipeBody = t.Object({

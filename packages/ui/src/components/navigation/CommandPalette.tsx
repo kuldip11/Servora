@@ -1,8 +1,15 @@
-import { type ComponentType, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
-import * as RadixDialog from '@radix-ui/react-dialog';
-import { Search } from 'lucide-react';
-import { cn } from '../../utils/cn';
-import { overlayScrimClasses } from '../overlay/shared';
+import {
+  type ComponentType,
+  type ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import * as RadixDialog from "@radix-ui/react-dialog";
+import { Search } from "lucide-react";
+import { cn } from "../../utils/cn";
+import { overlayScrimClasses } from "../overlay/shared";
 
 export interface CommandItem {
   id: string;
@@ -62,21 +69,24 @@ export function CommandPalette({
   open,
   onOpenChange,
   items,
-  placeholder = 'Type a command or search…',
-  emptyMessage = 'No matching commands',
+  placeholder = "Type a command or search…",
+  emptyMessage = "No matching commands",
 }: CommandPaletteProps) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
-      setQuery('');
+      setQuery("");
       setActiveIndex(0);
     }
   }, [open]);
 
-  const results = useMemo(() => filterAndRankCommands(items, query), [items, query]);
+  const results = useMemo(
+    () => filterAndRankCommands(items, query),
+    [items, query],
+  );
   const activeCommand = results[activeIndex];
 
   useEffect(() => {
@@ -105,11 +115,13 @@ export function CommandPalette({
             inputRef.current?.focus();
           }}
           className={cn(
-            'fixed left-1/2 top-24 z-50 w-full max-w-lg -translate-x-1/2',
-            'bg-surface border border-border shadow-dropdown rounded-lg overflow-hidden',
+            "fixed left-1/2 top-24 z-50 w-full max-w-lg -translate-x-1/2",
+            "bg-surface border border-border shadow-dropdown rounded-lg overflow-hidden",
           )}
         >
-          <RadixDialog.Title className="sr-only">Command palette</RadixDialog.Title>
+          <RadixDialog.Title className="sr-only">
+            Command palette
+          </RadixDialog.Title>
           <RadixDialog.Description className="sr-only">
             Search for a command or page and press Enter to run it.
           </RadixDialog.Description>
@@ -124,16 +136,18 @@ export function CommandPalette({
               role="combobox"
               aria-expanded={open}
               aria-controls="command-palette-listbox"
-              aria-activedescendant={activeCommand ? `command-item-${activeCommand.id}` : undefined}
+              aria-activedescendant={
+                activeCommand ? `command-item-${activeCommand.id}` : undefined
+              }
               autoComplete="off"
               onKeyDown={(e) => {
-                if (e.key === 'ArrowDown') {
+                if (e.key === "ArrowDown") {
                   e.preventDefault();
                   move(1);
-                } else if (e.key === 'ArrowUp') {
+                } else if (e.key === "ArrowUp") {
                   e.preventDefault();
                   move(-1);
-                } else if (e.key === 'Enter') {
+                } else if (e.key === "Enter") {
                   e.preventDefault();
                   commit(activeIndex);
                 }
@@ -161,7 +175,7 @@ export function CommandPalette({
             {query.trim() &&
               (results.length === 0
                 ? emptyMessage
-                : `${results.length} result${results.length === 1 ? '' : 's'}`)}
+                : `${results.length} result${results.length === 1 ? "" : "s"}`)}
           </div>
 
           <ul
@@ -170,7 +184,9 @@ export function CommandPalette({
             className="max-h-80 overflow-y-auto py-1.5"
           >
             {results.length === 0 ? (
-              <li className="px-4 py-6 text-sm text-center text-text-secondary">{emptyMessage}</li>
+              <li className="px-4 py-6 text-sm text-center text-text-secondary">
+                {emptyMessage}
+              </li>
             ) : (
               renderRows(results, query, activeIndex, commit)
             )}
@@ -189,7 +205,12 @@ function renderRows(
 ) {
   if (query.trim()) {
     return results.map((command, index) => (
-      <CommandRow key={command.id} command={command} active={index === activeIndex} onClick={() => commit(index)} />
+      <CommandRow
+        key={command.id}
+        command={command}
+        active={index === activeIndex}
+        onClick={() => commit(index)}
+      />
     ));
   }
 
@@ -213,7 +234,12 @@ function renderRows(
       }
     }
     rows.push(
-      <CommandRow key={command.id} command={command} active={index === activeIndex} onClick={() => commit(index)} />,
+      <CommandRow
+        key={command.id}
+        command={command}
+        active={index === activeIndex}
+        onClick={() => commit(index)}
+      />,
     );
   });
   return rows;
@@ -244,15 +270,19 @@ function CommandRow({
       aria-disabled={command.disabled || undefined}
       onClick={() => !command.disabled && onClick()}
       className={cn(
-        'flex items-center gap-2.5 px-4 py-2.5 text-sm cursor-pointer select-none',
-        command.disabled && 'opacity-50 cursor-not-allowed pointer-events-none',
-        active && !command.disabled && 'bg-surface-secondary',
+        "flex items-center gap-2.5 px-4 py-2.5 text-sm cursor-pointer select-none",
+        command.disabled && "opacity-50 cursor-not-allowed pointer-events-none",
+        active && !command.disabled && "bg-surface-secondary",
       )}
     >
       {Icon && <Icon className="w-4 h-4 text-text-secondary shrink-0" />}
-      <span className="flex-1 min-w-0 truncate text-text-primary">{command.label}</span>
+      <span className="flex-1 min-w-0 truncate text-text-primary">
+        {command.label}
+      </span>
       {command.shortcut && (
-        <span className="text-xs text-text-secondary tracking-widest shrink-0">{command.shortcut}</span>
+        <span className="text-xs text-text-secondary tracking-widest shrink-0">
+          {command.shortcut}
+        </span>
       )}
     </li>
   );
@@ -303,24 +333,33 @@ export function useCommandPaletteHotkey() {
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         setOpen((prev) => !prev);
       }
     }
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
   return { open, setOpen };
 }
 
-function filterAndRankCommands(items: CommandItem[], query: string): CommandItem[] {
+function filterAndRankCommands(
+  items: CommandItem[],
+  query: string,
+): CommandItem[] {
   const trimmed = query.trim();
   if (!trimmed) return items;
   return items
-    .map((item) => ({ item, score: fuzzyScore(trimmed, `${item.label} ${item.keywords ?? ''}`) }))
-    .filter((entry): entry is { item: CommandItem; score: number } => entry.score !== null)
+    .map((item) => ({
+      item,
+      score: fuzzyScore(trimmed, `${item.label} ${item.keywords ?? ""}`),
+    }))
+    .filter(
+      (entry): entry is { item: CommandItem; score: number } =>
+        entry.score !== null,
+    )
     .sort((a, b) => b.score - a.score)
     .map((entry) => entry.item);
 }

@@ -1,11 +1,11 @@
-import { memo } from 'react';
-import { Card } from '@pos/ui';
-import type { KitchenTicket, KitchenTicketStatus } from '@pos/types';
-import { STATUS_CONFIG } from '../constants';
-import { isUrgent } from '../utils/ticket';
-import { TicketHeader } from './TicketHeader';
-import { TicketItems } from './TicketItems';
-import { TicketFooter } from './TicketFooter';
+import { memo } from "react";
+import { Card } from "@pos/ui";
+import type { KitchenTicket, KitchenTicketStatus } from "@pos/types";
+import { STATUS_CONFIG } from "../constants";
+import { isUrgent } from "../utils/ticket";
+import { TicketHeader } from "./TicketHeader";
+import { TicketItems } from "./TicketItems";
+import { TicketFooter } from "./TicketFooter";
 
 interface Props {
   ticket: KitchenTicket;
@@ -24,7 +24,11 @@ interface Props {
 // board-wide `isUpdating` flag and a fresh inline callback each render,
 // would have done nothing (every card's props would still look "new"
 // every render).
-export const TicketCard = memo(function TicketCard({ ticket, onUpdateStatus, isUpdating }: Props) {
+export const TicketCard = memo(function TicketCard({
+  ticket,
+  onUpdateStatus,
+  isUpdating,
+}: Props) {
   const cfg = STATUS_CONFIG[ticket.status as keyof typeof STATUS_CONFIG];
   if (!cfg) return null;
 
@@ -39,9 +43,14 @@ export const TicketCard = memo(function TicketCard({ ticket, onUpdateStatus, isU
   return (
     <Card
       padding="md"
-      className={`border-2 rounded-xl flex flex-col gap-3 ${cfg.border} ${urgent ? 'ring-2 ring-danger/60' : ''}`}
+      className={`border-2 rounded-xl flex flex-col gap-3 ${cfg.border} ${urgent ? "ring-2 ring-danger/60" : ""}`}
     >
-      <TicketHeader ticket={ticket} statusLabel={cfg.label} statusTone={cfg.badgeTone} statusTextClass={cfg.badgeTextClass} />
+      <TicketHeader
+        ticket={ticket}
+        statusLabel={cfg.label}
+        statusTone={cfg.badgeTone}
+        statusTextClass={cfg.badgeTextClass}
+      />
       <TicketItems notes={ticket.notes} items={ticket.items} />
       <TicketFooter
         next={cfg.next}

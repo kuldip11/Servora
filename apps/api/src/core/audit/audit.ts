@@ -1,19 +1,19 @@
-import { db } from '../../db';
-import { auditLogs } from '../../db/schema';
+import { db } from "../../db";
+import { auditLogs } from "../../db/schema";
 
 export type AuditAction =
-  | 'TENANT_CREATED'
-  | 'TENANT_ARCHIVED'
-  | 'TENANT_UPDATED'
-  | 'BRANCH_CREATED'
-  | 'BRANCH_UPDATED'
-  | 'BRANCH_ARCHIVED'
-  | 'STAFF_CREATED'
-  | 'STAFF_DEACTIVATED'
-  | 'STAFF_REACTIVATED'
-  | 'STAFF_ROLE_ASSIGNED'
-  | 'STAFF_BRANCHES_ASSIGNED'
-  | 'REFUND_CREATED';
+  | "TENANT_CREATED"
+  | "TENANT_ARCHIVED"
+  | "TENANT_UPDATED"
+  | "BRANCH_CREATED"
+  | "BRANCH_UPDATED"
+  | "BRANCH_ARCHIVED"
+  | "STAFF_CREATED"
+  | "STAFF_DEACTIVATED"
+  | "STAFF_REACTIVATED"
+  | "STAFF_ROLE_ASSIGNED"
+  | "STAFF_BRANCHES_ASSIGNED"
+  | "REFUND_CREATED";
 
 export interface AuditInput {
   tenantId: string;
@@ -31,14 +31,17 @@ export interface AuditInput {
  * Metadata is JSON text for compatibility with the existing audit schema.
  */
 export async function writeAudit(input: AuditInput) {
-  const [entry] = await db.insert(auditLogs).values({
-    tenantId: input.tenantId,
-    userId: input.userId ?? null,
-    action: input.action,
-    entity: input.entity,
-    entityId: input.entityId ?? null,
-    metadata: JSON.stringify(input.metadata ?? {}),
-    ipAddress: input.ipAddress ?? null,
-  }).returning();
+  const [entry] = await db
+    .insert(auditLogs)
+    .values({
+      tenantId: input.tenantId,
+      userId: input.userId ?? null,
+      action: input.action,
+      entity: input.entity,
+      entityId: input.entityId ?? null,
+      metadata: JSON.stringify(input.metadata ?? {}),
+      ipAddress: input.ipAddress ?? null,
+    })
+    .returning();
   return entry!;
 }

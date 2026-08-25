@@ -1,15 +1,19 @@
-import { memo } from 'react';
-import { Bell, ChevronRight } from 'lucide-react';
-import { Card } from '@pos/ui';
-import type { Order } from '@pos/types';
-import { StatusBadge } from './StatusBadge';
-import { shortOrderId, formatCurrency, isOrderReady } from '../utils/orderHelpers';
+import { memo } from "react";
+import { Bell, ChevronRight } from "lucide-react";
+import { Card } from "@pos/ui";
+import type { Order } from "@pos/types";
+import { StatusBadge } from "./StatusBadge";
+import {
+  shortOrderId,
+  formatCurrency,
+  isOrderReady,
+} from "../utils/orderHelpers";
 
 interface Props {
   order: Order;
   onSelect: (id: string) => void;
   /** 'compact' — Home's single-line card. 'detailed' — Orders list card with item preview. */
-  variant?: 'compact' | 'detailed';
+  variant?: "compact" | "detailed";
 }
 
 // Phase 11: rebuilt on `Card` (Phase 2) instead of the hand-rolled
@@ -32,29 +36,40 @@ interface Props {
 // this card's props are already stable across an unrelated parent
 // re-render — `memo` here isn't fighting an inline-callback problem
 // the way `MenuItemCard`'s did.
-export const OrderCard = memo(function OrderCard({ order, onSelect, variant = 'detailed' }: Props) {
+export const OrderCard = memo(function OrderCard({
+  order,
+  onSelect,
+  variant = "detailed",
+}: Props) {
   const ready = isOrderReady(order);
 
-  if (variant === 'compact') {
+  if (variant === "compact") {
     return (
       <Card
         as="button"
         onClick={() => onSelect(order.id)}
         padding="md"
         className={`w-full text-left rounded-2xl flex items-center gap-3 active:scale-95 transition-transform ${
-          ready ? 'border-success ring-1 ring-success/30' : ''
+          ready ? "border-success ring-1 ring-success/30" : ""
         }`}
       >
-        {ready && <Bell className="w-4 h-4 text-success animate-bounce flex-shrink-0" />}
+        {ready && (
+          <Bell className="w-4 h-4 text-success animate-bounce flex-shrink-0" />
+        )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="font-mono font-bold text-sm text-text-primary">{shortOrderId(order.id)}</span>
+            <span className="font-mono font-bold text-sm text-text-primary">
+              {shortOrderId(order.id)}
+            </span>
             {order.table && (
-              <span className="text-xs text-text-disabled">Table {order.table.name}</span>
+              <span className="text-xs text-text-disabled">
+                Table {order.table.name}
+              </span>
             )}
           </div>
           <p className="text-xs text-text-disabled mt-0.5">
-            {order.items?.length ?? 0} items · {formatCurrency(order.totalAmount)}
+            {order.items?.length ?? 0} items ·{" "}
+            {formatCurrency(order.totalAmount)}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -71,13 +86,15 @@ export const OrderCard = memo(function OrderCard({ order, onSelect, variant = 'd
       onClick={() => onSelect(order.id)}
       padding="md"
       className={`w-full text-left rounded-2xl active:scale-95 transition-transform ${
-        ready ? 'border-success ring-1 ring-success/30' : ''
+        ready ? "border-success ring-1 ring-success/30" : ""
       }`}
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           {ready && <Bell className="w-4 h-4 text-success animate-bounce" />}
-          <span className="font-mono font-bold text-sm text-text-primary">{shortOrderId(order.id)}</span>
+          <span className="font-mono font-bold text-sm text-text-primary">
+            {shortOrderId(order.id)}
+          </span>
           {order.table && (
             <span className="text-xs bg-surface-secondary text-text-secondary px-2 py-0.5 rounded-full">
               Table {order.table.name}
@@ -99,9 +116,13 @@ export const OrderCard = memo(function OrderCard({ order, onSelect, variant = 'd
         )}
       </div>
       <div className="flex items-center justify-between">
-        <span className="text-xs text-text-disabled">{order.type?.replace('_', ' ')}</span>
+        <span className="text-xs text-text-disabled">
+          {order.type?.replace("_", " ")}
+        </span>
         <div className="flex items-center gap-1.5">
-          <span className="text-sm font-bold text-text-primary">{formatCurrency(order.totalAmount)}</span>
+          <span className="text-sm font-bold text-text-primary">
+            {formatCurrency(order.totalAmount)}
+          </span>
           <ChevronRight className="w-4 h-4 text-text-disabled" />
         </div>
       </div>

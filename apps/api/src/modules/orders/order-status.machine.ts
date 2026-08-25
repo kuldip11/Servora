@@ -7,24 +7,33 @@
  * `VALID_TRANSITIONS` map) so it can be imported directly by tests instead
  * of duplicated, the same fix applied to the kitchen-ticket transitions.
  */
-import type { OrderStatus } from '@pos/types';
-import { DomainRuleError } from '../../core/errors';
+import type { OrderStatus } from "@pos/types";
+import { DomainRuleError } from "../../core/errors";
 
 export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-  OPEN: ['BILL_REQUESTED', 'CANCELLED'],
-  BILL_REQUESTED: ['PAID', 'OPEN'],
-  PAID: ['CLOSED'],
+  OPEN: ["BILL_REQUESTED", "CANCELLED"],
+  BILL_REQUESTED: ["PAID", "OPEN"],
+  PAID: ["CLOSED"],
   CLOSED: [],
   CANCELLED: [],
 };
 
-export function canTransitionOrder(from: OrderStatus, to: OrderStatus): boolean {
+export function canTransitionOrder(
+  from: OrderStatus,
+  to: OrderStatus,
+): boolean {
   return (ORDER_STATUS_TRANSITIONS[from] ?? []).includes(to);
 }
 
 /** Throws `DomainRuleError` if `from -> to` isn't a valid order transition. */
-export function assertValidOrderTransition(from: OrderStatus, to: OrderStatus): void {
+export function assertValidOrderTransition(
+  from: OrderStatus,
+  to: OrderStatus,
+): void {
   if (!canTransitionOrder(from, to)) {
-    throw new DomainRuleError(`Cannot transition order from ${from} to ${to}`, { from, to });
+    throw new DomainRuleError(`Cannot transition order from ${from} to ${to}`, {
+      from,
+      to,
+    });
   }
 }

@@ -1,8 +1,11 @@
-import { forwardRef } from 'react';
-import { Search, X } from 'lucide-react';
-import { TextInput, type TextInputProps } from './TextInput';
+import { forwardRef } from "react";
+import { Search, X } from "lucide-react";
+import { TextInput, type TextInputProps } from "./TextInput";
 
-export interface SearchInputProps extends Omit<TextInputProps, 'icon' | 'suffix' | 'type'> {
+export interface SearchInputProps extends Omit<
+  TextInputProps,
+  "icon" | "suffix" | "type"
+> {
   /** Called when the clear (×) button is pressed. Only shown when `value` is non-empty. */
   onClear?: () => void;
 }
@@ -16,7 +19,7 @@ export interface SearchInputProps extends Omit<TextInputProps, 'icon' | 'suffix'
  */
 export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
   ({ onClear, value, ...props }, ref) => {
-    const hasValue = typeof value === 'string' ? value.length > 0 : !!value;
+    const hasValue = typeof value === "string" ? value.length > 0 : !!value;
     return (
       <TextInput
         ref={ref}
@@ -40,4 +43,4 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
     );
   },
 );
-SearchInput.displayName = 'SearchInput';
+SearchInput.displayName = "SearchInput";

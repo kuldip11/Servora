@@ -1,13 +1,18 @@
-import { type InputHTMLAttributes, forwardRef } from 'react';
-import { Minus, Plus } from 'lucide-react';
-import { cn } from '../../utils/cn';
-import { FieldLabel, FieldFooter, fieldBaseClasses, useFieldIds, describedBy } from './shared';
+import { type InputHTMLAttributes, forwardRef } from "react";
+import { Minus, Plus } from "lucide-react";
+import { cn } from "../../utils/cn";
+import {
+  FieldLabel,
+  FieldFooter,
+  fieldBaseClasses,
+  useFieldIds,
+  describedBy,
+} from "./shared";
 
-export interface NumberInputProps
-  extends Omit<
-    InputHTMLAttributes<HTMLInputElement>,
-    'value' | 'defaultValue' | 'onChange' | 'type'
-  > {
+export interface NumberInputProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  "value" | "defaultValue" | "onChange" | "type"
+> {
   label?: string | undefined;
   hint?: string | undefined;
   error?: string | undefined;
@@ -87,9 +92,9 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
             inputMode="decimal"
             className={cn(
               fieldBaseClasses(!!error),
-              'px-3 py-2.5 text-center',
-              showSteppers && 'px-9',
-              '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none',
+              "px-3 py-2.5 text-center",
+              showSteppers && "px-9",
+              "[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
               className,
             )}
             value={value ?? 0}
@@ -118,9 +123,14 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
             </button>
           )}
         </div>
-        <FieldFooter hint={hint} error={error} hintId={hintId} errorId={errorId} />
+        <FieldFooter
+          hint={hint}
+          error={error}
+          hintId={hintId}
+          errorId={errorId}
+        />
       </div>
     );
   },
 );
-NumberInput.displayName = 'NumberInput';
+NumberInput.displayName = "NumberInput";

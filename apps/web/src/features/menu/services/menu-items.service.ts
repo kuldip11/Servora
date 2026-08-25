@@ -1,5 +1,5 @@
-import { apiClient } from '../../../shared/lib/api-client';
-import type { MenuItem, MenuCategory, MenuItemStatus } from '@pos/types';
+import { apiClient } from "../../../shared/lib/api-client";
+import type { MenuItem, MenuCategory, MenuItemStatus } from "@pos/types";
 
 export interface MenuItemFormPayload {
   categoryId: string;
@@ -24,12 +24,12 @@ export interface MenuItemFormPayload {
 
 export const menuItemsService = {
   async listCategories(): Promise<MenuCategory[]> {
-    const res = await apiClient.get('/menu/categories');
+    const res = await apiClient.get("/menu/categories");
     return res.data.data;
   },
 
   async addCategory(name: string): Promise<MenuCategory> {
-    const res = await apiClient.post('/menu/categories', { name });
+    const res = await apiClient.post("/menu/categories", { name });
     return res.data.data;
   },
 
@@ -42,10 +42,13 @@ export const menuItemsService = {
     await apiClient.delete(`/menu/categories/${id}`);
   },
 
-  async saveItem(item: MenuItem | null, payload: MenuItemFormPayload): Promise<MenuItem> {
+  async saveItem(
+    item: MenuItem | null,
+    payload: MenuItemFormPayload,
+  ): Promise<MenuItem> {
     const res = item
       ? await apiClient.patch(`/menu/items/${item.id}`, payload)
-      : await apiClient.post('/menu/items', payload);
+      : await apiClient.post("/menu/items", payload);
     return res.data.data;
   },
 
@@ -63,39 +66,65 @@ export const menuItemsService = {
   },
 
   async setPublished(id: string, publish: boolean): Promise<void> {
-    await apiClient.patch(`/menu/items/${id}/${publish ? 'publish' : 'unpublish'}`);
+    await apiClient.patch(
+      `/menu/items/${id}/${publish ? "publish" : "unpublish"}`,
+    );
   },
 
-  async bulkSetStatus(itemIds: string[], status: MenuItemStatus, reason?: string): Promise<{ updated: number }> {
-    const res = await apiClient.post('/menu/items/bulk/status', { itemIds, status, reason });
+  async bulkSetStatus(
+    itemIds: string[],
+    status: MenuItemStatus,
+    reason?: string,
+  ): Promise<{ updated: number }> {
+    const res = await apiClient.post("/menu/items/bulk/status", {
+      itemIds,
+      status,
+      reason,
+    });
     return res.data.data;
   },
 
-  async bulkMoveCategory(itemIds: string[], categoryId: string): Promise<{ updated: number }> {
-    const res = await apiClient.post('/menu/items/bulk/category', { itemIds, categoryId });
+  async bulkMoveCategory(
+    itemIds: string[],
+    categoryId: string,
+  ): Promise<{ updated: number }> {
+    const res = await apiClient.post("/menu/items/bulk/category", {
+      itemIds,
+      categoryId,
+    });
     return res.data.data;
   },
 
   async bulkUpdateTags(
     itemIds: string[],
     tagIds: string[],
-    mode: 'add' | 'remove' | 'replace',
+    mode: "add" | "remove" | "replace",
   ): Promise<{ updated: number }> {
-    const res = await apiClient.post('/menu/items/bulk/tags', { itemIds, tagIds, mode });
+    const res = await apiClient.post("/menu/items/bulk/tags", {
+      itemIds,
+      tagIds,
+      mode,
+    });
     return res.data.data;
   },
 
   async bulkAdjustPrice(
     itemIds: string[],
     priceChange: number,
-    mode: 'set' | 'increase' | 'decrease',
+    mode: "set" | "increase" | "decrease",
   ): Promise<{ updated: number }> {
-    const res = await apiClient.post('/menu/items/bulk/price', { itemIds, priceChange, mode });
+    const res = await apiClient.post("/menu/items/bulk/price", {
+      itemIds,
+      priceChange,
+      mode,
+    });
     return res.data.data;
   },
 
-  async bulkDelete(itemIds: string[]): Promise<{ deleted: number; protected: number }> {
-    const res = await apiClient.post('/menu/items/bulk/delete', { itemIds });
+  async bulkDelete(
+    itemIds: string[],
+  ): Promise<{ deleted: number; protected: number }> {
+    const res = await apiClient.post("/menu/items/bulk/delete", { itemIds });
     return res.data.data;
   },
 };

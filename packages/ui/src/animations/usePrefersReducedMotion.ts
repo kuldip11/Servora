@@ -1,5 +1,5 @@
-import { useSyncExternalStore } from 'react';
-import { REDUCED_MOTION_QUERY } from './tokens';
+import { useSyncExternalStore } from "react";
+import { REDUCED_MOTION_QUERY } from "./tokens";
 
 /**
  * The `theme/motion.css` global media-query override (Phase 8) is what
@@ -23,14 +23,14 @@ export function usePrefersReducedMotion(): boolean {
 }
 
 function subscribe(callback: () => void) {
-  if (typeof window === 'undefined' || !window.matchMedia) return () => {};
+  if (typeof window === "undefined" || !window.matchMedia) return () => {};
   const mql = window.matchMedia(REDUCED_MOTION_QUERY);
-  mql.addEventListener('change', callback);
-  return () => mql.removeEventListener('change', callback);
+  mql.addEventListener("change", callback);
+  return () => mql.removeEventListener("change", callback);
 }
 
 function getSnapshot() {
-  if (typeof window === 'undefined' || !window.matchMedia) return false;
+  if (typeof window === "undefined" || !window.matchMedia) return false;
   return window.matchMedia(REDUCED_MOTION_QUERY).matches;
 }
 

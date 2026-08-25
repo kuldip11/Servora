@@ -1,8 +1,8 @@
-import { useMutation } from '@tanstack/react-query';
-import { queryClient } from '../../../shared/lib/query-client';
-import { notifyError, notifySuccess } from '../../../shared/lib/notify';
-import { menuItemsService } from '../services/menu-items.service';
-import { menuKeys } from '../query-keys';
+import { useMutation } from "@tanstack/react-query";
+import { queryClient } from "../../../shared/lib/query-client";
+import { notifyError, notifySuccess } from "../../../shared/lib/notify";
+import { menuItemsService } from "../services/menu-items.service";
+import { menuKeys } from "../query-keys";
 
 export function useBulkDeleteItems() {
   return useMutation({
@@ -15,6 +15,6 @@ export function useBulkDeleteItems() {
           : `Deleted ${data.deleted} item(s)`,
       );
     },
-    onError: () => notifyError(undefined, 'Failed to delete items'),
+    onError: () => notifyError(undefined, "Failed to delete items"),
   });
 }

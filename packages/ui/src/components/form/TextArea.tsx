@@ -1,6 +1,12 @@
-import { type TextareaHTMLAttributes, forwardRef, useState } from 'react';
-import { cn } from '../../utils/cn';
-import { FieldLabel, FieldFooter, fieldBaseClasses, useFieldIds, describedBy } from './shared';
+import { type TextareaHTMLAttributes, forwardRef, useState } from "react";
+import { cn } from "../../utils/cn";
+import {
+  FieldLabel,
+  FieldFooter,
+  fieldBaseClasses,
+  useFieldIds,
+  describedBy,
+} from "./shared";
 
 export interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string | undefined;
@@ -32,8 +38,12 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
   ) => {
     const { fieldId, hintId, errorId } = useFieldIds(id);
     const isControlled = value !== undefined;
-    const [uncontrolledValue, setUncontrolledValue] = useState(defaultValue ?? '');
-    const currentLength = String(isControlled ? value : uncontrolledValue).length;
+    const [uncontrolledValue, setUncontrolledValue] = useState(
+      defaultValue ?? "",
+    );
+    const currentLength = String(
+      isControlled ? value : uncontrolledValue,
+    ).length;
 
     return (
       <div className="flex flex-col gap-1.5">
@@ -44,7 +54,11 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
           ref={ref}
           id={fieldId}
           rows={rows}
-          className={cn(fieldBaseClasses(!!error), 'px-3 py-2.5 resize-y', className)}
+          className={cn(
+            fieldBaseClasses(!!error),
+            "px-3 py-2.5 resize-y",
+            className,
+          )}
           maxLength={maxLength}
           value={value}
           defaultValue={isControlled ? undefined : defaultValue}
@@ -69,4 +83,4 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
     );
   },
 );
-TextArea.displayName = 'TextArea';
+TextArea.displayName = "TextArea";

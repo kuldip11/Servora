@@ -1,11 +1,12 @@
-import { franchiseQueryContextKey } from '../../shared/lib/query-context';
+import { franchiseQueryContextKey } from "../../shared/lib/query-context";
 
 export const staffKeys = {
-  all: ['staff'] as const,
-  list: () => [...staffKeys.all, ...franchiseQueryContextKey(), 'list'] as const,
+  all: ["staff"] as const,
+  list: () =>
+    [...staffKeys.all, ...franchiseQueryContextKey(), "list"] as const,
 };
 
 export const roleKeys = {
-  all: ['roles'] as const,
-  list: () => [...roleKeys.all, ...franchiseQueryContextKey(), 'list'] as const,
+  all: ["roles"] as const,
+  list: () => [...roleKeys.all, ...franchiseQueryContextKey(), "list"] as const,
 };

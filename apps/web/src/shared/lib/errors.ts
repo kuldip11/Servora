@@ -1,4 +1,4 @@
-import { extractApiError } from '@pos/api-client';
+import { extractApiError } from "@pos/api-client";
 
 /**
  * Single source of truth for turning a thrown error (Axios error, native
@@ -8,7 +8,10 @@ import { extractApiError } from '@pos/api-client';
  * app-specific fallbacks on top without repeating `err?.response?.data?.message`
  * throughout features.
  */
-export function getErrorMessage(error: unknown, fallback = 'Something went wrong'): string {
+export function getErrorMessage(
+  error: unknown,
+  fallback = "Something went wrong",
+): string {
   const message = extractApiError(error);
-  return message && message !== 'Request failed' ? message : fallback;
+  return message && message !== "Request failed" ? message : fallback;
 }

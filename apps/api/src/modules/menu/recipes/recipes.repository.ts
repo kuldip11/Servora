@@ -3,10 +3,10 @@
  * inventory) sub-domain only. Extracted from the monolithic
  * `modules/menu/repository.ts` verbatim — see docs/NEXT_STEPS.md.
  */
-import { eq, and, inArray } from 'drizzle-orm';
-import { db } from '../../../db';
-import { menuItems, recipes, inventoryItems } from '../../../db/schema';
-import type { InventoryUnit } from '@pos/types';
+import { eq, and, inArray } from "drizzle-orm";
+import { db } from "../../../db";
+import { menuItems, recipes, inventoryItems } from "../../../db/schema";
+import type { InventoryUnit } from "@pos/types";
 
 export const recipesRepository = {
   async findItem(tenantId: string, itemId: string) {
@@ -26,10 +26,16 @@ export const recipesRepository = {
   // Ingredients must belong to the same tenant — otherwise a stray id
   // would silently create a cross-tenant reference. Returns the subset of
   // `inventoryItemIds` that really are owned by this tenant.
-  async findOwnedInventoryItemIds(tenantId: string, inventoryItemIds: string[]): Promise<Set<string>> {
+  async findOwnedInventoryItemIds(
+    tenantId: string,
+    inventoryItemIds: string[],
+  ): Promise<Set<string>> {
     if (!inventoryItemIds.length) return new Set();
     const owned = await db.query.inventoryItems.findMany({
-      where: and(eq(inventoryItems.tenantId, tenantId), inArray(inventoryItems.id, inventoryItemIds)),
+      where: and(
+        eq(inventoryItems.tenantId, tenantId),
+        inArray(inventoryItems.id, inventoryItemIds),
+      ),
       columns: { id: true },
     });
     return new Set(owned.map((i) => i.id));
@@ -37,7 +43,10 @@ export const recipesRepository = {
 
   async findInventoryItem(tenantId: string, inventoryItemId: string) {
     return db.query.inventoryItems.findFirst({
-      where: and(eq(inventoryItems.id, inventoryItemId), eq(inventoryItems.tenantId, tenantId)),
+      where: and(
+        eq(inventoryItems.id, inventoryItemId),
+        eq(inventoryItems.tenantId, tenantId),
+      ),
     });
   },
 
@@ -46,7 +55,12 @@ export const recipesRepository = {
   // stale ingredient rows if the caller forgets to clean up.
   async replaceRecipe(
     itemId: string,
-    ingredients: Array<{ inventoryItemId: string; quantity: number; unit: InventoryUnit; isOptional?: boolean }>,
+    ingredients: Array<{
+      inventoryItemId: string;
+      quantity: number;
+      unit: InventoryUnit;
+      isOptional?: boolean;
+    }>,
   ) {
     return db.transaction(async (tx) => {
       await tx.delete(recipes).where(eq(recipes.menuItemId, itemId));
@@ -69,7 +83,14 @@ export const recipesRepository = {
   },
 
   async deleteRecipeIngredient(itemId: string, inventoryItemId: string) {
-    await db.delete(recipes).where(and(eq(recipes.menuItemId, itemId), eq(recipes.inventoryItemId, inventoryItemId)));
+    await db
+      .delete(recipes)
+      .where(
+        and(
+          eq(recipes.menuItemId, itemId),
+          eq(recipes.inventoryItemId, inventoryItemId),
+        ),
+      );
   },
 
   async upsertRecipeIngredient(
@@ -81,7 +102,13 @@ export const recipesRepository = {
   ) {
     const [row] = await db
       .insert(recipes)
-      .values({ menuItemId: itemId, inventoryItemId, quantityRequired: String(quantity), unit, isOptional })
+      .values({
+        menuItemId: itemId,
+        inventoryItemId,
+        quantityRequired: String(quantity),
+        unit,
+        isOptional,
+      })
       .onConflictDoUpdate({
         target: [recipes.menuItemId, recipes.inventoryItemId],
         set: { quantityRequired: String(quantity), unit, isOptional },

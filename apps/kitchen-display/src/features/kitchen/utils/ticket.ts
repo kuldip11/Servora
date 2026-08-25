@@ -1,6 +1,6 @@
-import { formatDistanceToNow } from 'date-fns';
-import type { KitchenTicket } from '@pos/types';
-import { URGENT_THRESHOLD_MS } from '../constants';
+import { formatDistanceToNow } from "date-fns";
+import type { KitchenTicket } from "@pos/types";
+import { URGENT_THRESHOLD_MS } from "../constants";
 
 export function calculateElapsedMs(firedAt: string): number {
   return Date.now() - new Date(firedAt).getTime();
@@ -16,7 +16,7 @@ export function formatTicketAge(firedAt: string): string {
 
 export function groupTicketsByStatus(
   tickets: KitchenTicket[] | undefined,
-  status: KitchenTicket['status'],
+  status: KitchenTicket["status"],
 ): KitchenTicket[] {
   return tickets?.filter((t) => t.status === status) ?? [];
 }

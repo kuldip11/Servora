@@ -1,5 +1,1 @@
-export type TableStatus =
-  | 'AVAILABLE'
-  | 'OCCUPIED'
-  | 'CLEANING'
-  | 'RESERVED';
+export type TableStatus = "AVAILABLE" | "OCCUPIED" | "CLEANING" | "RESERVED";

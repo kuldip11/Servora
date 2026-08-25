@@ -4,10 +4,10 @@
  * (applied in `auth.route.ts`), so `auth` is already resolved and typed.
  * Any thrown `AppError` flows through the global handler in `src/index.ts`.
  */
-import type { AuthContext } from '../../core/auth';
-import { successResponse } from '../../core/response';
-import { authService } from './auth.service';
-import type { SignupInput, LoginInput } from '@pos/validation';
+import type { AuthContext } from "../../core/auth";
+import { successResponse } from "../../core/response";
+import { authService } from "./auth.service";
+import type { SignupInput, LoginInput } from "@pos/validation";
 
 export const authController = {
   async signup(input: SignupInput) {
@@ -29,9 +29,11 @@ export const authController = {
     return successResponse(await authService.memberships(auth.userId));
   },
 
-
   async me(auth: AuthContext) {
-    const { user, membership } = await authService.me(auth.userId, auth.membershipId);
+    const { user, membership } = await authService.me(
+      auth.userId,
+      auth.membershipId,
+    );
     const membershipRoles = membership
       ? membership.roles.map((mr: any) => ({
           id: mr.roleId,
@@ -44,7 +46,12 @@ export const authController = {
       name: ur.role.name,
       permissions: ur.role.rolePermissions.map((rp) => rp.permission),
     }));
-    const roles = [...globalRoles, ...membershipRoles.filter((role) => !globalRoles.some((globalRole) => globalRole.id === role.id))];
+    const roles = [
+      ...globalRoles,
+      ...membershipRoles.filter(
+        (role) => !globalRoles.some((globalRole) => globalRole.id === role.id),
+      ),
+    ];
 
     return successResponse({
       id: user.id,

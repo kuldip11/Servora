@@ -220,12 +220,8 @@
           "name": "branches_tenant_id_tenants_id_fk",
           "tableFrom": "branches",
           "tableTo": "tenants",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -411,12 +407,8 @@
           "name": "refresh_tokens_user_id_users_id_fk",
           "tableFrom": "refresh_tokens",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -425,12 +417,8 @@
           "name": "refresh_tokens_membership_id_tenant_memberships_id_fk",
           "tableFrom": "refresh_tokens",
           "tableTo": "tenant_memberships",
-          "columnsFrom": [
-            "membership_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["membership_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -447,161 +435,82 @@
     "public.role_scope": {
       "name": "role_scope",
       "schema": "public",
-      "values": [
-        "GLOBAL",
-        "TENANT",
-        "BRANCH"
-      ]
+      "values": ["GLOBAL", "TENANT", "BRANCH"]
     },
     "public.membership_status": {
       "name": "membership_status",
       "schema": "public",
-      "values": [
-        "ACTIVE",
-        "INACTIVE",
-        "SUSPENDED"
-      ]
+      "values": ["ACTIVE", "INACTIVE", "SUSPENDED"]
     },
     "public.user_status": {
       "name": "user_status",
       "schema": "public",
-      "values": [
-        "ACTIVE",
-        "INACTIVE",
-        "SUSPENDED"
-      ]
+      "values": ["ACTIVE", "INACTIVE", "SUSPENDED"]
     },
     "public.table_status": {
       "name": "table_status",
       "schema": "public",
-      "values": [
-        "AVAILABLE",
-        "OCCUPIED",
-        "CLEANING",
-        "RESERVED"
-      ]
+      "values": ["AVAILABLE", "OCCUPIED", "CLEANING", "RESERVED"]
     },
     "public.food_type": {
       "name": "food_type",
       "schema": "public",
-      "values": [
-        "VEG",
-        "NON_VEG",
-        "EGG"
-      ]
+      "values": ["VEG", "NON_VEG", "EGG"]
     },
     "public.spice_level": {
       "name": "spice_level",
       "schema": "public",
-      "values": [
-        "NONE",
-        "MILD",
-        "MEDIUM",
-        "HOT"
-      ]
+      "values": ["NONE", "MILD", "MEDIUM", "HOT"]
     },
     "public.modifier_selection_type": {
       "name": "modifier_selection_type",
       "schema": "public",
-      "values": [
-        "SINGLE",
-        "MULTIPLE"
-      ]
+      "values": ["SINGLE", "MULTIPLE"]
     },
     "public.menu_item_status": {
       "name": "menu_item_status",
       "schema": "public",
-      "values": [
-        "ACTIVE",
-        "OUT_OF_STOCK",
-        "HIDDEN",
-        "SEASONAL",
-        "DISCONTINUED"
-      ]
+      "values": ["ACTIVE", "OUT_OF_STOCK", "HIDDEN", "SEASONAL", "DISCONTINUED"]
     },
     "public.menu_item_schedule_type": {
       "name": "menu_item_schedule_type",
       "schema": "public",
-      "values": [
-        "DAILY",
-        "WEEKLY",
-        "SPECIFIC_DATE",
-        "HOLIDAY"
-      ]
+      "values": ["DAILY", "WEEKLY", "SPECIFIC_DATE", "HOLIDAY"]
     },
     "public.inventory_unit": {
       "name": "inventory_unit",
       "schema": "public",
-      "values": [
-        "KG",
-        "GRAMS",
-        "LITERS",
-        "ML",
-        "PIECES",
-        "PACKETS"
-      ]
+      "values": ["KG", "GRAMS", "LITERS", "ML", "PIECES", "PACKETS"]
     },
     "public.inventory_transaction_type": {
       "name": "inventory_transaction_type",
       "schema": "public",
-      "values": [
-        "IN",
-        "OUT",
-        "ADJUSTMENT",
-        "WASTE"
-      ]
+      "values": ["IN", "OUT", "ADJUSTMENT", "WASTE"]
     },
     "public.order_status": {
       "name": "order_status",
       "schema": "public",
-      "values": [
-        "OPEN",
-        "BILL_REQUESTED",
-        "PAID",
-        "CLOSED",
-        "CANCELLED"
-      ]
+      "values": ["OPEN", "BILL_REQUESTED", "PAID", "CLOSED", "CANCELLED"]
     },
     "public.order_type": {
       "name": "order_type",
       "schema": "public",
-      "values": [
-        "DINE_IN",
-        "TAKEAWAY",
-        "DELIVERY",
-        "ONLINE"
-      ]
+      "values": ["DINE_IN", "TAKEAWAY", "DELIVERY", "ONLINE"]
     },
     "public.kitchen_ticket_status": {
       "name": "kitchen_ticket_status",
       "schema": "public",
-      "values": [
-        "FIRED",
-        "PREPARING",
-        "READY",
-        "SERVED"
-      ]
+      "values": ["FIRED", "PREPARING", "READY", "SERVED"]
     },
     "public.payment_method": {
       "name": "payment_method",
       "schema": "public",
-      "values": [
-        "CASH",
-        "CARD",
-        "UPI",
-        "RAZORPAY",
-        "STRIPE"
-      ]
+      "values": ["CASH", "CARD", "UPI", "RAZORPAY", "STRIPE"]
     },
     "public.payment_status": {
       "name": "payment_status",
       "schema": "public",
-      "values": [
-        "PENDING",
-        "SUCCESS",
-        "FAILED",
-        "REFUNDED"
-      ]
+      "values": ["PENDING", "SUCCESS", "FAILED", "REFUNDED"]
     }
   },
   "schemas": {},

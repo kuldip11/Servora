@@ -1,13 +1,22 @@
-import { t } from 'elysia';
+import { t } from "elysia";
 
-const FOOD_TYPE = t.Union([t.Literal('VEG'), t.Literal('NON_VEG'), t.Literal('EGG')]);
-const SPICE_LEVEL = t.Union([t.Literal('NONE'), t.Literal('MILD'), t.Literal('MEDIUM'), t.Literal('HOT')]);
+const FOOD_TYPE = t.Union([
+  t.Literal("VEG"),
+  t.Literal("NON_VEG"),
+  t.Literal("EGG"),
+]);
+const SPICE_LEVEL = t.Union([
+  t.Literal("NONE"),
+  t.Literal("MILD"),
+  t.Literal("MEDIUM"),
+  t.Literal("HOT"),
+]);
 const ITEM_STATUS = t.Union([
-  t.Literal('ACTIVE'),
-  t.Literal('OUT_OF_STOCK'),
-  t.Literal('HIDDEN'),
-  t.Literal('SEASONAL'),
-  t.Literal('DISCONTINUED'),
+  t.Literal("ACTIVE"),
+  t.Literal("OUT_OF_STOCK"),
+  t.Literal("HIDDEN"),
+  t.Literal("SEASONAL"),
+  t.Literal("DISCONTINUED"),
 ]);
 
 export const createItemBody = t.Object({
@@ -28,7 +37,9 @@ export const createItemBody = t.Object({
   isPublished: t.Optional(t.Boolean()),
   // Absolute price for the item when this variant is picked (e.g.
   // "Half" -> 200, "Full" -> 400) — not an add-on to basePrice.
-  variants: t.Optional(t.Array(t.Object({ name: t.String(), price: t.Number({ minimum: 0 }) }))),
+  variants: t.Optional(
+    t.Array(t.Object({ name: t.String(), price: t.Number({ minimum: 0 }) })),
+  ),
   modifierGroupIds: t.Optional(t.Array(t.String())),
   tagIds: t.Optional(t.Array(t.String())),
   allergenIds: t.Optional(t.Array(t.String())),

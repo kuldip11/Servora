@@ -3,14 +3,14 @@
  * Auth/branch resolution comes from `requireAuthPlugin` (applied in
  * `modifier.route.ts`); business rules live in `modifier.service.ts`.
  */
-import type { AuthContext } from '../../../core/auth';
-import { successResponse, createdResponse } from '../../../core/response';
+import type { AuthContext } from "../../../core/auth";
+import { successResponse, createdResponse } from "../../../core/response";
 import {
   modifierService,
   type CreateModifierGroupInput,
   type UpdateModifierGroupInput,
   type CreateTagInput,
-} from './modifier.service';
+} from "./modifier.service";
 
 export const modifierController = {
   // ─── Modifier Groups ───────────────────────────────────────────────────────
@@ -25,7 +25,11 @@ export const modifierController = {
     return createdResponse(group);
   },
 
-  async updateGroup(auth: AuthContext, groupId: string, input: UpdateModifierGroupInput) {
+  async updateGroup(
+    auth: AuthContext,
+    groupId: string,
+    input: UpdateModifierGroupInput,
+  ) {
     const group = await modifierService.updateGroup(auth, groupId, input);
     return successResponse(group);
   },
@@ -35,8 +39,16 @@ export const modifierController = {
     return successResponse(null);
   },
 
-  async setOptionAvailability(auth: AuthContext, optionId: string, isAvailable: boolean) {
-    const option = await modifierService.setOptionAvailability(auth, optionId, isAvailable);
+  async setOptionAvailability(
+    auth: AuthContext,
+    optionId: string,
+    isAvailable: boolean,
+  ) {
+    const option = await modifierService.setOptionAvailability(
+      auth,
+      optionId,
+      isAvailable,
+    );
     return successResponse(option);
   },
 

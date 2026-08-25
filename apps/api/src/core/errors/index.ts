@@ -10,5 +10,5 @@ export {
   MissingBranchError,
   InternalError,
   ServiceUnavailableError,
-} from './app-error';
-export type { AppErrorContext } from './app-error';
+} from "./app-error";
+export type { AppErrorContext } from "./app-error";

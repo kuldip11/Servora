@@ -2,11 +2,11 @@
  * Branch repository — data access only. No business rules (see
  * `branch.service.ts` for capability/open-order/last-branch checks).
  */
-import { eq, and, notInArray, inArray } from 'drizzle-orm';
-import type { OrderType } from '@pos/types';
-import { db } from '../../db';
-import { branches, orders } from '../../db/schema';
-import { compact } from '../../lib/object-utils';
+import { eq, and, notInArray, inArray } from "drizzle-orm";
+import type { OrderType } from "@pos/types";
+import { db } from "../../db";
+import { branches, orders } from "../../db/schema";
+import { compact } from "../../lib/object-utils";
 
 /** The four order-intake toggles plus dine-in table support. */
 export type BranchCapabilities = {
@@ -18,12 +18,20 @@ export type BranchCapabilities = {
 };
 
 export const branchRepository = {
-  async findMany(tenantId: string, branchId?: string | null | undefined, authorizedBranchIds?: string[]) {
+  async findMany(
+    tenantId: string,
+    branchId?: string | null | undefined,
+    authorizedBranchIds?: string[],
+  ) {
     return db.query.branches.findMany({
       where: and(
         eq(branches.tenantId, tenantId),
         eq(branches.isActive, true),
-        branchId ? eq(branches.id, branchId) : authorizedBranchIds?.length ? inArray(branches.id, authorizedBranchIds) : undefined,
+        branchId
+          ? eq(branches.id, branchId)
+          : authorizedBranchIds?.length
+            ? inArray(branches.id, authorizedBranchIds)
+            : undefined,
       ),
       orderBy: branches.createdAt,
     });
@@ -63,7 +71,7 @@ export const branchRepository = {
         compact({
           tenantId: data.tenantId,
           name: data.name,
-          address: data.address ?? '',
+          address: data.address ?? "",
           phone: data.phone,
           dineInEnabled: data.dineInEnabled ?? true,
           takeawayEnabled: data.takeawayEnabled ?? true,
@@ -104,7 +112,7 @@ export const branchRepository = {
       where: and(
         eq(orders.tenantId, tenantId),
         eq(orders.branchId, branchId),
-        notInArray(orders.status, ['PAID', 'CLOSED', 'CANCELLED']),
+        notInArray(orders.status, ["PAID", "CLOSED", "CANCELLED"]),
       ),
       columns: { id: true },
     });
@@ -114,13 +122,17 @@ export const branchRepository = {
   // Used to block turning off a capability (e.g. dine-in) while there are
   // still open orders of that type on the branch — same guard pattern as
   // hasOpenOrders above, just scoped to one order type.
-  async hasOpenOrdersOfType(tenantId: string, branchId: string, type: OrderType) {
+  async hasOpenOrdersOfType(
+    tenantId: string,
+    branchId: string,
+    type: OrderType,
+  ) {
     const openOrder = await db.query.orders.findFirst({
       where: and(
         eq(orders.tenantId, tenantId),
         eq(orders.branchId, branchId),
         eq(orders.type, type),
-        notInArray(orders.status, ['PAID', 'CLOSED', 'CANCELLED']),
+        notInArray(orders.status, ["PAID", "CLOSED", "CANCELLED"]),
       ),
       columns: { id: true },
     });

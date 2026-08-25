@@ -1,12 +1,17 @@
-import { type InputHTMLAttributes, forwardRef, useState } from 'react';
-import { cn } from '../../utils/cn';
-import { FieldLabel, FieldFooter, fieldBaseClasses, useFieldIds, describedBy } from './shared';
+import { type InputHTMLAttributes, forwardRef, useState } from "react";
+import { cn } from "../../utils/cn";
+import {
+  FieldLabel,
+  FieldFooter,
+  fieldBaseClasses,
+  useFieldIds,
+  describedBy,
+} from "./shared";
 
-export interface CurrencyInputProps
-  extends Omit<
-    InputHTMLAttributes<HTMLInputElement>,
-    'value' | 'defaultValue' | 'onChange' | 'type' | 'prefix'
-  > {
+export interface CurrencyInputProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  "value" | "defaultValue" | "onChange" | "type" | "prefix"
+> {
   label?: string | undefined;
   hint?: string | undefined;
   error?: string | undefined;
@@ -35,7 +40,7 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
       required,
       value,
       onChange,
-      currencySymbol = '$',
+      currencySymbol = "$",
       decimalPlaces = 2,
       className,
       id,
@@ -49,7 +54,8 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
     // formatted number, so typing is tracked as a draft string and only
     // reconciled with the numeric `value` on blur.
     const [draft, setDraft] = useState<string | null>(null);
-    const displayValue = draft ?? (value !== undefined ? value.toFixed(decimalPlaces) : '');
+    const displayValue =
+      draft ?? (value !== undefined ? value.toFixed(decimalPlaces) : "");
 
     return (
       <div className="flex flex-col gap-1.5">
@@ -65,7 +71,11 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
             id={fieldId}
             type="text"
             inputMode="decimal"
-            className={cn(fieldBaseClasses(!!error), 'pl-7 pr-3 py-2.5', className)}
+            className={cn(
+              fieldBaseClasses(!!error),
+              "pl-7 pr-3 py-2.5",
+              className,
+            )}
             value={displayValue}
             onChange={(e) => {
               const raw = e.target.value;
@@ -85,9 +95,14 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
             {...props}
           />
         </div>
-        <FieldFooter hint={hint} error={error} hintId={hintId} errorId={errorId} />
+        <FieldFooter
+          hint={hint}
+          error={error}
+          hintId={hintId}
+          errorId={errorId}
+        />
       </div>
     );
   },
 );
-CurrencyInput.displayName = 'CurrencyInput';
+CurrencyInput.displayName = "CurrencyInput";

@@ -1,4 +1,4 @@
-import { Profiler, type ProfilerOnRenderCallback, type ReactNode } from 'react';
+import { Profiler, type ProfilerOnRenderCallback, type ReactNode } from "react";
 
 interface PerformanceProfilerProps {
   id: string;
@@ -14,7 +14,7 @@ const onRender: ProfilerOnRenderCallback = (
   commitTime,
 ) => {
   if (actualDuration < 16) return;
-  console.debug('[perf]', {
+  console.debug("[perf]", {
     id,
     phase,
     actualDuration: Number(actualDuration.toFixed(2)),
@@ -23,7 +23,14 @@ const onRender: ProfilerOnRenderCallback = (
 };
 
 /** Development-only commit profiling. Keep memo/useMemo decisions tied to measured slow commits. */
-export function PerformanceProfiler({ id, children }: PerformanceProfilerProps) {
+export function PerformanceProfiler({
+  id,
+  children,
+}: PerformanceProfilerProps) {
   if (!import.meta.env.DEV) return <>{children}</>;
-  return <Profiler id={id} onRender={onRender}>{children}</Profiler>;
+  return (
+    <Profiler id={id} onRender={onRender}>
+      {children}
+    </Profiler>
+  );
 }

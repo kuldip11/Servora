@@ -1,8 +1,8 @@
-import { useSyncExternalStore } from 'react';
-import * as RadixToast from '@radix-ui/react-toast';
-import { CheckCircle2, Info, X, XCircle, AlertTriangle } from 'lucide-react';
-import { cn } from '../../utils/cn';
-import type { StatusTone } from '../StatusBadge';
+import { useSyncExternalStore } from "react";
+import * as RadixToast from "@radix-ui/react-toast";
+import { CheckCircle2, Info, X, XCircle, AlertTriangle } from "lucide-react";
+import { cn } from "../../utils/cn";
+import type { StatusTone } from "../StatusBadge";
 
 export interface ToastInput {
   title: string;
@@ -22,7 +22,7 @@ export interface ToastInput {
    * user action, and avoid stacking distinct foreground toasts — so the
    * tone-based default below is right for most callers; this exists for
    * the exception, not the common case. */
-  priority?: 'foreground' | 'background' | undefined;
+  priority?: "foreground" | "background" | undefined;
 }
 interface ToastItem extends ToastInput {
   id: string;
@@ -43,7 +43,7 @@ const subscribe = (listener: () => void) => {
 const getSnapshot = () => toasts;
 
 function nextId() {
-  return typeof crypto !== 'undefined' && crypto.randomUUID
+  return typeof crypto !== "undefined" && crypto.randomUUID
     ? crypto.randomUUID()
     : `toast-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
@@ -57,18 +57,18 @@ function nextId() {
  * doing (Radix's own docs warn `'foreground'` "may choose to clear
  * previously queued messages" — the wrong behavior for a routine "Saved"
  * toast next to, say, an in-progress error announcement). */
-const TONE_PRIORITY: Record<StatusTone, 'foreground' | 'background'> = {
-  danger: 'foreground',
-  warning: 'foreground',
-  success: 'background',
-  info: 'background',
-  neutral: 'background',
+const TONE_PRIORITY: Record<StatusTone, "foreground" | "background"> = {
+  danger: "foreground",
+  warning: "foreground",
+  success: "background",
+  info: "background",
+  neutral: "background",
 };
 
 /** Queue a toast from anywhere in the app — no hook, no context read required. */
 export function toast(input: ToastInput) {
   const id = nextId();
-  toasts = [...toasts, { id, duration: 5000, tone: 'neutral', ...input }];
+  toasts = [...toasts, { id, duration: 5000, tone: "neutral", ...input }];
   emit();
   return id;
 }
@@ -87,11 +87,11 @@ const TONE_ICON: Record<StatusTone, typeof Info> = {
 };
 
 const TONE_CLASSES: Record<StatusTone, string> = {
-  success: 'border-border text-success',
-  warning: 'border-border text-warning',
-  danger: 'border-border text-danger',
-  info: 'border-border text-info',
-  neutral: 'border-border text-text-secondary',
+  success: "border-border text-success",
+  warning: "border-border text-warning",
+  danger: "border-border text-danger",
+  info: "border-border text-info",
+  neutral: "border-border text-text-secondary",
 };
 
 /** Phase 8: slide+fade enter/exit, plus wiring for Radix's swipe-to-dismiss
@@ -110,14 +110,14 @@ const TONE_CLASSES: Record<StatusTone, string> = {
  * has no real browser to actually try it in, same standing caveat as
  * every phase since Phase 4). */
 const toastAnimationClasses = cn(
-  'data-[swipe=cancel]:translate-x-0 data-[swipe=cancel]:transition-[transform] data-[swipe=cancel]:duration-fast data-[swipe=cancel]:ease-standard',
-  'data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)]',
-  'data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none',
-  'data-[state=open]:animate-in data-[state=open]:duration-base data-[state=open]:ease-decelerate',
-  'data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-right-full',
-  'data-[state=closed]:animate-out data-[state=closed]:duration-fast data-[state=closed]:ease-accelerate',
-  'data-[state=closed]:fade-out-80',
-  'data-[swipe=end]:animate-out data-[swipe=end]:slide-out-to-right-full',
+  "data-[swipe=cancel]:translate-x-0 data-[swipe=cancel]:transition-[transform] data-[swipe=cancel]:duration-fast data-[swipe=cancel]:ease-standard",
+  "data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)]",
+  "data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none",
+  "data-[state=open]:animate-in data-[state=open]:duration-base data-[state=open]:ease-decelerate",
+  "data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-right-full",
+  "data-[state=closed]:animate-out data-[state=closed]:duration-fast data-[state=closed]:ease-accelerate",
+  "data-[state=closed]:fade-out-80",
+  "data-[swipe=end]:animate-out data-[swipe=end]:slide-out-to-right-full",
 );
 
 /**
@@ -140,7 +140,7 @@ export function Toaster() {
   return (
     <RadixToast.Provider swipeDirection="right">
       {items.map((t) => {
-        const tone = t.tone ?? 'neutral';
+        const tone = t.tone ?? "neutral";
         const Icon = TONE_ICON[tone];
         return (
           <RadixToast.Root
@@ -149,7 +149,7 @@ export function Toaster() {
             {...(t.duration !== undefined && { duration: t.duration })}
             onOpenChange={(open) => !open && dismiss(t.id)}
             className={cn(
-              'flex items-start gap-3 rounded-md border bg-surface shadow-elevated p-4 w-full',
+              "flex items-start gap-3 rounded-md border bg-surface shadow-elevated p-4 w-full",
               TONE_CLASSES[tone],
               toastAnimationClasses,
             )}

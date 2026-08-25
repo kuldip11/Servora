@@ -9,26 +9,29 @@
  * specifically (verified — see docs/NEXT_STEPS.md), so this migration
  * folds it into `ValidationError`. Status codes are unchanged.
  */
-import { NotFoundError, ValidationError } from '../../../core/errors';
+import { NotFoundError, ValidationError } from "../../../core/errors";
 
 export function itemNotFound(id?: string): NotFoundError {
-  return new NotFoundError('Menu item', id);
+  return new NotFoundError("Menu item", id);
 }
 
 export function scheduleNotFound(id?: string): NotFoundError {
-  return new NotFoundError('Schedule', id);
+  return new NotFoundError("Schedule", id);
 }
 
 export function branchNotFoundForOverride(id?: string): NotFoundError {
-  return new NotFoundError('Branch', id);
+  return new NotFoundError("Branch", id);
 }
 
 export function itemNotTenantWide(): ValidationError {
-  return new ValidationError('Only tenant-wide items can have branch overrides', {
-    reason: 'ITEM_NOT_TENANT_WIDE',
-  });
+  return new ValidationError(
+    "Only tenant-wide items can have branch overrides",
+    {
+      reason: "ITEM_NOT_TENANT_WIDE",
+    },
+  );
 }
 
 export function invalidScheduleFields(message: string): ValidationError {
-  return new ValidationError(message, { reason: 'INVALID_SCHEDULE_FIELDS' });
+  return new ValidationError(message, { reason: "INVALID_SCHEDULE_FIELDS" });
 }

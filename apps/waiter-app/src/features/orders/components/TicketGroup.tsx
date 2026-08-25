@@ -1,8 +1,13 @@
-import type { KitchenTicket } from '@pos/types';
-import { CheckCircle2 } from 'lucide-react';
-import { Card, Button, StatusBadge as SharedStatusBadge, type StatusTone } from '@pos/ui';
-import { TICKET_STATUS_LABEL } from '../constants';
-import { formatCurrency } from '../utils/orderHelpers';
+import type { KitchenTicket } from "@pos/types";
+import { CheckCircle2 } from "lucide-react";
+import {
+  Card,
+  Button,
+  StatusBadge as SharedStatusBadge,
+  type StatusTone,
+} from "@pos/ui";
+import { TICKET_STATUS_LABEL } from "../constants";
+import { formatCurrency } from "../utils/orderHelpers";
 
 interface Props {
   ticket: KitchenTicket;
@@ -20,10 +25,10 @@ interface Props {
 // was its only call site (grepped repo-wide) — `TICKET_STATUS_LABEL`
 // is kept, since `StatusBadge` still needs a label string per status.
 const TICKET_STATUS_TONE: Record<string, StatusTone> = {
-  FIRED: 'info',
-  PREPARING: 'warning',
-  READY: 'success',
-  SERVED: 'neutral',
+  FIRED: "info",
+  PREPARING: "warning",
+  READY: "success",
+  SERVED: "neutral",
 };
 
 export function TicketGroup({ ticket, onMarkServed, isUpdating }: Props) {
@@ -38,33 +43,49 @@ export function TicketGroup({ ticket, onMarkServed, isUpdating }: Props) {
         <p className="text-xs font-semibold text-text-disabled uppercase tracking-wide">
           Round {ticket.ticketNumber}
         </p>
-        <SharedStatusBadge label={TICKET_STATUS_LABEL[ticket.status] ?? ticket.status} tone={TICKET_STATUS_TONE[ticket.status] ?? 'neutral'} />
+        <SharedStatusBadge
+          label={TICKET_STATUS_LABEL[ticket.status] ?? ticket.status}
+          tone={TICKET_STATUS_TONE[ticket.status] ?? "neutral"}
+        />
       </div>
       {ticket.notes && (
-        <p className="px-4 py-2 text-xs text-warning bg-warning-surface border-b border-divider">📝 {ticket.notes}</p>
+        <p className="px-4 py-2 text-xs text-warning bg-warning-surface border-b border-divider">
+          📝 {ticket.notes}
+        </p>
       )}
       {ticket.items.map((item, idx) => (
-        <div key={item.id}
-          className={`px-4 py-3 flex items-start gap-3 ${idx < ticket.items.length - 1 ? 'border-b border-divider' : ''}`}>
+        <div
+          key={item.id}
+          className={`px-4 py-3 flex items-start gap-3 ${idx < ticket.items.length - 1 ? "border-b border-divider" : ""}`}
+        >
           <span className="w-6 h-6 bg-primary-surface text-primary rounded-full text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
             {item.quantity}
           </span>
           <div className="flex-1">
             <p className="text-sm font-semibold text-text-primary">
               {item.menuItemName}
-              {item.variantName && <span className="text-text-disabled font-normal"> · {item.variantName}</span>}
+              {item.variantName && (
+                <span className="text-text-disabled font-normal">
+                  {" "}
+                  · {item.variantName}
+                </span>
+              )}
             </p>
             {item.modifiers?.map((m, i) => (
-              <p key={i} className="text-xs text-text-disabled">+ {m.name}</p>
+              <p key={i} className="text-xs text-text-disabled">
+                + {m.name}
+              </p>
             ))}
             {item.chefNotes && (
               <p className="text-xs text-warning mt-0.5">📝 {item.chefNotes}</p>
             )}
           </div>
-          <span className="text-sm font-semibold text-text-secondary">{formatCurrency(item.subtotal)}</span>
+          <span className="text-sm font-semibold text-text-secondary">
+            {formatCurrency(item.subtotal)}
+          </span>
         </div>
       ))}
-      {ticket.status === 'READY' && (
+      {ticket.status === "READY" && (
         <div className="px-4 py-3 border-t border-divider">
           {/* `Button` (Phase 3), `variant="success"` — a genuine
               drop-in: bg-success/text-success-foreground (Phase 9's

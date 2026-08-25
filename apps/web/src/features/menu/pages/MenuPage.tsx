@@ -1,46 +1,59 @@
-import { useState } from 'react';
-import { ListChecks, Upload } from 'lucide-react';
-import { Button, Page, PageHeader, Tabs, type TabItem } from '@pos/ui';
-import { ItemFormModal } from '../components/ItemFormModal';
-import { MenuItemsContent } from '../components/MenuItemsContent';
-import { MenuCategoriesSection } from '../components/MenuCategoriesSection';
-import { MenuSpecializedSection } from '../components/MenuSpecializedSection';
-import { ModifierGroupsSection } from '../components/ModifierGroupsSection';
-import { TagsSection } from '../components/TagsSection';
-import { HolidaysSection } from '../components/HolidaysSection';
-import { TemplatesSection, SaveTemplateModal } from '../components/TemplatesSection';
-import { ExportMenu } from '../components/ExportMenu';
-import { ImportWizard } from '../components/ImportWizard';
-import { useMenuCategories } from '../hooks/useMenuCategories';
-import { useMenuTags } from '../hooks/useMenuTags';
-import { useToggleItemAvailability } from '../hooks/useToggleItemAvailability';
-import { useDeleteMenuItem } from '../hooks/useDeleteMenuItem';
-import { useDuplicateMenuItem } from '../hooks/useDuplicateMenuItem';
-import { useSetItemPublished } from '../hooks/useSetItemPublished';
-import type { MenuItem, FoodType, MenuItemStatus } from '@pos/types';
+import { useState } from "react";
+import { ListChecks, Upload } from "lucide-react";
+import { Button, Page, PageHeader, Tabs, type TabItem } from "@pos/ui";
+import { ItemFormModal } from "../components/ItemFormModal";
+import { MenuItemsContent } from "../components/MenuItemsContent";
+import { MenuCategoriesSection } from "../components/MenuCategoriesSection";
+import { MenuSpecializedSection } from "../components/MenuSpecializedSection";
+import { ModifierGroupsSection } from "../components/ModifierGroupsSection";
+import { TagsSection } from "../components/TagsSection";
+import { HolidaysSection } from "../components/HolidaysSection";
+import {
+  TemplatesSection,
+  SaveTemplateModal,
+} from "../components/TemplatesSection";
+import { ExportMenu } from "../components/ExportMenu";
+import { ImportWizard } from "../components/ImportWizard";
+import { useMenuCategories } from "../hooks/useMenuCategories";
+import { useMenuTags } from "../hooks/useMenuTags";
+import { useToggleItemAvailability } from "../hooks/useToggleItemAvailability";
+import { useDeleteMenuItem } from "../hooks/useDeleteMenuItem";
+import { useDuplicateMenuItem } from "../hooks/useDuplicateMenuItem";
+import { useSetItemPublished } from "../hooks/useSetItemPublished";
+import type { MenuItem, FoodType, MenuItemStatus } from "@pos/types";
 
 const TABS = [
-  { id: 'items', label: 'Items' },
-  { id: 'categories', label: 'Categories' },
-  { id: 'modifiers', label: 'Modifiers' },
-  { id: 'recipes', label: 'Recipes' },
-  { id: 'availability', label: 'Availability' },
-  { id: 'tools', label: 'Tools' },
+  { id: "items", label: "Items" },
+  { id: "categories", label: "Categories" },
+  { id: "modifiers", label: "Modifiers" },
+  { id: "recipes", label: "Recipes" },
+  { id: "availability", label: "Availability" },
+  { id: "tools", label: "Tools" },
 ] as const;
 
-type TabId = (typeof TABS)[number]['id'];
+type TabId = (typeof TABS)[number]["id"];
 
 export function MenuPage() {
-  const [tab, setTab] = useState<TabId>('items');
+  const [tab, setTab] = useState<TabId>("items");
   const [showImport, setShowImport] = useState(false);
-  const [savingTemplateFor, setSavingTemplateFor] = useState<{ id: string; name: string } | null>(null);
+  const [savingTemplateFor, setSavingTemplateFor] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [itemForm, setItemForm] = useState<{ categoryId: string; item: MenuItem | null } | null>(null);
-  const [itemSearch, setItemSearch] = useState('');
-  const [foodTypeFilter, setFoodTypeFilter] = useState<FoodType | 'ALL'>('ALL');
-  const [statusFilter, setStatusFilter] = useState<MenuItemStatus | 'ALL'>('ALL');
-  const [publishFilter, setPublishFilter] = useState<'ALL' | 'PUBLISHED' | 'DRAFT'>('ALL');
+  const [itemForm, setItemForm] = useState<{
+    categoryId: string;
+    item: MenuItem | null;
+  } | null>(null);
+  const [itemSearch, setItemSearch] = useState("");
+  const [foodTypeFilter, setFoodTypeFilter] = useState<FoodType | "ALL">("ALL");
+  const [statusFilter, setStatusFilter] = useState<MenuItemStatus | "ALL">(
+    "ALL",
+  );
+  const [publishFilter, setPublishFilter] = useState<
+    "ALL" | "PUBLISHED" | "DRAFT"
+  >("ALL");
 
   const { data: categories, isLoading } = useMenuCategories();
   const { data: tags } = useMenuTags();
@@ -76,10 +89,17 @@ export function MenuPage() {
   const toolsContent = (
     <div className="space-y-8">
       <section>
-        <h2 className="text-base font-semibold text-text-primary">Import & Export</h2>
-        <p className="text-sm text-text-secondary mt-0.5">Move menu data in bulk without adding operational controls to the Items screen.</p>
+        <h2 className="text-base font-semibold text-text-primary">
+          Import & Export
+        </h2>
+        <p className="text-sm text-text-secondary mt-0.5">
+          Move menu data in bulk without adding operational controls to the
+          Items screen.
+        </p>
         <div className="flex flex-wrap gap-2 mt-3">
-          <Button variant="secondary" onClick={() => setShowImport(true)}><Upload className="w-4 h-4" /> Import Items</Button>
+          <Button variant="secondary" onClick={() => setShowImport(true)}>
+            <Upload className="w-4 h-4" /> Import Items
+          </Button>
           <ExportMenu />
         </div>
       </section>
@@ -96,12 +116,28 @@ export function MenuPage() {
   );
 
   const tabItems: TabItem[] = [
-    { value: 'items', label: 'Items', content: itemsContent },
-    { value: 'categories', label: 'Categories', content: <MenuCategoriesSection onSaveTemplate={setSavingTemplateFor} /> },
-    { value: 'modifiers', label: 'Modifiers', content: <ModifierGroupsSection /> },
-    { value: 'recipes', label: 'Recipes', content: <MenuSpecializedSection mode="recipes" /> },
-    { value: 'availability', label: 'Availability', content: <MenuSpecializedSection mode="availability" /> },
-    { value: 'tools', label: 'Tools', content: toolsContent },
+    { value: "items", label: "Items", content: itemsContent },
+    {
+      value: "categories",
+      label: "Categories",
+      content: <MenuCategoriesSection onSaveTemplate={setSavingTemplateFor} />,
+    },
+    {
+      value: "modifiers",
+      label: "Modifiers",
+      content: <ModifierGroupsSection />,
+    },
+    {
+      value: "recipes",
+      label: "Recipes",
+      content: <MenuSpecializedSection mode="recipes" />,
+    },
+    {
+      value: "availability",
+      label: "Availability",
+      content: <MenuSpecializedSection mode="availability" />,
+    },
+    { value: "tools", label: "Tools", content: toolsContent },
   ];
 
   return (
@@ -109,20 +145,44 @@ export function MenuPage() {
       <PageHeader
         title="Menu"
         description={`${categories?.length ?? 0} categories`}
-        actions={tab === 'items' ? (
-          <>
-            <Button variant={selectMode ? 'primary' : 'secondary'} onClick={() => { setSelectMode((v) => !v); setSelectedIds([]); }}>
-              <ListChecks className="w-4 h-4" /> {selectMode ? 'Done selecting' : 'Select items'}
-            </Button>
-          </>
-        ) : undefined}
+        actions={
+          tab === "items" ? (
+            <>
+              <Button
+                variant={selectMode ? "primary" : "secondary"}
+                onClick={() => {
+                  setSelectMode((v) => !v);
+                  setSelectedIds([]);
+                }}
+              >
+                <ListChecks className="w-4 h-4" />{" "}
+                {selectMode ? "Done selecting" : "Select items"}
+              </Button>
+            </>
+          ) : undefined
+        }
       />
 
-      <Tabs items={tabItems} value={tab} onValueChange={(v) => setTab(v as TabId)} />
+      <Tabs
+        items={tabItems}
+        value={tab}
+        onValueChange={(v) => setTab(v as TabId)}
+      />
 
       {showImport && <ImportWizard onClose={() => setShowImport(false)} />}
-      {savingTemplateFor && <SaveTemplateModal category={savingTemplateFor} onClose={() => setSavingTemplateFor(null)} />}
-      {itemForm && <ItemFormModal categoryId={itemForm.categoryId} item={itemForm.item} onClose={() => setItemForm(null)} />}
+      {savingTemplateFor && (
+        <SaveTemplateModal
+          category={savingTemplateFor}
+          onClose={() => setSavingTemplateFor(null)}
+        />
+      )}
+      {itemForm && (
+        <ItemFormModal
+          categoryId={itemForm.categoryId}
+          item={itemForm.item}
+          onClose={() => setItemForm(null)}
+        />
+      )}
     </Page>
   );
 }

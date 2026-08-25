@@ -1,8 +1,14 @@
-import { type KeyboardEvent, useEffect, useId, useRef, useState } from 'react';
-import * as Popover from '@radix-ui/react-popover';
-import { ChevronDown, X } from 'lucide-react';
-import { cn } from '../../utils/cn';
-import { FieldLabel, FieldFooter, fieldBaseClasses, useFieldIds, describedBy } from '../form/shared';
+import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
+import * as Popover from "@radix-ui/react-popover";
+import { ChevronDown, X } from "lucide-react";
+import { cn } from "../../utils/cn";
+import {
+  FieldLabel,
+  FieldFooter,
+  fieldBaseClasses,
+  useFieldIds,
+  describedBy,
+} from "../form/shared";
 import {
   type SelectOption,
   buildRows,
@@ -12,7 +18,7 @@ import {
   useScrollActiveIntoView,
   VirtualListbox,
   popoverContentClasses,
-} from './shared';
+} from "./shared";
 
 export interface ComboboxProps {
   options: SelectOption[];
@@ -48,7 +54,7 @@ export function Combobox({
   value,
   onChange,
   label,
-  placeholder = 'Search…',
+  placeholder = "Search…",
   hint,
   error,
   required,
@@ -56,11 +62,11 @@ export function Combobox({
   id,
   className,
   maxListHeight = 320,
-  emptyMessage = 'No results',
+  emptyMessage = "No results",
 }: ComboboxProps) {
   const selectedOption = options.find((o) => o.value === value);
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState(selectedOption?.label ?? '');
+  const [query, setQuery] = useState(selectedOption?.label ?? "");
   const { fieldId, hintId, errorId } = useFieldIds(id);
   const listboxId = useId();
   const listRef = useRef<HTMLUListElement>(null);
@@ -68,39 +74,45 @@ export function Combobox({
 
   // Keep the visible text in sync when `value` changes from outside (e.g. a form reset).
   useEffect(() => {
-    if (!open) setQuery(selectedOption?.label ?? '');
+    if (!open) setQuery(selectedOption?.label ?? "");
   }, [value, open, selectedOption?.label]);
 
   // Opening the field should expose the full option set. The selected label is
   // display text, not an active filter; only text the user edits should filter.
   const isSelectedLabel = selectedOption?.label === query;
-  const filtered = filterOptions(options, open && !isSelectedLabel ? query : '');
+  const filtered = filterOptions(
+    options,
+    open && !isSelectedLabel ? query : "",
+  );
   const rows = buildRows(filtered);
 
   const commitRow = (rowIndex: number) => {
     const row = rows[rowIndex];
-    if (row?.kind !== 'option' || row.option.disabled) return;
+    if (row?.kind !== "option" || row.option.disabled) return;
     onChange(row.option.value);
     setQuery(row.option.label);
     setOpen(false);
     inputRef.current?.blur();
   };
 
-  const { activeRowIndex, setActiveRowIndex, onKeyDown } = useActiveRow(rows, commitRow);
+  const { activeRowIndex, setActiveRowIndex, onKeyDown } = useActiveRow(
+    rows,
+    commitRow,
+  );
   useScrollActiveIntoView(listRef, activeRowIndex, open);
 
   useEffect(() => {
-    if (open) setActiveRowIndex(rows.findIndex((r) => r.kind === 'option') );
+    if (open) setActiveRowIndex(rows.findIndex((r) => r.kind === "option"));
     // reset highlight to the first filtered match whenever the query changes
   }, [query, open]);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Escape') {
+    if (e.key === "Escape") {
       setOpen(false);
-      setQuery(selectedOption?.label ?? '');
+      setQuery(selectedOption?.label ?? "");
       return;
     }
-    if (!open && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+    if (!open && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
       e.preventDefault();
       setOpen(true);
       return;
@@ -112,7 +124,7 @@ export function Combobox({
     // Give a click on an option time to register before we snap the text back.
     window.setTimeout(() => {
       setOpen(false);
-      setQuery(selectedOption?.label ?? '');
+      setQuery(selectedOption?.label ?? "");
     }, 120);
   };
 
@@ -132,7 +144,9 @@ export function Combobox({
               aria-expanded={open}
               aria-controls={listboxId}
               aria-activedescendant={
-                open && activeRowIndex >= 0 ? rowDomId(listboxId, activeRowIndex) : undefined
+                open && activeRowIndex >= 0
+                  ? rowDomId(listboxId, activeRowIndex)
+                  : undefined
               }
               aria-invalid={!!error || undefined}
               aria-describedby={describedBy(hintId, errorId, hint, error)}
@@ -147,7 +161,11 @@ export function Combobox({
               onFocus={() => setOpen(true)}
               onKeyDown={handleKeyDown}
               onBlur={handleBlur}
-              className={cn(fieldBaseClasses(!!error), 'px-3 py-2.5 pr-16', className)}
+              className={cn(
+                fieldBaseClasses(!!error),
+                "px-3 py-2.5 pr-16",
+                className,
+              )}
             />
             {value && !disabled && (
               <button
@@ -156,8 +174,8 @@ export function Combobox({
                 tabIndex={-1}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
-                  onChange('');
-                  setQuery('');
+                  onChange("");
+                  setQuery("");
                   inputRef.current?.focus();
                 }}
                 className="absolute right-8 p-0.5 rounded text-text-secondary hover:text-text-primary hover:bg-surface-secondary"
@@ -174,7 +192,10 @@ export function Combobox({
             sideOffset={4}
             onOpenAutoFocus={(e) => e.preventDefault()}
             onInteractOutside={(e) => e.preventDefault()}
-            className={cn(popoverContentClasses, 'w-[var(--radix-popover-anchor-width)]')}
+            className={cn(
+              popoverContentClasses,
+              "w-[var(--radix-popover-anchor-width)]",
+            )}
           >
             <VirtualListbox
               rows={rows}
@@ -189,7 +210,12 @@ export function Combobox({
           </Popover.Content>
         </Popover.Portal>
       </Popover.Root>
-      <FieldFooter hint={hint} error={error} hintId={hintId} errorId={errorId} />
+      <FieldFooter
+        hint={hint}
+        error={error}
+        hintId={hintId}
+        errorId={errorId}
+      />
     </div>
   );
 }

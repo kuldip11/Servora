@@ -16,11 +16,14 @@
     <script>
       (function () {
         try {
-          var t = localStorage.getItem('pos-theme');
-          var valid = t === 'light' || t === 'dark' || t === 'high-contrast';
-          document.documentElement.setAttribute('data-theme', valid ? t : 'light');
+          var t = localStorage.getItem("pos-theme");
+          var valid = t === "light" || t === "dark" || t === "high-contrast";
+          document.documentElement.setAttribute(
+            "data-theme",
+            valid ? t : "light",
+          );
         } catch (e) {
-          document.documentElement.setAttribute('data-theme', 'light');
+          document.documentElement.setAttribute("data-theme", "light");
         }
       })();
     </script>

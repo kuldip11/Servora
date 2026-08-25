@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const createStaffSchema = z.object({
   firstName: z.string().min(1).max(50),
@@ -9,12 +9,8 @@ export const createStaffSchema = z.object({
   branchId: z.string().uuid().optional(),
 });
 
-export const updateStaffSchema = createStaffSchema
-  .partial()
-  .omit({
-    password: true,
-  });
+export const updateStaffSchema = createStaffSchema.partial().omit({
+  password: true,
+});
 
-export type CreateStaffInput = z.infer<
-  typeof createStaffSchema
->;
+export type CreateStaffInput = z.infer<typeof createStaffSchema>;

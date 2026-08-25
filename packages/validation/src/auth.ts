@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const signupSchema = z.object({
   // Deprecated compatibility field. Signup no longer creates a tenant.

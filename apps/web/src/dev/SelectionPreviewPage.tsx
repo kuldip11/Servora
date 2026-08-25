@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState } from "react";
 import {
   AppShell,
   Page,
@@ -13,8 +13,8 @@ import {
   Combobox,
   Autocomplete,
   type SelectOption,
-} from '@pos/ui';
-import { Store, User } from 'lucide-react';
+} from "@pos/ui";
+import { Store, User } from "lucide-react";
 
 /**
  * Internal-only route (`/dev/selection-preview`, no auth guard). Phase 4
@@ -39,33 +39,33 @@ import { Store, User } from 'lucide-react';
  */
 export function SelectionPreviewPage() {
   const statusOptions: SelectOption[] = [
-    { value: 'draft', label: 'Draft' },
-    { value: 'active', label: 'Active' },
-    { value: 'archived', label: 'Archived', disabled: true },
+    { value: "draft", label: "Draft" },
+    { value: "active", label: "Active" },
+    { value: "archived", label: "Archived", disabled: true },
   ];
-  const [status, setStatus] = useState<string | undefined>('active');
+  const [status, setStatus] = useState<string | undefined>("active");
 
   const roleOptions: SelectOption[] = [
-    { value: 'owner', label: 'Owner', group: 'Management', icon: User },
-    { value: 'manager', label: 'Manager', group: 'Management', icon: User },
-    { value: 'server', label: 'Server', group: 'Front of house', icon: User },
-    { value: 'host', label: 'Host', group: 'Front of house', icon: User },
-    { value: 'cook', label: 'Cook', group: 'Kitchen', icon: User },
-    { value: 'dishwasher', label: 'Dishwasher', group: 'Kitchen', icon: User },
+    { value: "owner", label: "Owner", group: "Management", icon: User },
+    { value: "manager", label: "Manager", group: "Management", icon: User },
+    { value: "server", label: "Server", group: "Front of house", icon: User },
+    { value: "host", label: "Host", group: "Front of house", icon: User },
+    { value: "cook", label: "Cook", group: "Kitchen", icon: User },
+    { value: "dishwasher", label: "Dishwasher", group: "Kitchen", icon: User },
   ];
-  const [roles, setRoles] = useState<string[]>(['manager', 'server']);
+  const [roles, setRoles] = useState<string[]>(["manager", "server"]);
 
   const cuisineOptions: SelectOption[] = [
-    'Italian',
-    'Japanese',
-    'Mexican',
-    'Thai',
-    'Indian',
-    'French',
-    'Korean',
-    'Vietnamese',
-    'Mediterranean',
-    'American',
+    "Italian",
+    "Japanese",
+    "Mexican",
+    "Thai",
+    "Indian",
+    "French",
+    "Korean",
+    "Vietnamese",
+    "Mediterranean",
+    "American",
   ].map((label) => ({ value: label.toLowerCase(), label }));
   const [cuisine, setCuisine] = useState<string | undefined>(undefined);
 
@@ -74,7 +74,7 @@ export function SelectionPreviewPage() {
     () =>
       Array.from({ length: 10_000 }, (_, i) => ({
         value: `branch-${i}`,
-        label: `Branch #${String(i + 1).padStart(5, '0')}`,
+        label: `Branch #${String(i + 1).padStart(5, "0")}`,
         description: `District ${(i % 40) + 1}`,
         icon: Store,
       })),
@@ -86,12 +86,20 @@ export function SelectionPreviewPage() {
   // display, the caller (here) owns fetching. A real call site would swap
   // this filter for a TanStack Query request keyed on the query string.
   const staffDirectory: SelectOption[] = [
-    { value: 's1', label: 'Amina Chen', description: 'amina@restaurant.test' },
-    { value: 's2', label: 'Diego Alvarez', description: 'diego@restaurant.test' },
-    { value: 's3', label: 'Priya Nair', description: 'priya@restaurant.test' },
-    { value: 's4', label: 'Tomasz Nowak', description: 'tomasz@restaurant.test' },
+    { value: "s1", label: "Amina Chen", description: "amina@restaurant.test" },
+    {
+      value: "s2",
+      label: "Diego Alvarez",
+      description: "diego@restaurant.test",
+    },
+    { value: "s3", label: "Priya Nair", description: "priya@restaurant.test" },
+    {
+      value: "s4",
+      label: "Tomasz Nowak",
+      description: "tomasz@restaurant.test",
+    },
   ];
-  const [staffQuery, setStaffQuery] = useState('');
+  const [staffQuery, setStaffQuery] = useState("");
   const [staffResults, setStaffResults] = useState<SelectOption[]>([]);
   const [staffLoading, setStaffLoading] = useState(false);
   const [staff, setStaff] = useState<SelectOption | undefined>(undefined);
@@ -102,7 +110,9 @@ export function SelectionPreviewPage() {
     // Simulated latency so the loading state is actually visible to click through.
     window.setTimeout(() => {
       setStaffResults(
-        staffDirectory.filter((o) => o.label.toLowerCase().includes(query.toLowerCase())),
+        staffDirectory.filter((o) =>
+          o.label.toLowerCase().includes(query.toLowerCase()),
+        ),
       );
       setStaffLoading(false);
     }, 400);
@@ -112,7 +122,9 @@ export function SelectionPreviewPage() {
     <AppShell
       topbar={
         <div className="px-6 py-3 flex items-center justify-between">
-          <span className="font-semibold text-text-primary">Selection Components Preview</span>
+          <span className="font-semibold text-text-primary">
+            Selection Components Preview
+          </span>
           <StatusBadge label="Phase 4" tone="info" />
         </div>
       }

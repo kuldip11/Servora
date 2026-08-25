@@ -13,16 +13,24 @@
  * 'INVENTORY_INSUFFICIENT_STOCK'` branch), which is exactly what
  * `DomainRuleError` maps to.
  */
-import { NotFoundError, DomainRuleError, MissingBranchError } from '../../core/errors';
+import {
+  NotFoundError,
+  DomainRuleError,
+  MissingBranchError,
+} from "../../core/errors";
 
 export function inventoryItemNotFound(id?: string): NotFoundError {
-  return new NotFoundError('Inventory item', id);
+  return new NotFoundError("Inventory item", id);
 }
 
 export function insufficientStock(): DomainRuleError {
-  return new DomainRuleError('Insufficient stock', { reason: 'INVENTORY_INSUFFICIENT_STOCK' });
+  return new DomainRuleError("Insufficient stock", {
+    reason: "INVENTORY_INSUFFICIENT_STOCK",
+  });
 }
 
 export function branchRequiredForInventoryItem(): MissingBranchError {
-  return new MissingBranchError('Please select a specific branch before adding inventory.');
+  return new MissingBranchError(
+    "Please select a specific branch before adding inventory.",
+  );
 }

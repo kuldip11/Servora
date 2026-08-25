@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Receipt, CreditCard } from 'lucide-react';
+import { useState } from "react";
+import { Receipt, CreditCard } from "lucide-react";
 import {
   Badge,
   Button,
@@ -11,36 +11,42 @@ import {
   Select,
   Table,
   type Column,
-} from '@pos/ui';
-import { formatCurrency, formatTime } from '../../../shared/utils/format';
-import { useOrders } from '../../orders/hooks/useOrders';
-import { useCollectPayment } from '../hooks/useCollectPayment';
-import type { Order } from '@pos/types';
-import { createPaymentSchema } from '@pos/validation';
+} from "@pos/ui";
+import { formatCurrency, formatTime } from "../../../shared/utils/format";
+import { useOrders } from "../../orders/hooks/useOrders";
+import { useCollectPayment } from "../hooks/useCollectPayment";
+import type { Order } from "@pos/types";
+import { createPaymentSchema } from "@pos/validation";
 
 const PAYMENT_METHODS = [
-  { value: 'CASH', label: 'Cash' },
-  { value: 'CARD', label: 'Card' },
-  { value: 'UPI', label: 'UPI' },
-  { value: 'RAZORPAY', label: 'Razorpay' },
-  { value: 'STRIPE', label: 'Stripe' },
+  { value: "CASH", label: "Cash" },
+  { value: "CARD", label: "Card" },
+  { value: "UPI", label: "UPI" },
+  { value: "RAZORPAY", label: "Razorpay" },
+  { value: "STRIPE", label: "Stripe" },
 ];
 
 export function BillingPage() {
   const [payModal, setPayModal] = useState<Order | null>(null);
-  const [payForm, setPayForm] = useState({ method: 'CASH', amount: '', reference: '' });
-  const [validationError, setValidationError] = useState('');
+  const [payForm, setPayForm] = useState({
+    method: "CASH",
+    amount: "",
+    reference: "",
+  });
+  const [validationError, setValidationError] = useState("");
 
-  const { data: billableOrders, isLoading } = useOrders({ status: 'BILL_REQUESTED' });
+  const { data: billableOrders, isLoading } = useOrders({
+    status: "BILL_REQUESTED",
+  });
   const payMutation = useCollectPayment();
 
   function openPayModal(order: Order) {
     setPayModal(order);
-    setValidationError('');
+    setValidationError("");
     setPayForm({
-      method: 'CASH',
+      method: "CASH",
       amount: String(parseFloat(String(order.totalAmount))),
-      reference: '',
+      reference: "",
     });
   }
 
@@ -53,23 +59,27 @@ export function BillingPage() {
       ...(payForm.reference ? { reference: payForm.reference } : {}),
     });
     if (!parsed.success) {
-      setValidationError(parsed.error.issues[0]?.message ?? 'Please review the payment.');
+      setValidationError(
+        parsed.error.issues[0]?.message ?? "Please review the payment.",
+      );
       return;
     }
-    setValidationError('');
+    setValidationError("");
     payMutation.mutate(
       {
         orderId: payModal.id,
         input: {
           method: parsed.data.method,
           amount: parsed.data.amount,
-          ...(parsed.data.reference ? { reference: parsed.data.reference } : {}),
+          ...(parsed.data.reference
+            ? { reference: parsed.data.reference }
+            : {}),
         },
       },
       {
         onSuccess: () => {
           setPayModal(null);
-          setPayForm({ method: 'CASH', amount: '', reference: '' });
+          setPayForm({ method: "CASH", amount: "", reference: "" });
         },
       },
     );
@@ -84,8 +94,8 @@ export function BillingPage() {
   // aren't made sortable now.
   const columns: Column<Order>[] = [
     {
-      id: 'order',
-      header: 'Order',
+      id: "order",
+      header: "Order",
       cell: (order) => (
         <span className="font-mono text-xs font-semibold text-text-secondary">
           #{order.id.slice(-8).toUpperCase()}
@@ -93,24 +103,24 @@ export function BillingPage() {
       ),
     },
     {
-      id: 'type',
-      header: 'Type',
+      id: "type",
+      header: "Type",
       cell: (order) => (
-        <Badge variant="default">
-          {order.type?.replace('_', ' ')}
-        </Badge>
+        <Badge variant="default">{order.type?.replace("_", " ")}</Badge>
       ),
     },
     {
-      id: 'items',
-      header: 'Items',
+      id: "items",
+      header: "Items",
       cell: (order) => (
-        <span className="text-text-secondary">{order.items?.length ?? 0} items</span>
+        <span className="text-text-secondary">
+          {order.items?.length ?? 0} items
+        </span>
       ),
     },
     {
-      id: 'total',
-      header: 'Total',
+      id: "total",
+      header: "Total",
       sortable: true,
       sortValue: (order) => parseFloat(String(order.totalAmount)),
       cell: (order) => (
@@ -120,18 +130,20 @@ export function BillingPage() {
       ),
     },
     {
-      id: 'time',
-      header: 'Time',
+      id: "time",
+      header: "Time",
       sortable: true,
       sortValue: (order) => new Date(order.createdAt).getTime(),
       cell: (order) => (
-        <span className="text-text-secondary text-xs">{formatTime(order.createdAt)}</span>
+        <span className="text-text-secondary text-xs">
+          {formatTime(order.createdAt)}
+        </span>
       ),
     },
     {
-      id: 'actions',
-      header: '',
-      align: 'right',
+      id: "actions",
+      header: "",
+      align: "right",
       cell: (order) => (
         <Button size="sm" onClick={() => openPayModal(order)}>
           <CreditCard className="w-3.5 h-3.5" />
@@ -182,29 +194,39 @@ export function BillingPage() {
               label="Payment Method"
               options={PAYMENT_METHODS}
               value={payForm.method}
-              onChange={(e) => setPayForm((f) => ({ ...f, method: e.target.value }))}
+              onChange={(e) =>
+                setPayForm((f) => ({ ...f, method: e.target.value }))
+              }
             />
             <Input
               label="Amount"
               type="number"
               value={payForm.amount}
-              onChange={(e) => setPayForm((f) => ({ ...f, amount: e.target.value }))}
+              onChange={(e) =>
+                setPayForm((f) => ({ ...f, amount: e.target.value }))
+              }
               min="0"
               step="0.01"
             />
-            {payForm.method !== 'CASH' && (
+            {payForm.method !== "CASH" && (
               <Input
                 label="Reference / Transaction ID"
                 placeholder="Optional"
                 value={payForm.reference}
-                onChange={(e) => setPayForm((f) => ({ ...f, reference: e.target.value }))}
+                onChange={(e) =>
+                  setPayForm((f) => ({ ...f, reference: e.target.value }))
+                }
               />
             )}
 
-            {validationError && <p className="text-xs text-danger">{validationError}</p>}
+            {validationError && (
+              <p className="text-xs text-danger">{validationError}</p>
+            )}
 
             <div className="flex gap-2 justify-end">
-              <Button variant="secondary" onClick={() => setPayModal(null)}>Cancel</Button>
+              <Button variant="secondary" onClick={() => setPayModal(null)}>
+                Cancel
+              </Button>
               <Button loading={payMutation.isPending} onClick={handleSubmit}>
                 Confirm Payment
               </Button>

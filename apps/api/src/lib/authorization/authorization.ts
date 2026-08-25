@@ -1,4 +1,4 @@
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray } from "drizzle-orm";
 
 import {
   membershipBranches,
@@ -9,7 +9,7 @@ import {
   roles,
   tenantMemberships,
   branches,
-} from '../../db/schema';
+} from "../../db/schema";
 
 /**
  * Membership-based authorization foundation.
@@ -48,7 +48,7 @@ export async function resolveMembership(
     where: and(
       eq(tenantMemberships.userId, userId),
       eq(tenantMemberships.tenantId, tenantId),
-      eq(tenantMemberships.status, 'ACTIVE'),
+      eq(tenantMemberships.status, "ACTIVE"),
     ),
     with: {
       roles: {
@@ -94,8 +94,11 @@ export async function resolveAuthorization(
       ...globalRoles.map((item: any) => item.roleId),
     ]),
   ];
-  const tenantWide = membership.roles.some((item: any) => item.role?.scope === 'GLOBAL' || item.role?.scope === 'TENANT')
-    || globalRoles.some((item: any) => item.role?.scope === 'GLOBAL');
+  const tenantWide =
+    membership.roles.some(
+      (item: any) =>
+        item.role?.scope === "GLOBAL" || item.role?.scope === "TENANT",
+    ) || globalRoles.some((item: any) => item.role?.scope === "GLOBAL");
   const branchIds = membership.branches.map((item: any) => item.branchId);
 
   if (context.branchId) {
@@ -136,10 +139,13 @@ export async function resolveAuthorization(
     .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
     .where(inArray(rolePermissions.roleId, roleIds));
 
-  const permissionKeys = new Set<string>(rows.map((row: any) => row.key as string));
+  const permissionKeys = new Set<string>(
+    rows.map((row: any) => row.key as string),
+  );
   for (const globalRole of globalRoles) {
     for (const rolePermission of globalRole.role?.rolePermissions ?? []) {
-      if (rolePermission.permission?.key) permissionKeys.add(rolePermission.permission.key);
+      if (rolePermission.permission?.key)
+        permissionKeys.add(rolePermission.permission.key);
     }
   }
 
@@ -172,11 +178,11 @@ export async function requirePermission(
   const decision = await resolveAuthorization(db, context);
 
   if (!decision.allowed) {
-    throw new Error('FORBIDDEN');
+    throw new Error("FORBIDDEN");
   }
 
   if (!decision.permissionKeys.includes(permissionKey)) {
-    throw new Error('FORBIDDEN');
+    throw new Error("FORBIDDEN");
   }
 
   return decision;
@@ -193,7 +199,7 @@ export async function requireBranchAccess(
   });
 
   if (!decision.allowed) {
-    throw new Error('FORBIDDEN');
+    throw new Error("FORBIDDEN");
   }
 
   return decision;

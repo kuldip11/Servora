@@ -1,7 +1,11 @@
-import type { ReactNode } from 'react';
-import * as RadixDialog from '@radix-ui/react-dialog';
-import { cn } from '../../utils/cn';
-import { overlayPanelClasses, overlayScrimClasses, OverlayHeader } from './shared';
+import type { ReactNode } from "react";
+import * as RadixDialog from "@radix-ui/react-dialog";
+import { cn } from "../../utils/cn";
+import {
+  overlayPanelClasses,
+  overlayScrimClasses,
+  OverlayHeader,
+} from "./shared";
 
 export interface DialogProps {
   open: boolean;
@@ -9,7 +13,7 @@ export interface DialogProps {
   title: string;
   children: ReactNode;
   /** @default 'md' */
-  size?: 'sm' | 'md' | 'lg' | 'xl' | undefined;
+  size?: "sm" | "md" | "lg" | "xl" | undefined;
   /** Optional action row rendered below `children`, e.g. Cancel/Confirm buttons. */
   footer?: ReactNode | undefined;
   /** Set for destructive confirmations where accidental dismissal should be
@@ -25,7 +29,12 @@ export interface DialogProps {
   description?: string | undefined;
 }
 
-const SIZE_CLASSES = { sm: 'max-w-sm', md: 'max-w-md', lg: 'max-w-lg', xl: 'max-w-2xl' };
+const SIZE_CLASSES = {
+  sm: "max-w-sm",
+  md: "max-w-md",
+  lg: "max-w-lg",
+  xl: "max-w-2xl",
+};
 
 /** Phase 8: `Dialog` is centered via a static `-translate-x-1/2
  * -translate-y-1/2`. `tailwindcss-animate`'s slide utilities compose with
@@ -39,12 +48,12 @@ const SIZE_CLASSES = { sm: 'max-w-sm', md: 'max-w-md', lg: 'max-w-lg', xl: 'max-
  * review). Zoom/fade layer on top of that same composed transform with no
  * conflict, since `zoom-*` only touches `--tw-scale-x/y`. */
 const dialogAnimationClasses = cn(
-  'data-[state=open]:animate-in data-[state=open]:duration-base data-[state=open]:ease-decelerate',
-  'data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
-  'data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]',
-  'data-[state=closed]:animate-out data-[state=closed]:duration-fast data-[state=closed]:ease-accelerate',
-  'data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
-  'data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%]',
+  "data-[state=open]:animate-in data-[state=open]:duration-base data-[state=open]:ease-decelerate",
+  "data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
+  "data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
+  "data-[state=closed]:animate-out data-[state=closed]:duration-fast data-[state=closed]:ease-accelerate",
+  "data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
+  "data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%]",
 );
 
 /**
@@ -73,7 +82,7 @@ export function Dialog({
   onClose,
   title,
   children,
-  size = 'md',
+  size = "md",
   footer,
   preventDismiss,
   description,
@@ -86,12 +95,12 @@ export function Dialog({
           onEscapeKeyDown={(e) => preventDismiss && e.preventDefault()}
           onPointerDownOutside={(e) => preventDismiss && e.preventDefault()}
           onInteractOutside={(e) => preventDismiss && e.preventDefault()}
-          {...(description ? {} : { 'aria-describedby': undefined })}
+          {...(description ? {} : { "aria-describedby": undefined })}
           className={cn(
             overlayPanelClasses,
             dialogAnimationClasses,
-            'fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2',
-            'w-[calc(100vw-2rem)] rounded-xl flex flex-col max-h-[85vh]',
+            "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
+            "w-[calc(100vw-2rem)] rounded-xl flex flex-col max-h-[85vh]",
             SIZE_CLASSES[size],
           )}
         >
@@ -104,7 +113,9 @@ export function Dialog({
             onClose={onClose}
           />
           {description && (
-            <RadixDialog.Description className="sr-only">{description}</RadixDialog.Description>
+            <RadixDialog.Description className="sr-only">
+              {description}
+            </RadixDialog.Description>
           )}
           <div className="p-6 overflow-y-auto">{children}</div>
           {footer && (

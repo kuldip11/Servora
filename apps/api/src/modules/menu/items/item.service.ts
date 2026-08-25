@@ -5,13 +5,16 @@
  * columns, splitting tag/allergen/modifier-group/image links out of the
  * main item patch, and the publish/unpublish role restriction.
  */
-import type { FoodType, MenuItemStatus, SpiceLevel } from '@pos/types';
-import type { AuthContext } from '../../../core/auth';
-import { requirePermission } from '../../../core/auth';
-import { assertMenuResourceBranch, resolveMenuBranch } from '../menu-authorization';
-import { itemRepository } from './item.repository';
-import { modifierRepository } from '../modifiers/modifier.repository';
-import { itemNotFound } from './item.errors';
+import type { FoodType, MenuItemStatus, SpiceLevel } from "@pos/types";
+import type { AuthContext } from "../../../core/auth";
+import { requirePermission } from "../../../core/auth";
+import {
+  assertMenuResourceBranch,
+  resolveMenuBranch,
+} from "../menu-authorization";
+import { itemRepository } from "./item.repository";
+import { modifierRepository } from "../modifiers/modifier.repository";
+import { itemNotFound } from "./item.errors";
 
 export interface CreateItemInput {
   categoryId: string;
@@ -71,22 +74,32 @@ async function validateReferences(
   modifierGroupIds: string[] | undefined,
 ) {
   if (tagIds?.length) {
-    const ownedTags = await modifierRepository.findOwnedTagIds(tenantId, tagIds);
+    const ownedTags = await modifierRepository.findOwnedTagIds(
+      tenantId,
+      tagIds,
+    );
     const invalid = tagIds.filter((id) => !ownedTags.has(id));
-    if (invalid.length) throw new Error('One or more menu tags do not belong to this tenant');
+    if (invalid.length)
+      throw new Error("One or more menu tags do not belong to this tenant");
   }
 
   if (modifierGroupIds?.length) {
-    const ownedGroups = await modifierRepository.findOwnedModifierGroupIds(tenantId, branchId ?? null, modifierGroupIds);
+    const ownedGroups = await modifierRepository.findOwnedModifierGroupIds(
+      tenantId,
+      branchId ?? null,
+      modifierGroupIds,
+    );
     const invalid = modifierGroupIds.filter((id) => !ownedGroups.has(id));
-    if (invalid.length) throw new Error('One or more modifier groups are outside the active tenant or branch');
+    if (invalid.length)
+      throw new Error(
+        "One or more modifier groups are outside the active tenant or branch",
+      );
   }
 }
 
-
 export const itemService = {
   async getById(auth: AuthContext, itemId: string) {
-    requirePermission(auth, 'menu:read');
+    requirePermission(auth, "menu:read");
     const item = await itemRepository.findById(auth.tenantId, itemId);
     if (!item) throw itemNotFound(itemId);
     assertMenuResourceBranch(auth, item.branchId, { allowShared: true });
@@ -94,43 +107,74 @@ export const itemService = {
   },
 
   async create(auth: AuthContext, input: CreateItemInput) {
-    requirePermission(auth, 'menu:create');
+    requirePermission(auth, "menu:create");
     const branchId = resolveMenuBranch(auth, input.branchId);
-    const category = await itemRepository.findCategory(auth.tenantId, input.categoryId);
+    const category = await itemRepository.findCategory(
+      auth.tenantId,
+      input.categoryId,
+    );
     if (!category) throw itemNotFound(input.categoryId);
     if (category.branchId && category.branchId !== branchId) {
-      throw new Error('Category branch does not match the active menu branch');
+      throw new Error("Category branch does not match the active menu branch");
     }
-    await validateReferences(auth.tenantId, branchId, input.tagIds, input.modifierGroupIds);
+    await validateReferences(
+      auth.tenantId,
+      branchId,
+      input.tagIds,
+      input.modifierGroupIds,
+    );
     return itemRepository.create({
       tenantId: auth.tenantId,
       ...input,
       branchId,
       basePrice: String(input.basePrice),
-      taxRate: input.taxRate !== undefined ? String(input.taxRate) : '0',
-      variants: input.variants?.map((v) => ({ name: v.name, price: String(v.price) })),
+      taxRate: input.taxRate !== undefined ? String(input.taxRate) : "0",
+      variants: input.variants?.map((v) => ({
+        name: v.name,
+        price: String(v.price),
+      })),
     });
   },
 
   async update(auth: AuthContext, itemId: string, input: UpdateItemInput) {
-    requirePermission(auth, 'menu:update');
+    requirePermission(auth, "menu:update");
     const existing = await itemRepository.findById(auth.tenantId, itemId);
     if (!existing) throw itemNotFound(itemId);
     assertMenuResourceBranch(auth, existing.branchId);
-    const { tagIds, allergenIds, modifierGroupIds, imageUrls, ...itemFields } = input;
-    await validateReferences(auth.tenantId, existing.branchId, tagIds, modifierGroupIds);
+    const { tagIds, allergenIds, modifierGroupIds, imageUrls, ...itemFields } =
+      input;
+    await validateReferences(
+      auth.tenantId,
+      existing.branchId,
+      tagIds,
+      modifierGroupIds,
+    );
 
     const updated = await itemRepository.update(auth.tenantId, itemId, {
       ...itemFields,
-      basePrice: itemFields.basePrice !== undefined ? String(itemFields.basePrice) : undefined,
-      taxRate: itemFields.taxRate !== undefined ? String(itemFields.taxRate) : undefined,
+      basePrice:
+        itemFields.basePrice !== undefined
+          ? String(itemFields.basePrice)
+          : undefined,
+      taxRate:
+        itemFields.taxRate !== undefined
+          ? String(itemFields.taxRate)
+          : undefined,
     });
     if (!updated) throw itemNotFound(itemId);
 
-    if (tagIds !== undefined) await itemRepository.setTags(auth.tenantId, itemId, tagIds);
-    if (allergenIds !== undefined) await itemRepository.setAllergens(auth.tenantId, itemId, allergenIds);
-    if (modifierGroupIds !== undefined) await itemRepository.setModifierGroups(auth.tenantId, itemId, modifierGroupIds);
-    if (imageUrls !== undefined) await itemRepository.setImages(auth.tenantId, itemId, imageUrls);
+    if (tagIds !== undefined)
+      await itemRepository.setTags(auth.tenantId, itemId, tagIds);
+    if (allergenIds !== undefined)
+      await itemRepository.setAllergens(auth.tenantId, itemId, allergenIds);
+    if (modifierGroupIds !== undefined)
+      await itemRepository.setModifierGroups(
+        auth.tenantId,
+        itemId,
+        modifierGroupIds,
+      );
+    if (imageUrls !== undefined)
+      await itemRepository.setImages(auth.tenantId, itemId, imageUrls);
 
     return itemRepository.findById(auth.tenantId, itemId);
   },
@@ -140,15 +184,19 @@ export const itemService = {
   // deleted, is a no-op rather than a 404 — the caller's intent (this item
   // should not exist) is already satisfied either way.
   async remove(auth: AuthContext, itemId: string): Promise<void> {
-    requirePermission(auth, 'menu:delete');
+    requirePermission(auth, "menu:delete");
     const existing = await itemRepository.findById(auth.tenantId, itemId);
     if (!existing) return;
     assertMenuResourceBranch(auth, existing.branchId);
     await itemRepository.softDelete(auth.tenantId, itemId);
   },
 
-  async duplicate(auth: AuthContext, itemId: string, input: DuplicateItemInput) {
-    requirePermission(auth, 'menu:create');
+  async duplicate(
+    auth: AuthContext,
+    itemId: string,
+    input: DuplicateItemInput,
+  ) {
+    requirePermission(auth, "menu:create");
     const existing = await itemRepository.findById(auth.tenantId, itemId);
     if (!existing) throw itemNotFound(itemId);
     assertMenuResourceBranch(auth, existing.branchId);
@@ -158,7 +206,7 @@ export const itemService = {
   },
 
   async publish(auth: AuthContext, itemId: string) {
-    requirePermission(auth, 'menu:publish');
+    requirePermission(auth, "menu:publish");
     const existing = await itemRepository.findById(auth.tenantId, itemId);
     if (!existing) throw itemNotFound(itemId);
     assertMenuResourceBranch(auth, existing.branchId);
@@ -168,7 +216,7 @@ export const itemService = {
   },
 
   async unpublish(auth: AuthContext, itemId: string) {
-    requirePermission(auth, 'menu:publish');
+    requirePermission(auth, "menu:publish");
     const existing = await itemRepository.findById(auth.tenantId, itemId);
     if (!existing) throw itemNotFound(itemId);
     assertMenuResourceBranch(auth, existing.branchId);
@@ -177,12 +225,22 @@ export const itemService = {
     return item;
   },
 
-  async updateStatus(auth: AuthContext, itemId: string, status: MenuItemStatus, reason?: string | undefined) {
-    requirePermission(auth, 'menu:update');
+  async updateStatus(
+    auth: AuthContext,
+    itemId: string,
+    status: MenuItemStatus,
+    reason?: string | undefined,
+  ) {
+    requirePermission(auth, "menu:update");
     const existing = await itemRepository.findById(auth.tenantId, itemId);
     if (!existing) throw itemNotFound(itemId);
     assertMenuResourceBranch(auth, existing.branchId);
-    const item = await itemRepository.updateStatus(auth.tenantId, itemId, status, reason);
+    const item = await itemRepository.updateStatus(
+      auth.tenantId,
+      itemId,
+      status,
+      reason,
+    );
     if (!item) throw itemNotFound(itemId);
     return item;
   },
@@ -195,14 +253,14 @@ export const itemService = {
     isAvailable: boolean,
     reason?: string | undefined,
   ) {
-    requirePermission(auth, 'menu:update');
+    requirePermission(auth, "menu:update");
     const existing = await itemRepository.findById(auth.tenantId, itemId);
     if (!existing) throw itemNotFound(itemId);
     assertMenuResourceBranch(auth, existing.branchId);
     const item = await itemRepository.updateStatus(
       auth.tenantId,
       itemId,
-      isAvailable ? 'ACTIVE' : 'OUT_OF_STOCK',
+      isAvailable ? "ACTIVE" : "OUT_OF_STOCK",
       reason,
     );
     if (!item) throw itemNotFound(itemId);
@@ -214,8 +272,13 @@ export const itemService = {
     statuses: MenuItemStatus[],
     categoryId?: string | undefined,
   ) {
-    requirePermission(auth, 'menu:read');
+    requirePermission(auth, "menu:read");
     resolveMenuBranch(auth);
-    return itemRepository.findByStatus(auth.tenantId, auth.branchId, statuses, categoryId);
+    return itemRepository.findByStatus(
+      auth.tenantId,
+      auth.branchId,
+      statuses,
+      categoryId,
+    );
   },
 };

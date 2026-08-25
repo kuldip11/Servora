@@ -1,4 +1,4 @@
-import { t } from 'elysia';
+import { t } from "elysia";
 
 export const createCategoryBody = t.Object({
   name: t.String({ minLength: 1 }),

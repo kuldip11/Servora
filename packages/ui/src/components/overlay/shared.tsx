@@ -1,6 +1,6 @@
-import type { ComponentType, ReactNode } from 'react';
-import { X } from 'lucide-react';
-import { cn } from '../../utils/cn';
+import type { ComponentType, ReactNode } from "react";
+import { X } from "lucide-react";
+import { cn } from "../../utils/cn";
 
 /**
  * Shared foundation for Phase 5 — Overlay Components
@@ -32,7 +32,9 @@ import { cn } from '../../utils/cn';
  * `ease-decelerate` entering, `duration-fast ease-accelerate`
  * exiting — Material's own convention: entering surfaces settle in
  * gently, exiting ones leave quickly), just not the transform shape. */
-export const overlayPanelClasses = cn('bg-surface shadow-elevated border border-border');
+export const overlayPanelClasses = cn(
+  "bg-surface shadow-elevated border border-border",
+);
 
 /** Fade-only enter/exit — shared by every overlay's backdrop
  * (`overlayScrimClasses` below) since a scrim never has a "side" of
@@ -40,10 +42,10 @@ export const overlayPanelClasses = cn('bg-surface shadow-elevated border border-
  * `duration-fast`/`ease-accelerate` on exit — same reasoning as
  * `overlayPanelClasses`' doc comment. */
 export const fadeAnimationClasses = cn(
-  'data-[state=open]:animate-in data-[state=open]:fade-in-0',
-  'data-[state=open]:duration-base data-[state=open]:ease-decelerate',
-  'data-[state=closed]:animate-out data-[state=closed]:fade-out-0',
-  'data-[state=closed]:duration-fast data-[state=closed]:ease-accelerate',
+  "data-[state=open]:animate-in data-[state=open]:fade-in-0",
+  "data-[state=open]:duration-base data-[state=open]:ease-decelerate",
+  "data-[state=closed]:animate-out data-[state=closed]:fade-out-0",
+  "data-[state=closed]:duration-fast data-[state=closed]:ease-accelerate",
 );
 
 /** Renders the title node the caller supplies (already wrapped in the
@@ -72,7 +74,7 @@ export function OverlayHeader({
   return (
     <div
       className={cn(
-        'flex items-center justify-between gap-4 px-6 py-4 border-b border-border shrink-0',
+        "flex items-center justify-between gap-4 px-6 py-4 border-b border-border shrink-0",
         className,
       )}
     >
@@ -89,7 +91,10 @@ export function OverlayHeader({
   );
 }
 
-export const overlayScrimClasses = cn('fixed inset-0 z-50 bg-black/40', fadeAnimationClasses);
+export const overlayScrimClasses = cn(
+  "fixed inset-0 z-50 bg-black/40",
+  fadeAnimationClasses,
+);
 
 // --- Menus (DropdownMenu / ContextMenu) -----------------------------------
 // Both Radix packages expose near-identical `Item`/`Separator`/`Label`
@@ -98,7 +103,7 @@ export const overlayScrimClasses = cn('fixed inset-0 z-50 bg-black/40', fadeAnim
 // second "menu item" concept.
 
 export interface MenuItemDef {
-  type?: 'item' | undefined;
+  type?: "item" | undefined;
   label: string;
   onSelect: () => void;
   icon?: ComponentType<{ className?: string }> | undefined;
@@ -108,7 +113,7 @@ export interface MenuItemDef {
   shortcut?: string | undefined;
 }
 export interface MenuSeparatorDef {
-  type: 'separator';
+  type: "separator";
 }
 export type MenuEntry = MenuItemDef | MenuSeparatorDef;
 
@@ -121,21 +126,21 @@ export type MenuEntry = MenuItemDef | MenuSeparatorDef;
  * `duration-base`: these are small, frequent, close-to-the-cursor surfaces —
  * a menu that takes as long to open as a full dialog reads as sluggish. */
 export const menuContentClasses = cn(
-  'z-50 min-w-[12rem] overflow-hidden rounded-md border border-border bg-surface shadow-dropdown py-1',
-  'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
-  'data-[state=open]:duration-fast data-[state=open]:ease-decelerate',
-  'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
-  'data-[state=closed]:duration-fast data-[state=closed]:ease-accelerate',
-  'data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2',
-  'data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2',
+  "z-50 min-w-[12rem] overflow-hidden rounded-md border border-border bg-surface shadow-dropdown py-1",
+  "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
+  "data-[state=open]:duration-fast data-[state=open]:ease-decelerate",
+  "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
+  "data-[state=closed]:duration-fast data-[state=closed]:ease-accelerate",
+  "data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2",
+  "data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2",
 );
 
 export function menuItemClasses(danger?: boolean) {
   return cn(
-    'flex items-center gap-2 px-3 py-2 text-sm cursor-pointer select-none outline-none',
-    'data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed data-[disabled]:pointer-events-none',
-    'data-[highlighted]:bg-surface-secondary',
-    danger ? 'text-danger' : 'text-text-primary',
+    "flex items-center gap-2 px-3 py-2 text-sm cursor-pointer select-none outline-none",
+    "data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed data-[disabled]:pointer-events-none",
+    "data-[highlighted]:bg-surface-secondary",
+    danger ? "text-danger" : "text-text-primary",
   );
 }
 
@@ -145,10 +150,12 @@ export function MenuItemContent({ icon: Icon, label, shortcut }: MenuItemDef) {
       {Icon && <Icon className="w-4 h-4 shrink-0" />}
       <span className="flex-1 min-w-0 truncate">{label}</span>
       {shortcut && (
-        <span className="text-xs text-text-secondary tracking-widest shrink-0">{shortcut}</span>
+        <span className="text-xs text-text-secondary tracking-widest shrink-0">
+          {shortcut}
+        </span>
       )}
     </>
   );
 }
 
-export const menuSeparatorClasses = 'my-1 h-px bg-divider';
+export const menuSeparatorClasses = "my-1 h-px bg-divider";

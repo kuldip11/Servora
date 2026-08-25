@@ -3,13 +3,13 @@
  * from `requireAuthPlugin` (applied in `branch.route.ts`); business rules
  * live in `branch.service.ts`.
  */
-import type { AuthContext } from '../../core/auth';
-import { successResponse, createdResponse } from '../../core/response';
+import type { AuthContext } from "../../core/auth";
+import { successResponse, createdResponse } from "../../core/response";
 import {
   branchService,
   type CreateBranchInput,
   type UpdateBranchInput,
-} from './branch.service';
+} from "./branch.service";
 
 export const branchController = {
   async list(auth: AuthContext) {
@@ -22,7 +22,11 @@ export const branchController = {
     return createdResponse(branch);
   },
 
-  async update(auth: AuthContext, branchId: string, changes: UpdateBranchInput) {
+  async update(
+    auth: AuthContext,
+    branchId: string,
+    changes: UpdateBranchInput,
+  ) {
     const updated = await branchService.update(auth, branchId, changes);
     return successResponse(updated);
   },

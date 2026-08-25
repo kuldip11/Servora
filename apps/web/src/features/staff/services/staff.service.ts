@@ -1,4 +1,4 @@
-import { apiClient } from '../../../shared/lib/api-client';
+import { apiClient } from "../../../shared/lib/api-client";
 
 export interface StaffFormInput {
   firstName: string;
@@ -11,12 +11,15 @@ export interface StaffFormInput {
 
 export const staffService = {
   async list(): Promise<any[]> {
-    const res = await apiClient.get('/staff');
+    const res = await apiClient.get("/staff");
     return res.data.data;
   },
 
   async add(input: StaffFormInput): Promise<void> {
-    await apiClient.post('/staff', { ...input, branchId: input.branchId || undefined });
+    await apiClient.post("/staff", {
+      ...input,
+      branchId: input.branchId || undefined,
+    });
   },
 
   async remove(id: string): Promise<void> {

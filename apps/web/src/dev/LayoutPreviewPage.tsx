@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   AppShell,
   Card,
@@ -12,8 +12,8 @@ import {
   Badge,
   Button,
   StatCard,
-} from '@pos/ui';
-import { Users, DollarSign, ShoppingBag } from 'lucide-react';
+} from "@pos/ui";
+import { Users, DollarSign, ShoppingBag } from "lucide-react";
 
 /**
  * Internal-only route (`/dev/layout-preview`, no auth guard). Phase 2
@@ -32,8 +32,15 @@ export function LayoutPreviewPage() {
     <AppShell
       topbar={
         <Container size="xl">
-          <Stack direction="row" justify="between" align="center" className="py-3">
-            <span className="font-semibold text-text-primary">AppShell topbar slot</span>
+          <Stack
+            direction="row"
+            justify="between"
+            align="center"
+            className="py-3"
+          >
+            <span className="font-semibold text-text-primary">
+              AppShell topbar slot
+            </span>
             <Badge variant="info">demo</Badge>
           </Stack>
         </Container>
@@ -46,12 +53,35 @@ export function LayoutPreviewPage() {
           actions={<Button size="sm">Primary action</Button>}
         />
 
-        <Section title="Grid — responsive StatCards" description="1 col mobile, 2 sm, 4 lg">
+        <Section
+          title="Grid — responsive StatCards"
+          description="1 col mobile, 2 sm, 4 lg"
+        >
           <Grid columns={{ base: 1, sm: 2, lg: 4 }} gap="md">
-            <StatCard title="Orders today" value={128} icon={ShoppingBag} color="violet" />
-            <StatCard title="Revenue" value="$4,382" icon={DollarSign} color="emerald" />
-            <StatCard title="Active staff" value={12} icon={Users} color="blue" />
-            <StatCard title="Avg order" value="$34.20" icon={DollarSign} color="amber" />
+            <StatCard
+              title="Orders today"
+              value={128}
+              icon={ShoppingBag}
+              color="violet"
+            />
+            <StatCard
+              title="Revenue"
+              value="$4,382"
+              icon={DollarSign}
+              color="emerald"
+            />
+            <StatCard
+              title="Active staff"
+              value={12}
+              icon={Users}
+              color="blue"
+            />
+            <StatCard
+              title="Avg order"
+              value="$34.20"
+              icon={DollarSign}
+              color="amber"
+            />
           </Grid>
         </Section>
 
@@ -59,8 +89,12 @@ export function LayoutPreviewPage() {
           <Stack direction="row" gap="md" wrap>
             {items.map((i) => (
               <Card key={i} padding="md" className="w-48">
-                <p className="text-sm font-medium text-text-primary">Card {i}</p>
-                <p className="text-xs text-text-secondary mt-1">padding=&quot;md&quot;</p>
+                <p className="text-sm font-medium text-text-primary">
+                  Card {i}
+                </p>
+                <p className="text-xs text-text-secondary mt-1">
+                  padding=&quot;md&quot;
+                </p>
               </Card>
             ))}
           </Stack>
@@ -79,10 +113,15 @@ export function LayoutPreviewPage() {
                     interactive
                     onClick={() => setSelected(i)}
                     className={
-                      'text-left ' + (selected === i ? 'border-primary bg-primary-surface' : '')
+                      "text-left " +
+                      (selected === i
+                        ? "border-primary bg-primary-surface"
+                        : "")
                     }
                   >
-                    <span className="text-sm font-medium text-text-primary">Item {i}</span>
+                    <span className="text-sm font-medium text-text-primary">
+                      Item {i}
+                    </span>
                   </Card>
                 ))}
               </Stack>
@@ -93,8 +132,8 @@ export function LayoutPreviewPage() {
                   Detail for item {selected}
                 </h3>
                 <p className="text-sm text-text-secondary">
-                  The primary pane is a fixed 240px on `lg:` and up, and stacks above this pane
-                  on narrow screens.
+                  The primary pane is a fixed 240px on `lg:` and up, and stacks
+                  above this pane on narrow screens.
                 </p>
               </Card>
             }

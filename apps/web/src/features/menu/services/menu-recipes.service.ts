@@ -1,5 +1,5 @@
-import { apiClient } from '../../../shared/lib/api-client';
-import type { Recipe, InventoryUnit } from '@pos/types';
+import { apiClient } from "../../../shared/lib/api-client";
+import type { Recipe, InventoryUnit } from "@pos/types";
 
 export interface RecipeIngredientInput {
   inventoryItemId: string;
@@ -14,7 +14,10 @@ export const menuRecipesService = {
     return res.data.data;
   },
 
-  async save(itemId: string, ingredients: RecipeIngredientInput[]): Promise<void> {
+  async save(
+    itemId: string,
+    ingredients: RecipeIngredientInput[],
+  ): Promise<void> {
     await apiClient.post(`/menu/items/${itemId}/recipes`, { ingredients });
   },
 };

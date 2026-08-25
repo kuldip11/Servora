@@ -1,13 +1,17 @@
-import { useEffect, useRef, useState } from 'react';
-import { Check, ChevronDown, GitBranch } from 'lucide-react';
-import { useAuthStore } from '../../../store/auth';
-import { cn } from '../../utils';
+import { useEffect, useRef, useState } from "react";
+import { Check, ChevronDown, GitBranch } from "lucide-react";
+import { useAuthStore } from "../../../store/auth";
+import { cn } from "../../utils";
 
 export function BranchSwitcher() {
   const { memberships, membershipId, branchId, setContext } = useAuthStore();
-  const membership = memberships.find((item) => item.membershipId === membershipId);
-  const branches = membership?.branches.filter((branch) => branch.isActive) ?? [];
-  const tenantWide = membership?.roles.some((role) => role.scope === 'TENANT') ?? false;
+  const membership = memberships.find(
+    (item) => item.membershipId === membershipId,
+  );
+  const branches =
+    membership?.branches.filter((branch) => branch.isActive) ?? [];
+  const tenantWide =
+    membership?.roles.some((role) => role.scope === "TENANT") ?? false;
   const [open, setOpen] = useState(false);
   const [switching, setSwitching] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -19,21 +23,26 @@ export function BranchSwitcher() {
       if (!containerRef.current?.contains(event.target as Node)) setOpen(false);
     }
 
-    document.addEventListener('mousedown', handlePointerDown);
-    return () => document.removeEventListener('mousedown', handlePointerDown);
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
   }, [open]);
 
   if (!membership) return null;
   const activeMembership = membership;
 
-  const selectedValue = branchId && (branchId === 'all' || branches.some((branch) => branch.id === branchId))
-    ? branchId
-    : tenantWide
-      ? 'all'
-      : branches[0]?.id ?? '';
+  const selectedValue =
+    branchId &&
+    (branchId === "all" || branches.some((branch) => branch.id === branchId))
+      ? branchId
+      : tenantWide
+        ? "all"
+        : (branches[0]?.id ?? "");
 
   const selectedBranch = branches.find((branch) => branch.id === selectedValue);
-  const selectedLabel = selectedValue === 'all' ? 'All Branches' : selectedBranch?.name ?? 'No branches';
+  const selectedLabel =
+    selectedValue === "all"
+      ? "All Branches"
+      : (selectedBranch?.name ?? "No branches");
 
   async function handleChange(value: string) {
     if (value === selectedValue) {
@@ -43,7 +52,11 @@ export function BranchSwitcher() {
 
     setSwitching(true);
     try {
-      setContext({ membershipId: activeMembership.membershipId, franchiseId: activeMembership.tenant.id, branchId: value === 'all' ? null : value });
+      setContext({
+        membershipId: activeMembership.membershipId,
+        franchiseId: activeMembership.tenant.id,
+        branchId: value === "all" ? null : value,
+      });
       setOpen(false);
     } finally {
       setSwitching(false);
@@ -59,13 +72,16 @@ export function BranchSwitcher() {
         aria-haspopup="menu"
         disabled={switching}
         className={cn(
-          'flex h-12 items-center gap-3 min-w-0 max-w-[280px] rounded-xl border border-border bg-surface px-3.5 text-left',
-          'shadow-sm transition-all hover:bg-surface-secondary hover:border-primary/30',
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-60',
+          "flex h-12 items-center gap-3 min-w-0 max-w-[280px] rounded-xl border border-border bg-surface px-3.5 text-left",
+          "shadow-sm transition-all hover:bg-surface-secondary hover:border-primary/30",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-60",
         )}
       >
         <span className="w-9 h-9 shrink-0 rounded-lg bg-primary-surface flex items-center justify-center">
-          <GitBranch aria-hidden="true" className="w-[18px] h-[18px] text-primary" />
+          <GitBranch
+            aria-hidden="true"
+            className="w-[18px] h-[18px] text-primary"
+          />
         </span>
         <span className="min-w-0 flex-1">
           <span className="block text-[10px] uppercase tracking-[0.08em] font-semibold leading-4 text-text-secondary">
@@ -77,7 +93,10 @@ export function BranchSwitcher() {
         </span>
         <ChevronDown
           aria-hidden="true"
-          className={cn('w-4 h-4 shrink-0 text-text-secondary transition-transform', open && 'rotate-180')}
+          className={cn(
+            "w-4 h-4 shrink-0 text-text-secondary transition-transform",
+            open && "rotate-180",
+          )}
         />
       </button>
 
@@ -95,8 +114,12 @@ export function BranchSwitcher() {
             className="absolute right-0 top-full mt-2 z-40 w-[320px] rounded-xl border border-border bg-surface shadow-elevated p-2"
           >
             <div className="px-3 py-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">Your branches</p>
-              <p className="text-xs text-text-disabled mt-0.5 truncate">{membership.tenant.name}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                Your branches
+              </p>
+              <p className="text-xs text-text-disabled mt-0.5 truncate">
+                {membership.tenant.name}
+              </p>
             </div>
 
             {branches.length > 0 || tenantWide ? (
@@ -105,17 +128,29 @@ export function BranchSwitcher() {
                   <button
                     type="button"
                     role="menuitem"
-                    onClick={() => void handleChange('all')}
+                    onClick={() => void handleChange("all")}
                     className="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-surface-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
                     <span className="w-9 h-9 shrink-0 rounded-lg bg-surface-secondary flex items-center justify-center">
-                      <GitBranch aria-hidden="true" className="w-4 h-4 text-text-secondary" />
+                      <GitBranch
+                        aria-hidden="true"
+                        className="w-4 h-4 text-text-secondary"
+                      />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-medium text-text-primary truncate">All Branches</span>
-                      <span className="block text-xs text-text-secondary truncate">View the whole franchise</span>
+                      <span className="block text-sm font-medium text-text-primary truncate">
+                        All Branches
+                      </span>
+                      <span className="block text-xs text-text-secondary truncate">
+                        View the whole franchise
+                      </span>
                     </span>
-                    {selectedValue === 'all' && <Check aria-hidden="true" className="w-4 h-4 text-primary shrink-0" />}
+                    {selectedValue === "all" && (
+                      <Check
+                        aria-hidden="true"
+                        className="w-4 h-4 text-primary shrink-0"
+                      />
+                    )}
                   </button>
                 )}
 
@@ -128,20 +163,34 @@ export function BranchSwitcher() {
                     className="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-surface-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
                     <span className="w-9 h-9 shrink-0 rounded-lg bg-surface-secondary flex items-center justify-center">
-                      <GitBranch aria-hidden="true" className="w-4 h-4 text-text-secondary" />
+                      <GitBranch
+                        aria-hidden="true"
+                        className="w-4 h-4 text-text-secondary"
+                      />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-medium text-text-primary truncate">{branch.name}</span>
+                      <span className="block text-sm font-medium text-text-primary truncate">
+                        {branch.name}
+                      </span>
                       <span className="block text-xs text-text-secondary truncate">
-                        {branch.tablesEnabled ? 'Tables enabled' : 'Tables disabled'}
+                        {branch.tablesEnabled
+                          ? "Tables enabled"
+                          : "Tables disabled"}
                       </span>
                     </span>
-                    {selectedValue === branch.id && <Check aria-hidden="true" className="w-4 h-4 text-primary shrink-0" />}
+                    {selectedValue === branch.id && (
+                      <Check
+                        aria-hidden="true"
+                        className="w-4 h-4 text-primary shrink-0"
+                      />
+                    )}
                   </button>
                 ))}
               </div>
             ) : (
-              <div className="px-3 py-4 text-sm text-text-secondary">No active branches yet.</div>
+              <div className="px-3 py-4 text-sm text-text-secondary">
+                No active branches yet.
+              </div>
             )}
           </div>
         </>

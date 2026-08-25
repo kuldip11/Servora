@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { KitchenLogin, getToken, logout } from '../../auth';
-import { KitchenBoard } from '../pages/KitchenBoard';
+import { useState } from "react";
+import { KitchenLogin, getToken, logout } from "../../auth";
+import { KitchenBoard } from "../pages/KitchenBoard";
 
 export function KitchenApp() {
   const [loggedIn, setLoggedIn] = useState(!!getToken());

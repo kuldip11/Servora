@@ -1,19 +1,19 @@
-import { t } from 'elysia';
+import { t } from "elysia";
 
 const UNIT_VALUES = [
-  t.Literal('KG'),
-  t.Literal('GRAMS'),
-  t.Literal('LITERS'),
-  t.Literal('ML'),
-  t.Literal('PIECES'),
-  t.Literal('PACKETS'),
+  t.Literal("KG"),
+  t.Literal("GRAMS"),
+  t.Literal("LITERS"),
+  t.Literal("ML"),
+  t.Literal("PIECES"),
+  t.Literal("PACKETS"),
 ];
 
 const TRANSACTION_TYPE_VALUES = [
-  t.Literal('IN'),
-  t.Literal('OUT'),
-  t.Literal('ADJUSTMENT'),
-  t.Literal('WASTE'),
+  t.Literal("IN"),
+  t.Literal("OUT"),
+  t.Literal("ADJUSTMENT"),
+  t.Literal("WASTE"),
 ];
 
 export const createInventoryItemBody = t.Object({

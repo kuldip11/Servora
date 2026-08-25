@@ -9,29 +9,35 @@
  * this sub-domain is about. `orders/order.service.ts` now imports it from
  * here instead.
  */
-import { eq, and, or, isNull, inArray, gte, lte } from 'drizzle-orm';
-import type { MenuItemStatus, MenuItemScheduleType } from '@pos/types';
-import { db } from '../../../db';
+import { eq, and, or, isNull, inArray, gte, lte } from "drizzle-orm";
+import type { MenuItemStatus, MenuItemScheduleType } from "@pos/types";
+import { db } from "../../../db";
 import {
   menuItems,
   menuItemBranchOverrides,
   menuItemSchedules,
   holidays,
   branches,
-} from '../../../db/schema';
-import { compact } from '../../../lib/object-utils';
+} from "../../../db/schema";
+import { compact } from "../../../lib/object-utils";
 
 export const availabilityRepository = {
   // ─── Order-time pricing (moved from menu/repository.ts) ────────────────────
 
-  async findByIds(tenantId: string, ids: string[], branchId?: string | undefined) {
+  async findByIds(
+    tenantId: string,
+    ids: string[],
+    branchId?: string | undefined,
+  ) {
     const items = await db.query.menuItems.findMany({
       where: and(
         eq(menuItems.tenantId, tenantId),
         inArray(menuItems.id, ids),
         isNull(menuItems.deletedAt),
         eq(menuItems.isPublished, true), // a draft item is never orderable, regardless of status
-        branchId ? or(eq(menuItems.branchId, branchId), isNull(menuItems.branchId)) : undefined,
+        branchId
+          ? or(eq(menuItems.branchId, branchId), isNull(menuItems.branchId))
+          : undefined,
       ),
       with: {
         variants: true,
@@ -47,7 +53,9 @@ export const availabilityRepository = {
     // variant's price replaces basePrice outright, and branch overrides
     // don't extend to per-variant pricing in this phase.
     if (branchId) {
-      const tenantWideIds = items.filter((i) => i.branchId === null).map((i) => i.id);
+      const tenantWideIds = items
+        .filter((i) => i.branchId === null)
+        .map((i) => i.id);
       if (tenantWideIds.length) {
         const overrides = await db.query.menuItemBranchOverrides.findMany({
           where: and(
@@ -56,10 +64,14 @@ export const availabilityRepository = {
           ),
         });
         const priceByItemId = new Map(
-          overrides.filter((o) => o.price != null).map((o) => [o.menuItemId, o.price as string]),
+          overrides
+            .filter((o) => o.price != null)
+            .map((o) => [o.menuItemId, o.price as string]),
         );
         const taxByItemId = new Map(
-          overrides.filter((o) => o.taxRate != null).map((o) => [o.menuItemId, o.taxRate as string]),
+          overrides
+            .filter((o) => o.taxRate != null)
+            .map((o) => [o.menuItemId, o.taxRate as string]),
         );
         for (const item of items) {
           const overridePrice = priceByItemId.get(item.id);
@@ -98,18 +110,30 @@ export const availabilityRepository = {
 
   async listSchedulesForItem(tenantId: string, itemId: string) {
     return db.query.menuItemSchedules.findMany({
-      where: and(eq(menuItemSchedules.tenantId, tenantId), eq(menuItemSchedules.menuItemId, itemId)),
+      where: and(
+        eq(menuItemSchedules.tenantId, tenantId),
+        eq(menuItemSchedules.menuItemId, itemId),
+      ),
       orderBy: (t, { desc }) => [desc(t.createdAt)],
     });
   },
 
-  async findActiveSchedulesForItem(tenantId: string, itemId: string, branchId?: string | undefined) {
+  async findActiveSchedulesForItem(
+    tenantId: string,
+    itemId: string,
+    branchId?: string | undefined,
+  ) {
     return db.query.menuItemSchedules.findMany({
       where: and(
         eq(menuItemSchedules.tenantId, tenantId),
         eq(menuItemSchedules.menuItemId, itemId),
         eq(menuItemSchedules.isActive, true),
-        branchId ? or(isNull(menuItemSchedules.branchId), eq(menuItemSchedules.branchId, branchId)) : undefined,
+        branchId
+          ? or(
+              isNull(menuItemSchedules.branchId),
+              eq(menuItemSchedules.branchId, branchId),
+            )
+          : undefined,
       ),
     });
   },
@@ -140,7 +164,7 @@ export const availabilityRepository = {
         startDate: data.startDate ?? null,
         endDate: data.endDate ?? data.startDate ?? null,
         holidayName: data.holidayName ?? null,
-        statusDuringPeriod: data.statusDuringPeriod ?? 'ACTIVE',
+        statusDuringPeriod: data.statusDuringPeriod ?? "ACTIVE",
       })
       .returning();
     return row!;
@@ -164,7 +188,12 @@ export const availabilityRepository = {
     const [row] = await db
       .update(menuItemSchedules)
       .set(compact({ ...data, updatedAt: new Date() }))
-      .where(and(eq(menuItemSchedules.id, scheduleId), eq(menuItemSchedules.tenantId, tenantId)))
+      .where(
+        and(
+          eq(menuItemSchedules.id, scheduleId),
+          eq(menuItemSchedules.tenantId, tenantId),
+        ),
+      )
       .returning();
     return row;
   },
@@ -172,12 +201,21 @@ export const availabilityRepository = {
   async deleteSchedule(tenantId: string, scheduleId: string) {
     await db
       .delete(menuItemSchedules)
-      .where(and(eq(menuItemSchedules.id, scheduleId), eq(menuItemSchedules.tenantId, tenantId)));
+      .where(
+        and(
+          eq(menuItemSchedules.id, scheduleId),
+          eq(menuItemSchedules.tenantId, tenantId),
+        ),
+      );
   },
 
   // ─── Holidays ────────────────────────────────────────────────────────────
 
-  async listHolidays(tenantId: string, year?: number | undefined, region?: string | undefined) {
+  async listHolidays(
+    tenantId: string,
+    year?: number | undefined,
+    region?: string | undefined,
+  ) {
     return db.query.holidays.findMany({
       where: and(
         eq(holidays.tenantId, tenantId),
@@ -191,11 +229,18 @@ export const availabilityRepository = {
 
   async findHoliday(tenantId: string, name: string, date: string) {
     return db.query.holidays.findFirst({
-      where: and(eq(holidays.tenantId, tenantId), eq(holidays.name, name), eq(holidays.holidayDate, date)),
+      where: and(
+        eq(holidays.tenantId, tenantId),
+        eq(holidays.name, name),
+        eq(holidays.holidayDate, date),
+      ),
     });
   },
 
-  async createHoliday(tenantId: string, data: { name: string; holidayDate: string; region?: string | undefined }) {
+  async createHoliday(
+    tenantId: string,
+    data: { name: string; holidayDate: string; region?: string | undefined },
+  ) {
     const [row] = await db
       .insert(holidays)
       .values(compact({ tenantId, ...data }) as typeof holidays.$inferInsert)
@@ -206,7 +251,11 @@ export const availabilityRepository = {
   async updateHoliday(
     tenantId: string,
     holidayId: string,
-    data: { name?: string | undefined; holidayDate?: string | undefined; region?: string | null | undefined },
+    data: {
+      name?: string | undefined;
+      holidayDate?: string | undefined;
+      region?: string | null | undefined;
+    },
   ) {
     const [row] = await db
       .update(holidays)
@@ -217,7 +266,9 @@ export const availabilityRepository = {
   },
 
   async deleteHoliday(tenantId: string, holidayId: string) {
-    await db.delete(holidays).where(and(eq(holidays.id, holidayId), eq(holidays.tenantId, tenantId)));
+    await db
+      .delete(holidays)
+      .where(and(eq(holidays.id, holidayId), eq(holidays.tenantId, tenantId)));
   },
 
   // ─── Branch overrides ────────────────────────────────────────────────────
@@ -266,7 +317,10 @@ export const availabilityRepository = {
       .insert(menuItemBranchOverrides)
       .values({ tenantId, menuItemId, branchId, ...values })
       .onConflictDoUpdate({
-        target: [menuItemBranchOverrides.menuItemId, menuItemBranchOverrides.branchId],
+        target: [
+          menuItemBranchOverrides.menuItemId,
+          menuItemBranchOverrides.branchId,
+        ],
         set: { ...values, updatedAt: new Date() },
       })
       .returning();

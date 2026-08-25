@@ -1,5 +1,5 @@
-import { type ReactNode, useId } from 'react';
-import { cn } from '../../utils/cn';
+import { type ReactNode, useId } from "react";
+import { cn } from "../../utils/cn";
 
 /**
  * Shared building blocks for every Phase 3 form input
@@ -93,14 +93,14 @@ export function FieldFooter({
       {hasCount && (
         <p
           className={cn(
-            'text-xs shrink-0 tabular-nums',
+            "text-xs shrink-0 tabular-nums",
             maxLength !== undefined && charCount! > maxLength
-              ? 'text-danger'
-              : 'text-text-secondary',
+              ? "text-danger"
+              : "text-text-secondary",
           )}
         >
           {charCount}
-          {maxLength !== undefined ? `/${maxLength}` : ''}
+          {maxLength !== undefined ? `/${maxLength}` : ""}
         </p>
       )}
     </div>
@@ -110,10 +110,12 @@ export function FieldFooter({
 /** Base chrome shared by every single-line/multi-line text-entry field. */
 export function fieldBaseClasses(hasError: boolean) {
   return cn(
-    'block w-full text-sm text-text-primary bg-surface border rounded-md',
-    'placeholder:text-text-disabled transition-colors duration-fast ease-standard',
-    'focus:outline-none focus:ring-2 focus:border-transparent',
-    'disabled:bg-surface-secondary disabled:text-text-disabled disabled:cursor-not-allowed',
-    hasError ? 'border-danger focus:ring-danger' : 'border-border focus:ring-primary',
+    "block w-full text-sm text-text-primary bg-surface border rounded-md",
+    "placeholder:text-text-disabled transition-colors duration-fast ease-standard",
+    "focus:outline-none focus:ring-2 focus:border-transparent",
+    "disabled:bg-surface-secondary disabled:text-text-disabled disabled:cursor-not-allowed",
+    hasError
+      ? "border-danger focus:ring-danger"
+      : "border-border focus:ring-primary",
   );
 }

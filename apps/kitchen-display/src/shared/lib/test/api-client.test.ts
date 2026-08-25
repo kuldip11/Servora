@@ -1,23 +1,22 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from "vitest";
+import type { ApiClientConfig } from "@pos/api-client";
 
 const mocks = vi.hoisted(() => ({
-  createApiClient: vi.fn(() => ({})),
+  createApiClient: vi.fn((_config: ApiClientConfig) => ({})),
 }));
 
-vi.mock('@pos/api-client', () => ({
+vi.mock("@pos/api-client", () => ({
   createApiClient: mocks.createApiClient,
 }));
 
-import { apiClient } from '../api-client';
+import { apiClient } from "../api-client";
 
-describe('api client', () => {
-  it('creates client with storage', () => {
+describe("api client", () => {
+  it("creates client with storage", () => {
     expect(apiClient).toBeTruthy();
-    const config = mocks.createApiClient.mock.calls[0]?.[0] as {
-      timeout: number;
-      storage: { getAccessToken: () => string | null };
-    };
-    expect(config.timeout).toBe(15000);
-    expect(config.storage.getAccessToken).toBeTypeOf('function');
+    const config = mocks.createApiClient.mock.calls[0]?.[0];
+    expect(config).toBeDefined();
+    expect(config?.timeout).toBe(15000);
+    expect(config?.storage.getAccessToken).toBeTypeOf("function");
   });
 });

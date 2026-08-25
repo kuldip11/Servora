@@ -4,12 +4,12 @@ import {
   useEffect,
   useState,
   type ReactNode,
-} from 'react';
+} from "react";
 
-export type Theme = 'light' | 'dark' | 'high-contrast';
+export type Theme = "light" | "dark" | "high-contrast";
 
-const THEMES: Theme[] = ['light', 'dark', 'high-contrast'];
-const STORAGE_KEY = 'pos-theme';
+const THEMES: Theme[] = ["light", "dark", "high-contrast"];
+const STORAGE_KEY = "pos-theme";
 
 interface ThemeContextValue {
   theme: Theme;
@@ -23,7 +23,7 @@ function isTheme(value: string | null): value is Theme {
 }
 
 function getInitialTheme(defaultTheme: Theme): Theme {
-  if (typeof window === 'undefined') return defaultTheme;
+  if (typeof window === "undefined") return defaultTheme;
   const stored = window.localStorage.getItem(STORAGE_KEY);
   return isTheme(stored) ? stored : defaultTheme;
 }
@@ -45,11 +45,16 @@ export interface ThemeProviderProps {
  * boot behavior by default but is a real, switchable participant in
  * this provider like the other two apps.
  */
-export function ThemeProvider({ children, defaultTheme = 'light' }: ThemeProviderProps) {
-  const [theme, setThemeState] = useState<Theme>(() => getInitialTheme(defaultTheme));
+export function ThemeProvider({
+  children,
+  defaultTheme = "light",
+}: ThemeProviderProps) {
+  const [theme, setThemeState] = useState<Theme>(() =>
+    getInitialTheme(defaultTheme),
+  );
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute("data-theme", theme);
     window.localStorage.setItem(STORAGE_KEY, theme);
   }, [theme]);
 
@@ -63,7 +68,7 @@ export function ThemeProvider({ children, defaultTheme = 'light' }: ThemeProvide
 export function useTheme(): ThemeContextValue {
   const ctx = useContext(ThemeContext);
   if (!ctx) {
-    throw new Error('useTheme must be used within a <ThemeProvider>');
+    throw new Error("useTheme must be used within a <ThemeProvider>");
   }
   return ctx;
 }

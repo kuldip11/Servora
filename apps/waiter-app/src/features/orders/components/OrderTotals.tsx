@@ -1,8 +1,10 @@
-import { Card } from '@pos/ui';
-import type { Order } from '@pos/types';
-import { formatCurrency } from '../utils/orderHelpers';
+import { Card } from "@pos/ui";
+import type { Order } from "@pos/types";
+import { formatCurrency } from "../utils/orderHelpers";
 
-interface Props { order: Order; }
+interface Props {
+  order: Order;
+}
 
 // Design-system Phase 11, Sprint WA-4: `Card` (Phase 2), `rounded-2xl`
 // override, same technique as every other card in this app. **Flagged,

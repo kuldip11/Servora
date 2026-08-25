@@ -1,6 +1,5 @@
 import { TableStatus } from "./tables";
 
-
 export interface RestaurantTable {
   id: string;
   tenantId: string;

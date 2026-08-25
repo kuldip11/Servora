@@ -1,4 +1,4 @@
-import type { TableStatus } from '@pos/types';
+import type { TableStatus } from "@pos/types";
 
 export interface RestaurantTable {
   id: string;

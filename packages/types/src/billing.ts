@@ -1,15 +1,6 @@
-export type PaymentMethod =
-  | 'CASH'
-  | 'CARD'
-  | 'UPI'
-  | 'RAZORPAY'
-  | 'STRIPE';
+export type PaymentMethod = "CASH" | "CARD" | "UPI" | "RAZORPAY" | "STRIPE";
 
-export type PaymentStatus =
-  | 'PENDING'
-  | 'SUCCESS'
-  | 'FAILED'
-  | 'REFUNDED';
+export type PaymentStatus = "PENDING" | "SUCCESS" | "FAILED" | "REFUNDED";
 
 export interface Bill {
   id: string;

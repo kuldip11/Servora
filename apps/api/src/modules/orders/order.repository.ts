@@ -3,12 +3,18 @@
  * validation, transition enforcement, pricing — all in `order.service.ts`
  * and the extracted `order-status.machine.ts` / `order-pricing.ts`).
  */
-import { eq, and, desc, asc, sql } from 'drizzle-orm';
-import type { OrderStatus, OrderType } from '@pos/types';
-import { db } from '../../db';
-import { orders, orderItems, orderStatusHistory, orderItemModifiers, kitchenTickets } from '../../db/schema';
-import type { ResolvedOrderItem } from './order-pricing';
-import { compact } from '../../lib/object-utils';
+import { eq, and, desc, asc, sql } from "drizzle-orm";
+import type { OrderStatus, OrderType } from "@pos/types";
+import { db } from "../../db";
+import {
+  orders,
+  orderItems,
+  orderStatusHistory,
+  orderItemModifiers,
+  kitchenTickets,
+} from "../../db/schema";
+import type { ResolvedOrderItem } from "./order-pricing";
+import { compact } from "../../lib/object-utils";
 
 export const orderRepository = {
   async create(data: {
@@ -92,7 +98,7 @@ export const orderRepository = {
 
       await tx.insert(orderStatusHistory).values({
         orderId: order!.id,
-        newStatus: 'OPEN',
+        newStatus: "OPEN",
         changedBy: data.createdBy,
       });
 
@@ -127,12 +133,16 @@ export const orderRepository = {
       where: and(
         eq(orders.tenantId, tenantId),
         branchId ? eq(orders.branchId, branchId) : undefined,
-        filters?.status ? eq(orders.status, filters.status as OrderStatus) : undefined,
+        filters?.status
+          ? eq(orders.status, filters.status as OrderStatus)
+          : undefined,
         filters?.type ? eq(orders.type, filters.type as OrderType) : undefined,
       ),
       with: {
         items: true,
-        kitchenTickets: { columns: { id: true, status: true, ticketNumber: true } },
+        kitchenTickets: {
+          columns: { id: true, status: true, ticketNumber: true },
+        },
         table: true,
         createdByUser: true,
       },
@@ -152,7 +162,13 @@ export const orderRepository = {
       const [current] = await tx
         .select({ status: orders.status })
         .from(orders)
-        .where(and(eq(orders.id, orderId), eq(orders.tenantId, tenantId), branchId ? eq(orders.branchId, branchId) : undefined));
+        .where(
+          and(
+            eq(orders.id, orderId),
+            eq(orders.tenantId, tenantId),
+            branchId ? eq(orders.branchId, branchId) : undefined,
+          ),
+        );
 
       if (!current) return undefined;
 
@@ -189,7 +205,9 @@ export const orderRepository = {
   ) {
     return db.transaction(async (tx) => {
       const [{ maxTicket } = { maxTicket: 0 }] = await tx
-        .select({ maxTicket: sql<number>`coalesce(max(${kitchenTickets.ticketNumber}), 0)` })
+        .select({
+          maxTicket: sql<number>`coalesce(max(${kitchenTickets.ticketNumber}), 0)`,
+        })
         .from(kitchenTickets)
         .where(eq(kitchenTickets.orderId, orderId));
 
@@ -249,11 +267,13 @@ export const orderRepository = {
           totalAmount: sql`${orders.totalAmount} + ${(extraSubtotal + extraTax).toFixed(2)}`,
           updatedAt: new Date(),
         })
-        .where(and(
-          eq(orders.id, orderId),
-          eq(orders.tenantId, tenantId),
-          eq(orders.branchId, branchId),
-        ));
+        .where(
+          and(
+            eq(orders.id, orderId),
+            eq(orders.tenantId, tenantId),
+            eq(orders.branchId, branchId),
+          ),
+        );
 
       return ticket!;
     });

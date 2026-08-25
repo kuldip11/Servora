@@ -1,4 +1,4 @@
-import { useAuthStore } from '../../store/auth';
+import { useAuthStore } from "../../store/auth";
 
 /**
  * Cache identity for tenant/franchise-scoped server state.
@@ -7,13 +7,13 @@ import { useAuthStore } from '../../store/auth';
  * membership/access-record ID.
  */
 export function franchiseQueryContextKey() {
-  return ['franchise', useAuthStore.getState().franchiseId] as const;
+  return ["franchise", useAuthStore.getState().franchiseId] as const;
 }
 
 /** Branch-scoped data must be separated by both franchise and branch. */
 export function branchQueryContextKey() {
   const { franchiseId, branchId } = useAuthStore.getState();
-  return ['branch-context', franchiseId, branchId] as const;
+  return ["branch-context", franchiseId, branchId] as const;
 }
 
 export function activeFranchiseId() {

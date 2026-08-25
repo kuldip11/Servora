@@ -9,12 +9,14 @@
  * a disclosed, deliberate correction (same category as Sprint 1D's order
  * fix), not a silent behavior change. See docs/NEXT_STEPS.md.
  */
-import { NotFoundError, MissingBranchError } from '../../core/errors';
+import { NotFoundError, MissingBranchError } from "../../core/errors";
 
 export function staffNotFound(id: string): NotFoundError {
-  return new NotFoundError('Staff member', id);
+  return new NotFoundError("Staff member", id);
 }
 
 export function branchRequiredForStaff(): MissingBranchError {
-  return new MissingBranchError('Please select a specific branch before adding staff.');
+  return new MissingBranchError(
+    "Please select a specific branch before adding staff.",
+  );
 }

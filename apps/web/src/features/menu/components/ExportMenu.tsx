@@ -1,14 +1,17 @@
-import { useState } from 'react';
-import { Download } from 'lucide-react';
-import { Popover } from '@pos/ui';
-import { useExportMenu } from '../hooks/useExportMenu';
-import type { MenuExportEntity, MenuExportFormat } from '../services/menu-export.service';
+import { useState } from "react";
+import { Download } from "lucide-react";
+import { Popover } from "@pos/ui";
+import { useExportMenu } from "../hooks/useExportMenu";
+import type {
+  MenuExportEntity,
+  MenuExportFormat,
+} from "../services/menu-export.service";
 
 const ENTITIES: { value: MenuExportEntity; label: string }[] = [
-  { value: 'items', label: 'Items' },
-  { value: 'categories', label: 'Categories' },
-  { value: 'recipes', label: 'Recipes' },
-  { value: 'modifiers', label: 'Modifiers' },
+  { value: "items", label: "Items" },
+  { value: "categories", label: "Categories" },
+  { value: "recipes", label: "Recipes" },
+  { value: "modifiers", label: "Modifiers" },
 ];
 
 // Design-system Phase 13, Sprint AD-11: a 5th hand-rolled `fixed
@@ -38,7 +41,10 @@ export function ExportMenu() {
   const [open, setOpen] = useState(false);
   const { download, downloadingKey } = useExportMenu();
 
-  async function handleDownload(entity: MenuExportEntity, format: MenuExportFormat) {
+  async function handleDownload(
+    entity: MenuExportEntity,
+    format: MenuExportFormat,
+  ) {
     await download(entity, format);
     setOpen(false);
   }
@@ -69,10 +75,13 @@ export function ExportMenu() {
           awkwardly. */}
       <div className="w-64 -m-4 p-2">
         {ENTITIES.map((e) => (
-          <div key={e.value} className="flex items-center justify-between px-2 py-1.5 rounded hover:bg-surface-secondary">
+          <div
+            key={e.value}
+            className="flex items-center justify-between px-2 py-1.5 rounded hover:bg-surface-secondary"
+          >
             <span className="text-sm text-text-primary">{e.label}</span>
             <div className="flex gap-1">
-              {(['csv', 'xlsx'] as MenuExportFormat[]).map((format) => {
+              {(["csv", "xlsx"] as MenuExportFormat[]).map((format) => {
                 const key = `${e.value}-${format}`;
                 return (
                   <button
@@ -81,7 +90,7 @@ export function ExportMenu() {
                     disabled={downloadingKey === key}
                     className="text-xs font-medium text-primary hover:opacity-80 disabled:opacity-40 px-1.5 py-0.5 rounded uppercase"
                   >
-                    {downloadingKey === key ? '…' : format}
+                    {downloadingKey === key ? "…" : format}
                   </button>
                 );
               })}

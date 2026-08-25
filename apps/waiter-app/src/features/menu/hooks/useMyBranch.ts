@@ -1,9 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
-import { fetchMyBranch } from '../api/branch';
+import { useQuery } from "@tanstack/react-query";
+import { fetchMyBranch } from "../api/branch";
 
 export function useMyBranch() {
   return useQuery({
-    queryKey: ['my-branch'],
+    queryKey: ["my-branch"],
     queryFn: fetchMyBranch,
   });
 }

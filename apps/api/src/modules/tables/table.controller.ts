@@ -3,10 +3,14 @@
  * from `requireAuthPlugin` (applied in `table.route.ts`); business rules
  * live in `table.service.ts`.
  */
-import type { AuthContext } from '../../core/auth';
-import { successResponse, createdResponse } from '../../core/response';
-import { tableService, type CreateTableInput, type UpdateTableInput } from './table.service';
-import type { TableStatus } from '@pos/types';
+import type { AuthContext } from "../../core/auth";
+import { successResponse, createdResponse } from "../../core/response";
+import {
+  tableService,
+  type CreateTableInput,
+  type UpdateTableInput,
+} from "./table.service";
+import type { TableStatus } from "@pos/types";
 
 export const tableController = {
   async list(auth: AuthContext) {

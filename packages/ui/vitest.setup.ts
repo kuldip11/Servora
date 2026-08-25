@@ -1,6 +1,6 @@
-import '@testing-library/jest-dom/vitest';
-import { cleanup } from '@testing-library/react';
-import { afterEach } from 'vitest';
+import "@testing-library/jest-dom/vitest";
+import { cleanup } from "@testing-library/react";
+import { afterEach } from "vitest";
 
 afterEach(() => {
   cleanup();
@@ -10,8 +10,8 @@ afterEach(() => {
 // is built on) sits on `@radix-ui/react-popover`, which uses both —
 // without these, opening the popover in a jsdom test throws rather
 // than rendering the listbox.
-if (typeof window !== 'undefined') {
-  if (!('ResizeObserver' in window)) {
+if (typeof window !== "undefined") {
+  if (!("ResizeObserver" in window)) {
     class ResizeObserverStub {
       observe() {}
       unobserve() {}

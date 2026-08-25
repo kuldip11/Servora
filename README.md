@@ -59,26 +59,26 @@ The repository intentionally keeps this README as the single maintained document
 
 ## 3. Technology stack
 
-| Layer | Technology |
-|---|---|
-| Runtime | Bun |
-| Language | TypeScript |
-| Backend | Elysia |
-| ORM | Drizzle ORM |
-| Database | PostgreSQL 16 |
-| Cache / realtime infrastructure | Redis 7 |
-| Main frontend | React 19 + Vite |
-| Routing | TanStack Router |
-| Server state | TanStack Query |
-| Local state | Zustand |
-| Styling | Tailwind CSS |
-| Validation | Zod / TypeBox |
-| Monorepo | Turborepo + Bun workspaces |
-| Unit/component tests | Vitest |
-| Browser E2E | Playwright |
-| Accessibility tests | Playwright + axe |
-| Authentication | JWT access tokens + persisted refresh tokens |
-| Realtime | WebSockets + Redis Pub/Sub |
+| Layer                           | Technology                                   |
+| ------------------------------- | -------------------------------------------- |
+| Runtime                         | Bun                                          |
+| Language                        | TypeScript                                   |
+| Backend                         | Elysia                                       |
+| ORM                             | Drizzle ORM                                  |
+| Database                        | PostgreSQL 16                                |
+| Cache / realtime infrastructure | Redis 7                                      |
+| Main frontend                   | React 19 + Vite                              |
+| Routing                         | TanStack Router                              |
+| Server state                    | TanStack Query                               |
+| Local state                     | Zustand                                      |
+| Styling                         | Tailwind CSS                                 |
+| Validation                      | Zod / TypeBox                                |
+| Monorepo                        | Turborepo + Bun workspaces                   |
+| Unit/component tests            | Vitest                                       |
+| Browser E2E                     | Playwright                                   |
+| Accessibility tests             | Playwright + axe                             |
+| Authentication                  | JWT access tokens + persisted refresh tokens |
+| Realtime                        | WebSockets + Redis Pub/Sub                   |
 
 ## 4. Runtime architecture
 

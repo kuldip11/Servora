@@ -3,10 +3,15 @@
  * only. Extracted from the monolithic `menu/templates.service.ts`
  * verbatim (same queries, same transaction) — see docs/NEXT_STEPS.md.
  */
-import { eq, and, isNull } from 'drizzle-orm';
-import { db } from '../../../db';
-import { menuTemplates, menuTemplateItems, menuCategories, menuItems } from '../../../db/schema';
-import type { FoodType, SpiceLevel } from '@pos/types';
+import { eq, and, isNull } from "drizzle-orm";
+import { db } from "../../../db";
+import {
+  menuTemplates,
+  menuTemplateItems,
+  menuCategories,
+  menuItems,
+} from "../../../db/schema";
+import type { FoodType, SpiceLevel } from "@pos/types";
 
 export const templatesRepository = {
   async findMany(tenantId: string) {
@@ -19,14 +24,20 @@ export const templatesRepository = {
 
   async findById(tenantId: string, templateId: string) {
     return db.query.menuTemplates.findFirst({
-      where: and(eq(menuTemplates.id, templateId), eq(menuTemplates.tenantId, tenantId)),
+      where: and(
+        eq(menuTemplates.id, templateId),
+        eq(menuTemplates.tenantId, tenantId),
+      ),
       with: { items: { orderBy: (t, { asc: a }) => [a(t.sortOrder)] } },
     });
   },
 
   async findCategory(tenantId: string, categoryId: string) {
     return db.query.menuCategories.findFirst({
-      where: and(eq(menuCategories.id, categoryId), eq(menuCategories.tenantId, tenantId)),
+      where: and(
+        eq(menuCategories.id, categoryId),
+        eq(menuCategories.tenantId, tenantId),
+      ),
     });
   },
 
@@ -63,7 +74,12 @@ export const templatesRepository = {
     return db.transaction(async (tx) => {
       const [template] = await tx
         .insert(menuTemplates)
-        .values({ tenantId, name: name.trim(), description: description?.trim() || null, sourceCategoryName: category.name })
+        .values({
+          tenantId,
+          name: name.trim(),
+          description: description?.trim() || null,
+          sourceCategoryName: category.name,
+        })
         .returning();
 
       if (items.length) {
@@ -93,7 +109,12 @@ export const templatesRepository = {
   async delete(tenantId: string, templateId: string): Promise<boolean> {
     const result = await db
       .delete(menuTemplates)
-      .where(and(eq(menuTemplates.id, templateId), eq(menuTemplates.tenantId, tenantId)))
+      .where(
+        and(
+          eq(menuTemplates.id, templateId),
+          eq(menuTemplates.tenantId, tenantId),
+        ),
+      )
       .returning({ id: menuTemplates.id });
     return result.length > 0;
   },
@@ -120,7 +141,10 @@ export const templatesRepository = {
         sortOrder: number;
       }>;
     },
-    options: { branchId?: string | undefined; categoryName?: string | undefined },
+    options: {
+      branchId?: string | undefined;
+      categoryName?: string | undefined;
+    },
   ) {
     return db.transaction(async (tx) => {
       const [category] = await tx
@@ -152,7 +176,7 @@ export const templatesRepository = {
                 hsnCode: ti.hsnCode,
                 sortOrder: ti.sortOrder,
                 sku: null, // SKUs are meant to be unique — never carried over from a template
-                status: 'ACTIVE' as const,
+                status: "ACTIVE" as const,
                 isAvailable: true,
                 isPublished: false, // draft until a manager reviews it — see function comment
                 publishedAt: null,

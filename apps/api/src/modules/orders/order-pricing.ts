@@ -17,7 +17,7 @@
  * taking on a full retype of the menu module's Drizzle relational query
  * result in this change.
  */
-import { ValidationError } from '../../core/errors';
+import { ValidationError } from "../../core/errors";
 
 export interface PricableMenuItem {
   id: string;
@@ -32,7 +32,7 @@ export interface PricableMenuItem {
       name: string;
       minSelections: number;
       maxSelections: number | null;
-      selectionType: 'SINGLE' | 'MULTIPLE';
+      selectionType: "SINGLE" | "MULTIPLE";
       options: Array<{
         id: string;
         name: string;
@@ -49,7 +49,8 @@ export interface OrderItemInput {
   variantId?: string | undefined;
   quantity: number;
   chefNotes?: string | undefined;
-  selectedOptions?: Array<{ optionId: string; quantity?: number | undefined }> | undefined;
+  selectedOptions?:
+    Array<{ optionId: string; quantity?: number | undefined }> | undefined;
 }
 
 export interface ResolvedOrderItem {
@@ -96,8 +97,10 @@ export function resolveItems(
 
   const resolved = items.map((item) => {
     const menuItem = itemMap.get(item.menuItemId);
-    if (!menuItem) throw new ValidationError(`Menu item ${item.menuItemId} not found`);
-    if (!menuItem.isAvailable) throw new ValidationError(`${menuItem.name} is not available`);
+    if (!menuItem)
+      throw new ValidationError(`Menu item ${item.menuItemId} not found`);
+    if (!menuItem.isAvailable)
+      throw new ValidationError(`${menuItem.name} is not available`);
 
     // Variants (e.g. "Half" / "Full") are independently-priced options, not
     // add-ons to basePrice — a selected variant's price REPLACES the base
@@ -107,7 +110,8 @@ export function resolveItems(
 
     if (item.variantId) {
       const variant = menuItem.variants.find((v) => v.id === item.variantId);
-      if (!variant) throw new ValidationError(`Variant not found on ${menuItem.name}`);
+      if (!variant)
+        throw new ValidationError(`Variant not found on ${menuItem.name}`);
       unitPrice = parseFloat(variant.price);
       variantName = variant.name;
     }
@@ -118,8 +122,8 @@ export function resolveItems(
     const optionLookup = new Map<
       string,
       {
-        option: PricableMenuItem['modifierGroupLinks'][number]['group']['options'][number];
-        group: PricableMenuItem['modifierGroupLinks'][number]['group'];
+        option: PricableMenuItem["modifierGroupLinks"][number]["group"]["options"][number];
+        group: PricableMenuItem["modifierGroupLinks"][number]["group"];
       }
     >();
     for (const group of groups) {
@@ -128,12 +132,20 @@ export function resolveItems(
       }
     }
 
-    const selectedByGroup = new Map<string, Array<{ optionId: string; quantity: number }>>();
+    const selectedByGroup = new Map<
+      string,
+      Array<{ optionId: string; quantity: number }>
+    >();
     for (const sel of item.selectedOptions ?? []) {
       const found = optionLookup.get(sel.optionId);
-      if (!found) throw new ValidationError(`Modifier option ${sel.optionId} not found on ${menuItem.name}`);
+      if (!found)
+        throw new ValidationError(
+          `Modifier option ${sel.optionId} not found on ${menuItem.name}`,
+        );
       if (!found.option.isAvailable) {
-        throw new ValidationError(`${found.option.name} is currently unavailable`);
+        throw new ValidationError(
+          `${found.option.name} is currently unavailable`,
+        );
       }
       const qty = Math.min(sel.quantity ?? 1, found.option.maxQuantity ?? 1);
       const list = selectedByGroup.get(found.group.id) ?? [];
@@ -153,12 +165,14 @@ export function resolveItems(
           `"${group.name}" allows at most ${group.maxSelections} selection(s) on ${menuItem.name}`,
         );
       }
-      if (group.selectionType === 'SINGLE' && picked.length > 1) {
-        throw new ValidationError(`"${group.name}" only allows one selection on ${menuItem.name}`);
+      if (group.selectionType === "SINGLE" && picked.length > 1) {
+        throw new ValidationError(
+          `"${group.name}" only allows one selection on ${menuItem.name}`,
+        );
       }
     }
 
-    const modifiers: ResolvedOrderItem['modifiers'] = [];
+    const modifiers: ResolvedOrderItem["modifiers"] = [];
     for (const [, picks] of selectedByGroup) {
       for (const pick of picks) {
         const { option, group } = optionLookup.get(pick.optionId)!;

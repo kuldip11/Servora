@@ -1,20 +1,9 @@
-import type { FoodType, SpiceLevel } from './menu';
+import type { FoodType, SpiceLevel } from "./menu";
 
 export type InventoryUnit =
-  | 'KG'
-  | 'GRAMS'
-  | 'LITERS'
-  | 'ML'
-  | 'PIECES'
-  | 'PACKETS';
+  "KG" | "GRAMS" | "LITERS" | "ML" | "PIECES" | "PACKETS";
 
-
-
-export type InventoryTransactionType =
-  | 'IN'
-  | 'OUT'
-  | 'ADJUSTMENT'
-  | 'WASTE';
+export type InventoryTransactionType = "IN" | "OUT" | "ADJUSTMENT" | "WASTE";
 
 export interface InventoryItem {
   id: string;

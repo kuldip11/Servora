@@ -1,28 +1,36 @@
-import { sign, verify, type SignOptions } from 'jsonwebtoken';
-import type { User } from '@pos/types';
+import { sign, verify, type SignOptions } from "jsonwebtoken";
+import type { User } from "@pos/types";
 
-const NODE_ENV = process.env['NODE_ENV'] ?? 'development';
-const JWT_SECRET = process.env['JWT_SECRET'] ?? 'fallback-dev-secret';
-const REFRESH_TOKEN_SECRET = process.env['REFRESH_TOKEN_SECRET'] ?? 'fallback-refresh-secret';
+const NODE_ENV = process.env["NODE_ENV"] ?? "development";
+const JWT_SECRET = process.env["JWT_SECRET"] ?? "fallback-dev-secret";
+const REFRESH_TOKEN_SECRET =
+  process.env["REFRESH_TOKEN_SECRET"] ?? "fallback-refresh-secret";
 
 const INSECURE_DEFAULTS = new Set([
-  'fallback-dev-secret',
-  'fallback-refresh-secret',
-  'your-super-secret-jwt-key-change-in-production',
-  'your-refresh-token-secret-change-in-production',
+  "fallback-dev-secret",
+  "fallback-refresh-secret",
+  "your-super-secret-jwt-key-change-in-production",
+  "your-refresh-token-secret-change-in-production",
 ]);
 
 function assertProductionSecrets(): void {
-  if (NODE_ENV === 'production' && (INSECURE_DEFAULTS.has(JWT_SECRET) || INSECURE_DEFAULTS.has(REFRESH_TOKEN_SECRET))) {
-    throw new Error('JWT_SECRET and REFRESH_TOKEN_SECRET must be explicitly configured in production');
+  if (
+    NODE_ENV === "production" &&
+    (INSECURE_DEFAULTS.has(JWT_SECRET) ||
+      INSECURE_DEFAULTS.has(REFRESH_TOKEN_SECRET))
+  ) {
+    throw new Error(
+      "JWT_SECRET and REFRESH_TOKEN_SECRET must be explicitly configured in production",
+    );
   }
 }
 
 assertProductionSecrets();
-const JWT_EXPIRES_IN = (process.env['JWT_EXPIRES_IN'] ?? '15m') as NonNullable<SignOptions['expiresIn']>;
-const REFRESH_TOKEN_EXPIRES_IN = (process.env['REFRESH_TOKEN_EXPIRES_IN'] ?? '7d') as NonNullable<
-  SignOptions['expiresIn']
+const JWT_EXPIRES_IN = (process.env["JWT_EXPIRES_IN"] ?? "15m") as NonNullable<
+  SignOptions["expiresIn"]
 >;
+const REFRESH_TOKEN_EXPIRES_IN = (process.env["REFRESH_TOKEN_EXPIRES_IN"] ??
+  "7d") as NonNullable<SignOptions["expiresIn"]>;
 
 /**
  * Authentication identity only. Franchise/branch are deliberately absent.
@@ -42,8 +50,12 @@ export interface JwtPayload {
   exp?: number;
 }
 
-export function signAccessToken(user: Pick<User, 'id' | 'email' | 'roles'>): string {
-  const permissions = Array.from(new Set(user.roles.flatMap((r) => r.permissions.map((p) => p.key))));
+export function signAccessToken(
+  user: Pick<User, "id" | "email" | "roles">,
+): string {
+  const permissions = Array.from(
+    new Set(user.roles.flatMap((r) => r.permissions.map((p) => p.key))),
+  );
   return sign(
     {
       sub: user.id,
@@ -57,7 +69,9 @@ export function signAccessToken(user: Pick<User, 'id' | 'email' | 'roles'>): str
 }
 
 export function signRefreshToken(userId: string): string {
-  return sign({ sub: userId }, REFRESH_TOKEN_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRES_IN });
+  return sign({ sub: userId }, REFRESH_TOKEN_SECRET, {
+    expiresIn: REFRESH_TOKEN_EXPIRES_IN,
+  });
 }
 
 export function verifyAccessToken(token: string): JwtPayload {

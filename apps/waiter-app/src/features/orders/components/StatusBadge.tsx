@@ -1,5 +1,5 @@
-import { StatusBadge as SharedStatusBadge, type StatusTone } from '@pos/ui';
-import { STATUS_CONFIG } from '../constants';
+import { StatusBadge as SharedStatusBadge, type StatusTone } from "@pos/ui";
+import { STATUS_CONFIG } from "../constants";
 
 // Reuses the exact OPEN/BILL_REQUESTED/CLOSED/CANCELLED→tone map
 // apps/web/src/features/orders/pages/OrdersPage.tsx (Phase 7) already
@@ -18,10 +18,10 @@ import { STATUS_CONFIG } from '../constants';
 // hardcoded `bg-violet-100 text-violet-700` below is migrated onto
 // it rather than left unresolved a fifth time.
 const STATUS_TONE: Record<string, StatusTone> = {
-  OPEN: 'info',
-  BILL_REQUESTED: 'warning',
-  CLOSED: 'neutral',
-  CANCELLED: 'danger',
+  OPEN: "info",
+  BILL_REQUESTED: "warning",
+  CLOSED: "neutral",
+  CANCELLED: "danger",
 };
 
 export function StatusBadge({ status }: { status: string }) {
@@ -32,10 +32,10 @@ export function StatusBadge({ status }: { status: string }) {
     return <SharedStatusBadge label={cfg.label} tone={tone} />;
   }
 
-  if (status === 'PAID') {
+  if (status === "PAID") {
     return (
       <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary-surface text-primary">
-        {cfg?.label ?? 'Paid'}
+        {cfg?.label ?? "Paid"}
       </span>
     );
   }

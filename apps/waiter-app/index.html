@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+    />
     <title>Waiter App</title>
     <!-- Phase 16 — theme-flash prevention. See `apps/web/index.html`'s
          identical script for the full rationale; same `pos-theme` key
@@ -12,11 +15,14 @@
     <script>
       (function () {
         try {
-          var t = localStorage.getItem('pos-theme');
-          var valid = t === 'light' || t === 'dark' || t === 'high-contrast';
-          document.documentElement.setAttribute('data-theme', valid ? t : 'light');
+          var t = localStorage.getItem("pos-theme");
+          var valid = t === "light" || t === "dark" || t === "high-contrast";
+          document.documentElement.setAttribute(
+            "data-theme",
+            valid ? t : "light",
+          );
         } catch (e) {
-          document.documentElement.setAttribute('data-theme', 'light');
+          document.documentElement.setAttribute("data-theme", "light");
         }
       })();
     </script>

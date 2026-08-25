@@ -1,7 +1,7 @@
-import type { ReactNode } from 'react';
-import * as RadixAccordion from '@radix-ui/react-accordion';
-import { ChevronDown } from 'lucide-react';
-import { cn } from '../../utils/cn';
+import type { ReactNode } from "react";
+import * as RadixAccordion from "@radix-ui/react-accordion";
+import { ChevronDown } from "lucide-react";
+import { cn } from "../../utils/cn";
 
 export interface AccordionItem {
   value: string;
@@ -17,7 +17,7 @@ interface AccordionBaseProps {
 
 interface AccordionSingleProps extends AccordionBaseProps {
   /** @default 'single' */
-  type?: 'single';
+  type?: "single";
   /** Whether the open item can be closed by clicking it again. @default true */
   collapsible?: boolean | undefined;
   value?: string | undefined;
@@ -26,7 +26,7 @@ interface AccordionSingleProps extends AccordionBaseProps {
 }
 
 interface AccordionMultipleProps extends AccordionBaseProps {
-  type: 'multiple';
+  type: "multiple";
   value?: string[] | undefined;
   defaultValue?: string[] | undefined;
   onValueChange?: ((value: string[]) => void) | undefined;
@@ -46,7 +46,7 @@ export type AccordionProps = AccordionSingleProps | AccordionMultipleProps;
 export function Accordion(props: AccordionProps) {
   const { items, className } = props;
 
-  if (props.type === 'multiple') {
+  if (props.type === "multiple") {
     const { value, defaultValue, onValueChange } = props;
     return (
       <RadixAccordion.Root
@@ -54,7 +54,7 @@ export function Accordion(props: AccordionProps) {
         {...(value !== undefined && { value })}
         {...(defaultValue !== undefined && { defaultValue })}
         {...(onValueChange !== undefined && { onValueChange })}
-        className={cn('flex flex-col', className)}
+        className={cn("flex flex-col", className)}
       >
         {items.map((item) => (
           <AccordionRow key={item.value} item={item} />
@@ -71,7 +71,7 @@ export function Accordion(props: AccordionProps) {
       {...(value !== undefined && { value })}
       {...(defaultValue !== undefined && { defaultValue })}
       {...(onValueChange !== undefined && { onValueChange })}
-      className={cn('flex flex-col', className)}
+      className={cn("flex flex-col", className)}
     >
       {items.map((item) => (
         <AccordionRow key={item.value} item={item} />
@@ -90,10 +90,10 @@ function AccordionRow({ item }: { item: AccordionItem }) {
       <RadixAccordion.Header>
         <RadixAccordion.Trigger
           className={cn(
-            'group flex w-full items-center justify-between gap-4 py-3.5 text-left text-sm font-medium outline-none',
-            'text-text-primary transition-colors duration-fast ease-standard',
-            'focus-visible:ring-2 focus-visible:ring-primary rounded-sm',
-            'disabled:opacity-50 disabled:pointer-events-none',
+            "group flex w-full items-center justify-between gap-4 py-3.5 text-left text-sm font-medium outline-none",
+            "text-text-primary transition-colors duration-fast ease-standard",
+            "focus-visible:ring-2 focus-visible:ring-primary rounded-sm",
+            "disabled:opacity-50 disabled:pointer-events-none",
           )}
         >
           {item.title}
@@ -107,8 +107,8 @@ function AccordionRow({ item }: { item: AccordionItem }) {
           defined in `tailwind-preset.js`, not redeclared here. */}
       <RadixAccordion.Content
         className={cn(
-          'overflow-hidden text-sm text-text-secondary data-[state=open]:pb-4',
-          'data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up',
+          "overflow-hidden text-sm text-text-secondary data-[state=open]:pb-4",
+          "data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up",
         )}
       >
         {item.content}

@@ -10,7 +10,9 @@
  * the gap by actually deleting `undefined` entries, which matches the
  * "omitted" semantics the target types expect.
  */
-export function compact<T extends Record<string, unknown>>(obj: T): { [K in keyof T]?: Exclude<T[K], undefined> } {
+export function compact<T extends Record<string, unknown>>(
+  obj: T,
+): { [K in keyof T]?: Exclude<T[K], undefined> } {
   const result: Record<string, unknown> = {};
   for (const key of Object.keys(obj)) {
     const value = obj[key];

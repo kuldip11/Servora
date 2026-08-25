@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const originalDatabaseUrl = process.env.DATABASE_URL;
 const originalNodeEnv = process.env.NODE_ENV;
@@ -12,32 +12,36 @@ afterEach(() => {
   else process.env.NODE_ENV = originalNodeEnv;
 });
 
-describe('db reset entrypoint', () => {
-  it('rejects startup when DATABASE_URL is missing', async () => {
+describe("db reset entrypoint", () => {
+  it("rejects startup when DATABASE_URL is missing", async () => {
     delete process.env.DATABASE_URL;
 
-    await expect(import('../reset')).rejects.toThrow('DATABASE_URL environment variable is required');
+    await expect(import("../reset")).rejects.toThrow(
+      "DATABASE_URL environment variable is required",
+    );
   });
 
-  it('refuses to run against production databases', async () => {
-    process.env.DATABASE_URL = 'postgresql://example.test/pos';
-    process.env.NODE_ENV = 'production';
+  it("refuses to run against production databases", async () => {
+    process.env.DATABASE_URL = "postgresql://example.test/pos";
+    process.env.NODE_ENV = "production";
 
-    await expect(import('../reset')).rejects.toThrow('Refusing to reset a production database.');
+    await expect(import("../reset")).rejects.toThrow(
+      "Refusing to reset a production database.",
+    );
   });
 
-  it('drops and recreates the development schemas, then closes the client', async () => {
-    process.env.DATABASE_URL = 'postgresql://example.test/pos';
-    process.env.NODE_ENV = 'test';
+  it("drops and recreates the development schemas, then closes the client", async () => {
+    process.env.DATABASE_URL = "postgresql://example.test/pos";
+    process.env.NODE_ENV = "test";
 
     const sql = Object.assign(
       vi.fn(async () => undefined),
       { end: vi.fn().mockResolvedValue(undefined) },
     );
 
-    vi.doMock('postgres', () => ({ default: vi.fn(() => sql) }));
+    vi.doMock("postgres", () => ({ default: vi.fn(() => sql) }));
 
-    await import('../reset');
+    await import("../reset");
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(sql).toHaveBeenCalledTimes(4);

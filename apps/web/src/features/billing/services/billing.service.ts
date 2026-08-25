@@ -1,4 +1,4 @@
-import { apiClient } from '../../../shared/lib/api-client';
+import { apiClient } from "../../../shared/lib/api-client";
 
 export interface CollectPaymentInput {
   method: string;
@@ -13,13 +13,16 @@ export const billingService = {
    * one user-facing action — kept together here so callers can't record
    * a payment without also advancing order status.
    */
-  async collectPayment(orderId: string, input: CollectPaymentInput): Promise<void> {
-    await apiClient.post('/payments', {
+  async collectPayment(
+    orderId: string,
+    input: CollectPaymentInput,
+  ): Promise<void> {
+    await apiClient.post("/payments", {
       orderId,
       method: input.method,
       amount: input.amount,
       reference: input.reference || undefined,
     });
-    await apiClient.patch(`/orders/${orderId}/status`, { status: 'PAID' });
+    await apiClient.patch(`/orders/${orderId}/status`, { status: "PAID" });
   },
 };

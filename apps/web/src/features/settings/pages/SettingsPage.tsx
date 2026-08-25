@@ -1,6 +1,13 @@
-import { useAuthStore } from '../../../store/auth';
-import { Card, Page, PageHeader, Grid, StatusBadge, ThemeSwitcher } from '@pos/ui';
-import { Building2, User, Shield, Bell, Palette } from 'lucide-react';
+import { useAuthStore } from "../../../store/auth";
+import {
+  Card,
+  Page,
+  PageHeader,
+  Grid,
+  StatusBadge,
+  ThemeSwitcher,
+} from "@pos/ui";
+import { Building2, User, Shield, Bell, Palette } from "lucide-react";
 
 export function SettingsPage() {
   const { user } = useAuthStore();
@@ -18,20 +25,30 @@ export function SettingsPage() {
             <div className="w-9 h-9 bg-violet-50 rounded-lg flex items-center justify-center">
               <User className="w-5 h-5 text-violet-600" />
             </div>
-            <h2 className="text-base font-semibold text-text-primary">Account</h2>
+            <h2 className="text-base font-semibold text-text-primary">
+              Account
+            </h2>
           </div>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between py-2 border-b border-border">
               <span className="text-text-secondary">Name</span>
-              <span className="font-medium text-text-primary">{user?.firstName} {user?.lastName}</span>
+              <span className="font-medium text-text-primary">
+                {user?.firstName} {user?.lastName}
+              </span>
             </div>
             <div className="flex justify-between py-2 border-b border-border">
               <span className="text-text-secondary">Email</span>
-              <span className="font-medium text-text-primary">{user?.email}</span>
+              <span className="font-medium text-text-primary">
+                {user?.email}
+              </span>
             </div>
             <div className="flex justify-between py-2">
               <span className="text-text-secondary">Role</span>
-              <StatusBadge tone="info" dot={false} label={user?.roles[0]?.name ?? '—'} />
+              <StatusBadge
+                tone="info"
+                dot={false}
+                label={user?.roles[0]?.name ?? "—"}
+              />
             </div>
           </div>
         </Card>
@@ -48,7 +65,9 @@ export function SettingsPage() {
             <div className="w-9 h-9 bg-violet-50 rounded-lg flex items-center justify-center">
               <Palette className="w-5 h-5 text-violet-600" />
             </div>
-            <h2 className="text-base font-semibold text-text-primary">Appearance</h2>
+            <h2 className="text-base font-semibold text-text-primary">
+              Appearance
+            </h2>
           </div>
           <ThemeSwitcher label="Theme" />
         </Card>
@@ -58,7 +77,9 @@ export function SettingsPage() {
             <div className="w-9 h-9 bg-emerald-50 rounded-lg flex items-center justify-center">
               <Shield className="w-5 h-5 text-emerald-600" />
             </div>
-            <h2 className="text-base font-semibold text-text-primary">Permissions</h2>
+            <h2 className="text-base font-semibold text-text-primary">
+              Permissions
+            </h2>
           </div>
           <div className="space-y-2">
             {user?.roles[0]?.permissions?.slice(0, 8).map((perm) => (
@@ -69,7 +90,8 @@ export function SettingsPage() {
             ))}
             {(user?.roles[0]?.permissions?.length ?? 0) > 8 && (
               <p className="text-xs text-text-disabled pl-3.5">
-                +{(user?.roles[0]?.permissions?.length ?? 0) - 8} more permissions
+                +{(user?.roles[0]?.permissions?.length ?? 0) - 8} more
+                permissions
               </p>
             )}
           </div>
@@ -80,16 +102,22 @@ export function SettingsPage() {
             <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center">
               <Building2 className="w-5 h-5 text-blue-600" />
             </div>
-            <h2 className="text-base font-semibold text-text-primary">System Info</h2>
+            <h2 className="text-base font-semibold text-text-primary">
+              System Info
+            </h2>
           </div>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between py-2 border-b border-border">
               <span className="text-text-secondary">Tenant ID</span>
-              <span className="font-mono text-xs text-text-primary">{user?.tenantId?.slice(0, 12)}…</span>
+              <span className="font-mono text-xs text-text-primary">
+                {user?.tenantId?.slice(0, 12)}…
+              </span>
             </div>
             <div className="flex justify-between py-2 border-b border-border">
               <span className="text-text-secondary">Branch ID</span>
-              <span className="font-mono text-xs text-text-primary">{user?.branchId?.slice(0, 12) ?? '—'}</span>
+              <span className="font-mono text-xs text-text-primary">
+                {user?.branchId?.slice(0, 12) ?? "—"}
+              </span>
             </div>
             <div className="flex justify-between py-2">
               <span className="text-text-secondary">Status</span>
@@ -103,18 +131,27 @@ export function SettingsPage() {
             <div className="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center">
               <Bell className="w-5 h-5 text-amber-600" />
             </div>
-            <h2 className="text-base font-semibold text-text-primary">Notifications</h2>
+            <h2 className="text-base font-semibold text-text-primary">
+              Notifications
+            </h2>
           </div>
           <div className="space-y-3">
             {[
-              { label: 'New orders', enabled: true },
-              { label: 'Low stock alerts', enabled: true },
-              { label: 'Kitchen ready alerts', enabled: true },
-              { label: 'Payment confirmations', enabled: false },
+              { label: "New orders", enabled: true },
+              { label: "Low stock alerts", enabled: true },
+              { label: "Kitchen ready alerts", enabled: true },
+              { label: "Payment confirmations", enabled: false },
             ].map((item) => (
-              <div key={item.label} className="flex items-center justify-between">
-                <span className="text-sm text-text-secondary">{item.label}</span>
-                <div className={`w-10 h-5 rounded-full transition-colors duration-base ease-standard ${item.enabled ? 'bg-primary' : 'bg-surface-secondary'}`} />
+              <div
+                key={item.label}
+                className="flex items-center justify-between"
+              >
+                <span className="text-sm text-text-secondary">
+                  {item.label}
+                </span>
+                <div
+                  className={`w-10 h-5 rounded-full transition-colors duration-base ease-standard ${item.enabled ? "bg-primary" : "bg-surface-secondary"}`}
+                />
               </div>
             ))}
           </div>

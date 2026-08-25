@@ -8,12 +8,12 @@
  * other menu sub-domains before folding their ad-hoc codes; see
  * docs/NEXT_STEPS.md).
  */
-import { NotFoundError } from '../../../core/errors';
+import { NotFoundError } from "../../../core/errors";
 
 export function itemNotFound(id?: string): NotFoundError {
-  return new NotFoundError('Menu item', id);
+  return new NotFoundError("Menu item", id);
 }
 
 export function inventoryItemNotFound(ids: string[]): NotFoundError {
-  return new NotFoundError('Inventory item', undefined, { missingIds: ids });
+  return new NotFoundError("Inventory item", undefined, { missingIds: ids });
 }

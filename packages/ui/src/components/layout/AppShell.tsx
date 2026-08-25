@@ -1,6 +1,6 @@
-import type { HTMLAttributes, ReactNode } from 'react';
-import { cn } from '../../utils/cn';
-import { SkipLink } from '../navigation/SkipLink';
+import type { HTMLAttributes, ReactNode } from "react";
+import { cn } from "../../utils/cn";
+import { SkipLink } from "../navigation/SkipLink";
 
 export interface AppShellProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
@@ -41,13 +41,16 @@ export function AppShell({
   sidebar,
   topbar,
   bottombar,
-  sidebarWidth = '256px',
+  sidebarWidth = "256px",
   skipLink = true,
   className,
   ...props
 }: AppShellProps) {
   return (
-    <div className={cn('min-h-screen bg-background flex', className)} {...props}>
+    <div
+      className={cn("min-h-screen bg-background flex", className)}
+      {...props}
+    >
       {skipLink && <SkipLink />}
 
       {sidebar && (
@@ -61,7 +64,9 @@ export function AppShell({
 
       <div className="flex-1 min-w-0 flex flex-col">
         {topbar && (
-          <header className="shrink-0 border-b border-border bg-surface">{topbar}</header>
+          <header className="shrink-0 border-b border-border bg-surface">
+            {topbar}
+          </header>
         )}
 
         {/*
@@ -76,14 +81,18 @@ export function AppShell({
          * requirement to satisfy — unlike every genuinely tabbable
          * element in this codebase, which must keep its focus ring.
          */}
-        <main id="main-content" tabIndex={-1} className="flex-1 min-h-0 overflow-y-auto outline-none">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="flex-1 min-h-0 overflow-y-auto outline-none"
+        >
           {children}
         </main>
 
         {bottombar && (
           <footer
             className="shrink-0 border-t border-border bg-surface"
-            style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+            style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
           >
             {bottombar}
           </footer>

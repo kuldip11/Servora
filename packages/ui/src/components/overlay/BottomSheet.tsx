@@ -1,15 +1,19 @@
-import type { ReactNode } from 'react';
-import * as RadixDialog from '@radix-ui/react-dialog';
-import { cn } from '../../utils/cn';
-import { overlayPanelClasses, overlayScrimClasses, OverlayHeader } from './shared';
+import type { ReactNode } from "react";
+import * as RadixDialog from "@radix-ui/react-dialog";
+import { cn } from "../../utils/cn";
+import {
+  overlayPanelClasses,
+  overlayScrimClasses,
+  OverlayHeader,
+} from "./shared";
 
 /** Phase 8: same idea as `Drawer`'s side-aware slide, just fixed to "bottom"
  * since that's the sheet's only anchor edge. */
 const bottomSheetAnimationClasses =
-  'data-[state=open]:animate-in data-[state=open]:duration-base data-[state=open]:ease-decelerate ' +
-  'data-[state=open]:slide-in-from-bottom ' +
-  'data-[state=closed]:animate-out data-[state=closed]:duration-fast data-[state=closed]:ease-accelerate ' +
-  'data-[state=closed]:slide-out-to-bottom';
+  "data-[state=open]:animate-in data-[state=open]:duration-base data-[state=open]:ease-decelerate " +
+  "data-[state=open]:slide-in-from-bottom " +
+  "data-[state=closed]:animate-out data-[state=closed]:duration-fast data-[state=closed]:ease-accelerate " +
+  "data-[state=closed]:slide-out-to-bottom";
 
 export interface BottomSheetProps {
   open: boolean;
@@ -48,7 +52,7 @@ export function BottomSheet({
   onClose,
   title,
   children,
-  maxHeight = '85vh',
+  maxHeight = "85vh",
   footer,
   description,
 }: BottomSheetProps) {
@@ -57,15 +61,18 @@ export function BottomSheet({
       <RadixDialog.Portal>
         <RadixDialog.Overlay className={overlayScrimClasses} />
         <RadixDialog.Content
-          {...(description ? {} : { 'aria-describedby': undefined })}
+          {...(description ? {} : { "aria-describedby": undefined })}
           className={cn(
             overlayPanelClasses,
             bottomSheetAnimationClasses,
-            'fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-xl',
+            "fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-xl",
           )}
           style={{ maxHeight }}
         >
-          <div className="flex justify-center pt-2 pb-1 shrink-0" aria-hidden="true">
+          <div
+            className="flex justify-center pt-2 pb-1 shrink-0"
+            aria-hidden="true"
+          >
             <div className="h-1 w-10 rounded-full bg-border" />
           </div>
           <OverlayHeader
@@ -78,7 +85,9 @@ export function BottomSheet({
             className="border-b-0"
           />
           {description && (
-            <RadixDialog.Description className="sr-only">{description}</RadixDialog.Description>
+            <RadixDialog.Description className="sr-only">
+              {description}
+            </RadixDialog.Description>
           )}
           <div className="flex-1 overflow-y-auto px-6 pb-6">{children}</div>
           {footer && (

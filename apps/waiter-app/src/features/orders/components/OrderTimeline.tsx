@@ -1,7 +1,7 @@
-import { Clock } from 'lucide-react';
-import { Card } from '@pos/ui';
-import type { Order } from '@pos/types';
-import { StatusBadge } from './StatusBadge';
+import { Clock } from "lucide-react";
+import { Card } from "@pos/ui";
+import type { Order } from "@pos/types";
+import { StatusBadge } from "./StatusBadge";
 
 interface Props {
   order: Order;
@@ -25,7 +25,10 @@ export function OrderTimeline({ order }: Props) {
           <div key={h.id} className="flex items-center gap-3">
             <Clock className="w-3.5 h-3.5 text-text-disabled flex-shrink-0" />
             <span className="text-text-disabled text-xs">
-              {new Date(h.changedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+              {new Date(h.changedAt).toLocaleTimeString("en-IN", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
             </span>
             <StatusBadge status={h.newStatus} />
           </div>

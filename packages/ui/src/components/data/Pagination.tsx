@@ -1,6 +1,6 @@
-import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
-import { cn } from '../../utils/cn';
-import { IconButton } from '../IconButton';
+import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
+import { cn } from "../../utils/cn";
+import { IconButton } from "../IconButton";
 
 /**
  * Phase 7 (Part 1) — `Pagination`. Controlled-only (`page`/`onPageChange`),
@@ -30,16 +30,21 @@ export interface PaginationProps {
 
 /** Builds a windowed page list with `'ellipsis'` gaps: always shows the first
  * and last page, the current page, and one neighbor on each side. */
-function buildPageWindow(page: number, pageCount: number): (number | 'ellipsis')[] {
+function buildPageWindow(
+  page: number,
+  pageCount: number,
+): (number | "ellipsis")[] {
   if (pageCount <= 7) return Array.from({ length: pageCount }, (_, i) => i + 1);
   const pages = new Set<number>([1, pageCount, page, page - 1, page + 1]);
-  const sorted = [...pages].filter((p) => p >= 1 && p <= pageCount).sort((a, b) => a - b);
-  const out: (number | 'ellipsis')[] = [];
+  const sorted = [...pages]
+    .filter((p) => p >= 1 && p <= pageCount)
+    .sort((a, b) => a - b);
+  const out: (number | "ellipsis")[] = [];
   sorted.forEach((p, i) => {
     if (i > 0) {
       const prev = sorted[i - 1]!;
       if (p - prev === 2) out.push(prev + 1);
-      else if (p - prev > 2) out.push('ellipsis');
+      else if (p - prev > 2) out.push("ellipsis");
     }
     out.push(p);
   });
@@ -60,18 +65,34 @@ export function Pagination({
   const pageWindow = buildPageWindow(page, safePageCount);
 
   const rangeStart = pageSize ? (page - 1) * pageSize + 1 : undefined;
-  const rangeEnd = pageSize && totalItems !== undefined ? Math.min(page * pageSize, totalItems) : undefined;
+  const rangeEnd =
+    pageSize && totalItems !== undefined
+      ? Math.min(page * pageSize, totalItems)
+      : undefined;
 
   return (
-    <div className={cn('flex items-center justify-between gap-4 flex-wrap', className)}>
+    <div
+      className={cn(
+        "flex items-center justify-between gap-4 flex-wrap",
+        className,
+      )}
+    >
       <div className="flex items-center gap-4 text-sm text-text-secondary">
-        {totalItems !== undefined && rangeStart !== undefined && rangeEnd !== undefined && (
-          <span>
-            Showing <span className="font-medium text-text-primary">{rangeStart}</span>–
-            <span className="font-medium text-text-primary">{rangeEnd}</span> of{' '}
-            <span className="font-medium text-text-primary">{totalItems}</span>
-          </span>
-        )}
+        {totalItems !== undefined &&
+          rangeStart !== undefined &&
+          rangeEnd !== undefined && (
+            <span>
+              Showing{" "}
+              <span className="font-medium text-text-primary">
+                {rangeStart}
+              </span>
+              –<span className="font-medium text-text-primary">{rangeEnd}</span>{" "}
+              of{" "}
+              <span className="font-medium text-text-primary">
+                {totalItems}
+              </span>
+            </span>
+          )}
         {onPageSizeChange && (
           <label className="flex items-center gap-2">
             Rows per page
@@ -101,21 +122,24 @@ export function Pagination({
         />
 
         {pageWindow.map((p, i) =>
-          p === 'ellipsis' ? (
-            <span key={`e${i}`} className="w-8 h-8 flex items-center justify-center text-text-disabled">
+          p === "ellipsis" ? (
+            <span
+              key={`e${i}`}
+              className="w-8 h-8 flex items-center justify-center text-text-disabled"
+            >
               <MoreHorizontal className="w-4 h-4" />
             </span>
           ) : (
             <button
               key={p}
               type="button"
-              aria-current={p === page ? 'page' : undefined}
+              aria-current={p === page ? "page" : undefined}
               onClick={() => onPageChange(p)}
               className={cn(
-                'w-8 h-8 rounded-md text-sm font-medium transition-colors duration-fast ease-standard',
+                "w-8 h-8 rounded-md text-sm font-medium transition-colors duration-fast ease-standard",
                 p === page
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-text-secondary hover:bg-surface-secondary hover:text-text-primary',
+                  ? "bg-primary text-primary-foreground"
+                  : "text-text-secondary hover:bg-surface-secondary hover:text-text-primary",
               )}
             >
               {p}

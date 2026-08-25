@@ -34,14 +34,17 @@
     "test:coverage:kitchen": "cd apps/kitchen-display && bun run test:coverage",
     "test:coverage:validation": "cd packages/validation && bun run test:coverage",
     "test:coverage:api-client": "cd packages/api-client && bun run test:coverage",
-    "test:coverage:realtime": "cd packages/realtime && bun run test:coverage"
+    "test:coverage:realtime": "cd packages/realtime && bun run test:coverage",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
     "eslint": "^9.39.5",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "turbo": "^2.0.0",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "prettier": "^3.6.2"
   },
   "engines": {
     "node": ">=20.0.0",

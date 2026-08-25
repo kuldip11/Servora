@@ -1,6 +1,6 @@
-import { apiClient } from '../../../shared/lib/api-client';
-import type { Order } from '@pos/types';
-import type { CartItem } from '../utils/cartTypes';
+import { apiClient } from "../../../shared/lib/api-client";
+import type { Order } from "@pos/types";
+import type { CartItem } from "../utils/cartTypes";
 
 export interface OrdersListFilters {
   status?: string;
@@ -33,16 +33,19 @@ export function toCartItemPayload(item: CartItem): CartItemPayload {
     quantity: item.quantity,
     ...(item.variantId !== undefined && { variantId: item.variantId }),
     ...(item.chefNotes && { chefNotes: item.chefNotes }),
-    selectedOptions: item.modifiers.map((m) => ({ optionId: m.optionId, quantity: m.quantity })),
+    selectedOptions: item.modifiers.map((m) => ({
+      optionId: m.optionId,
+      quantity: m.quantity,
+    })),
   };
 }
 
 export const ordersService = {
   async list(filters: OrdersListFilters): Promise<Order[]> {
     const params: Record<string, string> = {};
-    if (filters.status) params['status'] = filters.status;
-    if (filters.type) params['type'] = filters.type;
-    const res = await apiClient.get('/orders', { params });
+    if (filters.status) params["status"] = filters.status;
+    if (filters.type) params["type"] = filters.type;
+    const res = await apiClient.get("/orders", { params });
     return res.data.data;
   },
 
@@ -52,7 +55,7 @@ export const ordersService = {
   },
 
   async create(input: CreateOrderInput): Promise<Order> {
-    const res = await apiClient.post('/orders', input);
+    const res = await apiClient.post("/orders", input);
     return res.data.data;
   },
 

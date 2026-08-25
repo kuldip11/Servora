@@ -1,8 +1,14 @@
-import { type KeyboardEvent, useEffect, useId, useRef, useState } from 'react';
-import * as Popover from '@radix-ui/react-popover';
-import { ChevronDown, Loader2, X } from 'lucide-react';
-import { cn } from '../../utils/cn';
-import { FieldLabel, FieldFooter, fieldBaseClasses, useFieldIds, describedBy } from '../form/shared';
+import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
+import * as Popover from "@radix-ui/react-popover";
+import { ChevronDown, Loader2, X } from "lucide-react";
+import { cn } from "../../utils/cn";
+import {
+  FieldLabel,
+  FieldFooter,
+  fieldBaseClasses,
+  useFieldIds,
+  describedBy,
+} from "../form/shared";
 import {
   type SelectOption,
   buildRows,
@@ -12,7 +18,7 @@ import {
   useScrollActiveIntoView,
   VirtualListbox,
   popoverContentClasses,
-} from './shared';
+} from "./shared";
 
 export interface AutocompleteProps {
   /** Currently selected option, or `undefined` for none. Unlike `Combobox`/`SelectMenu`,
@@ -62,7 +68,7 @@ export function Autocomplete({
   debounceMs = 300,
   minChars = 1,
   label,
-  placeholder = 'Search…',
+  placeholder = "Search…",
   hint,
   error,
   required,
@@ -72,7 +78,7 @@ export function Autocomplete({
   maxListHeight = 320,
 }: AutocompleteProps) {
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState(value?.label ?? '');
+  const [query, setQuery] = useState(value?.label ?? "");
   const debouncedQuery = useDebouncedValue(query, debounceMs);
   const { fieldId, hintId, errorId } = useFieldIds(id);
   const listboxId = useId();
@@ -83,7 +89,7 @@ export function Autocomplete({
   // Opening an autocomplete with an already-selected label must not issue a
   // synthetic search. Searches are driven by user-entered query changes.
   useEffect(() => {
-    if (open) lastSearchedRef.current = value?.label ?? '';
+    if (open) lastSearchedRef.current = value?.label ?? "";
   }, [open]);
 
   useEffect(() => {
@@ -96,7 +102,7 @@ export function Autocomplete({
   }, [debouncedQuery, open, minChars]);
 
   useEffect(() => {
-    if (!open) setQuery(value?.label ?? '');
+    if (!open) setQuery(value?.label ?? "");
   }, [value, open]);
 
   // Do not expose stale results while the user has typed fewer than the minimum
@@ -107,27 +113,30 @@ export function Autocomplete({
 
   const commitRow = (rowIndex: number) => {
     const row = rows[rowIndex];
-    if (row?.kind !== 'option' || row.option.disabled) return;
+    if (row?.kind !== "option" || row.option.disabled) return;
     onChange(row.option);
     setQuery(row.option.label);
     setOpen(false);
     inputRef.current?.blur();
   };
 
-  const { activeRowIndex, setActiveRowIndex, onKeyDown } = useActiveRow(rows, commitRow);
+  const { activeRowIndex, setActiveRowIndex, onKeyDown } = useActiveRow(
+    rows,
+    commitRow,
+  );
   useScrollActiveIntoView(listRef, activeRowIndex, open);
 
   useEffect(() => {
-    if (open) setActiveRowIndex(rows.findIndex((r) => r.kind === 'option'));
+    if (open) setActiveRowIndex(rows.findIndex((r) => r.kind === "option"));
   }, [options, open]);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Escape') {
+    if (e.key === "Escape") {
       setOpen(false);
-      setQuery(value?.label ?? '');
+      setQuery(value?.label ?? "");
       return;
     }
-    if (!open && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+    if (!open && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
       e.preventDefault();
       setOpen(true);
       return;
@@ -162,7 +171,9 @@ export function Autocomplete({
               aria-expanded={open}
               aria-controls={listboxId}
               aria-activedescendant={
-                open && activeRowIndex >= 0 ? rowDomId(listboxId, activeRowIndex) : undefined
+                open && activeRowIndex >= 0
+                  ? rowDomId(listboxId, activeRowIndex)
+                  : undefined
               }
               aria-invalid={!!error || undefined}
               aria-describedby={describedBy(hintId, errorId, hint, error)}
@@ -177,7 +188,11 @@ export function Autocomplete({
               onFocus={() => setOpen(true)}
               onKeyDown={handleKeyDown}
               onBlur={handleBlur}
-              className={cn(fieldBaseClasses(!!error), 'px-3 py-2.5 pr-16', className)}
+              className={cn(
+                fieldBaseClasses(!!error),
+                "px-3 py-2.5 pr-16",
+                className,
+              )}
             />
             {loading ? (
               <Loader2 className="absolute right-3 w-4 h-4 animate-spin text-text-secondary" />
@@ -191,7 +206,7 @@ export function Autocomplete({
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => {
                       onChange(undefined);
-                      setQuery('');
+                      setQuery("");
                       inputRef.current?.focus();
                     }}
                     className="absolute right-8 p-0.5 rounded text-text-secondary hover:text-text-primary hover:bg-surface-secondary"
@@ -209,7 +224,10 @@ export function Autocomplete({
             align="start"
             sideOffset={4}
             onOpenAutoFocus={(e) => e.preventDefault()}
-            className={cn(popoverContentClasses, 'w-[var(--radix-popover-anchor-width)]')}
+            className={cn(
+              popoverContentClasses,
+              "w-[var(--radix-popover-anchor-width)]",
+            )}
           >
             <VirtualListbox
               rows={rows}
@@ -221,16 +239,21 @@ export function Autocomplete({
               onCommitRow={commitRow}
               emptyMessage={
                 belowMinChars
-                  ? `Type at least ${minChars} character${minChars === 1 ? '' : 's'}`
+                  ? `Type at least ${minChars} character${minChars === 1 ? "" : "s"}`
                   : loading
-                    ? 'Searching…'
-                    : 'No results'
+                    ? "Searching…"
+                    : "No results"
               }
             />
           </Popover.Content>
         </Popover.Portal>
       </Popover.Root>
-      <FieldFooter hint={hint} error={error} hintId={hintId} errorId={errorId} />
+      <FieldFooter
+        hint={hint}
+        error={error}
+        hintId={hintId}
+        errorId={errorId}
+      />
     </div>
   );
 }

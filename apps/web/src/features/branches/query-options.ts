@@ -1,6 +1,6 @@
-import { queryOptions } from '@tanstack/react-query';
-import { branchesService } from './services/branches.service';
-import { branchKeys } from './query-keys';
+import { queryOptions } from "@tanstack/react-query";
+import { branchesService } from "./services/branches.service";
+import { branchKeys } from "./query-keys";
 
 /**
  * Reusable query definition — usable with `useQuery`, and also for

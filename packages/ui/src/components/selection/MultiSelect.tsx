@@ -1,8 +1,13 @@
-import { type KeyboardEvent, useEffect, useId, useRef, useState } from 'react';
-import * as Popover from '@radix-ui/react-popover';
-import { Check, ChevronDown } from 'lucide-react';
-import { cn } from '../../utils/cn';
-import { FieldLabel, FieldFooter, useFieldIds, describedBy } from '../form/shared';
+import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
+import * as Popover from "@radix-ui/react-popover";
+import { Check, ChevronDown } from "lucide-react";
+import { cn } from "../../utils/cn";
+import {
+  FieldLabel,
+  FieldFooter,
+  useFieldIds,
+  describedBy,
+} from "../form/shared";
 import {
   type SelectOption,
   buildRows,
@@ -13,7 +18,7 @@ import {
   VirtualListbox,
   popoverContentClasses,
   triggerBaseClasses,
-} from './shared';
+} from "./shared";
 
 export interface MultiSelectProps {
   options: SelectOption[];
@@ -48,7 +53,7 @@ export function MultiSelect({
   value,
   onChange,
   label,
-  placeholder = 'Select…',
+  placeholder = "Select…",
   hint,
   error,
   required,
@@ -59,7 +64,7 @@ export function MultiSelect({
   maxVisibleChips = 3,
 }: MultiSelectProps) {
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const { fieldId, hintId, errorId } = useFieldIds(id);
   const listboxId = useId();
   const listRef = useRef<HTMLUListElement>(null);
@@ -72,41 +77,46 @@ export function MultiSelect({
 
   const toggle = (optValue: string) => {
     onChange(
-      selectedSet.has(optValue) ? value.filter((v) => v !== optValue) : [...value, optValue],
+      selectedSet.has(optValue)
+        ? value.filter((v) => v !== optValue)
+        : [...value, optValue],
     );
   };
 
   const commitRow = (rowIndex: number) => {
     const row = rows[rowIndex];
-    if (row?.kind !== 'option' || row.option.disabled) return;
+    if (row?.kind !== "option" || row.option.disabled) return;
     toggle(row.option.value);
     // stays open — multi-select keeps selecting until the user dismisses it
   };
 
-  const { activeRowIndex, setActiveRowIndex, onKeyDown } = useActiveRow(rows, commitRow);
+  const { activeRowIndex, setActiveRowIndex, onKeyDown } = useActiveRow(
+    rows,
+    commitRow,
+  );
   useScrollActiveIntoView(listRef, activeRowIndex, open);
 
   useEffect(() => {
     if (open) {
-      setActiveRowIndex(rows.findIndex((r) => r.kind === 'option'));
+      setActiveRowIndex(rows.findIndex((r) => r.kind === "option"));
       window.setTimeout(() => searchRef.current?.focus(), 0);
     } else {
-      setQuery('');
+      setQuery("");
     }
     // reset search + highlight whenever the popover opens/closes
   }, [open]);
 
   useEffect(() => {
-    setActiveRowIndex(rows.findIndex((r) => r.kind === 'option'));
+    setActiveRowIndex(rows.findIndex((r) => r.kind === "option"));
     // re-highlight the first match whenever the query narrows the list
   }, [query]);
 
   const handleSearchKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Escape') {
+    if (e.key === "Escape") {
       setOpen(false);
       return;
     }
-    if (e.key === 'Backspace' && query === '' && value.length > 0) {
+    if (e.key === "Backspace" && query === "" && value.length > 0) {
       onChange(value.slice(0, -1));
       return;
     }
@@ -135,8 +145,10 @@ export function MultiSelect({
             aria-describedby={describedBy(hintId, errorId, hint, error)}
             className={cn(
               triggerBaseClasses,
-              'min-h-[42px] flex-wrap',
-              error ? 'border-danger focus:ring-danger' : 'border-border focus:ring-primary',
+              "min-h-[42px] flex-wrap",
+              error
+                ? "border-danger focus:ring-danger"
+                : "border-border focus:ring-primary",
               className,
             )}
           >
@@ -160,7 +172,9 @@ export function MultiSelect({
                   </span>
                 ))}
                 {overflowCount > 0 && (
-                  <span className="text-xs text-text-secondary">+{overflowCount} more</span>
+                  <span className="text-xs text-text-secondary">
+                    +{overflowCount} more
+                  </span>
                 )}
               </span>
             )}
@@ -171,7 +185,10 @@ export function MultiSelect({
           <Popover.Content
             align="start"
             sideOffset={4}
-            className={cn(popoverContentClasses, 'w-[var(--radix-popover-trigger-width)] flex flex-col')}
+            className={cn(
+              popoverContentClasses,
+              "w-[var(--radix-popover-trigger-width)] flex flex-col",
+            )}
             onOpenAutoFocus={(e) => e.preventDefault()}
           >
             <div className="border-b border-border p-1.5">
@@ -183,7 +200,9 @@ export function MultiSelect({
                 aria-expanded={open}
                 aria-controls={listboxId}
                 aria-activedescendant={
-                  activeRowIndex >= 0 ? rowDomId(listboxId, activeRowIndex) : undefined
+                  activeRowIndex >= 0
+                    ? rowDomId(listboxId, activeRowIndex)
+                    : undefined
                 }
                 placeholder="Search…"
                 value={query}
@@ -204,11 +223,13 @@ export function MultiSelect({
               renderLeading={(_opt, selected) => (
                 <span
                   className={cn(
-                    'flex items-center justify-center w-4 h-4 rounded border shrink-0',
-                    selected ? 'bg-primary border-primary' : 'border-border',
+                    "flex items-center justify-center w-4 h-4 rounded border shrink-0",
+                    selected ? "bg-primary border-primary" : "border-border",
                   )}
                 >
-                  {selected && <Check className="w-3 h-3 text-primary-foreground" />}
+                  {selected && (
+                    <Check className="w-3 h-3 text-primary-foreground" />
+                  )}
                 </span>
               )}
             />
@@ -229,7 +250,12 @@ export function MultiSelect({
           </Popover.Content>
         </Popover.Portal>
       </Popover.Root>
-      <FieldFooter hint={hint} error={error} hintId={hintId} errorId={errorId} />
+      <FieldFooter
+        hint={hint}
+        error={error}
+        hintId={hintId}
+        errorId={errorId}
+      />
     </div>
   );
 }

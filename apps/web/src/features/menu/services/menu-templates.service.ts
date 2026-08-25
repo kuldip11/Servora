@@ -1,5 +1,5 @@
-import { apiClient } from '../../../shared/lib/api-client';
-import type { MenuTemplate } from '@pos/types';
+import { apiClient } from "../../../shared/lib/api-client";
+import type { MenuTemplate } from "@pos/types";
 
 export interface ApplyTemplateInput {
   branchId?: string;
@@ -13,7 +13,7 @@ export interface SaveTemplateInput {
 
 export const menuTemplatesService = {
   async list(): Promise<MenuTemplate[]> {
-    const res = await apiClient.get('/menu/templates');
+    const res = await apiClient.get("/menu/templates");
     return res.data.data;
   },
 
@@ -28,11 +28,17 @@ export const menuTemplatesService = {
     });
   },
 
-  async saveFromCategory(categoryId: string, input: SaveTemplateInput): Promise<MenuTemplate> {
-    const res = await apiClient.post(`/menu/templates/from-category/${categoryId}`, {
-      name: input.name,
-      description: input.description || undefined,
-    });
+  async saveFromCategory(
+    categoryId: string,
+    input: SaveTemplateInput,
+  ): Promise<MenuTemplate> {
+    const res = await apiClient.post(
+      `/menu/templates/from-category/${categoryId}`,
+      {
+        name: input.name,
+        description: input.description || undefined,
+      },
+    );
     return res.data.data;
   },
 };

@@ -3,9 +3,13 @@
  * from `requireAuthPlugin` (applied in `staff.route.ts`); business rules
  * live in `staff.service.ts`.
  */
-import type { AuthContext } from '../../core/auth';
-import { successResponse, createdResponse } from '../../core/response';
-import { staffService, type CreateStaffInput, type UpdateStaffInput } from './staff.service';
+import type { AuthContext } from "../../core/auth";
+import { successResponse, createdResponse } from "../../core/response";
+import {
+  staffService,
+  type CreateStaffInput,
+  type UpdateStaffInput,
+} from "./staff.service";
 
 export const staffController = {
   async list(auth: AuthContext) {

@@ -1,8 +1,8 @@
-import { useMemo, type ComponentType } from 'react';
-import { Sun, Moon, Contrast } from 'lucide-react';
-import { SelectMenu } from '../selection/SelectMenu';
-import type { SelectOption } from '../selection/shared';
-import { useTheme, type Theme } from '../../theme/ThemeProvider';
+import { useMemo, type ComponentType } from "react";
+import { Sun, Moon, Contrast } from "lucide-react";
+import { SelectMenu } from "../selection/SelectMenu";
+import type { SelectOption } from "../selection/shared";
+import { useTheme, type Theme } from "../../theme/ThemeProvider";
 
 /**
  * Phase 16 — shared theme switcher.
@@ -29,16 +29,16 @@ import { useTheme, type Theme } from '../../theme/ThemeProvider';
 const THEME_ICONS: Record<Theme, ComponentType<{ className?: string }>> = {
   light: Sun,
   dark: Moon,
-  'high-contrast': Contrast,
+  "high-contrast": Contrast,
 };
 
 const THEME_LABELS: Record<Theme, string> = {
-  light: 'Light',
-  dark: 'Dark',
-  'high-contrast': 'High Contrast',
+  light: "Light",
+  dark: "Dark",
+  "high-contrast": "High Contrast",
 };
 
-const THEME_ORDER: Theme[] = ['light', 'dark', 'high-contrast'];
+const THEME_ORDER: Theme[] = ["light", "dark", "high-contrast"];
 
 export interface ThemeSwitcherProps {
   /** @default 'Theme' */
@@ -47,7 +47,11 @@ export interface ThemeSwitcherProps {
   className?: string | undefined;
 }
 
-export function ThemeSwitcher({ label = 'Theme', id, className }: ThemeSwitcherProps) {
+export function ThemeSwitcher({
+  label = "Theme",
+  id,
+  className,
+}: ThemeSwitcherProps) {
   const { theme, setTheme } = useTheme();
 
   const options: SelectOption[] = useMemo(

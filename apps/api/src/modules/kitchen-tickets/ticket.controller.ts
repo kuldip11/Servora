@@ -7,11 +7,11 @@
  * the standard response envelope. So each handler here just calls the
  * service and wraps the result.
  */
-import type { AuthContext } from '../../core/auth';
-import type { Logger } from '../../core/logger';
-import { successResponse } from '../../core/response';
-import { ticketService } from './ticket.service';
-import type { KitchenTicketStatus } from '@pos/types';
+import type { AuthContext } from "../../core/auth";
+import type { Logger } from "../../core/logger";
+import { successResponse } from "../../core/response";
+import { ticketService } from "./ticket.service";
+import type { KitchenTicketStatus } from "@pos/types";
 
 export const ticketController = {
   async getQueue(auth: AuthContext) {
@@ -25,7 +25,12 @@ export const ticketController = {
     ticketId: string,
     status: KitchenTicketStatus,
   ) {
-    const updated = await ticketService.updateStatus(auth, logger, ticketId, status);
+    const updated = await ticketService.updateStatus(
+      auth,
+      logger,
+      ticketId,
+      status,
+    );
     return successResponse(updated);
   },
 };

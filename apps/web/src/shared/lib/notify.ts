@@ -1,5 +1,5 @@
-import { toast } from '@pos/ui';
-import { getErrorMessage } from './errors';
+import { toast } from "@pos/ui";
+import { getErrorMessage } from "./errors";
 
 // Phase 14 bundle-analysis finding: `@pos/ui` has shipped a full
 // `Toast`/`toast()`/`Toaster` (Phase 5, hardened for swipe-to-dismiss in
@@ -35,9 +35,9 @@ import { getErrorMessage } from './errors';
  *   onError: (err) => notifyError(err, 'Failed to update order'),
  */
 export function notifyError(error: unknown, fallback?: string): void {
-  toast({ title: getErrorMessage(error, fallback), tone: 'danger' });
+  toast({ title: getErrorMessage(error, fallback), tone: "danger" });
 }
 
 export function notifySuccess(message: string): void {
-  toast({ title: message, tone: 'success' });
+  toast({ title: message, tone: "success" });
 }

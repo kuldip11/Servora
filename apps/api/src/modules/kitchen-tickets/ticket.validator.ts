@@ -1,11 +1,11 @@
-import { t } from 'elysia';
+import { t } from "elysia";
 
 export const updateTicketStatusBody = t.Object({
   status: t.Union([
-    t.Literal('FIRED'),
-    t.Literal('PREPARING'),
-    t.Literal('READY'),
-    t.Literal('SERVED'),
+    t.Literal("FIRED"),
+    t.Literal("PREPARING"),
+    t.Literal("READY"),
+    t.Literal("SERVED"),
   ]),
 });
 

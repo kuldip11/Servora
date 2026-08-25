@@ -7,20 +7,33 @@
  * inventory) — that breadth is inherent to the domain, not something a
  * file split alone fixes.
  */
-import type { Order, OrderStatus, OrderType, RestaurantTable } from '@pos/types';
-import type { AuthContext } from '../../core/auth';
-import { requireOrdersPermission, assertOrderListScope, assertOrderResourceAccess } from './orders-authorization';
-import { ValidationError } from '../../core/errors';
-import { availabilityRepository } from '../menu/availability/availability.repository';
-import { availabilityService } from '../menu/availability/availability.service';
-import { tableRepository } from '../tables/table.repository';
-import { ticketRepository } from '../kitchen-tickets/ticket.repository';
-import { branchRepository } from '../branches/branch.repository';
-import { inventoryService } from '../inventory/inventory.service';
-import { eventBus } from '../../lib/event-bus';
-import { orderRepository } from './order.repository';
-import { resolveItems, type OrderItemInput, type PricableMenuItem } from './order-pricing';
-import { assertValidOrderTransition } from './order-status.machine';
+import type {
+  Order,
+  OrderStatus,
+  OrderType,
+  RestaurantTable,
+} from "@pos/types";
+import type { AuthContext } from "../../core/auth";
+import {
+  requireOrdersPermission,
+  assertOrderListScope,
+  assertOrderResourceAccess,
+} from "./orders-authorization";
+import { ValidationError } from "../../core/errors";
+import { availabilityRepository } from "../menu/availability/availability.repository";
+import { availabilityService } from "../menu/availability/availability.service";
+import { tableRepository } from "../tables/table.repository";
+import { ticketRepository } from "../kitchen-tickets/ticket.repository";
+import { branchRepository } from "../branches/branch.repository";
+import { inventoryService } from "../inventory/inventory.service";
+import { eventBus } from "../../lib/event-bus";
+import { orderRepository } from "./order.repository";
+import {
+  resolveItems,
+  type OrderItemInput,
+  type PricableMenuItem,
+} from "./order-pricing";
+import { assertValidOrderTransition } from "./order-status.machine";
 import {
   orderNotFound,
   branchRequiredForOrder,
@@ -31,7 +44,7 @@ import {
   tableOccupied,
   ticketsNotServed,
   orderNotOpen,
-} from './order.errors';
+} from "./order.errors";
 
 // Maps an order type to the branch column that gates it. The UI filters
 // the type selector to what's enabled as a convenience, but this map is
@@ -39,12 +52,12 @@ import {
 // frontend sent, since someone could hit the API directly.
 const ORDER_TYPE_CAPABILITY_FIELD: Record<
   OrderType,
-  'dineInEnabled' | 'takeawayEnabled' | 'deliveryEnabled' | 'onlineEnabled'
+  "dineInEnabled" | "takeawayEnabled" | "deliveryEnabled" | "onlineEnabled"
 > = {
-  DINE_IN: 'dineInEnabled',
-  TAKEAWAY: 'takeawayEnabled',
-  DELIVERY: 'deliveryEnabled',
-  ONLINE: 'onlineEnabled',
+  DINE_IN: "dineInEnabled",
+  TAKEAWAY: "takeawayEnabled",
+  DELIVERY: "deliveryEnabled",
+  ONLINE: "onlineEnabled",
 };
 
 // A menu item can be temporarily hidden/out-of-stock via a schedule (e.g.
@@ -64,13 +77,21 @@ async function assertItemsInSchedule(
   for (const id of uniqueIds) {
     const menuItem = itemMap.get(id);
     if (!menuItem) continue; // resolveItems will raise the not-found error
-    const effective = await availabilityService.getEffectiveItem(tenantId, id, branchId);
+    const effective = await availabilityService.getEffectiveItem(
+      tenantId,
+      id,
+      branchId,
+    );
     if (effective.isHidden) {
-      throw new ValidationError(`${menuItem.name} isn't available at this branch`);
+      throw new ValidationError(
+        `${menuItem.name} isn't available at this branch`,
+      );
     }
-    if (effective.effectiveStatus !== 'ACTIVE') {
-      const reason = effective.availabilityReason ?? 'currently unavailable';
-      throw new ValidationError(`${menuItem.name} isn't available right now (${reason})`);
+    if (effective.effectiveStatus !== "ACTIVE") {
+      const reason = effective.availabilityReason ?? "currently unavailable";
+      throw new ValidationError(
+        `${menuItem.name} isn't available right now (${reason})`,
+      );
     }
   }
 }
@@ -88,14 +109,17 @@ export interface FireTicketInput {
 }
 
 export const orderService = {
-  async list(auth: AuthContext, filters?: { status?: string | undefined; type?: string | undefined }) {
-    requireOrdersPermission(auth, 'orders:read');
+  async list(
+    auth: AuthContext,
+    filters?: { status?: string | undefined; type?: string | undefined },
+  ) {
+    requireOrdersPermission(auth, "orders:read");
     assertOrderListScope(auth);
     return orderRepository.findMany(auth.tenantId, auth.branchId, filters);
   },
 
   async getById(auth: AuthContext, orderId: string) {
-    requireOrdersPermission(auth, 'orders:read');
+    requireOrdersPermission(auth, "orders:read");
     const order = await orderRepository.findById(auth.tenantId, orderId);
     if (!order) throw orderNotFound(orderId);
     assertOrderResourceAccess(auth, order.branchId);
@@ -103,7 +127,7 @@ export const orderService = {
   },
 
   async getInventoryImpact(auth: AuthContext, orderId: string) {
-    requireOrdersPermission(auth, 'orders:read');
+    requireOrdersPermission(auth, "orders:read");
     const order = await orderRepository.findById(auth.tenantId, orderId);
     if (!order) throw orderNotFound(orderId);
     assertOrderResourceAccess(auth, order.branchId);
@@ -111,7 +135,7 @@ export const orderService = {
   },
 
   async create(auth: AuthContext, input: CreateOrderInput) {
-    requireOrdersPermission(auth, 'orders:create');
+    requireOrdersPermission(auth, "orders:create");
     const branchId = auth.branchId;
     if (!branchId) throw branchRequiredForOrder();
 
@@ -123,32 +147,47 @@ export const orderService = {
       throw orderTypeDisabled();
     }
 
-    if (input.type === 'DINE_IN' && !input.tableId) {
+    if (input.type === "DINE_IN" && !input.tableId) {
       throw tableRequiredForDineIn();
     }
 
     // Dine-in orders tied to a table: make sure the table exists, belongs to
     // this branch, and isn't already occupied by another open order.
-    if (input.type === 'DINE_IN' && input.tableId) {
-      const table = await tableRepository.findById(auth.tenantId, input.tableId);
+    if (input.type === "DINE_IN" && input.tableId) {
+      const table = await tableRepository.findById(
+        auth.tenantId,
+        input.tableId,
+      );
       if (!table || table.branchId !== branchId) {
         throw orderTableNotFound();
       }
-      const alreadyOccupied = await tableRepository.hasOpenOrders(auth.tenantId, input.tableId);
+      const alreadyOccupied = await tableRepository.hasOpenOrders(
+        auth.tenantId,
+        input.tableId,
+      );
       if (alreadyOccupied) {
         throw tableOccupied();
       }
     }
 
     const menuItemIds = input.items.map((i) => i.menuItemId);
-    const menuItemsData = await availabilityRepository.findByIds(auth.tenantId, menuItemIds, branchId);
+    const menuItemsData = await availabilityRepository.findByIds(
+      auth.tenantId,
+      menuItemIds,
+      branchId,
+    );
     const itemMap = new Map(
-      menuItemsData.map((m) => [m.id, m as unknown as PricableMenuItem] as const),
+      menuItemsData.map(
+        (m) => [m.id, m as unknown as PricableMenuItem] as const,
+      ),
     );
 
     await assertItemsInSchedule(auth.tenantId, branchId, itemMap, menuItemIds);
 
-    const { resolved, subtotal, taxAmount } = resolveItems(input.items, itemMap);
+    const { resolved, subtotal, taxAmount } = resolveItems(
+      input.items,
+      itemMap,
+    );
     const totalAmount = subtotal + taxAmount;
 
     const order = await orderRepository.create({
@@ -166,13 +205,20 @@ export const orderService = {
 
     const fullOrder = await orderRepository.findById(auth.tenantId, order.id);
 
-    if (input.type === 'DINE_IN' && input.tableId) {
-      const updatedTable = await tableRepository.update(auth.tenantId, input.tableId, {
-        status: 'OCCUPIED',
-      });
+    if (input.type === "DINE_IN" && input.tableId) {
+      const updatedTable = await tableRepository.update(
+        auth.tenantId,
+        input.tableId,
+        {
+          status: "OCCUPIED",
+        },
+      );
       if (updatedTable) {
         await eventBus.publish(
-          { type: 'table.updated', payload: updatedTable as unknown as RestaurantTable },
+          {
+            type: "table.updated",
+            payload: updatedTable as unknown as RestaurantTable,
+          },
           auth.tenantId,
           branchId,
         );
@@ -180,7 +226,7 @@ export const orderService = {
     }
 
     await eventBus.publish(
-      { type: 'order.created', payload: fullOrder as unknown as Order },
+      { type: "order.created", payload: fullOrder as unknown as Order },
       auth.tenantId,
       branchId,
     );
@@ -188,7 +234,7 @@ export const orderService = {
     // The first kitchen ticket fires as part of order creation — let the
     // kitchen display know a new ticket is waiting.
     await eventBus.publish(
-      { type: 'kitchen.ticket.created', payload: { orderId: order.id } },
+      { type: "kitchen.ticket.created", payload: { orderId: order.id } },
       auth.tenantId,
       branchId,
     );
@@ -200,11 +246,14 @@ export const orderService = {
         auth.tenantId,
         branchId,
         order.id,
-        resolved.map((r) => ({ menuItemId: r.menuItemId, quantity: r.quantity })),
+        resolved.map((r) => ({
+          menuItemId: r.menuItemId,
+          quantity: r.quantity,
+        })),
         auth.userId,
       );
     } catch (err) {
-      console.error('Inventory deduction failed for order', order.id, err);
+      console.error("Inventory deduction failed for order", order.id, err);
     }
 
     return fullOrder;
@@ -216,7 +265,10 @@ export const orderService = {
     newStatus: OrderStatus,
     reason?: string | undefined,
   ) {
-    requireOrdersPermission(auth, newStatus === 'CANCELLED' ? 'orders:cancel' : 'orders:update_status');
+    requireOrdersPermission(
+      auth,
+      newStatus === "CANCELLED" ? "orders:cancel" : "orders:update_status",
+    );
     const order = await orderRepository.findById(auth.tenantId, orderId);
     if (!order) throw orderNotFound(orderId);
     assertOrderResourceAccess(auth, order.branchId);
@@ -224,8 +276,11 @@ export const orderService = {
     assertValidOrderTransition(order.status, newStatus);
 
     // Don't let the tab move to billing while the kitchen still owes items.
-    if (newStatus === 'BILL_REQUESTED') {
-      const allServed = await ticketRepository.allServed(auth.tenantId, orderId);
+    if (newStatus === "BILL_REQUESTED") {
+      const allServed = await ticketRepository.allServed(
+        auth.tenantId,
+        orderId,
+      );
       if (!allServed) throw ticketsNotServed();
     }
 
@@ -244,13 +299,23 @@ export const orderService = {
     // Free up the table once the tab is paid (diners have settled up) or
     // cancelled. (CLOSED is included too since it's harmless to re-affirm
     // AVAILABLE at that point.)
-    if (order.tableId && (['PAID', 'CLOSED', 'CANCELLED'] as OrderStatus[]).includes(newStatus)) {
-      const updatedTable = await tableRepository.update(auth.tenantId, order.tableId, {
-        status: 'AVAILABLE',
-      });
+    if (
+      order.tableId &&
+      (["PAID", "CLOSED", "CANCELLED"] as OrderStatus[]).includes(newStatus)
+    ) {
+      const updatedTable = await tableRepository.update(
+        auth.tenantId,
+        order.tableId,
+        {
+          status: "AVAILABLE",
+        },
+      );
       if (updatedTable) {
         await eventBus.publish(
-          { type: 'table.updated', payload: updatedTable as unknown as RestaurantTable },
+          {
+            type: "table.updated",
+            payload: updatedTable as unknown as RestaurantTable,
+          },
           auth.tenantId,
           order.branchId,
         );
@@ -258,7 +323,7 @@ export const orderService = {
     }
 
     await eventBus.publish(
-      { type: 'order.updated', payload: fullOrder as unknown as Order },
+      { type: "order.updated", payload: fullOrder as unknown as Order },
       auth.tenantId,
       order.branchId,
     );
@@ -269,26 +334,40 @@ export const orderService = {
   // Fires a new round ("Send to Kitchen") on an existing tab — creates a
   // brand new kitchen ticket rather than mutating a previous one.
   async fireTicket(auth: AuthContext, orderId: string, input: FireTicketInput) {
-    requireOrdersPermission(auth, 'orders:update');
+    requireOrdersPermission(auth, "orders:update");
     const order = await orderRepository.findById(auth.tenantId, orderId);
     if (!order) throw orderNotFound(orderId);
     assertOrderResourceAccess(auth, order.branchId);
 
     // A tab stays open for the whole sitting — new rounds can be fired any
     // time before the bill's been requested.
-    if (order.status !== 'OPEN') {
+    if (order.status !== "OPEN") {
       throw orderNotOpen(order.status);
     }
 
     const menuItemIds = input.items.map((i) => i.menuItemId);
-    const menuItemsData = await availabilityRepository.findByIds(auth.tenantId, menuItemIds, order.branchId);
+    const menuItemsData = await availabilityRepository.findByIds(
+      auth.tenantId,
+      menuItemIds,
+      order.branchId,
+    );
     const itemMap = new Map(
-      menuItemsData.map((m) => [m.id, m as unknown as PricableMenuItem] as const),
+      menuItemsData.map(
+        (m) => [m.id, m as unknown as PricableMenuItem] as const,
+      ),
     );
 
-    await assertItemsInSchedule(auth.tenantId, order.branchId, itemMap, menuItemIds);
+    await assertItemsInSchedule(
+      auth.tenantId,
+      order.branchId,
+      itemMap,
+      menuItemIds,
+    );
 
-    const { resolved, subtotal, taxAmount } = resolveItems(input.items, itemMap);
+    const { resolved, subtotal, taxAmount } = resolveItems(
+      input.items,
+      itemMap,
+    );
 
     const ticket = await orderRepository.fireNewTicket(
       auth.tenantId,
@@ -303,12 +382,15 @@ export const orderService = {
     const fullOrder = await orderRepository.findById(auth.tenantId, orderId);
 
     await eventBus.publish(
-      { type: 'order.updated', payload: fullOrder as unknown as Order },
+      { type: "order.updated", payload: fullOrder as unknown as Order },
       auth.tenantId,
       order.branchId,
     );
     await eventBus.publish(
-      { type: 'kitchen.ticket.created', payload: { orderId, ticketId: ticket.id } },
+      {
+        type: "kitchen.ticket.created",
+        payload: { orderId, ticketId: ticket.id },
+      },
       auth.tenantId,
       order.branchId,
     );
@@ -318,11 +400,14 @@ export const orderService = {
         auth.tenantId,
         order.branchId,
         orderId,
-        resolved.map((r) => ({ menuItemId: r.menuItemId, quantity: r.quantity })),
+        resolved.map((r) => ({
+          menuItemId: r.menuItemId,
+          quantity: r.quantity,
+        })),
         auth.userId,
       );
     } catch (err) {
-      console.error('Inventory deduction failed for order', orderId, err);
+      console.error("Inventory deduction failed for order", orderId, err);
     }
 
     return fullOrder;

@@ -1,5 +1,5 @@
-import { ArrowLeft, User } from 'lucide-react';
-import { Card, IconButton, ThemeSwitcher } from '@pos/ui';
+import { ArrowLeft, User } from "lucide-react";
+import { Card, IconButton, ThemeSwitcher } from "@pos/ui";
 
 interface Props {
   waiterName: string;
@@ -36,7 +36,9 @@ export function ProfilePage({ waiterName, onBack }: Props) {
         </Card>
 
         <Card>
-          <h2 className="text-sm font-semibold text-text-primary mb-3">Appearance</h2>
+          <h2 className="text-sm font-semibold text-text-primary mb-3">
+            Appearance
+          </h2>
           <ThemeSwitcher label="Theme" />
         </Card>
       </div>

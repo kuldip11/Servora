@@ -1,6 +1,5 @@
-import { SelectHTMLAttributes, forwardRef, useId } from 'react';
-import { cn } from '../utils/cn';
-
+import { SelectHTMLAttributes, forwardRef, useId } from "react";
+import { cn } from "../utils/cn";
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
@@ -16,7 +15,10 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="flex flex-col gap-1.5">
         {label && (
-          <label htmlFor={selectId} className="text-sm font-medium text-text-secondary">
+          <label
+            htmlFor={selectId}
+            className="text-sm font-medium text-text-secondary"
+          >
             {label}
           </label>
         )}
@@ -30,9 +32,11 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             // (`selection/shared.tsx`'s `triggerBaseClasses`) so both of
             // this package's selects repaint together under dark/
             // high-contrast instead of only the newer one working.
-            'block w-full px-3 py-2.5 text-sm text-text-primary bg-surface border rounded-md',
-            'focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-fast ease-standard',
-            error ? 'border-danger focus:ring-danger' : 'border-border focus:ring-primary',
+            "block w-full px-3 py-2.5 text-sm text-text-primary bg-surface border rounded-md",
+            "focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-fast ease-standard",
+            error
+              ? "border-danger focus:ring-danger"
+              : "border-border focus:ring-primary",
             className,
           )}
           {...props}
@@ -40,7 +44,9 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           aria-describedby={error ? errorId : undefined}
         >
           {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
           ))}
         </select>
         {error && (
@@ -52,6 +58,4 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     );
   },
 );
-Select.displayName = 'Select';
-
-
+Select.displayName = "Select";
