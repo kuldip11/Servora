@@ -139,6 +139,19 @@ export const authService = {
     return listUserMemberships(db, userId);
   },
 
+  async updateProfile(
+    userId: string,
+    input: { firstName?: string; lastName?: string },
+  ) {
+    const changes = Object.fromEntries(
+      Object.entries(input).filter(([, value]) => value !== undefined),
+    );
+    if (!Object.keys(changes).length) return authRepository.findUserById(userId);
+    const updated = await authRepository.updateUserProfile(userId, changes);
+    if (!updated) throw authUserNotFound();
+    return authRepository.findUserById(userId);
+  },
+
   async _issueTokens(
     user: Awaited<ReturnType<typeof authRepository.findUserById>>,
   ) {

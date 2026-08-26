@@ -83,7 +83,7 @@ describe("staff service", () => {
     await expect(
       staffService.list({ ...base, permissions: ["staff:read"] }),
     ).resolves.toEqual([{ id: "u2" }]);
-    expect(findMany).toHaveBeenCalledWith("t1", "b1", undefined);
+    expect(findMany).toHaveBeenCalledWith("t1", "b1", undefined, "admin");
   });
   it("creates branch staff, hashes the password, and audits creation", async () => {
     create.mockResolvedValue({ id: "m1", userId: "u2" });

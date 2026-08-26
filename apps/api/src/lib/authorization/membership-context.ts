@@ -46,28 +46,41 @@ export async function listUserMemberships(
     ),
   );
 
-  return memberships.map((membership: any) => ({
-    membershipId: membership.id,
-    isGlobalOwner,
-    tenant: membership.tenant
-      ? { id: membership.tenant.id, name: membership.tenant.name }
-      : { id: membership.tenantId, name: "" },
-    roles: membership.roles.map((item: any) => ({
-      id: item.roleId,
-      name: item.role?.name ?? item.roleId,
-      scope: item.role?.scope ?? "BRANCH",
-    })),
-    branches: membership.branches
-      .map((item: any) => item.branch)
-      .filter(Boolean)
-      .map((branch: any) => ({
-        id: branch.id,
-        name: branch.name,
-        address: branch.address,
-        isActive: branch.isActive,
-        tablesEnabled: branch.tablesEnabled,
-      })),
-  }));
+  return Promise.all(
+    memberships.map(async (membership: any) => {
+      const tenantWide = membership.roles.some(
+        (item: any) => item.role?.scope === "GLOBAL" || item.role?.scope === "TENANT",
+      );
+      const branchRecords = tenantWide
+        ? await db.query.branches.findMany({
+            where: and(
+              eq(branches.tenantId, membership.tenantId),
+              eq(branches.isActive, true),
+            ),
+          })
+        : membership.branches.map((item: any) => item.branch).filter(Boolean);
+
+      return {
+        membershipId: membership.id,
+        isGlobalOwner,
+        tenant: membership.tenant
+          ? { id: membership.tenant.id, name: membership.tenant.name }
+          : { id: membership.tenantId, name: "" },
+        roles: membership.roles.map((item: any) => ({
+          id: item.roleId,
+          name: item.role?.name ?? item.roleId,
+          scope: item.role?.scope ?? "BRANCH",
+        })),
+        branches: branchRecords.map((branch: any) => ({
+          id: branch.id,
+          name: branch.name,
+          address: branch.address,
+          isActive: branch.isActive,
+          tablesEnabled: branch.tablesEnabled,
+        })),
+      };
+    }),
+  );
 }
 
 /**

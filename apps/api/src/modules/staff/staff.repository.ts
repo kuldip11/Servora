@@ -16,6 +16,7 @@ export const staffRepository = {
     tenantId: string,
     branchId: string | null,
     authorizedBranchIds?: string[],
+    excludeUserId?: string,
   ) {
     const memberships = await db.query.tenantMemberships.findMany({
       where: and(
@@ -43,7 +44,10 @@ export const staffRepository = {
 
     return scoped
       .filter(
-        (membership: any) => membership.user && !membership.user.deletedAt,
+        (membership: any) =>
+          membership.user &&
+          !membership.user.deletedAt &&
+          membership.user.id !== excludeUserId,
       )
       .map((membership: any) => ({
         ...membership.user,

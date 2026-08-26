@@ -52,6 +52,11 @@ export const authService = {
     const res = await apiClient.get("/auth/me");
     return res.data.data;
   },
+
+  async updateProfile(data: { firstName?: string; lastName?: string }): Promise<User> {
+    const res = await apiClient.patch("/auth/me", data);
+    return res.data.data;
+  },
 };
 
 function useRefreshToken(): string | null {

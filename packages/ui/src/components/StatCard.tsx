@@ -24,7 +24,7 @@ export function StatCard({
     red: "bg-red-50 text-red-600",
   };
   return (
-    <div className="card flex flex-col gap-3">
+    <div className="bg-surface border border-border rounded-lg shadow-sm p-lg flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-text-secondary">{title}</p>
         <div
