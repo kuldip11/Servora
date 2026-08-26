@@ -27,12 +27,18 @@ describe("staffService", () => {
     await staffService.add(input);
     await staffService.remove("s1");
     await staffService.updateStatus("s1", "ACTIVE");
+    await staffService.update("s1", { firstName: "New", branchIds: ["b1"] });
     expect(api.post).toHaveBeenCalledWith("/staff", {
-      ...input,
-      branchId: undefined,
+      firstName: "A",
+      lastName: "B",
+      email: "a@b.com",
+      password: "pw",
+      roleId: "r1",
+      branchIds: [],
     });
     expect(api.delete).toHaveBeenCalledWith("/staff/s1");
     expect(api.patch).toHaveBeenCalledWith("/staff/s1", { status: "ACTIVE" });
+    expect(api.patch).toHaveBeenCalledWith("/staff/s1", { firstName: "New", branchIds: ["b1"] });
   });
 });
 
@@ -42,4 +48,11 @@ describe("rolesService", () => {
     await expect(rolesService.list()).resolves.toEqual(["r"]);
     expect(api.get).toHaveBeenCalledWith("/roles");
   });
+});
+
+
+it("sends the selected branch as branchIds", async () => {
+  api.post.mockResolvedValue({});
+  await staffService.add({ ...input, branchId: "b1" });
+  expect(api.post).toHaveBeenCalledWith("/staff", expect.objectContaining({ branchIds: ["b1"] }));
 });

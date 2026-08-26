@@ -85,6 +85,15 @@ describe("staff service", () => {
     ).resolves.toEqual([{ id: "u2" }]);
     expect(findMany).toHaveBeenCalledWith("t1", "b1", undefined, "admin");
   });
+  it("falls back to the active auth branch when branchIds are omitted", async () => {
+    create.mockResolvedValue({ id: "m1", userId: "u2" });
+    await staffService.create(
+      { ...base, branchId: "b1", permissions: ["staff:create"] },
+      { firstName: "A", lastName: "B", email: "b@x.com", password: "password1", roleId: "r1" },
+    );
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({ branchIds: ["b1"] }));
+  });
+
   it("creates branch staff, hashes the password, and audits creation", async () => {
     create.mockResolvedValue({ id: "m1", userId: "u2" });
     await expect(

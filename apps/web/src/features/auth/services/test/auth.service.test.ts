@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const api = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn() }));
+const api = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), patch: vi.fn() }));
 vi.mock("../../../../shared/lib/api-client", () => ({ apiClient: api }));
 import { authService } from "../auth.service";
 
@@ -10,6 +10,7 @@ describe("authService", () => {
   beforeEach(() => {
     api.get.mockReset();
     api.post.mockReset();
+    api.patch.mockReset();
     localStorage.clear();
   });
 
@@ -76,4 +77,15 @@ describe("authService", () => {
     expect(api.post).toHaveBeenCalledWith("/tenants", { name: "Tenant" });
     expect(api.get).toHaveBeenCalledWith("/auth/me");
   });
+});
+
+
+it("updates the authenticated profile", async () => {
+  api.patch.mockResolvedValue({ data: { data: { id: "u1", firstName: "New", lastName: "Name" } } });
+  await expect(authService.updateProfile({ firstName: "New", lastName: "Name" })).resolves.toEqual({
+    id: "u1",
+    firstName: "New",
+    lastName: "Name",
+  });
+  expect(api.patch).toHaveBeenCalledWith("/auth/me", { firstName: "New", lastName: "Name" });
 });
