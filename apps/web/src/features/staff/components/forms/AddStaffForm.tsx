@@ -19,7 +19,7 @@ export function AddStaffForm({ roles, branches, loading = false, onCancel, onSub
   });
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit((data) => onSubmit(data))} className="space-y-4">
       <StaffFormFields register={register} errors={errors} roleId={watch("roleId")} branchId={watch("branchId")} roles={roles} branches={branches} setValue={setValue} />
       <div className="flex gap-2 justify-end">
         <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>

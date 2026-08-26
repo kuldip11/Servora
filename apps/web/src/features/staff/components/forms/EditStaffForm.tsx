@@ -41,7 +41,7 @@ export function EditStaffForm({ member, roles, branches, loading = false, onCanc
   }, [branchRequired, branchIds.length, branches, setValue]);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit((data) => onSubmit(data))} className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
         <Input label="First name" {...register("firstName", { required: true })} />
         <Input label="Last name" {...register("lastName", { required: true })} />
