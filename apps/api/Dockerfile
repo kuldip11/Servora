@@ -4,7 +4,7 @@ FROM oven/bun:1.3.14-alpine AS builder
 WORKDIR /app
 
 # Copy workspace files
-COPY package.json bun.lockb turbo.json tsconfig.base.json ./
+COPY package.json bun.lock turbo.json tsconfig.base.json ./
 COPY packages/ ./packages/
 COPY apps/api/ ./apps/api/
 
@@ -22,12 +22,15 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Copy built output
+# Copy built output and the already-resolved node_modules from the builder
+# stage. We deliberately do NOT re-run `bun install` here: apps/api's
+# package.json depends on workspace packages (@pos/types, @pos/validation)
+# that only resolve inside the full monorepo layout (root package.json +
+# packages/*) present in the builder stage. Re-installing from a flattened
+# single package.json in this stage would fail to resolve those.
 COPY --from=builder /app/apps/api/dist ./dist
 COPY --from=builder /app/apps/api/package.json ./
-
-# Install prod deps only
-RUN bun install --production --frozen-lockfile
+COPY --from=builder /app/node_modules ./node_modules
 
 EXPOSE 3000
 
