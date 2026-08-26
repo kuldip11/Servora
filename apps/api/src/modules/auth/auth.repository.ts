@@ -40,6 +40,18 @@ export const authRepository = {
     return user!;
   },
 
+
+  async updateUserProfile(
+    userId: string,
+    data: { firstName?: string; lastName?: string },
+  ) {
+    const [updated] = await db
+      .update(users)
+      .set({ ...data, updatedAt: new Date() })
+      .where(and(eq(users.id, userId), isNull(users.deletedAt)))
+      .returning();
+    return updated;
+  },
   async findStandaloneUserByEmail(email: string) {
     return db.query.users.findFirst({
       where: and(

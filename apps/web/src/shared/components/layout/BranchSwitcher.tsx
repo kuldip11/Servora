@@ -2,16 +2,18 @@ import { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown, GitBranch } from "lucide-react";
 import { useAuthStore } from "../../../store/auth";
 import { cn } from "../../utils";
+import { useBranches } from "../../../features/branches/hooks/useBranches";
 
 export function BranchSwitcher() {
   const { memberships, membershipId, branchId, setContext } = useAuthStore();
   const membership = memberships.find(
     (item) => item.membershipId === membershipId,
   );
-  const branches =
-    membership?.branches.filter((branch) => branch.isActive) ?? [];
   const tenantWide =
     membership?.roles.some((role) => role.scope === "TENANT") ?? false;
+  const { data: tenantBranches = [] } = useBranches({ enabled: Boolean(membership && tenantWide) });
+  const branches = (tenantWide ? tenantBranches : membership?.branches ?? [])
+    .filter((branch) => branch.isActive);
   const [open, setOpen] = useState(false);
   const [switching, setSwitching] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);

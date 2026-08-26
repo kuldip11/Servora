@@ -17,8 +17,12 @@ export const staffService = {
 
   async add(input: StaffFormInput): Promise<void> {
     await apiClient.post("/staff", {
-      ...input,
-      branchId: input.branchId || undefined,
+      firstName: input.firstName,
+      lastName: input.lastName,
+      email: input.email,
+      password: input.password,
+      roleId: input.roleId,
+      branchIds: input.branchId ? [input.branchId] : [],
     });
   },
 
@@ -28,5 +32,17 @@ export const staffService = {
 
   async updateStatus(id: string, status: string): Promise<void> {
     await apiClient.patch(`/staff/${id}`, { status });
+  },
+
+  async update(
+    id: string,
+    input: {
+      firstName?: string;
+      lastName?: string;
+      roleId?: string;
+      branchIds?: string[];
+    },
+  ): Promise<void> {
+    await apiClient.patch(`/staff/${id}`, input);
   },
 };

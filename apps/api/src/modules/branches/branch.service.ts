@@ -55,7 +55,7 @@ export const branchService = {
     requirePermission(auth, "branch:read");
     return branchRepository.findMany(
       auth.tenantId,
-      auth.branchId,
+      auth.tenantWide ? null : auth.branchId,
       auth.tenantWide ? undefined : auth.authorizedBranchIds,
     );
   },

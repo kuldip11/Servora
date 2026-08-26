@@ -29,9 +29,8 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
  * that old class — but this version now repaints correctly under
  * `data-theme="dark"`/`"high-contrast"`.
  *
- * Note: the raw `.card` CSS utility class in each app's `index.css`
- * (still used directly by e.g. `StatCard`) is untouched by this change
- * — only this component's own markup was migrated onto tokens.
+ * StatCard uses the same tokens directly, so dashboard cards do not depend
+ * on a removed legacy `.card` utility.
  */
 export function Card({
   children,

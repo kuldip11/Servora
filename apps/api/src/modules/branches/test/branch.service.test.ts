@@ -55,7 +55,7 @@ describe("branch service", () => {
     await expect(
       branchService.list({ ...baseAuth, permissions: ["branch:read"] }),
     ).resolves.toEqual([{ id: "b1" }]);
-    expect(findMany).toHaveBeenCalledWith("t1", "b1", undefined);
+    expect(findMany).toHaveBeenCalledWith("t1", null, undefined);
     findMany.mockResolvedValue([{ id: "b2" }]);
     await branchService.list({
       ...baseAuth,
@@ -155,4 +155,12 @@ describe("branch service", () => {
       expect.objectContaining({ action: "BRANCH_ARCHIVED", entityId: "b1" }),
     );
   });
+});
+
+
+it("lists every branch for tenant-wide users even when an active branch is selected", async () => {
+  const { branchService } = await import("../branch.service");
+  const auth = { tenantId: "t1", branchId: "b1", tenantWide: true, authorizedBranchIds: ["b1"], permissions: ["branch:read"], userId: "u1" } as any;
+  await branchService.list(auth);
+  expect(findMany).toHaveBeenCalledWith("t1", null, undefined);
 });

@@ -1,6 +1,7 @@
 import type { AuthContext } from "../../core/auth";
 import { requirePermission } from "../../core/auth";
 import { tenantRepository } from "./tenant.repository";
+import { branchRepository } from "../branches/branch.repository";
 import { tenantNotFound } from "./tenant.errors";
 import { ForbiddenError } from "../../core/errors";
 import { writeAudit } from "../../core/audit";
@@ -12,16 +13,29 @@ export const tenantService = {
     const memberships = await tenantRepository.findMembershipsByUserId(
       auth.userId,
     );
-    return memberships.map((membership) => ({
-      membershipId: membership.id,
-      tenant: membership.tenant,
-      roles: membership.roles.map((item: any) => ({
-        id: item.roleId,
-        name: item.role.name,
-        scope: item.role.scope,
-      })),
-      branchIds: membership.branches.map((item) => item.branchId),
-    }));
+    return Promise.all(
+      memberships.map(async (membership) => {
+        const tenantWide = membership.roles.some(
+          (item: any) => item.role.scope === "TENANT",
+        );
+        const branchIds = tenantWide
+          ? (await branchRepository.findMany(membership.tenant.id, null)).map(
+              (branch) => branch.id,
+            )
+          : membership.branches.map((item) => item.branchId);
+
+        return {
+          membershipId: membership.id,
+          tenant: membership.tenant,
+          roles: membership.roles.map((item: any) => ({
+            id: item.roleId,
+            name: item.role.name,
+            scope: item.role.scope,
+          })),
+          branchIds,
+        };
+      }),
+    );
   },
 
   async create(auth: AuthContext, input: { name: string }) {

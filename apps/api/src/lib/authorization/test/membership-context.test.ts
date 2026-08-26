@@ -36,6 +36,9 @@ describe("membership context", () => {
             globalUserRoles: [{ role: { name: "OWNER", scope: "GLOBAL" } }],
           }),
         },
+        branches: {
+          findMany: vi.fn().mockResolvedValue(activeMembership.branches.map((item) => item.branch)),
+        },
       },
     };
     await expect(listUserMemberships(db, "u1")).resolves.toEqual([

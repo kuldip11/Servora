@@ -4,6 +4,7 @@ export interface Role {
   id: string;
   name: string;
   description: string;
+  scope: "GLOBAL" | "TENANT" | "BRANCH";
 }
 
 export const rolesService = {

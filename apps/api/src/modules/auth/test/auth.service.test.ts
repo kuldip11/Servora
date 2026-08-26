@@ -7,6 +7,7 @@ const {
   consumeRefreshToken,
   saveRefreshToken,
   findMembershipById,
+  updateUserProfile,
 } = vi.hoisted(() => ({
   findStandaloneUserByEmail: vi.fn(),
   createUserWithGlobalOwnerRole: vi.fn(),
@@ -15,6 +16,7 @@ const {
   consumeRefreshToken: vi.fn(),
   saveRefreshToken: vi.fn(),
   findMembershipById: vi.fn(),
+  updateUserProfile: vi.fn(),
 }));
 vi.mock("../auth.repository", () => ({
   authRepository: {
@@ -25,6 +27,7 @@ vi.mock("../auth.repository", () => ({
     consumeRefreshToken,
     saveRefreshToken,
     findMembershipById,
+    updateUserProfile,
   },
 }));
 const { listUserMemberships } = vi.hoisted(() => ({
@@ -57,6 +60,13 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 describe("auth service", () => {
+  it("updates profile fields and returns the refreshed user", async () => {
+    updateUserProfile.mockResolvedValue({ ...user, firstName: "New", lastName: "Name" });
+    findUserById.mockResolvedValue({ ...user, firstName: "New", lastName: "Name" });
+    await expect(authService.updateProfile("u1", { firstName: "New", lastName: "Name" })).resolves.toMatchObject({ firstName: "New", lastName: "Name" });
+    expect(updateUserProfile).toHaveBeenCalledWith("u1", { firstName: "New", lastName: "Name" });
+  });
+
   it("rejects duplicate signup and bootstraps a new user", async () => {
     findStandaloneUserByEmail.mockResolvedValueOnce(user);
     await expect(

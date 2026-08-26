@@ -29,6 +29,14 @@ export const authController = {
     return successResponse(await authService.memberships(auth.userId));
   },
 
+  async updateProfile(
+    auth: AuthContext,
+    input: { firstName?: string; lastName?: string },
+  ) {
+    await authService.updateProfile(auth.userId, input);
+    return authController.me(auth);
+  },
+
   async me(auth: AuthContext) {
     const { user, membership } = await authService.me(
       auth.userId,

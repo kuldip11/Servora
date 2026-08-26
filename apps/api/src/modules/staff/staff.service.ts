@@ -82,6 +82,7 @@ export const staffService = {
       auth.tenantId,
       auth.branchId,
       auth.tenantWide ? undefined : auth.authorizedBranchIds,
+      auth.userId,
     );
   },
 
