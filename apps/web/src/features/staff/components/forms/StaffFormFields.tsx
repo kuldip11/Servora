@@ -17,7 +17,7 @@ interface CreateFieldsProps {
   register: UseFormRegister<any>;
   errors: any;
   roleId: string;
-  branchId?: string;
+  branchId?: string | undefined;
   roles: StaffRoleOption[];
   branches: StaffBranchOption[];
   setValue: UseFormSetValue<any>;

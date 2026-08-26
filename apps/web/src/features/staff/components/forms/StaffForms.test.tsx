@@ -21,7 +21,7 @@ describe("Staff forms", () => {
     render(<AddStaffForm roles={roles} branches={branches} onCancel={vi.fn()} onSubmit={onSubmit} />);
 
     fireEvent.change(screen.getByLabelText("Role"), { target: { value: "r1" } });
-    expect(screen.getByLabelText("Branch")).toHaveValue("b1");
+    expect((screen.getByLabelText("Branch") as HTMLSelectElement).value).toBe("b1");
   });
 
   it("submits create form values through its public callback", () => {

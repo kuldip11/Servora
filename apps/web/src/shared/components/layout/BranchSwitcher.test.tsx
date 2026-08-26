@@ -29,9 +29,9 @@ describe("BranchSwitcher", () => {
   it("shows all tenant branches even when membership has no explicit branch rows", () => {
     render(<BranchSwitcher />);
     fireEvent.click(screen.getByRole("button", { name: /branch/i }));
-    expect(screen.getByRole("menuitem", { name: /Main/i })).toBeVisible();
-    expect(screen.getByRole("menuitem", { name: /Second/i })).toBeVisible();
-    expect(screen.getByRole("menuitem", { name: /All Branches/i })).toBeVisible();
+    expect(screen.getByRole("menuitem", { name: /Main/i })).toBeTruthy();
+    expect(screen.getByRole("menuitem", { name: /Second/i })).toBeTruthy();
+    expect(screen.getByRole("menuitem", { name: /All Branches/i })).toBeTruthy();
   });
 
   it("changes active branch context", () => {

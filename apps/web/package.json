@@ -50,6 +50,7 @@
     "@playwright/test": "^1.44.1",
     "@axe-core/playwright": "^4.11.0",
     "jsdom": "^24.1.0",
-    "@vitest/coverage-v8": "^1.6.0"
+    "@vitest/coverage-v8": "^1.6.0",
+    "@testing-library/react": "^16.0.0"
   }
 }
