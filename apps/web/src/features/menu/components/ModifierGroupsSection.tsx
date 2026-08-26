@@ -1,21 +1,33 @@
-import { useState } from 'react';
-import { Controller, useFieldArray, useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Trash2, Edit2, X } from 'lucide-react';
-import { Button, Card, EmptyState, Modal, Input, Select, Spinner, Badge } from '@pos/ui';
-import { formatCurrency } from '../../../shared/utils';
-import { useModifierGroups } from '../hooks/useModifierGroups';
-import { useSaveModifierGroup } from '../hooks/useSaveModifierGroup';
-import { useDeleteModifierGroup } from '../hooks/useDeleteModifierGroup';
-import type { ModifierGroup } from '@pos/types';
-import { modifierGroupFormSchema, type ModifierGroupFormValues } from '@pos/validation';
+import { useState } from "react";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Plus, Trash2, Edit2, X } from "lucide-react";
+import {
+  Button,
+  Card,
+  EmptyState,
+  Modal,
+  Input,
+  Select,
+  Spinner,
+  Badge,
+} from "@pos/ui";
+import { formatCurrency } from "../../../shared/utils";
+import { useModifierGroups } from "../hooks/useModifierGroups";
+import { useSaveModifierGroup } from "../hooks/useSaveModifierGroup";
+import { useDeleteModifierGroup } from "../hooks/useDeleteModifierGroup";
+import type { ModifierGroup } from "@pos/types";
+import {
+  modifierGroupFormSchema,
+  type ModifierGroupFormValues,
+} from "@pos/validation";
 
 const emptyGroup: ModifierGroupFormValues = {
-  name: '',
-  selectionType: 'SINGLE',
-  minSelections: '0',
-  maxSelections: '',
-  options: [{ name: '', additionalPrice: '0', maxQuantity: '1' }],
+  name: "",
+  selectionType: "SINGLE",
+  minSelections: "0",
+  maxSelections: "",
+  options: [{ name: "", additionalPrice: "0", maxQuantity: "1" }],
 };
 
 export function ModifierGroupsSection() {
@@ -26,11 +38,20 @@ export function ModifierGroupsSection() {
   const saveMutation = useSaveModifierGroup();
   const deleteMutation = useDeleteModifierGroup();
 
-  const { register, control, reset, handleSubmit, formState: { errors, isDirty } } = useForm<ModifierGroupFormValues>({
+  const {
+    register,
+    control,
+    reset,
+    handleSubmit,
+    formState: { errors, isDirty },
+  } = useForm<ModifierGroupFormValues>({
     resolver: zodResolver(modifierGroupFormSchema),
     defaultValues: emptyGroup,
   });
-  const { fields, append, remove } = useFieldArray({ control, name: 'options' });
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "options",
+  });
 
   function openCreate() {
     setEditing(null);
@@ -44,10 +65,15 @@ export function ModifierGroupsSection() {
       name: group.name,
       selectionType: group.selectionType,
       minSelections: String(group.minSelections),
-      maxSelections: group.maxSelections != null ? String(group.maxSelections) : '',
+      maxSelections:
+        group.maxSelections != null ? String(group.maxSelections) : "",
       options: group.options.length
-        ? group.options.map((o) => ({ name: o.name, additionalPrice: String(o.additionalPrice), maxQuantity: String(o.maxQuantity) }))
-        : [{ name: '', additionalPrice: '0', maxQuantity: '1' }],
+        ? group.options.map((o) => ({
+            name: o.name,
+            additionalPrice: String(o.additionalPrice),
+            maxQuantity: String(o.maxQuantity),
+          }))
+        : [{ name: "", additionalPrice: "0", maxQuantity: "1" }],
     });
     setShowForm(true);
   }
@@ -57,7 +83,9 @@ export function ModifierGroupsSection() {
       name: values.name.trim(),
       selectionType: values.selectionType,
       minSelections: Number(values.minSelections),
-      ...(values.maxSelections !== '' && { maxSelections: Number(values.maxSelections) }),
+      ...(values.maxSelections !== "" && {
+        maxSelections: Number(values.maxSelections),
+      }),
       options: values.options.map((o) => ({
         name: o.name.trim(),
         additionalPrice: Number(o.additionalPrice),
@@ -66,7 +94,12 @@ export function ModifierGroupsSection() {
     };
     saveMutation.mutate(
       { existingId: editing?.id ?? null, payload },
-      { onSuccess: () => { setShowForm(false); setEditing(null); } },
+      {
+        onSuccess: () => {
+          setShowForm(false);
+          setEditing(null);
+        },
+      },
     );
   }
 
@@ -74,9 +107,12 @@ export function ModifierGroupsSection() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-base font-semibold text-text-primary">Modifier Groups</h2>
+          <h2 className="text-base font-semibold text-text-primary">
+            Modifier Groups
+          </h2>
           <p className="text-xs text-text-secondary mt-0.5">
-            Reusable option sets like "Choose your sides" — define once, attach to any item.
+            Reusable option sets like "Choose your sides" — define once, attach
+            to any item.
           </p>
         </div>
         <Button size="sm" onClick={openCreate}>
@@ -85,13 +121,19 @@ export function ModifierGroupsSection() {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-10"><Spinner className="w-5 h-5" /></div>
+        <div className="flex justify-center py-10">
+          <Spinner className="w-5 h-5" />
+        </div>
       ) : !groups?.length ? (
         <EmptyState
           icon={Plus}
           title="No modifier groups yet"
           description='Create one like "Choose your sides" or "Extras" to attach to menu items.'
-          action={<Button onClick={openCreate}><Plus className="w-4 h-4" /> New Group</Button>}
+          action={
+            <Button onClick={openCreate}>
+              <Plus className="w-4 h-4" /> New Group
+            </Button>
+          }
         />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -99,20 +141,36 @@ export function ModifierGroupsSection() {
             <Card key={group.id}>
               <div className="flex items-start justify-between mb-2">
                 <div>
-                  <p className="text-sm font-semibold text-text-primary">{group.name}</p>
+                  <p className="text-sm font-semibold text-text-primary">
+                    {group.name}
+                  </p>
                   <div className="flex items-center gap-1.5 mt-1">
-                    <Badge variant={group.selectionType === 'SINGLE' ? 'info' : 'default'}>
-                      {group.selectionType === 'SINGLE' ? 'Pick one' : 'Pick multiple'}
+                    <Badge
+                      variant={
+                        group.selectionType === "SINGLE" ? "info" : "default"
+                      }
+                    >
+                      {group.selectionType === "SINGLE"
+                        ? "Pick one"
+                        : "Pick multiple"}
                     </Badge>
-                    {group.minSelections > 0 && <Badge variant="warning">Required</Badge>}
+                    {group.minSelections > 0 && (
+                      <Badge variant="warning">Required</Badge>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-0.5">
-                  <button onClick={() => openEdit(group)} className="p-1.5 text-text-disabled hover:text-primary">
+                  <button
+                    onClick={() => openEdit(group)}
+                    className="p-1.5 text-text-disabled hover:text-primary"
+                  >
                     <Edit2 className="w-3.5 h-3.5" />
                   </button>
                   <button
-                    onClick={() => { if (confirm(`Delete "${group.name}"?`)) deleteMutation.mutate(group.id); }}
+                    onClick={() => {
+                      if (confirm(`Delete "${group.name}"?`))
+                        deleteMutation.mutate(group.id);
+                    }}
                     className="p-1.5 text-text-disabled hover:text-danger"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -121,9 +179,22 @@ export function ModifierGroupsSection() {
               </div>
               <div className="space-y-1">
                 {group.options.map((o) => (
-                  <div key={o.id} className="flex items-center justify-between text-xs text-text-secondary">
-                    <span className={!o.isAvailable ? 'line-through text-text-disabled' : ''}>{o.name}</span>
-                    <span>{parseFloat(String(o.additionalPrice)) > 0 ? `+${formatCurrency(parseFloat(String(o.additionalPrice)))}` : 'Free'}</span>
+                  <div
+                    key={o.id}
+                    className="flex items-center justify-between text-xs text-text-secondary"
+                  >
+                    <span
+                      className={
+                        !o.isAvailable ? "line-through text-text-disabled" : ""
+                      }
+                    >
+                      {o.name}
+                    </span>
+                    <span>
+                      {parseFloat(String(o.additionalPrice)) > 0
+                        ? `+${formatCurrency(parseFloat(String(o.additionalPrice)))}`
+                        : "Free"}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -132,13 +203,21 @@ export function ModifierGroupsSection() {
         </div>
       )}
 
-      <Modal open={showForm} onClose={() => setShowForm(false)} title={editing ? 'Edit Modifier Group' : 'New Modifier Group'} size="lg">
-        <form onSubmit={handleSubmit(handleSave)} className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+      <Modal
+        open={showForm}
+        onClose={() => setShowForm(false)}
+        title={editing ? "Edit Modifier Group" : "New Modifier Group"}
+        size="lg"
+      >
+        <form
+          onSubmit={handleSubmit(handleSave)}
+          className="space-y-4 max-h-[70vh] overflow-y-auto pr-1"
+        >
           <Input
             label="Group name"
             placeholder="Choose your sides"
             error={errors.name?.message}
-            {...register('name')}
+            {...register("name")}
           />
 
           <div className="grid grid-cols-3 gap-3">
@@ -149,48 +228,114 @@ export function ModifierGroupsSection() {
                 <Select
                   label="Selection"
                   value={field.value}
-                  options={[{ value: 'SINGLE', label: 'Pick one' }, { value: 'MULTIPLE', label: 'Pick multiple' }]}
+                  options={[
+                    { value: "SINGLE", label: "Pick one" },
+                    { value: "MULTIPLE", label: "Pick multiple" },
+                  ]}
                   onChange={field.onChange}
                 />
               )}
             />
-            <Input label="Min required" type="number" min="0" error={errors.minSelections?.message} {...register('minSelections')} />
-            <Input label="Max allowed" type="number" min="1" placeholder="No limit — leave blank" error={errors.maxSelections?.message} {...register('maxSelections')} />
+            <Input
+              label="Min required"
+              type="number"
+              min="0"
+              error={errors.minSelections?.message}
+              {...register("minSelections")}
+            />
+            <Input
+              label="Max allowed"
+              type="number"
+              min="1"
+              placeholder="No limit — leave blank"
+              error={errors.maxSelections?.message}
+              {...register("maxSelections")}
+            />
           </div>
-          <p className="text-xs text-text-disabled -mt-2">Min 0 = optional. Leave max blank for no limit on how many a guest can pick.</p>
+          <p className="text-xs text-text-disabled -mt-2">
+            Min 0 = optional. Leave max blank for no limit on how many a guest
+            can pick.
+          </p>
 
           <div>
-            <p className="text-sm font-medium text-text-primary mb-2">Options</p>
+            <p className="text-sm font-medium text-text-primary mb-2">
+              Options
+            </p>
             <div className="space-y-2">
               {fields.map((field, i) => (
                 <div key={field.id} className="space-y-1">
                   <div className="flex items-start gap-2">
                     <div className="flex-1">
-                      <Input placeholder="Option name (e.g. Aachar)" aria-label={`Option ${i + 1} name`} error={errors.options?.[i]?.name?.message} {...register(`options.${i}.name`)} />
+                      <Input
+                        placeholder="Option name (e.g. Aachar)"
+                        aria-label={`Option ${i + 1} name`}
+                        error={errors.options?.[i]?.name?.message}
+                        {...register(`options.${i}.name`)}
+                      />
                     </div>
                     <div className="w-24">
-                      <Input type="number" min="0" step="0.01" placeholder="₹0" aria-label={`Option ${i + 1} additional price`} error={errors.options?.[i]?.additionalPrice?.message} {...register(`options.${i}.additionalPrice`)} />
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="₹0"
+                        aria-label={`Option ${i + 1} additional price`}
+                        error={errors.options?.[i]?.additionalPrice?.message}
+                        {...register(`options.${i}.additionalPrice`)}
+                      />
                     </div>
                     <div className="w-24">
-                      <Input type="number" min="1" placeholder="Qty" aria-label={`Option ${i + 1} max quantity`} error={errors.options?.[i]?.maxQuantity?.message} {...register(`options.${i}.maxQuantity`)} />
+                      <Input
+                        type="number"
+                        min="1"
+                        placeholder="Qty"
+                        aria-label={`Option ${i + 1} max quantity`}
+                        error={errors.options?.[i]?.maxQuantity?.message}
+                        {...register(`options.${i}.maxQuantity`)}
+                      />
                     </div>
-                    <button type="button" onClick={() => remove(i)} aria-label={`Remove option ${i + 1}`} className="p-2 mt-1.5 text-text-disabled hover:text-danger">
+                    <button
+                      type="button"
+                      onClick={() => remove(i)}
+                      aria-label={`Remove option ${i + 1}`}
+                      className="p-2 mt-1.5 text-text-disabled hover:text-danger"
+                    >
                       <X className="w-4 h-4" aria-hidden="true" />
                     </button>
                   </div>
                 </div>
               ))}
             </div>
-            {typeof errors.options?.message === 'string' && <p className="text-xs text-danger mt-1">{errors.options.message}</p>}
-            <button type="button" onClick={() => append({ name: '', additionalPrice: '0', maxQuantity: '1' })} className="mt-2 text-xs font-medium text-primary hover:text-primary-hover">
+            {typeof errors.options?.message === "string" && (
+              <p className="text-xs text-danger mt-1">
+                {errors.options.message}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={() =>
+                append({ name: "", additionalPrice: "0", maxQuantity: "1" })
+              }
+              className="mt-2 text-xs font-medium text-primary hover:text-primary-hover"
+            >
               + Add option
             </button>
           </div>
 
           <div className="flex gap-2 justify-end pt-2">
-            <Button type="button" variant="secondary" onClick={() => setShowForm(false)}>Cancel</Button>
-            <Button type="submit" loading={saveMutation.isPending} disabled={!isDirty && !editing}>
-              {editing ? 'Save Changes' : 'Create Group'}
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setShowForm(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              loading={saveMutation.isPending}
+              disabled={!isDirty && !editing}
+            >
+              {editing ? "Save Changes" : "Create Group"}
             </Button>
           </div>
         </form>

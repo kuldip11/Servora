@@ -1,4 +1,10 @@
-import { type KeyboardEvent, type ReactNode, type RefObject, useEffect, useState } from 'react';
+import {
+  type KeyboardEvent,
+  type ReactNode,
+  type RefObject,
+  useEffect,
+  useState,
+} from "react";
 
 /**
  * Shared foundation for Phase 7 — Data Components
@@ -21,14 +27,14 @@ import { type KeyboardEvent, type ReactNode, type RefObject, useEffect, useState
  * further down.
  */
 
-export type SortDirection = 'asc' | 'desc';
+export type SortDirection = "asc" | "desc";
 
 export interface SortState {
   columnId: string;
   direction: SortDirection;
 }
 
-export type ColumnAlign = 'left' | 'right' | 'center';
+export type ColumnAlign = "left" | "right" | "center";
 
 export interface Column<T> {
   /** Must be stable and unique — used as the React key and as `sort.columnId`. */
@@ -51,20 +57,20 @@ export interface Column<T> {
   /** Reserved for `DataGrid` (Part 2)'s column-visibility toggle. Unused by `Table`. */
   hidden?: boolean | undefined;
   /** Reserved for `DataGrid` (Part 2)'s sticky columns. Unused by `Table`. */
-  sticky?: 'left' | 'right' | undefined;
+  sticky?: "left" | "right" | undefined;
 }
 
 export const ALIGN_CLASSES: Record<ColumnAlign, string> = {
-  left: 'text-left',
-  right: 'text-right',
-  center: 'text-center',
+  left: "text-left",
+  right: "text-right",
+  center: "text-center",
 };
 
-export type TableDensity = 'compact' | 'comfortable';
+export type TableDensity = "compact" | "comfortable";
 
 export const CELL_PADDING: Record<TableDensity, string> = {
-  compact: 'px-3 py-2',
-  comfortable: 'px-4 py-3',
+  compact: "px-3 py-2",
+  comfortable: "px-4 py-3",
 };
 
 /**
@@ -79,7 +85,7 @@ export const CELL_PADDING: Record<TableDensity, string> = {
  * that a keyboard `Tab` should own instead.
  */
 export const SORT_BUTTON_FOCUS_CLASSES =
-  'rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1';
+  "rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1";
 
 /**
  * Phase 9 fix, same audit pass as `SORT_BUTTON_FOCUS_CLASSES` above: a
@@ -108,13 +114,16 @@ export const SORT_BUTTON_FOCUS_CLASSES =
  * every phase since Phase 4 has carried (see README "Phase 8 detail").
  */
 export const CLICKABLE_ROW_FOCUS_CLASSES =
-  'focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary';
+  "focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary";
 
-export function clickableRowKeyDown<T>(row: T, onRowClick: ((row: T) => void) | undefined) {
+export function clickableRowKeyDown<T>(
+  row: T,
+  onRowClick: ((row: T) => void) | undefined,
+) {
   if (!onRowClick) return undefined;
   return (e: KeyboardEvent<HTMLTableRowElement>) => {
     if (e.target !== e.currentTarget) return; // don't fire if a focusable child (e.g. a cell button) handled it
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       onRowClick(row);
     }
@@ -128,12 +137,16 @@ export function clickableRowKeyDown<T>(row: T, onRowClick: ((row: T) => void) | 
  * Stable: ties keep their original relative order (uses `Array.prototype.sort`'s
  * spec-guaranteed stability, not a manual tiebreaker).
  */
-export function sortRows<T>(rows: T[], columns: Column<T>[], sort: SortState | null | undefined): T[] {
+export function sortRows<T>(
+  rows: T[],
+  columns: Column<T>[],
+  sort: SortState | null | undefined,
+): T[] {
   if (!sort) return rows;
   const col = columns.find((c) => c.id === sort.columnId);
   if (!col?.sortValue) return rows;
   const getValue = col.sortValue;
-  const dir = sort.direction === 'asc' ? 1 : -1;
+  const dir = sort.direction === "asc" ? 1 : -1;
   return [...rows].sort((a, b) => {
     const av = getValue(a);
     const bv = getValue(b);
@@ -145,9 +158,13 @@ export function sortRows<T>(rows: T[], columns: Column<T>[], sort: SortState | n
 
 /** Cycles a column's sort through none → asc → desc → none, the same 3-state
  * pattern used by most data-grid UIs (lets a user clear a sort, not just flip it). */
-export function nextSortState(current: SortState | null, columnId: string): SortState | null {
-  if (!current || current.columnId !== columnId) return { columnId, direction: 'asc' };
-  if (current.direction === 'asc') return { columnId, direction: 'desc' };
+export function nextSortState(
+  current: SortState | null,
+  columnId: string,
+): SortState | null {
+  if (!current || current.columnId !== columnId)
+    return { columnId, direction: "asc" };
+  if (current.direction === "asc") return { columnId, direction: "desc" };
   return null;
 }
 
@@ -196,18 +213,23 @@ export function useVirtualizedRows(
     if (!el) return;
     const onScroll = () => setScrollTop(el.scrollTop);
     setViewportHeight(el.clientHeight);
-    const resizeObserver = new ResizeObserver(() => setViewportHeight(el.clientHeight));
+    const resizeObserver = new ResizeObserver(() =>
+      setViewportHeight(el.clientHeight),
+    );
     resizeObserver.observe(el);
-    el.addEventListener('scroll', onScroll, { passive: true });
+    el.addEventListener("scroll", onScroll, { passive: true });
     return () => {
-      el.removeEventListener('scroll', onScroll);
+      el.removeEventListener("scroll", onScroll);
       resizeObserver.disconnect();
     };
   }, [containerRef.current]);
 
   const totalHeight = count * rowHeight;
   const startIndex = Math.max(0, Math.floor(scrollTop / rowHeight) - overscan);
-  const endIndex = Math.min(count, Math.ceil((scrollTop + viewportHeight) / rowHeight) + overscan);
+  const endIndex = Math.min(
+    count,
+    Math.ceil((scrollTop + viewportHeight) / rowHeight) + overscan,
+  );
 
   return { totalHeight, startIndex, endIndex, offsetY: startIndex * rowHeight };
 }
@@ -221,7 +243,9 @@ export const STICKY_FALLBACK_WIDTH = 150;
 function parseWidthPx(width: string | undefined): number {
   if (!width) return STICKY_FALLBACK_WIDTH;
   const n = parseFloat(width);
-  return Number.isFinite(n) && width.trim().endsWith('px') ? n : STICKY_FALLBACK_WIDTH;
+  return Number.isFinite(n) && width.trim().endsWith("px")
+    ? n
+    : STICKY_FALLBACK_WIDTH;
 }
 
 /**
@@ -240,11 +264,13 @@ function parseWidthPx(width: string | undefined): number {
  * explicit px `width` to avoid this; not enforced at the type level
  * because non-sticky columns have no such requirement.
  */
-export function computeStickyOffsets<T>(visibleColumns: Column<T>[]): Map<string, { left?: number; right?: number }> {
+export function computeStickyOffsets<T>(
+  visibleColumns: Column<T>[],
+): Map<string, { left?: number; right?: number }> {
   const offsets = new Map<string, { left?: number; right?: number }>();
   let leftAcc = 0;
   for (const col of visibleColumns) {
-    if (col.sticky === 'left') {
+    if (col.sticky === "left") {
       offsets.set(col.id, { left: leftAcc });
       leftAcc += parseWidthPx(col.width);
     }
@@ -252,7 +278,7 @@ export function computeStickyOffsets<T>(visibleColumns: Column<T>[]): Map<string
   let rightAcc = 0;
   for (let i = visibleColumns.length - 1; i >= 0; i--) {
     const col = visibleColumns[i]!;
-    if (col.sticky === 'right') {
+    if (col.sticky === "right") {
       offsets.set(col.id, { right: rightAcc });
       rightAcc += parseWidthPx(col.width);
     }
@@ -266,7 +292,10 @@ export function computeStickyOffsets<T>(visibleColumns: Column<T>[]): Map<string
  * to behave like a literal filter, not `CommandPalette`'s ranked-fuzzy
  * command search (different use case, see that component's own doc
  * comment for why fuzzy was chosen there instead). */
-export function matchesGlobalFilter(searchableText: string, query: string): boolean {
+export function matchesGlobalFilter(
+  searchableText: string,
+  query: string,
+): boolean {
   if (!query.trim()) return true;
   return searchableText.toLowerCase().includes(query.trim().toLowerCase());
 }

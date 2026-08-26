@@ -1,15 +1,32 @@
-import { useCallback } from 'react';
-import { ChefHat, RefreshCw, Wifi, WifiOff, LogOut, CheckCircle2, Palette } from 'lucide-react';
-import type { KitchenTicketStatus } from '@pos/types';
-import { Grid, IconButton, Spinner, EmptyState, Popover, ThemeSwitcher } from '@pos/ui';
-import { useKitchenTickets } from '../hooks/useKitchenTickets';
-import { useUpdateTicketStatus } from '../hooks/useUpdateTicketStatus';
-import { useKitchenRealtime } from '../hooks/useKitchenRealtime';
-import { groupTicketsByStatus } from '../utils/ticket';
-import { BOARD_COLUMNS } from '../constants';
-import { TicketCard } from '../components/TicketCard';
+import { useCallback } from "react";
+import {
+  ChefHat,
+  RefreshCw,
+  Wifi,
+  WifiOff,
+  LogOut,
+  CheckCircle2,
+  Palette,
+} from "lucide-react";
+import type { KitchenTicketStatus } from "@pos/types";
+import {
+  Grid,
+  IconButton,
+  Spinner,
+  EmptyState,
+  Popover,
+  ThemeSwitcher,
+} from "@pos/ui";
+import { useKitchenTickets } from "../hooks/useKitchenTickets";
+import { useUpdateTicketStatus } from "../hooks/useUpdateTicketStatus";
+import { useKitchenRealtime } from "../hooks/useKitchenRealtime";
+import { groupTicketsByStatus } from "../utils/ticket";
+import { BOARD_COLUMNS } from "../constants";
+import { TicketCard } from "../components/TicketCard";
 
-interface Props { onLogout: () => void; }
+interface Props {
+  onLogout: () => void;
+}
 
 // Design-system Phase 12, Sprint KDS-1: opens Kitchen Display's
 // migration. `bg-gray-950`→`bg-background`, `bg-gray-900`→`bg-surface`,
@@ -57,7 +74,8 @@ export function KitchenBoard({ onLogout }: Props) {
   // time, which would have defeated `React.memo` for every card on the
   // board regardless of whether that card's own ticket had changed.
   const handleUpdateStatus = useCallback(
-    (id: string, status: KitchenTicketStatus) => updateMutation.mutate({ id, status }),
+    (id: string, status: KitchenTicketStatus) =>
+      updateMutation.mutate({ id, status }),
     [updateMutation],
   );
 
@@ -74,8 +92,12 @@ export function KitchenBoard({ onLogout }: Props) {
             <ChefHat className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-text-primary">Kitchen Display</h1>
-            <p className="text-xs text-text-secondary">{tickets?.length ?? 0} active tickets</p>
+            <h1 className="text-lg font-bold text-text-primary">
+              Kitchen Display
+            </h1>
+            <p className="text-xs text-text-secondary">
+              {tickets?.length ?? 0} active tickets
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -95,7 +117,7 @@ export function KitchenBoard({ onLogout }: Props) {
             icon={RefreshCw}
             aria-label="Refresh tickets"
             onClick={() => refetch()}
-            className={isFetching ? 'animate-spin' : ''}
+            className={isFetching ? "animate-spin" : ""}
           />
           {/* Phase 16 — KDS joins the shared theme architecture but stays
               dark-by-default for its operational UX (see
@@ -108,9 +130,7 @@ export function KitchenBoard({ onLogout }: Props) {
               `IconButton`s do. */}
           <Popover
             align="end"
-            trigger={
-              <IconButton icon={Palette} aria-label="Change theme" />
-            }
+            trigger={<IconButton icon={Palette} aria-label="Change theme" />}
           >
             <div className="w-48">
               <ThemeSwitcher label="Theme" />
@@ -120,9 +140,15 @@ export function KitchenBoard({ onLogout }: Props) {
               as `Timer.tsx`'s urgent-state red and `constants.ts`'s
               badge text — small body text on near-black, one shade
               lighter than the `--success` token by design. */}
-          <div className={`flex items-center gap-1.5 text-xs font-medium ${connected ? 'text-emerald-400' : 'text-text-secondary'}`}>
-            {connected ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-4 h-4" />}
-            {connected ? 'Live' : 'Polling'}
+          <div
+            className={`flex items-center gap-1.5 text-xs font-medium ${connected ? "text-emerald-400" : "text-text-secondary"}`}
+          >
+            {connected ? (
+              <Wifi className="w-4 h-4" />
+            ) : (
+              <WifiOff className="w-4 h-4" />
+            )}
+            {connected ? "Live" : "Polling"}
           </div>
           <IconButton
             icon={LogOut}
@@ -150,12 +176,23 @@ export function KitchenBoard({ onLogout }: Props) {
           this is a deliberate override via the same `className`-wins
           `twMerge` technique used throughout this migration, not an
           oversight. */}
-      <Grid columns={{ base: 1, sm: 2, lg: 3 }} gap="none" className="flex-1 gap-px bg-border overflow-hidden">
+      <Grid
+        columns={{ base: 1, sm: 2, lg: 3 }}
+        gap="none"
+        className="flex-1 gap-px bg-border overflow-hidden"
+      >
         {columns.map((col) => (
-          <div key={col.title} className="bg-background flex flex-col overflow-hidden">
+          <div
+            key={col.title}
+            className="bg-background flex flex-col overflow-hidden"
+          >
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-              <h2 className={`font-semibold text-sm ${col.color}`}>{col.title}</h2>
-              <span className={`text-xs font-bold px-2 py-0.5 rounded-full bg-surface-secondary ${col.color}`}>
+              <h2 className={`font-semibold text-sm ${col.color}`}>
+                {col.title}
+              </h2>
+              <span
+                className={`text-xs font-bold px-2 py-0.5 rounded-full bg-surface-secondary ${col.color}`}
+              >
                 {col.tickets.length}
               </span>
             </div>
@@ -177,11 +214,16 @@ export function KitchenBoard({ onLogout }: Props) {
                 // draw the eye. A real, intentional-looking weight
                 // increase worth a look, not hidden here.
                 <EmptyState icon={CheckCircle2} title="No tickets" size="sm" />
-              ) : col.tickets.map((ticket) => (
-                <TicketCard key={ticket.id} ticket={ticket}
-                  onUpdateStatus={handleUpdateStatus}
-                  isUpdating={isTicketUpdating(ticket.id)} />
-              ))}
+              ) : (
+                col.tickets.map((ticket) => (
+                  <TicketCard
+                    key={ticket.id}
+                    ticket={ticket}
+                    onUpdateStatus={handleUpdateStatus}
+                    isUpdating={isTicketUpdating(ticket.id)}
+                  />
+                ))
+              )}
             </div>
           </div>
         ))}

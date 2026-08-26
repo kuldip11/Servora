@@ -4,10 +4,15 @@
  * and `menu/import.service.ts` — same queries, unchanged — see
  * docs/NEXT_STEPS.md.
  */
-import { eq, and, isNull, or } from 'drizzle-orm';
-import { db } from '../../../db';
-import { menuItems, menuCategories, modifierGroups, recipes } from '../../../db/schema';
-import type { MenuItemStatus, FoodType, SpiceLevel } from '@pos/types';
+import { eq, and, isNull, or } from "drizzle-orm";
+import { db } from "../../../db";
+import {
+  menuItems,
+  menuCategories,
+  modifierGroups,
+  recipes,
+} from "../../../db/schema";
+import type { MenuItemStatus, FoodType, SpiceLevel } from "@pos/types";
 
 export interface CommitRowData {
   id?: string | undefined;
@@ -41,7 +46,15 @@ export const importExportRepository = {
 
   async findCategoriesForExport(tenantId: string, branchId?: string) {
     return db.query.menuCategories.findMany({
-      where: and(eq(menuCategories.tenantId, tenantId), branchId ? or(eq(menuCategories.branchId, branchId), isNull(menuCategories.branchId)) : undefined),
+      where: and(
+        eq(menuCategories.tenantId, tenantId),
+        branchId
+          ? or(
+              eq(menuCategories.branchId, branchId),
+              isNull(menuCategories.branchId),
+            )
+          : undefined,
+      ),
       orderBy: (t, { asc }) => [asc(t.sortOrder)],
     });
   },
@@ -52,16 +65,32 @@ export const importExportRepository = {
   async findRecipesForExport(tenantId: string, branchId?: string) {
     const rows = await db.query.recipes.findMany({
       with: {
-        menuItem: { columns: { id: true, name: true, tenantId: true, branchId: true } },
+        menuItem: {
+          columns: { id: true, name: true, tenantId: true, branchId: true },
+        },
         inventoryItem: { columns: { id: true, name: true } },
       },
     });
-    return rows.filter((r) => r.menuItem.tenantId === tenantId && (!branchId || r.menuItem.branchId === branchId || r.menuItem.branchId === null));
+    return rows.filter(
+      (r) =>
+        r.menuItem.tenantId === tenantId &&
+        (!branchId ||
+          r.menuItem.branchId === branchId ||
+          r.menuItem.branchId === null),
+    );
   },
 
   async findModifiersForExport(tenantId: string, branchId?: string) {
     return db.query.modifierGroups.findMany({
-      where: and(eq(modifierGroups.tenantId, tenantId), branchId ? or(eq(modifierGroups.branchId, branchId), isNull(modifierGroups.branchId)) : undefined),
+      where: and(
+        eq(modifierGroups.tenantId, tenantId),
+        branchId
+          ? or(
+              eq(modifierGroups.branchId, branchId),
+              isNull(modifierGroups.branchId),
+            )
+          : undefined,
+      ),
       with: { options: true },
     });
   },
@@ -69,12 +98,26 @@ export const importExportRepository = {
   // ─── Import reads ──────────────────────────────────────────────────────
 
   async findCategoriesForImport(tenantId: string, branchId?: string) {
-    return db.query.menuCategories.findMany({ where: and(eq(menuCategories.tenantId, tenantId), branchId ? or(eq(menuCategories.branchId, branchId), isNull(menuCategories.branchId)) : undefined) });
+    return db.query.menuCategories.findMany({
+      where: and(
+        eq(menuCategories.tenantId, tenantId),
+        branchId
+          ? or(
+              eq(menuCategories.branchId, branchId),
+              isNull(menuCategories.branchId),
+            )
+          : undefined,
+      ),
+    });
   },
 
   async findExistingSkuItems(tenantId: string, branchId?: string) {
     return db.query.menuItems.findMany({
-      where: and(eq(menuItems.tenantId, tenantId), isNull(menuItems.deletedAt), branchId ? eq(menuItems.branchId, branchId) : undefined),
+      where: and(
+        eq(menuItems.tenantId, tenantId),
+        isNull(menuItems.deletedAt),
+        branchId ? eq(menuItems.branchId, branchId) : undefined,
+      ),
       columns: { id: true, sku: true },
     });
   },
@@ -86,14 +129,14 @@ export const importExportRepository = {
   async commitRows(
     tenantId: string,
     branchId: string | undefined,
-    rows: Array<{ action: 'insert' | 'update'; data: CommitRowData }>,
+    rows: Array<{ action: "insert" | "update"; data: CommitRowData }>,
   ): Promise<{ inserted: number; updated: number }> {
     let inserted = 0;
     let updated = 0;
 
     await db.transaction(async (tx) => {
       for (const r of rows) {
-        if (r.action === 'update' && r.data.id) {
+        if (r.action === "update" && r.data.id) {
           await tx
             .update(menuItems)
             .set({
@@ -106,11 +149,17 @@ export const importExportRepository = {
               spiceLevel: r.data.spiceLevel,
               sku: r.data.sku,
               status: r.data.status,
-              isAvailable: r.data.status === 'ACTIVE',
+              isAvailable: r.data.status === "ACTIVE",
               hsnCode: r.data.hsnCode,
               prepTimeMinutes: r.data.prepTimeMinutes,
             })
-            .where(and(eq(menuItems.id, r.data.id), eq(menuItems.tenantId, tenantId), branchId ? eq(menuItems.branchId, branchId) : undefined));
+            .where(
+              and(
+                eq(menuItems.id, r.data.id),
+                eq(menuItems.tenantId, tenantId),
+                branchId ? eq(menuItems.branchId, branchId) : undefined,
+              ),
+            );
           updated++;
         } else {
           await tx.insert(menuItems).values({
@@ -125,7 +174,7 @@ export const importExportRepository = {
             spiceLevel: r.data.spiceLevel,
             sku: r.data.sku,
             status: r.data.status,
-            isAvailable: r.data.status === 'ACTIVE',
+            isAvailable: r.data.status === "ACTIVE",
             hsnCode: r.data.hsnCode,
             prepTimeMinutes: r.data.prepTimeMinutes,
             sortOrder: 0,

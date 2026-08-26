@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { createApiClient, extractApiError, capturedConfig } = vi.hoisted(() => {
   const capturedConfig: { current?: any } = {};
@@ -12,62 +12,69 @@ const { createApiClient, extractApiError, capturedConfig } = vi.hoisted(() => {
   };
 });
 
-vi.mock('@pos/api-client', () => ({ createApiClient, extractApiError }));
+vi.mock("@pos/api-client", () => ({ createApiClient, extractApiError }));
 
 const authState = vi.hoisted(() => ({
-  accessToken: 'access-1' as string | null,
-  refreshToken: 'refresh-1' as string | null,
-  franchiseId: 'tenant-1' as string | null,
-  branchId: 'branch-1' as string | null,
+  accessToken: "access-1" as string | null,
+  refreshToken: "refresh-1" as string | null,
+  franchiseId: "tenant-1" as string | null,
+  branchId: "branch-1" as string | null,
   setTokens: vi.fn(),
   logout: vi.fn(),
 }));
 
-vi.mock('../../../store/auth', () => ({
+vi.mock("../../../store/auth", () => ({
   useAuthStore: Object.assign(
-    vi.fn((selector: (state: typeof authState) => unknown) => selector(authState)),
+    vi.fn((selector: (state: typeof authState) => unknown) =>
+      selector(authState),
+    ),
     { getState: () => authState },
   ),
 }));
 
-vi.mock('../query-client', () => ({ queryClient: { clear: vi.fn() } }));
+vi.mock("../query-client", () => ({ queryClient: { clear: vi.fn() } }));
 
-import { apiClient } from '../api-client';
-import { queryClient } from '../query-client';
+import { apiClient } from "../api-client";
+import { queryClient } from "../query-client";
 
 const config = () => capturedConfig.current as any;
 
-describe('web api client adapter', () => {
+describe("web api client adapter", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    authState.accessToken = 'access-1';
-    authState.refreshToken = 'refresh-1';
-    authState.franchiseId = 'tenant-1';
-    authState.branchId = 'branch-1';
+    authState.accessToken = "access-1";
+    authState.refreshToken = "refresh-1";
+    authState.franchiseId = "tenant-1";
+    authState.branchId = "branch-1";
   });
 
-  it('creates the client with web defaults and reads auth context', () => {
+  it("creates the client with web defaults and reads auth context", () => {
     expect(apiClient).toBeDefined();
-    expect(config()).toEqual(expect.objectContaining({ baseURL: '/api', timeout: 30_000 }));
+    expect(config()).toEqual(
+      expect.objectContaining({ baseURL: "/api", timeout: 30_000 }),
+    );
 
-    expect(config().storage.getAccessToken()).toBe('access-1');
-    expect(config().storage.getRefreshToken()).toBe('refresh-1');
-    expect(config().storage.getTenantId()).toBe('tenant-1');
-    expect(config().storage.getBranchId()).toBe('branch-1');
+    expect(config().storage.getAccessToken()).toBe("access-1");
+    expect(config().storage.getRefreshToken()).toBe("refresh-1");
+    expect(config().storage.getTenantId()).toBe("tenant-1");
+    expect(config().storage.getBranchId()).toBe("branch-1");
   });
 
-  it('writes tokens and clears the web session on refresh failure', () => {
-    config().storage.setTokens('next-access', 'next-refresh');
-    expect(authState.setTokens).toHaveBeenCalledWith('next-access', 'next-refresh');
+  it("writes tokens and clears the web session on refresh failure", () => {
+    config().storage.setTokens("next-access", "next-refresh");
+    expect(authState.setTokens).toHaveBeenCalledWith(
+      "next-access",
+      "next-refresh",
+    );
 
     config().storage.clear();
     expect(authState.logout).toHaveBeenCalledTimes(1);
     expect(queryClient.clear).toHaveBeenCalledTimes(1);
   });
 
-  it('re-exports extractApiError from the shared client package', async () => {
-    const error = new Error('bad request');
-    const { extractApiError: exported } = await import('../api-client');
+  it("re-exports extractApiError from the shared client package", async () => {
+    const error = new Error("bad request");
+    const { extractApiError: exported } = await import("../api-client");
     exported(error);
     expect(extractApiError).toHaveBeenCalledWith(error);
   });

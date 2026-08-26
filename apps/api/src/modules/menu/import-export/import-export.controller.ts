@@ -9,20 +9,33 @@
  * these are downloads, not JSON API responses — same as the pre-refactor
  * controller.
  */
-import type { AuthContext } from '../../../core/auth';
-import { successResponse } from '../../../core/response';
-import { importExportService, type ExportFormat } from './import-export.service';
-import { emptyImportFile } from './import-export.errors';
+import type { AuthContext } from "../../../core/auth";
+import { successResponse } from "../../../core/response";
+import {
+  importExportService,
+  type ExportFormat,
+} from "./import-export.service";
+import { emptyImportFile } from "./import-export.errors";
 
-function fileResponse(file: { content: string | Buffer; contentType: string }, filename: string): Response {
+function fileResponse(
+  file: { content: string | Buffer; contentType: string },
+  filename: string,
+): Response {
   return new Response(file.content, {
-    headers: { 'Content-Type': file.contentType, 'Content-Disposition': `attachment; filename="${filename}"` },
+    headers: {
+      "Content-Type": file.contentType,
+      "Content-Disposition": `attachment; filename="${filename}"`,
+    },
   });
 }
 
 export const importExportController = {
   // ─── Export ──────────────────────────────────────────────────────────
-  async exportItems(auth: AuthContext, format: ExportFormat, branchId: string | undefined) {
+  async exportItems(
+    auth: AuthContext,
+    format: ExportFormat,
+    branchId: string | undefined,
+  ) {
     const file = await importExportService.exportItems(auth, format, branchId);
     return fileResponse(file, `menu-items.${format}`);
   },
@@ -43,7 +56,7 @@ export const importExportController = {
   },
 
   // ─── Import ──────────────────────────────────────────────────────────
-  importTemplate(format: 'csv' | 'xlsx') {
+  importTemplate(format: "csv" | "xlsx") {
     const file = importExportService.buildTemplate(format);
     return fileResponse(file, `menu-items-template.${format}`);
   },
@@ -52,8 +65,16 @@ export const importExportController = {
     importExportService.requireFile(file);
     const rows = await importExportService.parseUpload(file!);
     if (!rows.length) throw emptyImportFile();
-    const { valid, errors } = await importExportService.validateItemsImport(auth, rows);
-    return successResponse({ totalRows: rows.length, validCount: valid.length, preview: valid, errors });
+    const { valid, errors } = await importExportService.validateItemsImport(
+      auth,
+      rows,
+    );
+    return successResponse({
+      totalRows: rows.length,
+      validCount: valid.length,
+      preview: valid,
+      errors,
+    });
   },
 
   async commitImport(auth: AuthContext, file: File | undefined) {

@@ -1,18 +1,18 @@
-import type { ReactNode } from 'react';
-import * as RadixDropdownMenu from '@radix-ui/react-dropdown-menu';
-import { cn } from '../../utils/cn';
+import type { ReactNode } from "react";
+import * as RadixDropdownMenu from "@radix-ui/react-dropdown-menu";
+import { cn } from "../../utils/cn";
 import {
   type MenuEntry,
   menuContentClasses,
   menuItemClasses,
   menuSeparatorClasses,
   MenuItemContent,
-} from './shared';
+} from "./shared";
 
 export interface DropdownMenuProps {
   trigger: ReactNode;
   items: MenuEntry[];
-  align?: 'start' | 'center' | 'end' | undefined;
+  align?: "start" | "center" | "end" | undefined;
   disabled?: boolean | undefined;
   className?: string | undefined;
 }
@@ -39,7 +39,7 @@ export interface DropdownMenuProps {
 export function DropdownMenu({
   trigger,
   items,
-  align = 'start',
+  align = "start",
   disabled,
   className,
 }: DropdownMenuProps) {
@@ -55,12 +55,17 @@ export function DropdownMenu({
           className={cn(menuContentClasses, className)}
         >
           {items.map((entry, i) =>
-            entry.type === 'separator' ? (
-              <RadixDropdownMenu.Separator key={i} className={menuSeparatorClasses} />
+            entry.type === "separator" ? (
+              <RadixDropdownMenu.Separator
+                key={i}
+                className={menuSeparatorClasses}
+              />
             ) : (
               <RadixDropdownMenu.Item
                 key={entry.label}
-                {...(entry.disabled !== undefined && { disabled: entry.disabled })}
+                {...(entry.disabled !== undefined && {
+                  disabled: entry.disabled,
+                })}
                 onSelect={entry.onSelect}
                 className={menuItemClasses(entry.danger)}
               >

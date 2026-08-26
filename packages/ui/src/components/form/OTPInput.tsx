@@ -1,6 +1,6 @@
-import { type ClipboardEvent, type KeyboardEvent, useId, useRef } from 'react';
-import { cn } from '../../utils/cn';
-import { FieldLabel, FieldFooter } from './shared';
+import { type ClipboardEvent, type KeyboardEvent, useId, useRef } from "react";
+import { cn } from "../../utils/cn";
+import { FieldLabel, FieldFooter } from "./shared";
 
 export interface OTPInputProps {
   label?: string | undefined;
@@ -47,40 +47,41 @@ export function OTPInput({
   const pattern = numericOnly ? /^[0-9]$/ : /^.$/;
 
   const setChar = (index: number, char: string) => {
-    const chars = value.split('');
+    const chars = value.split("");
     chars[index] = char;
-    const next = chars.join('').slice(0, length);
+    const next = chars.join("").slice(0, length);
     onChange(next);
     if (next.length === length) onComplete?.(next);
   };
 
-  const handleKeyDown = (index: number) => (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace') {
-      if (value[index]) {
-        e.preventDefault();
-        setChar(index, '');
-      } else if (index > 0) {
+  const handleKeyDown =
+    (index: number) => (e: KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Backspace") {
+        if (value[index]) {
+          e.preventDefault();
+          setChar(index, "");
+        } else if (index > 0) {
+          e.preventDefault();
+          inputsRef.current[index - 1]?.focus();
+          setChar(index - 1, "");
+        }
+      } else if (e.key === "ArrowLeft" && index > 0) {
         e.preventDefault();
         inputsRef.current[index - 1]?.focus();
-        setChar(index - 1, '');
+      } else if (e.key === "ArrowRight" && index < length - 1) {
+        e.preventDefault();
+        inputsRef.current[index + 1]?.focus();
+      } else if (pattern.test(e.key)) {
+        e.preventDefault();
+        setChar(index, e.key);
+        if (index < length - 1) inputsRef.current[index + 1]?.focus();
       }
-    } else if (e.key === 'ArrowLeft' && index > 0) {
-      e.preventDefault();
-      inputsRef.current[index - 1]?.focus();
-    } else if (e.key === 'ArrowRight' && index < length - 1) {
-      e.preventDefault();
-      inputsRef.current[index + 1]?.focus();
-    } else if (pattern.test(e.key)) {
-      e.preventDefault();
-      setChar(index, e.key);
-      if (index < length - 1) inputsRef.current[index + 1]?.focus();
-    }
-  };
+    };
 
   const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    const pasted = e.clipboardData.getData('text').trim();
-    const filtered = numericOnly ? pasted.replace(/\D/g, '') : pasted;
+    const pasted = e.clipboardData.getData("text").trim();
+    const filtered = numericOnly ? pasted.replace(/\D/g, "") : pasted;
     const next = filtered.slice(0, length);
     if (!next) return;
     onChange(next);
@@ -99,8 +100,8 @@ export function OTPInput({
       </FieldLabel>
       <div
         role="group"
-        aria-label={typeof label === 'string' ? label : 'One-time code'}
-        className={cn('flex gap-2', className)}
+        aria-label={typeof label === "string" ? label : "One-time code"}
+        className={cn("flex gap-2", className)}
       >
         {Array.from({ length }).map((_, i) => (
           <input
@@ -109,7 +110,7 @@ export function OTPInput({
             ref={(el) => {
               inputsRef.current[i] = el;
             }}
-            value={value[i] ?? ''}
+            value={value[i] ?? ""}
             onChange={() => {
               /* All writes happen in onKeyDown/onPaste — this only
                  suppresses the "missing onChange on controlled input"
@@ -118,23 +119,30 @@ export function OTPInput({
             onKeyDown={handleKeyDown(i)}
             onPaste={handlePaste}
             disabled={disabled}
-            inputMode={numericOnly ? 'numeric' : 'text'}
-            autoComplete={i === 0 ? 'one-time-code' : 'off'}
+            inputMode={numericOnly ? "numeric" : "text"}
+            autoComplete={i === 0 ? "one-time-code" : "off"}
             maxLength={1}
             required={required}
             aria-label={`Digit ${i + 1} of ${length}`}
             aria-invalid={!!error || undefined}
             aria-describedby={error ? errorId : hint ? hintId : undefined}
             className={cn(
-              'w-11 h-12 text-center text-lg font-semibold rounded-md border bg-surface text-text-primary',
-              'focus:outline-none focus:ring-2 focus:border-transparent',
-              'disabled:bg-surface-secondary disabled:text-text-disabled disabled:cursor-not-allowed',
-              error ? 'border-danger focus:ring-danger' : 'border-border focus:ring-primary',
+              "w-11 h-12 text-center text-lg font-semibold rounded-md border bg-surface text-text-primary",
+              "focus:outline-none focus:ring-2 focus:border-transparent",
+              "disabled:bg-surface-secondary disabled:text-text-disabled disabled:cursor-not-allowed",
+              error
+                ? "border-danger focus:ring-danger"
+                : "border-border focus:ring-primary",
             )}
           />
         ))}
       </div>
-      <FieldFooter hint={hint} error={error} hintId={hintId} errorId={errorId} />
+      <FieldFooter
+        hint={hint}
+        error={error}
+        hintId={hintId}
+        errorId={errorId}
+      />
     </div>
   );
 }

@@ -1,11 +1,11 @@
-import { t } from 'elysia';
+import { t } from "elysia";
 
 const PAYMENT_METHOD_VALUES = [
-  t.Literal('CASH'),
-  t.Literal('CARD'),
-  t.Literal('UPI'),
-  t.Literal('RAZORPAY'),
-  t.Literal('STRIPE'),
+  t.Literal("CASH"),
+  t.Literal("CARD"),
+  t.Literal("UPI"),
+  t.Literal("RAZORPAY"),
+  t.Literal("STRIPE"),
 ];
 
 export const createPaymentBody = t.Object({

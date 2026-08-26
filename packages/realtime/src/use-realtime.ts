@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import type { RealtimeClient } from './create-realtime-client';
+import { useEffect, useRef, useState } from "react";
+import type { RealtimeClient } from "./create-realtime-client";
 
 /** Subscribes `handler` to every event on `client` for the lifetime of the component. */
 export function useRealtime<E extends { type: string }>(
@@ -17,7 +17,10 @@ export function useRealtime<E extends { type: string }>(
 }
 
 /** Same as `useRealtime`, filtered to a single event type. */
-export function useRealtimeEvent<E extends { type: string }, T extends E['type']>(
+export function useRealtimeEvent<
+  E extends { type: string },
+  T extends E["type"],
+>(
   client: RealtimeClient<E>,
   type: T,
   handler: (event: Extract<E, { type: T }>) => void,
@@ -30,7 +33,9 @@ export function useRealtimeEvent<E extends { type: string }, T extends E['type']
 }
 
 /** Live connection status for `client`, for "Live"/"Polling"-style indicators. */
-export function useRealtimeConnection<E extends { type: string }>(client: RealtimeClient<E>): boolean {
+export function useRealtimeConnection<E extends { type: string }>(
+  client: RealtimeClient<E>,
+): boolean {
   const [connected, setConnected] = useState(client.isConnected());
 
   useEffect(() => client.onConnectionChange(setConnected), [client]);

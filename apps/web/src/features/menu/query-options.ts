@@ -1,14 +1,14 @@
-import { queryOptions } from '@tanstack/react-query';
-import { menuItemsService } from './services/menu-items.service';
-import { menuTagsService } from './services/menu-tags.service';
-import { modifierGroupsService } from './services/modifier-groups.service';
-import { menuAllergensService } from './services/menu-allergens.service';
-import { menuHolidaysService } from './services/menu-holidays.service';
-import { menuTemplatesService } from './services/menu-templates.service';
-import { menuSchedulesService } from './services/menu-schedules.service';
-import { menuRecipesService } from './services/menu-recipes.service';
-import { menuBranchOverridesService } from './services/menu-branch-overrides.service';
-import { menuKeys } from './query-keys';
+import { queryOptions } from "@tanstack/react-query";
+import { menuItemsService } from "./services/menu-items.service";
+import { menuTagsService } from "./services/menu-tags.service";
+import { modifierGroupsService } from "./services/modifier-groups.service";
+import { menuAllergensService } from "./services/menu-allergens.service";
+import { menuHolidaysService } from "./services/menu-holidays.service";
+import { menuTemplatesService } from "./services/menu-templates.service";
+import { menuSchedulesService } from "./services/menu-schedules.service";
+import { menuRecipesService } from "./services/menu-recipes.service";
+import { menuBranchOverridesService } from "./services/menu-branch-overrides.service";
+import { menuKeys } from "./query-keys";
 
 export function menuCategoriesQuery() {
   return queryOptions({

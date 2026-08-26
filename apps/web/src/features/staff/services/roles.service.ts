@@ -1,4 +1,4 @@
-import { apiClient } from '../../../shared/lib/api-client';
+import { apiClient } from "../../../shared/lib/api-client";
 
 export interface Role {
   id: string;
@@ -8,7 +8,7 @@ export interface Role {
 
 export const rolesService = {
   async list(): Promise<Role[]> {
-    const res = await apiClient.get('/roles');
+    const res = await apiClient.get("/roles");
     return res.data.data;
   },
 };

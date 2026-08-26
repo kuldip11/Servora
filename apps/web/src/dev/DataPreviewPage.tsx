@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState } from "react";
 import {
   AppShell,
   Page,
@@ -22,8 +22,8 @@ import {
   SkeletonCard,
   SkeletonTable,
   EmptyState,
-} from '@pos/ui';
-import { ShoppingBag, Plus, RefreshCcw, Trash2 } from 'lucide-react';
+} from "@pos/ui";
+import { ShoppingBag, Plus, RefreshCcw, Trash2 } from "lucide-react";
 
 /**
  * Internal-only route (`/dev/data-preview`, no auth guard). Covers
@@ -78,37 +78,96 @@ import { ShoppingBag, Plus, RefreshCcw, Trash2 } from 'lucide-react';
 
 interface SampleOrder {
   id: string;
-  type: 'Dine In' | 'Takeaway' | 'Delivery';
+  type: "Dine In" | "Takeaway" | "Delivery";
   table: string | null;
   items: number;
   total: number;
-  status: 'Open' | 'Bill Requested' | 'Paid' | 'Cancelled';
+  status: "Open" | "Bill Requested" | "Paid" | "Cancelled";
   time: string;
 }
 
-const STATUS_TONE: Record<SampleOrder['status'], 'info' | 'warning' | 'success' | 'danger'> = {
-  Open: 'info',
-  'Bill Requested': 'warning',
-  Paid: 'success',
-  Cancelled: 'danger',
+const STATUS_TONE: Record<
+  SampleOrder["status"],
+  "info" | "warning" | "success" | "danger"
+> = {
+  Open: "info",
+  "Bill Requested": "warning",
+  Paid: "success",
+  Cancelled: "danger",
 };
 
 const SAMPLE_ORDERS: SampleOrder[] = [
-  { id: 'ORD-A1B2C3', type: 'Dine In', table: 'T-04', items: 3, total: 42.5, status: 'Open', time: '12:04 PM' },
-  { id: 'ORD-D4E5F6', type: 'Takeaway', table: null, items: 1, total: 11.0, status: 'Paid', time: '12:01 PM' },
-  { id: 'ORD-G7H8I9', type: 'Delivery', table: null, items: 5, total: 68.25, status: 'Bill Requested', time: '11:56 AM' },
-  { id: 'ORD-J1K2L3', type: 'Dine In', table: 'T-11', items: 2, total: 27.0, status: 'Paid', time: '11:50 AM' },
-  { id: 'ORD-M4N5O6', type: 'Dine In', table: 'T-02', items: 4, total: 55.75, status: 'Cancelled', time: '11:42 AM' },
-  { id: 'ORD-P7Q8R9', type: 'Takeaway', table: null, items: 2, total: 19.5, status: 'Open', time: '11:38 AM' },
-  { id: 'ORD-S1T2U3', type: 'Delivery', table: null, items: 6, total: 81.0, status: 'Paid', time: '11:30 AM' },
+  {
+    id: "ORD-A1B2C3",
+    type: "Dine In",
+    table: "T-04",
+    items: 3,
+    total: 42.5,
+    status: "Open",
+    time: "12:04 PM",
+  },
+  {
+    id: "ORD-D4E5F6",
+    type: "Takeaway",
+    table: null,
+    items: 1,
+    total: 11.0,
+    status: "Paid",
+    time: "12:01 PM",
+  },
+  {
+    id: "ORD-G7H8I9",
+    type: "Delivery",
+    table: null,
+    items: 5,
+    total: 68.25,
+    status: "Bill Requested",
+    time: "11:56 AM",
+  },
+  {
+    id: "ORD-J1K2L3",
+    type: "Dine In",
+    table: "T-11",
+    items: 2,
+    total: 27.0,
+    status: "Paid",
+    time: "11:50 AM",
+  },
+  {
+    id: "ORD-M4N5O6",
+    type: "Dine In",
+    table: "T-02",
+    items: 4,
+    total: 55.75,
+    status: "Cancelled",
+    time: "11:42 AM",
+  },
+  {
+    id: "ORD-P7Q8R9",
+    type: "Takeaway",
+    table: null,
+    items: 2,
+    total: 19.5,
+    status: "Open",
+    time: "11:38 AM",
+  },
+  {
+    id: "ORD-S1T2U3",
+    type: "Delivery",
+    table: null,
+    items: 6,
+    total: 81.0,
+    status: "Paid",
+    time: "11:30 AM",
+  },
 ];
 
 const STATUS_OPTIONS = [
-  { value: '', label: 'All statuses' },
-  { value: 'Open', label: 'Open' },
-  { value: 'Bill Requested', label: 'Bill Requested' },
-  { value: 'Paid', label: 'Paid' },
-  { value: 'Cancelled', label: 'Cancelled' },
+  { value: "", label: "All statuses" },
+  { value: "Open", label: "Open" },
+  { value: "Bill Requested", label: "Bill Requested" },
+  { value: "Paid", label: "Paid" },
+  { value: "Cancelled", label: "Cancelled" },
 ];
 
 // --- DataGrid fixture data (Part 2) — 1,000 rows so virtualization has
@@ -117,18 +176,32 @@ const STATUS_OPTIONS = [
 interface GridOrder {
   id: string;
   customer: string;
-  type: SampleOrder['type'];
+  type: SampleOrder["type"];
   items: number;
   total: number;
-  status: SampleOrder['status'];
+  status: SampleOrder["status"];
   time: string;
 }
 
-const CUSTOMER_NAMES = ['Aarav Shah', 'Priya Nair', 'Kabir Rao', 'Ishaan Verma', 'Meera Iyer', 'Diya Kapoor', 'Vihaan Joshi', 'Anaya Singh'];
+const CUSTOMER_NAMES = [
+  "Aarav Shah",
+  "Priya Nair",
+  "Kabir Rao",
+  "Ishaan Verma",
+  "Meera Iyer",
+  "Diya Kapoor",
+  "Vihaan Joshi",
+  "Anaya Singh",
+];
 
 const GRID_ORDERS: GridOrder[] = Array.from({ length: 1000 }, (_, i) => {
-  const types: SampleOrder['type'][] = ['Dine In', 'Takeaway', 'Delivery'];
-  const statuses: SampleOrder['status'][] = ['Open', 'Bill Requested', 'Paid', 'Cancelled'];
+  const types: SampleOrder["type"][] = ["Dine In", "Takeaway", "Delivery"];
+  const statuses: SampleOrder["status"][] = [
+    "Open",
+    "Bill Requested",
+    "Paid",
+    "Cancelled",
+  ];
   return {
     id: `ORD-${(100000 + i).toString(36).toUpperCase()}`,
     customer: CUSTOMER_NAMES[i % CUSTOMER_NAMES.length]!,
@@ -136,13 +209,13 @@ const GRID_ORDERS: GridOrder[] = Array.from({ length: 1000 }, (_, i) => {
     items: 1 + (i % 6),
     total: 12.5 + (i % 40) * 3.75,
     status: statuses[i % statuses.length]!,
-    time: `${(9 + (i % 10)).toString().padStart(2, '0')}:${(i % 6) * 10 || '00'} AM`,
+    time: `${(9 + (i % 10)).toString().padStart(2, "0")}:${(i % 6) * 10 || "00"} AM`,
   };
 });
 
 export function DataPreviewPage() {
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [sort, setSort] = useState<SortState | null>(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -150,18 +223,19 @@ export function DataPreviewPage() {
 
   const filtered = useMemo(() => {
     return SAMPLE_ORDERS.filter((o) => {
-      if (search && !o.id.toLowerCase().includes(search.toLowerCase())) return false;
+      if (search && !o.id.toLowerCase().includes(search.toLowerCase()))
+        return false;
       if (statusFilter && o.status !== statusFilter) return false;
       return true;
     });
   }, [search, statusFilter]);
 
-  const hasActiveFilters = search !== '' || statusFilter !== '';
+  const hasActiveFilters = search !== "" || statusFilter !== "";
 
   // --- DataGrid demo state (Part 2) ---
   const [gridSort, setGridSort] = useState<SortState | null>(null);
   const [gridSelected, setGridSelected] = useState<Set<string>>(new Set());
-  const [gridSearch, setGridSearch] = useState('');
+  const [gridSearch, setGridSearch] = useState("");
   const [gridPage, setGridPage] = useState(1);
   const gridPageSize = 50;
 
@@ -175,11 +249,20 @@ export function DataPreviewPage() {
   const gridFiltered = useMemo(() => {
     if (!gridSearch.trim()) return GRID_ORDERS;
     const q = gridSearch.trim().toLowerCase();
-    return GRID_ORDERS.filter((o) => o.id.toLowerCase().includes(q) || o.customer.toLowerCase().includes(q));
+    return GRID_ORDERS.filter(
+      (o) =>
+        o.id.toLowerCase().includes(q) || o.customer.toLowerCase().includes(q),
+    );
   }, [gridSearch]);
-  const gridPageCount = Math.max(1, Math.ceil(gridFiltered.length / gridPageSize));
+  const gridPageCount = Math.max(
+    1,
+    Math.ceil(gridFiltered.length / gridPageSize),
+  );
   const gridPageStart = (gridPage - 1) * gridPageSize;
-  const gridPageRows = gridFiltered.slice(gridPageStart, gridPageStart + gridPageSize);
+  const gridPageRows = gridFiltered.slice(
+    gridPageStart,
+    gridPageStart + gridPageSize,
+  );
 
   function handleGridSearchChange(value: string) {
     setGridSearch(value);
@@ -188,41 +271,70 @@ export function DataPreviewPage() {
 
   const gridColumns: Column<GridOrder>[] = [
     {
-      id: 'id',
-      header: 'ID',
+      id: "id",
+      header: "ID",
       sortable: true,
       sortValue: (row) => row.id,
-      sticky: 'left',
-      width: '140px',
-      cell: (row) => <span className="font-mono text-xs font-semibold">{row.id}</span>,
+      sticky: "left",
+      width: "140px",
+      cell: (row) => (
+        <span className="font-mono text-xs font-semibold">{row.id}</span>
+      ),
     },
-    { id: 'customer', header: 'Customer', width: '160px', cell: (row) => row.customer },
-    { id: 'type', header: 'Type', width: '110px', cell: (row) => row.type },
-    { id: 'items', header: 'Items', align: 'right', width: '80px', cell: (row) => row.items },
     {
-      id: 'total',
-      header: 'Total',
-      align: 'right',
+      id: "customer",
+      header: "Customer",
+      width: "160px",
+      cell: (row) => row.customer,
+    },
+    { id: "type", header: "Type", width: "110px", cell: (row) => row.type },
+    {
+      id: "items",
+      header: "Items",
+      align: "right",
+      width: "80px",
+      cell: (row) => row.items,
+    },
+    {
+      id: "total",
+      header: "Total",
+      align: "right",
       sortable: true,
-      width: '100px',
+      width: "100px",
       sortValue: (row) => row.total,
-      cell: (row) => <span className="font-semibold">${row.total.toFixed(2)}</span>,
+      cell: (row) => (
+        <span className="font-semibold">${row.total.toFixed(2)}</span>
+      ),
     },
     {
-      id: 'status',
-      header: 'Status',
-      width: '140px',
-      cell: (row) => <StatusBadge label={row.status} tone={STATUS_TONE[row.status]} />,
+      id: "status",
+      header: "Status",
+      width: "140px",
+      cell: (row) => (
+        <StatusBadge label={row.status} tone={STATUS_TONE[row.status]} />
+      ),
     },
-    { id: 'time', header: 'Time', width: '90px', cell: (row) => <span className="text-text-secondary text-xs">{row.time}</span> },
     {
-      id: 'actions',
-      header: '',
-      sticky: 'right',
-      width: '60px',
-      align: 'right',
+      id: "time",
+      header: "Time",
+      width: "90px",
+      cell: (row) => (
+        <span className="text-text-secondary text-xs">{row.time}</span>
+      ),
+    },
+    {
+      id: "actions",
+      header: "",
+      sticky: "right",
+      width: "60px",
+      align: "right",
       cell: () => (
-        <button type="button" aria-label="Delete order" className="text-text-secondary hover:text-danger p-1" onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          aria-label="Delete order"
+          className="text-text-secondary hover:text-danger p-1"
+          onClick={(e) => e.stopPropagation()}
+        >
           <Trash2 className="w-3.5 h-3.5" />
         </button>
       ),
@@ -231,33 +343,45 @@ export function DataPreviewPage() {
 
   const columns: Column<SampleOrder>[] = [
     {
-      id: 'id',
-      header: 'Order ID',
+      id: "id",
+      header: "Order ID",
       sortable: true,
       sortValue: (row) => row.id,
-      cell: (row) => <span className="font-mono text-xs font-semibold">{row.id}</span>,
+      cell: (row) => (
+        <span className="font-mono text-xs font-semibold">{row.id}</span>
+      ),
     },
-    { id: 'type', header: 'Type', cell: (row) => row.type },
+    { id: "type", header: "Type", cell: (row) => row.type },
     {
-      id: 'table',
-      header: 'Table',
+      id: "table",
+      header: "Table",
       cell: (row) => row.table ?? <span className="text-text-disabled">—</span>,
     },
-    { id: 'items', header: 'Items', align: 'right', cell: (row) => row.items },
+    { id: "items", header: "Items", align: "right", cell: (row) => row.items },
     {
-      id: 'total',
-      header: 'Total',
-      align: 'right',
+      id: "total",
+      header: "Total",
+      align: "right",
       sortable: true,
       sortValue: (row) => row.total,
-      cell: (row) => <span className="font-semibold">${row.total.toFixed(2)}</span>,
+      cell: (row) => (
+        <span className="font-semibold">${row.total.toFixed(2)}</span>
+      ),
     },
     {
-      id: 'status',
-      header: 'Status',
-      cell: (row) => <StatusBadge label={row.status} tone={STATUS_TONE[row.status]} />,
+      id: "status",
+      header: "Status",
+      cell: (row) => (
+        <StatusBadge label={row.status} tone={STATUS_TONE[row.status]} />
+      ),
     },
-    { id: 'time', header: 'Time', cell: (row) => <span className="text-text-secondary text-xs">{row.time}</span> },
+    {
+      id: "time",
+      header: "Time",
+      cell: (row) => (
+        <span className="text-text-secondary text-xs">{row.time}</span>
+      ),
+    },
   ];
 
   return (
@@ -276,9 +400,13 @@ export function DataPreviewPage() {
                 subtitle={`${filtered.length} of ${SAMPLE_ORDERS.length} orders`}
                 actions={
                   <>
-                    <Button variant="secondary" size="sm" onClick={() => setLoading((v) => !v)}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setLoading((v) => !v)}
+                    >
                       <RefreshCcw className="w-3.5 h-3.5" />
-                      {loading ? 'Stop loading' : 'Simulate loading'}
+                      {loading ? "Stop loading" : "Simulate loading"}
                     </Button>
                     <Button size="sm">
                       <Plus className="w-3.5 h-3.5" />
@@ -287,7 +415,17 @@ export function DataPreviewPage() {
                   </>
                 }
               />
-              <FilterBar className="mt-4" onClearAll={hasActiveFilters ? () => { setSearch(''); setStatusFilter(''); } : undefined}>
+              <FilterBar
+                className="mt-4"
+                onClearAll={
+                  hasActiveFilters
+                    ? () => {
+                        setSearch("");
+                        setStatusFilter("");
+                      }
+                    : undefined
+                }
+              >
                 <SearchInput
                   placeholder="Search order ID..."
                   value={search}
@@ -298,7 +436,7 @@ export function DataPreviewPage() {
                   label="Status filter"
                   options={STATUS_OPTIONS}
                   value={statusFilter}
-                  onChange={(v) => setStatusFilter(v ?? '')}
+                  onChange={(v) => setStatusFilter(v ?? "")}
                   className="w-44"
                 />
               </FilterBar>
@@ -328,7 +466,9 @@ export function DataPreviewPage() {
             </div>
           </Card>
           {selectedOrder && (
-            <p className="text-sm text-text-secondary mt-2">Row clicked: {selectedOrder}</p>
+            <p className="text-sm text-text-secondary mt-2">
+              Row clicked: {selectedOrder}
+            </p>
           )}
         </Section>
 
@@ -353,7 +493,11 @@ export function DataPreviewPage() {
                 maxHeight="440px"
                 toolbarActions={
                   gridSelected.size > 0 ? (
-                    <Button variant="danger" size="sm" onClick={() => setGridSelected(new Set())}>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => setGridSelected(new Set())}
+                    >
                       <Trash2 className="w-3.5 h-3.5" />
                       Delete {gridSelected.size} selected
                     </Button>
@@ -370,21 +514,31 @@ export function DataPreviewPage() {
             </div>
           </Card>
           <p className="text-sm text-text-secondary mt-2">
-            {gridSelected.size} row{gridSelected.size === 1 ? '' : 's'} selected across all pages.
+            {gridSelected.size} row{gridSelected.size === 1 ? "" : "s"} selected
+            across all pages.
           </p>
         </Section>
 
-        <Section title="EmptyState — size=&quot;sm&quot; (used inside Table) vs default">
+        <Section title='EmptyState — size="sm" (used inside Table) vs default'>
           <Stack direction="row" gap="md">
             <Card className="flex-1">
-              <EmptyState icon={ShoppingBag} title="No orders yet" description="New orders will show up here." size="sm" />
+              <EmptyState
+                icon={ShoppingBag}
+                title="No orders yet"
+                description="New orders will show up here."
+                size="sm"
+              />
             </Card>
             <Card className="flex-1">
               <EmptyState
                 icon={ShoppingBag}
                 title="No orders yet"
                 description="New orders will show up here."
-                action={<Button size="sm"><Plus className="w-3.5 h-3.5" /> New Order</Button>}
+                action={
+                  <Button size="sm">
+                    <Plus className="w-3.5 h-3.5" /> New Order
+                  </Button>
+                }
               />
             </Card>
           </Stack>

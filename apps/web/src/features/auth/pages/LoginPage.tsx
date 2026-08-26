@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from '@tanstack/react-router';
-import { ChefHat, Eye, EyeOff } from 'lucide-react';
-import { z } from 'zod';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "@tanstack/react-router";
+import { ChefHat, Eye, EyeOff } from "lucide-react";
+import { z } from "zod";
 
-import { authService } from '../services/auth.service';
-import { useAuthStore } from '../../../store/auth';
-import { Button, Card, Input, toast } from '@pos/ui';
-import { extractApiError } from '../../../shared/lib/api-client';
-import { loginSchema } from '@pos/validation';
+import { authService } from "../services/auth.service";
+import { useAuthStore } from "../../../store/auth";
+import { Button, Card, Input, toast } from "@pos/ui";
+import { extractApiError } from "../../../shared/lib/api-client";
+import { loginSchema } from "@pos/validation";
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
@@ -25,8 +25,8 @@ export function LoginPage() {
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
     },
   });
 
@@ -35,11 +35,14 @@ export function LoginPage() {
     try {
       const result = await authService.login(form);
       setAuth(result);
-      toast({ title: `Welcome back, ${result.user.firstName}!`, tone: 'success' });
-      router.navigate({ to: '/context' });
+      toast({
+        title: `Welcome back, ${result.user.firstName}!`,
+        tone: "success",
+      });
+      router.navigate({ to: "/context" });
     } catch (err: unknown) {
       const msg = extractApiError(err);
-      toast({ title: msg, tone: 'danger' });
+      toast({ title: msg, tone: "danger" });
     } finally {
       setLoading(false);
     }
@@ -53,24 +56,30 @@ export function LoginPage() {
             <ChefHat className="w-7 h-7 text-primary-foreground" />
           </div>
           <h1 className="text-2xl font-bold text-text-primary">Welcome back</h1>
-          <p className="text-sm text-text-secondary mt-1">Sign in to your restaurant POS</p>
+          <p className="text-sm text-text-secondary mt-1">
+            Sign in to your restaurant POS
+          </p>
         </div>
 
         <Card className="rounded-xl p-8" padding="none">
-          <form onSubmit={handleSubmit(handleLogin)} className="space-y-5" noValidate>
+          <form
+            onSubmit={handleSubmit(handleLogin)}
+            className="space-y-5"
+            noValidate
+          >
             <Input
               label="Email address"
               type="email"
               placeholder="you@restaurant.com"
               error={errors.email?.message}
               autoComplete="email"
-              {...register('email')}
+              {...register("email")}
             />
 
             <Input
               id="login-password"
               label="Password"
-              type={showPass ? 'text' : 'password'}
+              type={showPass ? "text" : "password"}
               placeholder="••••••••"
               autoComplete="current-password"
               error={errors.password?.message}
@@ -79,12 +88,16 @@ export function LoginPage() {
                   type="button"
                   onClick={() => setShowPass((s) => !s)}
                   className="text-text-disabled hover:text-text-secondary"
-                  aria-label={showPass ? 'Hide password' : 'Show password'}
+                  aria-label={showPass ? "Hide password" : "Show password"}
                 >
-                  {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPass ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               }
-              {...register('password')}
+              {...register("password")}
             />
 
             <Button type="submit" loading={loading} className="w-full mt-2">
@@ -93,8 +106,11 @@ export function LoginPage() {
           </form>
 
           <p className="text-center text-sm text-text-secondary mt-6">
-            New restaurant?{' '}
-            <a href="/signup" className="text-primary hover:text-primary-hover font-medium">
+            New restaurant?{" "}
+            <a
+              href="/signup"
+              className="text-primary hover:text-primary-hover font-medium"
+            >
               Create an account
             </a>
           </p>

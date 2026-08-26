@@ -5,9 +5,9 @@ import {
   type RefObject,
   useEffect,
   useState,
-} from 'react';
-import { Check } from 'lucide-react';
-import { cn } from '../../utils/cn';
+} from "react";
+import { Check } from "lucide-react";
+import { cn } from "../../utils/cn";
 
 /**
  * Shared foundation for Phase 4 — Selection Components
@@ -46,8 +46,8 @@ export const ROW_HEIGHT = 40; // px — must match OptionRow/HeaderRow's fixed h
 const OVERSCAN = 8;
 
 type Row =
-  | { kind: 'header'; key: string; label: string }
-  | { kind: 'option'; key: string; option: SelectOption; optionIndex: number };
+  | { kind: "header"; key: string; label: string }
+  | { kind: "option"; key: string; option: SelectOption; optionIndex: number };
 
 /** Flattens options into a render-ready row list, inserting one header row per
  * distinct `group` (in first-seen order). Headers get the same fixed row height
@@ -58,7 +58,7 @@ export function buildRows(options: SelectOption[]): Row[] {
   const hasAnyGroup = options.some((o) => o.group);
   if (!hasAnyGroup) {
     return options.map((option, optionIndex) => ({
-      kind: 'option',
+      kind: "option",
       key: option.value,
       option,
       optionIndex,
@@ -70,10 +70,14 @@ export function buildRows(options: SelectOption[]): Row[] {
     if (!seenGroups.has(option.group)) {
       seenGroups.add(option.group);
       if (option.group) {
-        rows.push({ kind: 'header', key: `__group_${option.group}`, label: option.group });
+        rows.push({
+          kind: "header",
+          key: `__group_${option.group}`,
+          label: option.group,
+        });
       }
     }
-    rows.push({ kind: 'option', key: option.value, option, optionIndex });
+    rows.push({ kind: "option", key: option.value, option, optionIndex });
   });
   return rows;
 }
@@ -83,7 +87,7 @@ export function buildRows(options: SelectOption[]): Row[] {
 function optionRowIndices(rows: Row[]): number[] {
   const out: number[] = [];
   rows.forEach((r, i) => {
-    if (r.kind === 'option') out.push(i);
+    if (r.kind === "option") out.push(i);
   });
   return out;
 }
@@ -92,7 +96,10 @@ function optionRowIndices(rows: Row[]): number[] {
  * within view + overscan. Avoids pulling in `@tanstack/react-virtual` for one
  * dependency's worth of arithmetic — every row here is a single fixed-height
  * line (label + optional description), never a multi-line card. */
-export function useVirtualRows(count: number, containerRef: RefObject<HTMLElement | null>) {
+export function useVirtualRows(
+  count: number,
+  containerRef: RefObject<HTMLElement | null>,
+) {
   const [scrollTop, setScrollTop] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(0);
 
@@ -110,11 +117,13 @@ export function useVirtualRows(count: number, containerRef: RefObject<HTMLElemen
     if (!el) return;
     const onScroll = () => setScrollTop(el.scrollTop);
     setViewportHeight(el.clientHeight);
-    const resizeObserver = new ResizeObserver(() => setViewportHeight(el.clientHeight));
+    const resizeObserver = new ResizeObserver(() =>
+      setViewportHeight(el.clientHeight),
+    );
     resizeObserver.observe(el);
-    el.addEventListener('scroll', onScroll, { passive: true });
+    el.addEventListener("scroll", onScroll, { passive: true });
     return () => {
-      el.removeEventListener('scroll', onScroll);
+      el.removeEventListener("scroll", onScroll);
       resizeObserver.disconnect();
     };
   }, [containerRef.current]);
@@ -126,15 +135,25 @@ export function useVirtualRows(count: number, containerRef: RefObject<HTMLElemen
     Math.ceil((scrollTop + viewportHeight) / ROW_HEIGHT) + OVERSCAN,
   );
 
-  return { totalHeight, startIndex, endIndex, offsetY: startIndex * ROW_HEIGHT };
+  return {
+    totalHeight,
+    startIndex,
+    endIndex,
+    offsetY: startIndex * ROW_HEIGHT,
+  };
 }
 
 /** Case-insensitive substring filter shared by Combobox/Autocomplete/MultiSelect's search box. */
-export function filterOptions(options: SelectOption[], query: string): SelectOption[] {
+export function filterOptions(
+  options: SelectOption[],
+  query: string,
+): SelectOption[] {
   if (!query.trim()) return options;
   const q = query.trim().toLowerCase();
   return options.filter(
-    (o) => o.label.toLowerCase().includes(q) || o.description?.toLowerCase().includes(q),
+    (o) =>
+      o.label.toLowerCase().includes(q) ||
+      o.description?.toLowerCase().includes(q),
   );
 }
 
@@ -143,14 +162,14 @@ export function rowDomId(listboxId: string, rowIndex: number) {
 }
 
 export const popoverContentClasses = cn(
-  'z-50 overflow-hidden rounded-md border border-border bg-surface shadow-dropdown',
+  "z-50 overflow-hidden rounded-md border border-border bg-surface shadow-dropdown",
 );
 
 export const triggerBaseClasses = cn(
-  'flex w-full items-center justify-between gap-2 text-left text-sm text-text-primary bg-surface border rounded-md',
-  'px-3 py-2.5 transition-colors duration-fast ease-standard',
-  'focus:outline-none focus:ring-2 focus:border-transparent',
-  'disabled:bg-surface-secondary disabled:text-text-disabled disabled:cursor-not-allowed',
+  "flex w-full items-center justify-between gap-2 text-left text-sm text-text-primary bg-surface border rounded-md",
+  "px-3 py-2.5 transition-colors duration-fast ease-standard",
+  "focus:outline-none focus:ring-2 focus:border-transparent",
+  "disabled:bg-surface-secondary disabled:text-text-disabled disabled:cursor-not-allowed",
 );
 
 function HeaderRow({ label }: { label: string }) {
@@ -198,10 +217,10 @@ function OptionRow({
       onClick={() => !option.disabled && onClick()}
       style={{ height: ROW_HEIGHT }}
       className={cn(
-        'flex items-center gap-2 px-3 text-sm cursor-pointer select-none',
-        option.disabled && 'opacity-50 cursor-not-allowed pointer-events-none',
-        !option.disabled && active && 'bg-surface-secondary',
-        !option.disabled && !active && 'hover:bg-surface-secondary',
+        "flex items-center gap-2 px-3 text-sm cursor-pointer select-none",
+        option.disabled && "opacity-50 cursor-not-allowed pointer-events-none",
+        !option.disabled && active && "bg-surface-secondary",
+        !option.disabled && !active && "hover:bg-surface-secondary",
       )}
     >
       {leading}
@@ -209,13 +228,17 @@ function OptionRow({
       {!leading && !option.media && Icon && (
         <Icon className="w-4 h-4 text-text-secondary shrink-0" />
       )}
-      <span className="flex-1 min-w-0 truncate text-text-primary">{option.label}</span>
+      <span className="flex-1 min-w-0 truncate text-text-primary">
+        {option.label}
+      </span>
       {option.description && (
         <span className="text-xs text-text-secondary truncate shrink-0 max-w-[40%]">
           {option.description}
         </span>
       )}
-      {!leading && selected && <Check className="w-4 h-4 text-primary shrink-0" />}
+      {!leading && selected && (
+        <Check className="w-4 h-4 text-primary shrink-0" />
+      )}
     </li>
   );
 }
@@ -242,7 +265,7 @@ export function VirtualListbox({
   isSelected,
   onCommitRow,
   renderLeading,
-  emptyMessage = 'No options',
+  emptyMessage = "No options",
   multiselectable = false,
 }: {
   rows: Row[];
@@ -252,12 +275,16 @@ export function VirtualListbox({
   maxHeight: number;
   isSelected: (option: SelectOption) => boolean;
   onCommitRow: (rowIndex: number) => void;
-  renderLeading?: ((option: SelectOption, selected: boolean) => ReactNode) | undefined;
+  renderLeading?:
+    ((option: SelectOption, selected: boolean) => ReactNode) | undefined;
   emptyMessage?: string | undefined;
   /** Set `aria-multiselectable` — pass true for `MultiSelect`. */
   multiselectable?: boolean | undefined;
 }) {
-  const { totalHeight, startIndex, endIndex, offsetY } = useVirtualRows(rows.length, listRef);
+  const { totalHeight, startIndex, endIndex, offsetY } = useVirtualRows(
+    rows.length,
+    listRef,
+  );
   const visible = rows.slice(startIndex, endIndex);
 
   return (
@@ -266,17 +293,20 @@ export function VirtualListbox({
       id={listboxId}
       role="listbox"
       aria-multiselectable={multiselectable || undefined}
-      style={{ maxHeight, overflowY: 'auto' }}
+      style={{ maxHeight, overflowY: "auto" }}
       className="relative outline-none py-1"
     >
       {rows.length === 0 ? (
-        <li className="px-3 py-6 text-sm text-center text-text-secondary">{emptyMessage}</li>
+        <li className="px-3 py-6 text-sm text-center text-text-secondary">
+          {emptyMessage}
+        </li>
       ) : (
-        <div style={{ height: totalHeight, position: 'relative' }}>
+        <div style={{ height: totalHeight, position: "relative" }}>
           <div style={{ transform: `translateY(${offsetY}px)` }}>
             {visible.map((row, i) => {
               const rowIndex = startIndex + i;
-              if (row.kind === 'header') return <HeaderRow key={row.key} label={row.label} />;
+              if (row.kind === "header")
+                return <HeaderRow key={row.key} label={row.label} />;
               const selected = isSelected(row.option);
               return (
                 <OptionRow
@@ -302,46 +332,53 @@ export function VirtualListbox({
  * `rows` list (skips headers and disabled options), reported back as a
  * row index (so callers can look up `rows[activeRowIndex]` directly).
  */
-export function useActiveRow(rows: Row[], onCommit: (rowIndex: number) => void) {
+export function useActiveRow(
+  rows: Row[],
+  onCommit: (rowIndex: number) => void,
+) {
   const selectable = optionRowIndices(rows).filter((i) => {
     const r = rows[i];
-    return r?.kind === 'option' && !r.option.disabled;
+    return r?.kind === "option" && !r.option.disabled;
   });
-  const [activeRowIndex, setActiveRowIndex] = useState<number>(selectable[0] ?? -1);
+  const [activeRowIndex, setActiveRowIndex] = useState<number>(
+    selectable[0] ?? -1,
+  );
 
   useEffect(() => {
-    if (!selectable.includes(activeRowIndex)) setActiveRowIndex(selectable[0] ?? -1);
+    if (!selectable.includes(activeRowIndex))
+      setActiveRowIndex(selectable[0] ?? -1);
     // re-sync whenever the filtered/virtualized row set changes shape
   }, [rows.length]);
 
   function move(dir: 1 | -1) {
     if (selectable.length === 0) return;
     const pos = selectable.indexOf(activeRowIndex);
-    const next = pos === -1 ? 0 : (pos + dir + selectable.length) % selectable.length;
+    const next =
+      pos === -1 ? 0 : (pos + dir + selectable.length) % selectable.length;
     setActiveRowIndex(selectable[next]!);
   }
 
   function onKeyDown(e: KeyboardEvent) {
     switch (e.key) {
-      case 'ArrowDown':
+      case "ArrowDown":
         e.preventDefault();
         move(1);
         break;
-      case 'ArrowUp':
+      case "ArrowUp":
         e.preventDefault();
         move(-1);
         break;
-      case 'Home':
+      case "Home":
         e.preventDefault();
         if (selectable[0] !== undefined) setActiveRowIndex(selectable[0]);
         break;
-      case 'End': {
+      case "End": {
         e.preventDefault();
         const last = selectable.at(-1);
         if (last !== undefined) setActiveRowIndex(last);
         break;
       }
-      case 'Enter':
+      case "Enter":
         e.preventDefault();
         if (activeRowIndex >= 0) onCommit(activeRowIndex);
         break;
@@ -354,7 +391,9 @@ export function useActiveRow(rows: Row[], onCommit: (rowIndex: number) => void) 
   function typeahead(prefix: string) {
     const match = selectable.find((i) => {
       const r = rows[i];
-      return r?.kind === 'option' && r.option.label.toLowerCase().startsWith(prefix);
+      return (
+        r?.kind === "option" && r.option.label.toLowerCase().startsWith(prefix)
+      );
     });
     if (match !== undefined) setActiveRowIndex(match);
   }
@@ -365,15 +404,22 @@ export function useActiveRow(rows: Row[], onCommit: (rowIndex: number) => void) 
 /** Accumulates printable keystrokes into a short-lived prefix for single-letter-jump
  * navigation (native `<select>` behavior) — call from a listbox's `onKeyDown`. */
 export function useTypeaheadBuffer(onPrefix: (prefix: string) => void) {
-  const [buffer, setBuffer] = useState('');
+  const [buffer, setBuffer] = useState("");
   useEffect(() => {
     if (!buffer) return;
-    const id = setTimeout(() => setBuffer(''), 500);
+    const id = setTimeout(() => setBuffer(""), 500);
     return () => clearTimeout(id);
   }, [buffer]);
 
   function onKeyDown(e: KeyboardEvent) {
-    if (e.key.length !== 1 || !/\S/.test(e.key) || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (
+      e.key.length !== 1 ||
+      !/\S/.test(e.key) ||
+      e.ctrlKey ||
+      e.metaKey ||
+      e.altKey
+    )
+      return;
     const next = buffer + e.key.toLowerCase();
     setBuffer(next);
     onPrefix(next);
@@ -396,7 +442,8 @@ export function useScrollActiveIntoView(
     const top = activeRowIndex * ROW_HEIGHT;
     const bottom = top + ROW_HEIGHT;
     if (top < el.scrollTop) el.scrollTop = top;
-    else if (bottom > el.scrollTop + el.clientHeight) el.scrollTop = bottom - el.clientHeight;
+    else if (bottom > el.scrollTop + el.clientHeight)
+      el.scrollTop = bottom - el.clientHeight;
   }, [activeRowIndex, open, containerRef]);
 }
 

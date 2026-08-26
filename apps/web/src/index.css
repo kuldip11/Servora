@@ -1,5 +1,5 @@
-@import '../../../packages/ui/src/theme/tokens.css';
-@import '../../../packages/ui/src/theme/motion.css';
+@import "../../../packages/ui/src/theme/tokens.css";
+@import "../../../packages/ui/src/theme/motion.css";
 
 @tailwind base;
 @tailwind components;
@@ -15,23 +15,38 @@
        only pair that never repainted under dark/high-contrast since this
        file sits outside packages/ui and wasn't touched by earlier phases. */
     @apply bg-background text-text-primary antialiased;
-    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    font-family:
+      -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
   }
 
-  h1 { @apply text-3xl font-bold tracking-tight; }
-  h2 { @apply text-2xl font-semibold tracking-tight; }
-  h3 { @apply text-xl font-semibold; }
-  h4 { @apply text-base font-semibold; }
+  h1 {
+    @apply text-3xl font-bold tracking-tight;
+  }
+  h2 {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+  h3 {
+    @apply text-xl font-semibold;
+  }
+  h4 {
+    @apply text-base font-semibold;
+  }
 }
 
-
-
 /* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { @apply bg-transparent; }
-::-webkit-scrollbar-thumb { @apply bg-border rounded-full; }
-::-webkit-scrollbar-thumb:hover { @apply bg-text-disabled; }
-
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-border rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-text-disabled;
+}
 
 /* Session 31 — forced-colors and keyboard-focus resilience. Browsers in
    Windows High Contrast/forced-colors mode may suppress custom box-shadow

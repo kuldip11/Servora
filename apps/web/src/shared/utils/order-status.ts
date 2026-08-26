@@ -6,15 +6,15 @@ export function getOrderStatusColor(status: string): string {
   // apps/waiter-app's equivalent) via `--primary`, rather than one of
   // the 4 semantic status tones.
   const map: Record<string, string> = {
-    OPEN: 'bg-info-surface text-info',
-    BILL_REQUESTED: 'bg-warning-surface text-warning',
-    PAID: 'bg-primary-surface text-primary',
-    CLOSED: 'bg-surface-secondary text-text-secondary',
-    CANCELLED: 'bg-danger-surface text-danger',
+    OPEN: "bg-info-surface text-info",
+    BILL_REQUESTED: "bg-warning-surface text-warning",
+    PAID: "bg-primary-surface text-primary",
+    CLOSED: "bg-surface-secondary text-text-secondary",
+    CANCELLED: "bg-danger-surface text-danger",
   };
-  return map[status] ?? 'bg-surface-secondary text-text-secondary';
+  return map[status] ?? "bg-surface-secondary text-text-secondary";
 }
 
 export function getOrderStatusLabel(status: string): string {
-  return status.replace(/_/g, ' ');
+  return status.replace(/_/g, " ");
 }

@@ -1,5 +1,5 @@
-import axios, { type AxiosError, type AxiosInstance } from 'axios';
-import type { TokenStorageAdapter } from './types';
+import axios, { type AxiosError, type AxiosInstance } from "axios";
+import type { TokenStorageAdapter } from "./types";
 
 export interface ApiClientConfig {
   /** Passed straight to axios.create — each app resolves its own env var. */
@@ -37,23 +37,24 @@ export function createApiClient(config: ApiClientConfig): AxiosInstance {
 
   const apiClient = axios.create({
     baseURL,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { "Content-Type": "application/json" },
     timeout,
   });
 
   apiClient.interceptors.request.use((requestConfig) => {
     const accessToken = storage.getAccessToken();
 
-    if (accessToken) requestConfig.headers['Authorization'] = `Bearer ${accessToken}`;
+    if (accessToken)
+      requestConfig.headers["Authorization"] = `Bearer ${accessToken}`;
 
     const tenantId = storage.getTenantId?.();
     const branchId = storage.getBranchId?.();
 
-    if (tenantId) requestConfig.headers['X-Tenant-ID'] = tenantId;
-    else delete requestConfig.headers['X-Tenant-ID'];
+    if (tenantId) requestConfig.headers["X-Tenant-ID"] = tenantId;
+    else delete requestConfig.headers["X-Tenant-ID"];
 
-    if (branchId) requestConfig.headers['X-Branch-ID'] = branchId;
-    else delete requestConfig.headers['X-Branch-ID'];
+    if (branchId) requestConfig.headers["X-Branch-ID"] = branchId;
+    else delete requestConfig.headers["X-Branch-ID"];
 
     return requestConfig;
   });
@@ -61,7 +62,10 @@ export function createApiClient(config: ApiClientConfig): AxiosInstance {
   // 401 → auto refresh, with a queue so concurrent requests that 401 at the
   // same time share a single refresh call instead of each starting their own.
   let isRefreshing = false;
-  let failedQueue: Array<{ resolve: (token: string) => void; reject: (err: unknown) => void }> = [];
+  let failedQueue: Array<{
+    resolve: (token: string) => void;
+    reject: (err: unknown) => void;
+  }> = [];
 
   function processQueue(error: unknown, token: string | null) {
     failedQueue.forEach((p) => (error ? p.reject(error) : p.resolve(token!)));
@@ -72,13 +76,19 @@ export function createApiClient(config: ApiClientConfig): AxiosInstance {
     (res) => res,
     async (error: AxiosError) => {
       const original = error.config as any;
-      if (error.response?.status !== 401 || original._retry || String(original.url ?? '').includes('/auth/refresh')) {
+      if (
+        error.response?.status !== 401 ||
+        original._retry ||
+        String(original.url ?? "").includes("/auth/refresh")
+      ) {
         return Promise.reject(error);
       }
 
       if (isRefreshing) {
-        return new Promise((resolve, reject) => failedQueue.push({ resolve, reject })).then((token) => {
-          original.headers['Authorization'] = `Bearer ${token}`;
+        return new Promise((resolve, reject) =>
+          failedQueue.push({ resolve, reject }),
+        ).then((token) => {
+          original.headers["Authorization"] = `Bearer ${token}`;
           return apiClient(original);
         });
       }
@@ -113,11 +123,11 @@ export function createApiClient(config: ApiClientConfig): AxiosInstance {
         // override and its own request interceptor (so a stale/expired
         // access token is never attached to the refresh call itself).
         // Preserved as-is.
-        const res = await axios.post('/api/auth/refresh', { refreshToken });
+        const res = await axios.post("/api/auth/refresh", { refreshToken });
         const { accessToken, refreshToken: newRefreshToken } = res.data.data;
         storage.setTokens(accessToken, newRefreshToken);
         processQueue(null, accessToken);
-        original.headers['Authorization'] = `Bearer ${accessToken}`;
+        original.headers["Authorization"] = `Bearer ${accessToken}`;
         return apiClient(original);
       } catch (err) {
         processQueue(err, null);

@@ -1,7 +1,7 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from '@pos/ui';
-import { updateTicketStatus } from '../api/orders';
-import { orderKeys } from '../constants';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "@pos/ui";
+import { updateTicketStatus } from "../api/orders";
+import { orderKeys } from "../constants";
 
 export function useUpdateTicketStatus() {
   const qc = useQueryClient();
@@ -11,9 +11,13 @@ export function useUpdateTicketStatus() {
       updateTicketStatus(ticketId, status),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: orderKeys.all });
-      qc.invalidateQueries({ queryKey: ['order'] });
-      toast({ title: 'Ticket updated', tone: 'success' });
+      qc.invalidateQueries({ queryKey: ["order"] });
+      toast({ title: "Ticket updated", tone: "success" });
     },
-    onError: (err: any) => toast({ title: err?.response?.data?.message ?? 'Failed to update ticket', tone: 'danger' }),
+    onError: (err: any) =>
+      toast({
+        title: err?.response?.data?.message ?? "Failed to update ticket",
+        tone: "danger",
+      }),
   });
 }

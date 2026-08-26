@@ -3,10 +3,10 @@
  * comes from `requireAuthPlugin` (applied in `recipes.route.ts`); business
  * rules live in `recipes.service.ts`.
  */
-import type { AuthContext } from '../../../core/auth';
-import type { InventoryUnit } from '@pos/types';
-import { successResponse } from '../../../core/response';
-import { recipesService, type RecipeIngredientInput } from './recipes.service';
+import type { AuthContext } from "../../../core/auth";
+import type { InventoryUnit } from "@pos/types";
+import { successResponse } from "../../../core/response";
+import { recipesService, type RecipeIngredientInput } from "./recipes.service";
 
 export const recipesController = {
   async getItemRecipe(auth: AuthContext, itemId: string) {
@@ -14,12 +14,24 @@ export const recipesController = {
     return successResponse(recipe);
   },
 
-  async setItemRecipe(auth: AuthContext, itemId: string, ingredients: RecipeIngredientInput[]) {
-    const recipe = await recipesService.setItemRecipe(auth, itemId, ingredients);
+  async setItemRecipe(
+    auth: AuthContext,
+    itemId: string,
+    ingredients: RecipeIngredientInput[],
+  ) {
+    const recipe = await recipesService.setItemRecipe(
+      auth,
+      itemId,
+      ingredients,
+    );
     return successResponse(recipe);
   },
 
-  async deleteRecipeIngredient(auth: AuthContext, itemId: string, inventoryItemId: string) {
+  async deleteRecipeIngredient(
+    auth: AuthContext,
+    itemId: string,
+    inventoryItemId: string,
+  ) {
     await recipesService.deleteRecipeIngredient(auth, itemId, inventoryItemId);
     return successResponse(null);
   },
@@ -32,7 +44,14 @@ export const recipesController = {
     unit: InventoryUnit,
     isOptional: boolean,
   ) {
-    const row = await recipesService.upsertRecipeIngredient(auth, itemId, inventoryItemId, quantity, unit, isOptional);
+    const row = await recipesService.upsertRecipeIngredient(
+      auth,
+      itemId,
+      inventoryItemId,
+      quantity,
+      unit,
+      isOptional,
+    );
     return successResponse(row);
   },
 

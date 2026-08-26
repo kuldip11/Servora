@@ -1,5 +1,5 @@
-import { and, eq, inArray, isNull } from 'drizzle-orm';
-import { db } from '../../db';
+import { and, eq, inArray, isNull } from "drizzle-orm";
+import { db } from "../../db";
 import {
   branches,
   membershipBranches,
@@ -7,14 +7,21 @@ import {
   roles,
   tenantMemberships,
   users,
-} from '../../db/schema';
+} from "../../db/schema";
 
 const STAFF_LIST_COLUMNS = { passwordHash: false } as const;
 
 export const staffRepository = {
-  async findMany(tenantId: string, branchId: string | null, authorizedBranchIds?: string[]) {
+  async findMany(
+    tenantId: string,
+    branchId: string | null,
+    authorizedBranchIds?: string[],
+  ) {
     const memberships = await db.query.tenantMemberships.findMany({
-      where: and(eq(tenantMemberships.tenantId, tenantId), eq(tenantMemberships.status, 'ACTIVE')),
+      where: and(
+        eq(tenantMemberships.tenantId, tenantId),
+        eq(tenantMemberships.status, "ACTIVE"),
+      ),
       with: {
         user: { columns: STAFF_LIST_COLUMNS },
         roles: { with: { role: true } },
@@ -23,18 +30,28 @@ export const staffRepository = {
     });
 
     const scoped = authorizedBranchIds
-      ? (branchId
-        ? memberships.filter((membership: any) => membership.branches.some((item: any) => item.branchId === branchId))
-        : memberships.filter((membership: any) => membership.branches.some((item: any) => authorizedBranchIds.includes(item.branchId))))
+      ? branchId
+        ? memberships.filter((membership: any) =>
+            membership.branches.some((item: any) => item.branchId === branchId),
+          )
+        : memberships.filter((membership: any) =>
+            membership.branches.some((item: any) =>
+              authorizedBranchIds.includes(item.branchId),
+            ),
+          )
       : memberships;
 
     return scoped
-      .filter((membership: any) => membership.user && !membership.user.deletedAt)
+      .filter(
+        (membership: any) => membership.user && !membership.user.deletedAt,
+      )
       .map((membership: any) => ({
         ...membership.user,
         membershipId: membership.id,
         roles: membership.roles.map((item: any) => item.role),
-        assignedBranches: membership.branches.map((item: any) => item.branch).filter(Boolean),
+        assignedBranches: membership.branches
+          .map((item: any) => item.branch)
+          .filter(Boolean),
       }));
   },
 
@@ -59,7 +76,10 @@ export const staffRepository = {
   async findBranchesByIds(tenantId: string, branchIds: string[]) {
     if (branchIds.length === 0) return [];
     return db.query.branches.findMany({
-      where: and(eq(branches.tenantId, tenantId), inArray(branches.id, branchIds)),
+      where: and(
+        eq(branches.tenantId, tenantId),
+        inArray(branches.id, branchIds),
+      ),
       columns: { id: true, isActive: true },
     });
   },
@@ -80,31 +100,47 @@ export const staffRepository = {
       });
 
       if (!user) {
-        const [created] = await tx.insert(users).values({
-          firstName: data.firstName,
-          lastName: data.lastName,
-          email: data.email,
-          passwordHash: data.passwordHash,
-        }).returning();
+        const [created] = await tx
+          .insert(users)
+          .values({
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+            passwordHash: data.passwordHash,
+          })
+          .returning();
         user = created;
       }
-      if (!user) throw new Error('Staff creation failed');
+      if (!user) throw new Error("Staff creation failed");
 
       const existingMembership = await tx.query.tenantMemberships.findFirst({
-        where: and(eq(tenantMemberships.userId, user.id), eq(tenantMemberships.tenantId, data.tenantId)),
+        where: and(
+          eq(tenantMemberships.userId, user.id),
+          eq(tenantMemberships.tenantId, data.tenantId),
+        ),
       });
-      if (existingMembership) throw new Error('User already belongs to this tenant');
+      if (existingMembership)
+        throw new Error("User already belongs to this tenant");
 
-      const [membership] = await tx.insert(tenantMemberships).values({
-        userId: user.id,
-        tenantId: data.tenantId,
-      }).returning();
-      if (!membership) throw new Error('Staff membership creation failed');
+      const [membership] = await tx
+        .insert(tenantMemberships)
+        .values({
+          userId: user.id,
+          tenantId: data.tenantId,
+        })
+        .returning();
+      if (!membership) throw new Error("Staff membership creation failed");
 
-      await tx.insert(membershipRoles).values({ membershipId: membership.id, roleId: data.roleId });
+      await tx
+        .insert(membershipRoles)
+        .values({ membershipId: membership.id, roleId: data.roleId });
       if (data.branchIds.length) {
         await tx.insert(membershipBranches).values(
-          data.branchIds.map((branchId) => ({ membershipId: membership.id, tenantId: data.tenantId, branchId })),
+          data.branchIds.map((branchId) => ({
+            membershipId: membership.id,
+            tenantId: data.tenantId,
+            branchId,
+          })),
         );
       }
 
@@ -112,31 +148,45 @@ export const staffRepository = {
     });
   },
 
-  async updateUser(tenantId: string, userId: string, data: {
-    firstName?: string;
-    lastName?: string;
-  }) {
-    const [updated] = await db.update(users)
+  async updateUser(
+    tenantId: string,
+    userId: string,
+    data: {
+      firstName?: string;
+      lastName?: string;
+    },
+  ) {
+    const [updated] = await db
+      .update(users)
       .set({ ...data, updatedAt: new Date() })
       .where(and(eq(users.id, userId), isNull(users.deletedAt)))
       .returning();
     return updated;
   },
 
-  async updateMembershipStatus(tenantId: string, userId: string, status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED') {
-    const [updated] = await db.update(tenantMemberships)
+  async updateMembershipStatus(
+    tenantId: string,
+    userId: string,
+    status: "ACTIVE" | "INACTIVE" | "SUSPENDED",
+  ) {
+    const [updated] = await db
+      .update(tenantMemberships)
       .set({ status, updatedAt: new Date() })
-      .where(and(
-        eq(tenantMemberships.tenantId, tenantId),
-        eq(tenantMemberships.userId, userId),
-      ))
+      .where(
+        and(
+          eq(tenantMemberships.tenantId, tenantId),
+          eq(tenantMemberships.userId, userId),
+        ),
+      )
       .returning();
     return updated;
   },
 
   async setRole(membershipId: string, roleId: string) {
     return db.transaction(async (tx) => {
-      await tx.delete(membershipRoles).where(eq(membershipRoles.membershipId, membershipId));
+      await tx
+        .delete(membershipRoles)
+        .where(eq(membershipRoles.membershipId, membershipId));
       await tx.insert(membershipRoles).values({ membershipId, roleId });
     });
   },
@@ -147,18 +197,24 @@ export const staffRepository = {
         where: eq(tenantMemberships.id, membershipId),
         columns: { tenantId: true },
       });
-      if (!membership) throw new Error('Membership not found');
-      await tx.delete(membershipBranches).where(eq(membershipBranches.membershipId, membershipId));
+      if (!membership) throw new Error("Membership not found");
+      await tx
+        .delete(membershipBranches)
+        .where(eq(membershipBranches.membershipId, membershipId));
       if (branchIds.length) {
         await tx.insert(membershipBranches).values(
-          branchIds.map((branchId) => ({ membershipId, tenantId: membership.tenantId, branchId })),
+          branchIds.map((branchId) => ({
+            membershipId,
+            tenantId: membership.tenantId,
+            branchId,
+          })),
         );
       }
     });
   },
 
   async softDelete(tenantId: string, id: string) {
-    return this.updateMembershipStatus(tenantId, id, 'INACTIVE');
+    return this.updateMembershipStatus(tenantId, id, "INACTIVE");
   },
 
   async findAllRoles() {

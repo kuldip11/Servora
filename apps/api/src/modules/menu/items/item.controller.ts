@@ -3,15 +3,15 @@
  * from `requireAuthPlugin` (applied in `item.route.ts`); business rules
  * live in `item.service.ts`.
  */
-import type { MenuItemStatus } from '@pos/types';
-import type { AuthContext } from '../../../core/auth';
-import { successResponse, createdResponse } from '../../../core/response';
+import type { MenuItemStatus } from "@pos/types";
+import type { AuthContext } from "../../../core/auth";
+import { successResponse, createdResponse } from "../../../core/response";
 import {
   itemService,
   type CreateItemInput,
   type UpdateItemInput,
   type DuplicateItemInput,
-} from './item.service';
+} from "./item.service";
 
 export const itemController = {
   async getById(auth: AuthContext, itemId: string) {
@@ -34,7 +34,11 @@ export const itemController = {
     return successResponse(null);
   },
 
-  async duplicate(auth: AuthContext, itemId: string, input: DuplicateItemInput) {
+  async duplicate(
+    auth: AuthContext,
+    itemId: string,
+    input: DuplicateItemInput,
+  ) {
     const copy = await itemService.duplicate(auth, itemId, input);
     return createdResponse(copy);
   },
@@ -49,7 +53,12 @@ export const itemController = {
     return successResponse(item);
   },
 
-  async updateStatus(auth: AuthContext, itemId: string, status: MenuItemStatus, reason: string | undefined) {
+  async updateStatus(
+    auth: AuthContext,
+    itemId: string,
+    status: MenuItemStatus,
+    reason: string | undefined,
+  ) {
     const item = await itemService.updateStatus(auth, itemId, status, reason);
     return successResponse(item);
   },
@@ -60,11 +69,20 @@ export const itemController = {
     isAvailable: boolean,
     reason: string | undefined,
   ) {
-    const item = await itemService.updateAvailability(auth, itemId, isAvailable, reason);
+    const item = await itemService.updateAvailability(
+      auth,
+      itemId,
+      isAvailable,
+      reason,
+    );
     return successResponse(item);
   },
 
-  async listByStatus(auth: AuthContext, status: MenuItemStatus, categoryId: string | undefined) {
+  async listByStatus(
+    auth: AuthContext,
+    status: MenuItemStatus,
+    categoryId: string | undefined,
+  ) {
     const items = await itemService.listByStatus(auth, [status], categoryId);
     return successResponse(items);
   },

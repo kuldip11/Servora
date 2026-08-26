@@ -1,6 +1,6 @@
-import { Plus, Receipt } from 'lucide-react';
-import { Button } from '@pos/ui';
-import type { Order } from '@pos/types';
+import { Plus, Receipt } from "lucide-react";
+import { Button } from "@pos/ui";
+import type { Order } from "@pos/types";
 
 interface Props {
   order: Order;
@@ -45,12 +45,13 @@ export function OrderActions({
         <button
           onClick={onRequestBill}
           disabled={isUpdatingStatus}
-          className="w-full py-4 bg-warning text-warning-foreground font-bold rounded-2xl flex items-center justify-center gap-2 active:opacity-80 disabled:opacity-60">
+          className="w-full py-4 bg-warning text-warning-foreground font-bold rounded-2xl flex items-center justify-center gap-2 active:opacity-80 disabled:opacity-60"
+        >
           <Receipt className="w-5 h-5" />
-          {isUpdatingStatus ? 'Updating…' : 'Request Bill'}
+          {isUpdatingStatus ? "Updating…" : "Request Bill"}
         </button>
       )}
-      {order.status === 'OPEN' && !allTicketsServed && (
+      {order.status === "OPEN" && !allTicketsServed && (
         <p className="text-xs text-text-disabled text-center">
           All rounds need to be served before requesting the bill.
         </p>
@@ -77,11 +78,12 @@ export function OrderActions({
       {canCancel && (
         <button
           onClick={() => {
-            if (confirm('Cancel this order?')) {
+            if (confirm("Cancel this order?")) {
               onCancel();
             }
           }}
-          className="w-full py-3 text-danger font-semibold text-sm rounded-2xl border border-danger/20 active:bg-danger-surface">
+          className="w-full py-3 text-danger font-semibold text-sm rounded-2xl border border-danger/20 active:bg-danger-surface"
+        >
           Cancel Order
         </button>
       )}

@@ -1,7 +1,7 @@
-import { usePermissions } from '../../../shared/auth/permissions';
-import { useMemo, useState } from 'react';
-import { Link } from '@tanstack/react-router';
-import { Plus, Eye, ShoppingBag } from 'lucide-react';
+import { usePermissions } from "../../../shared/auth/permissions";
+import { useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { Plus, Eye, ShoppingBag } from "lucide-react";
 import {
   Button,
   Badge,
@@ -16,13 +16,16 @@ import {
   type Column,
   type SortState,
   BUTTON_VARIANT_CLASSES,
-} from '@pos/ui';
-import { formatCurrency, formatTime } from '../../../shared/utils/format';
-import { getOrderStatusColor, getOrderStatusLabel } from '../../../shared/utils/order-status';
-import { useOrders } from '../hooks/useOrders';
-import { useOrdersRealtimeSync } from '../hooks/useOrdersRealtimeSync';
-import { CreateOrderModal } from '../components/CreateOrderModal';
-import type { Order } from '@pos/types';
+} from "@pos/ui";
+import { formatCurrency, formatTime } from "../../../shared/utils/format";
+import {
+  getOrderStatusColor,
+  getOrderStatusLabel,
+} from "../../../shared/utils/order-status";
+import { useOrders } from "../hooks/useOrders";
+import { useOrdersRealtimeSync } from "../hooks/useOrdersRealtimeSync";
+import { CreateOrderModal } from "../components/CreateOrderModal";
+import type { Order } from "@pos/types";
 
 /**
  * Phase 10 (docs/design-system/00-PLAN.md) migration, done early as
@@ -78,74 +81,83 @@ import type { Order } from '@pos/types';
  * server in this pass" caveat already on this project.
  */
 
-const STATUS_TONE: Partial<Record<string, 'info' | 'warning' | 'neutral' | 'danger'>> = {
-  OPEN: 'info',
-  BILL_REQUESTED: 'warning',
-  CLOSED: 'neutral',
-  CANCELLED: 'danger',
+const STATUS_TONE: Partial<
+  Record<string, "info" | "warning" | "neutral" | "danger">
+> = {
+  OPEN: "info",
+  BILL_REQUESTED: "warning",
+  CLOSED: "neutral",
+  CANCELLED: "danger",
   // PAID intentionally omitted — see file-level doc comment.
 };
 
 const STATUS_OPTIONS = [
-  { value: '', label: 'All statuses' },
-  { value: 'OPEN', label: 'Open' },
-  { value: 'BILL_REQUESTED', label: 'Bill Requested' },
-  { value: 'PAID', label: 'Paid' },
-  { value: 'CLOSED', label: 'Closed' },
-  { value: 'CANCELLED', label: 'Cancelled' },
+  { value: "", label: "All statuses" },
+  { value: "OPEN", label: "Open" },
+  { value: "BILL_REQUESTED", label: "Bill Requested" },
+  { value: "PAID", label: "Paid" },
+  { value: "CLOSED", label: "Closed" },
+  { value: "CANCELLED", label: "Cancelled" },
 ];
 
 const TYPE_OPTIONS = [
-  { value: '', label: 'All types' },
-  { value: 'DINE_IN', label: 'Dine In' },
-  { value: 'TAKEAWAY', label: 'Takeaway' },
-  { value: 'DELIVERY', label: 'Delivery' },
-  { value: 'ONLINE', label: 'Online' },
+  { value: "", label: "All types" },
+  { value: "DINE_IN", label: "Dine In" },
+  { value: "TAKEAWAY", label: "Takeaway" },
+  { value: "DELIVERY", label: "Delivery" },
+  { value: "ONLINE", label: "Online" },
 ];
 
 function KitchenStatus({ order }: { order: Order }) {
   const tickets = order.kitchenTickets;
   if (!tickets?.length) return <span className="text-text-disabled">—</span>;
-  if (tickets.some((t) => t.status === 'READY')) {
+  if (tickets.some((t) => t.status === "READY")) {
     return <span className="text-success font-semibold text-xs">Ready</span>;
   }
-  if (tickets.every((t: any) => t.status === 'SERVED')) {
+  if (tickets.every((t: any) => t.status === "SERVED")) {
     return <span className="text-xs text-text-secondary">All served</span>;
   }
   return (
     <span className="text-xs text-text-secondary">
-      {tickets.length} ticket{tickets.length > 1 ? 's' : ''}
+      {tickets.length} ticket{tickets.length > 1 ? "s" : ""}
     </span>
   );
 }
 
 export function OrdersPage() {
   const { has } = usePermissions();
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [sort, setSort] = useState<SortState | null>(null);
 
-  const { data: orders, isLoading } = useOrders({ status: statusFilter, type: typeFilter });
+  const { data: orders, isLoading } = useOrders({
+    status: statusFilter,
+    type: typeFilter,
+  });
   useOrdersRealtimeSync();
 
   const filtered = useMemo(
-    () => orders?.filter((o) => !search || o.id.toLowerCase().includes(search.toLowerCase())) ?? [],
+    () =>
+      orders?.filter(
+        (o) => !search || o.id.toLowerCase().includes(search.toLowerCase()),
+      ) ?? [],
     [orders, search],
   );
 
-  const hasActiveFilters = search !== '' || statusFilter !== '' || typeFilter !== '';
+  const hasActiveFilters =
+    search !== "" || statusFilter !== "" || typeFilter !== "";
 
   const columns: Column<Order>[] = useMemo(
     () => [
       {
-        id: 'id',
-        header: 'Order ID',
+        id: "id",
+        header: "Order ID",
         sortable: true,
         sortValue: (row) => row.id,
-        width: '140px',
-        sticky: 'left',
+        width: "140px",
+        sticky: "left",
         cell: (row) => (
           <span className="font-mono text-xs font-semibold text-text-primary">
             #{row.id.slice(-8).toUpperCase()}
@@ -153,38 +165,47 @@ export function OrdersPage() {
         ),
       },
       {
-        id: 'type',
-        header: 'Type',
-        width: '110px',
+        id: "type",
+        header: "Type",
+        width: "110px",
         cell: (row) => (
-          <StatusBadge label={row.type?.replace('_', ' ') ?? ''} tone="neutral" dot={false} />
+          <StatusBadge
+            label={row.type?.replace("_", " ") ?? ""}
+            tone="neutral"
+            dot={false}
+          />
         ),
       },
       {
-        id: 'table',
-        header: 'Table',
-        width: '90px',
-        cell: (row) => (row.table ? row.table.name : <span className="text-text-disabled">—</span>),
+        id: "table",
+        header: "Table",
+        width: "90px",
+        cell: (row) =>
+          row.table ? (
+            row.table.name
+          ) : (
+            <span className="text-text-disabled">—</span>
+          ),
       },
       {
-        id: 'kitchen',
-        header: 'Kitchen',
-        width: '100px',
+        id: "kitchen",
+        header: "Kitchen",
+        width: "100px",
         cell: (row) => <KitchenStatus order={row} />,
       },
       {
-        id: 'items',
-        header: 'Items',
-        align: 'right',
-        width: '80px',
+        id: "items",
+        header: "Items",
+        align: "right",
+        width: "80px",
         cell: (row) => `${row.items?.length ?? 0} items`,
       },
       {
-        id: 'total',
-        header: 'Total',
-        align: 'right',
+        id: "total",
+        header: "Total",
+        align: "right",
         sortable: true,
-        width: '110px',
+        width: "110px",
         sortValue: (row) => parseFloat(String(row.totalAmount)),
         cell: (row) => (
           <span className="font-semibold text-text-primary">
@@ -193,31 +214,41 @@ export function OrdersPage() {
         ),
       },
       {
-        id: 'status',
-        header: 'Status',
-        width: '140px',
+        id: "status",
+        header: "Status",
+        width: "140px",
         cell: (row) => {
           const tone = STATUS_TONE[row.status];
           if (!tone) {
             // PAID — no semantic tone maps onto brand violet, see file-level doc comment.
-            return <Badge className={getOrderStatusColor(row.status)}>{getOrderStatusLabel(row.status)}</Badge>;
+            return (
+              <Badge className={getOrderStatusColor(row.status)}>
+                {getOrderStatusLabel(row.status)}
+              </Badge>
+            );
           }
-          return <StatusBadge label={getOrderStatusLabel(row.status)} tone={tone} />;
+          return (
+            <StatusBadge label={getOrderStatusLabel(row.status)} tone={tone} />
+          );
         },
       },
       {
-        id: 'time',
-        header: 'Time',
+        id: "time",
+        header: "Time",
         sortable: true,
-        width: '90px',
+        width: "90px",
         sortValue: (row) => new Date(row.createdAt).getTime(),
-        cell: (row) => <span className="text-text-secondary text-xs">{formatTime(row.createdAt)}</span>,
+        cell: (row) => (
+          <span className="text-text-secondary text-xs">
+            {formatTime(row.createdAt)}
+          </span>
+        ),
       },
       {
-        id: 'actions',
-        header: '',
-        width: '80px',
-        sticky: 'right',
+        id: "actions",
+        header: "",
+        width: "80px",
+        sticky: "right",
         cell: (row) => (
           <Link
             to="/orders/$orderId"
@@ -242,10 +273,12 @@ export function OrdersPage() {
             title="Orders"
             subtitle={`${orders?.length ?? 0} total orders`}
             actions={
-              has('orders:create') && <Button onClick={() => setShowCreate(true)}>
-                <Plus className="w-4 h-4" />
-                New Order
-              </Button>
+              has("orders:create") && (
+                <Button onClick={() => setShowCreate(true)}>
+                  <Plus className="w-4 h-4" />
+                  New Order
+                </Button>
+              )
             }
           />
           <FilterBar
@@ -253,9 +286,9 @@ export function OrdersPage() {
             onClearAll={
               hasActiveFilters
                 ? () => {
-                    setSearch('');
-                    setStatusFilter('');
-                    setTypeFilter('');
+                    setSearch("");
+                    setStatusFilter("");
+                    setTypeFilter("");
                   }
                 : undefined
             }
@@ -264,21 +297,21 @@ export function OrdersPage() {
               placeholder="Search order ID..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              onClear={() => setSearch('')}
+              onClear={() => setSearch("")}
               className="max-w-xs"
             />
             <SelectMenu
               label="Status filter"
               options={STATUS_OPTIONS}
               value={statusFilter}
-              onChange={(v) => setStatusFilter(v ?? '')}
+              onChange={(v) => setStatusFilter(v ?? "")}
               className="w-44"
             />
             <SelectMenu
               label="Order type filter"
               options={TYPE_OPTIONS}
               value={typeFilter}
-              onChange={(v) => setTypeFilter(v ?? '')}
+              onChange={(v) => setTypeFilter(v ?? "")}
               className="w-40"
             />
           </FilterBar>

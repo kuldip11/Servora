@@ -10,34 +10,37 @@
  * code as `details.reason`. Status codes are unchanged (all were 409,
  * except NOT_FOUND which stays 404).
  */
-import { NotFoundError, ConflictError } from '../../core/errors';
+import { NotFoundError, ConflictError } from "../../core/errors";
 
 export function branchNotFound(id?: string): NotFoundError {
-  return new NotFoundError('Branch', id);
+  return new NotFoundError("Branch", id);
 }
 
 export function allOrderTypesDisabled(): ConflictError {
-  return new ConflictError('A branch needs at least one order type enabled.', {
-    reason: 'ALL_ORDER_TYPES_DISABLED',
+  return new ConflictError("A branch needs at least one order type enabled.", {
+    reason: "ALL_ORDER_TYPES_DISABLED",
   });
 }
 
 export function branchHasOpenDineInOrders(): ConflictError {
   return new ConflictError(
-    'This branch has open dine-in orders — settle or close them before disabling dine-in.',
-    { reason: 'BRANCH_HAS_OPEN_DINE_IN_ORDERS' },
+    "This branch has open dine-in orders — settle or close them before disabling dine-in.",
+    { reason: "BRANCH_HAS_OPEN_DINE_IN_ORDERS" },
   );
 }
 
 export function lastActiveBranch(): ConflictError {
   return new ConflictError(
-    'You need at least one active branch — deactivate this one after creating another.',
-    { reason: 'LAST_BRANCH' },
+    "You need at least one active branch — deactivate this one after creating another.",
+    { reason: "LAST_BRANCH" },
   );
 }
 
 export function branchHasOpenOrders(): ConflictError {
-  return new ConflictError('This branch has open orders and cannot be deactivated yet.', {
-    reason: 'BRANCH_HAS_OPEN_ORDERS',
-  });
+  return new ConflictError(
+    "This branch has open orders and cannot be deactivated yet.",
+    {
+      reason: "BRANCH_HAS_OPEN_ORDERS",
+    },
+  );
 }

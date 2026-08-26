@@ -1,22 +1,22 @@
-import type { ReactNode } from 'react';
-import { cn } from '../utils/cn';
+import type { ReactNode } from "react";
+import { cn } from "../utils/cn";
 
-export type StatusTone = 'success' | 'warning' | 'danger' | 'info' | 'neutral';
+export type StatusTone = "success" | "warning" | "danger" | "info" | "neutral";
 
 const TONE_CLASSES: Record<StatusTone, string> = {
-  success: 'bg-success-surface text-success',
-  warning: 'bg-warning-surface text-warning',
-  danger: 'bg-danger-surface text-danger',
-  info: 'bg-info-surface text-info',
-  neutral: 'bg-surface-secondary text-text-secondary',
+  success: "bg-success-surface text-success",
+  warning: "bg-warning-surface text-warning",
+  danger: "bg-danger-surface text-danger",
+  info: "bg-info-surface text-info",
+  neutral: "bg-surface-secondary text-text-secondary",
 };
 
 const DOT_CLASSES: Record<StatusTone, string> = {
-  success: 'bg-success',
-  warning: 'bg-warning',
-  danger: 'bg-danger',
-  info: 'bg-info',
-  neutral: 'bg-text-disabled',
+  success: "bg-success",
+  warning: "bg-warning",
+  danger: "bg-danger",
+  info: "bg-info",
+  neutral: "bg-text-disabled",
 };
 
 export interface StatusBadgeProps {
@@ -51,16 +51,26 @@ export interface StatusBadgeProps {
  * - Kitchen Display's inline colors — tracked under Phase 12 (KDS app
  *   migration) along with everything else bespoke in that app.
  */
-export function StatusBadge({ label, tone = 'neutral', dot = true, className }: StatusBadgeProps) {
+export function StatusBadge({
+  label,
+  tone = "neutral",
+  dot = true,
+  className,
+}: StatusBadgeProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full',
+        "inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full",
         TONE_CLASSES[tone],
         className,
       )}
     >
-      {dot && <span className={cn('w-1.5 h-1.5 rounded-full', DOT_CLASSES[tone])} aria-hidden="true" />}
+      {dot && (
+        <span
+          className={cn("w-1.5 h-1.5 rounded-full", DOT_CLASSES[tone])}
+          aria-hidden="true"
+        />
+      )}
       {label}
     </span>
   );

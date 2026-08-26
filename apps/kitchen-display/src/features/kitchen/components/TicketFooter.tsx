@@ -1,4 +1,4 @@
-import type { KitchenTicketStatus } from '@pos/types';
+import type { KitchenTicketStatus } from "@pos/types";
 
 interface Props {
   next: KitchenTicketStatus | null;
@@ -15,16 +15,27 @@ interface Props {
 // a single hardcoded `text-white` was the exact Phase-9-documented
 // dark-theme contrast failure (white on amber-500 is 2.15:1) that this
 // button was never checked against before.
-export function TicketFooter({ next, nextLabel, btnClass, isUpdating, onAdvance }: Props) {
+export function TicketFooter({
+  next,
+  nextLabel,
+  btnClass,
+  isUpdating,
+  onAdvance,
+}: Props) {
   if (!next) {
-    return <p className="text-center text-xs text-text-secondary py-2">Waiting for waiter to serve</p>;
+    return (
+      <p className="text-center text-xs text-text-secondary py-2">
+        Waiting for waiter to serve
+      </p>
+    );
   }
 
   return (
     <button
       onClick={onAdvance}
       disabled={isUpdating}
-      className={`w-full py-2 rounded-lg font-semibold text-sm transition-colors disabled:opacity-50 ${btnClass}`}>
+      className={`w-full py-2 rounded-lg font-semibold text-sm transition-colors disabled:opacity-50 ${btnClass}`}
+    >
       {nextLabel}
     </button>
   );

@@ -1,4 +1,4 @@
-import type { RealtimeClientConfig } from './types';
+import type { RealtimeClientConfig } from "./types";
 
 export interface RealtimeClient<E extends { type: string }> {
   /** Subscribe to every event. Connects lazily on first subscriber, disconnects when the last one leaves. Returns an unsubscribe function. */
@@ -30,7 +30,13 @@ export interface RealtimeClient<E extends { type: string }> {
 export function createRealtimeClient<E extends { type: string }>(
   config: RealtimeClientConfig,
 ): RealtimeClient<E> {
-  const { url, getAccessToken, getTenantId, getBranchId, reconnectDelayMs = 3000 } = config;
+  const {
+    url,
+    getAccessToken,
+    getTenantId,
+    getBranchId,
+    reconnectDelayMs = 3000,
+  } = config;
 
   let ws: WebSocket | null = null;
   const handlers = new Set<(event: E) => void>();
@@ -45,13 +51,18 @@ export function createRealtimeClient<E extends { type: string }>(
   }
 
   function connect(token: string) {
-    if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+    if (
+      ws &&
+      (ws.readyState === WebSocket.OPEN ||
+        ws.readyState === WebSocket.CONNECTING)
+    )
+      return;
 
     const params = new URLSearchParams({ token });
     const tenantId = getTenantId?.();
     const branchId = getBranchId?.();
-    if (tenantId) params.set('tenantId', tenantId);
-    if (branchId) params.set('branchId', branchId);
+    if (tenantId) params.set("tenantId", tenantId);
+    if (branchId) params.set("branchId", branchId);
     ws = new WebSocket(`${url}?${params.toString()}`);
 
     ws.onopen = () => setConnected(true);

@@ -1,24 +1,11 @@
 import { RestaurantTable } from "./common";
 
-
 export type OrderStatus =
-  | 'OPEN'
-  | 'BILL_REQUESTED'
-  | 'PAID'
-  | 'CLOSED'
-  | 'CANCELLED';
+  "OPEN" | "BILL_REQUESTED" | "PAID" | "CLOSED" | "CANCELLED";
 
-export type KitchenTicketStatus =
-  | 'FIRED'
-  | 'PREPARING'
-  | 'READY'
-  | 'SERVED';
+export type KitchenTicketStatus = "FIRED" | "PREPARING" | "READY" | "SERVED";
 
-export type OrderType =
-  | 'DINE_IN'
-  | 'TAKEAWAY'
-  | 'DELIVERY'
-  | 'ONLINE';
+export type OrderType = "DINE_IN" | "TAKEAWAY" | "DELIVERY" | "ONLINE";
 
 export interface Order {
   id: string;

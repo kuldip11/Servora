@@ -2,8 +2,8 @@
  * Auth repository — data access only. Password hashing, token issuing,
  * and business rules live in `auth.service.ts`.
  */
-import { eq, and, isNull, gt } from 'drizzle-orm';
-import { db } from '../../db';
+import { eq, and, isNull, gt } from "drizzle-orm";
+import { db } from "../../db";
 import {
   users,
   roles,
@@ -13,12 +13,16 @@ import {
   rolePermissions,
   branches,
   tenantMemberships,
-} from '../../db/schema';
+} from "../../db/schema";
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
 export const authRepository = {
-  async createBranch(data: { tenantId: string; name: string; address: string }) {
+  async createBranch(data: {
+    tenantId: string;
+    name: string;
+    address: string;
+  }) {
     const [branch] = await db.insert(branches).values(data).returning();
     return branch!;
   },
@@ -29,13 +33,19 @@ export const authRepository = {
     email: string;
     passwordHash: string;
   }) {
-    const [user] = await db.insert(users).values({ ...data, email: normalizeEmail(data.email) }).returning();
+    const [user] = await db
+      .insert(users)
+      .values({ ...data, email: normalizeEmail(data.email) })
+      .returning();
     return user!;
   },
 
   async findStandaloneUserByEmail(email: string) {
     return db.query.users.findFirst({
-      where: and(eq(users.email, normalizeEmail(email)), isNull(users.deletedAt)),
+      where: and(
+        eq(users.email, normalizeEmail(email)),
+        isNull(users.deletedAt),
+      ),
       with: {
         globalUserRoles: {
           with: {
@@ -50,7 +60,10 @@ export const authRepository = {
 
   async findUsersByEmail(email: string) {
     return db.query.users.findMany({
-      where: and(eq(users.email, normalizeEmail(email)), isNull(users.deletedAt)),
+      where: and(
+        eq(users.email, normalizeEmail(email)),
+        isNull(users.deletedAt),
+      ),
       with: {
         globalUserRoles: {
           with: {
@@ -67,7 +80,10 @@ export const authRepository = {
 
   async findUserByEmail(email: string) {
     return db.query.users.findFirst({
-      where: and(eq(users.email, normalizeEmail(email)), isNull(users.deletedAt)),
+      where: and(
+        eq(users.email, normalizeEmail(email)),
+        isNull(users.deletedAt),
+      ),
       with: {
         globalUserRoles: {
           with: {
@@ -86,7 +102,11 @@ export const authRepository = {
     return db.query.tenantMemberships.findFirst({
       where: eq(tenantMemberships.id, membershipId),
       with: {
-        roles: { with: { role: { with: { rolePermissions: { with: { permission: true } } } } } },
+        roles: {
+          with: {
+            role: { with: { rolePermissions: { with: { permission: true } } } },
+          },
+        },
         branches: true,
       },
     });
@@ -141,26 +161,39 @@ export const authRepository = {
         .insert(users)
         .values({ ...data, email: normalizeEmail(data.email) })
         .returning();
-      if (!user) throw new Error('User creation failed');
+      if (!user) throw new Error("User creation failed");
 
       const [role] = await tx
         .insert(roles)
-        .values({ name: 'OWNER', scope: 'GLOBAL', description: 'Global owner access' })
+        .values({
+          name: "OWNER",
+          scope: "GLOBAL",
+          description: "Global owner access",
+        })
         .onConflictDoUpdate({
           target: roles.name,
-          set: { scope: 'GLOBAL', description: 'Global owner access' },
+          set: { scope: "GLOBAL", description: "Global owner access" },
         })
         .returning();
-      if (!role) throw new Error('Unable to provision GLOBAL OWNER role');
+      if (!role) throw new Error("Unable to provision GLOBAL OWNER role");
 
-      const allPermissions = await tx.select({ id: permissions.id }).from(permissions);
+      const allPermissions = await tx
+        .select({ id: permissions.id })
+        .from(permissions);
       if (!allPermissions.length) {
-        throw new Error('RBAC reference data is not installed: permissions are missing');
+        throw new Error(
+          "RBAC reference data is not installed: permissions are missing",
+        );
       }
 
       await tx
         .insert(rolePermissions)
-        .values(allPermissions.map((permission) => ({ roleId: role.id, permissionId: permission.id })))
+        .values(
+          allPermissions.map((permission) => ({
+            roleId: role.id,
+            permissionId: permission.id,
+          })),
+        )
         .onConflictDoNothing();
 
       await tx
@@ -176,21 +209,34 @@ export const authRepository = {
     return db.transaction(async (tx) => {
       const [role] = await tx
         .insert(roles)
-        .values({ name: 'OWNER', scope: 'GLOBAL', description: 'Global owner access' })
+        .values({
+          name: "OWNER",
+          scope: "GLOBAL",
+          description: "Global owner access",
+        })
         .onConflictDoUpdate({
           target: roles.name,
-          set: { scope: 'GLOBAL', description: 'Global owner access' },
+          set: { scope: "GLOBAL", description: "Global owner access" },
         })
         .returning();
-      if (!role) throw new Error('Unable to provision GLOBAL OWNER role');
+      if (!role) throw new Error("Unable to provision GLOBAL OWNER role");
 
-      const allPermissions = await tx.select({ id: permissions.id }).from(permissions);
+      const allPermissions = await tx
+        .select({ id: permissions.id })
+        .from(permissions);
       if (!allPermissions.length) {
-        throw new Error('RBAC reference data is not installed: permissions are missing');
+        throw new Error(
+          "RBAC reference data is not installed: permissions are missing",
+        );
       }
       await tx
         .insert(rolePermissions)
-        .values(allPermissions.map((permission) => ({ roleId: role.id, permissionId: permission.id })))
+        .values(
+          allPermissions.map((permission) => ({
+            roleId: role.id,
+            permissionId: permission.id,
+          })),
+        )
         .onConflictDoNothing();
       return role;
     });
@@ -207,7 +253,12 @@ export const authRepository = {
       .onConflictDoNothing();
   },
 
-  async saveRefreshToken(data: { userId: string; membershipId?: string; tokenHash: string; expiresAt: Date }) {
+  async saveRefreshToken(data: {
+    userId: string;
+    membershipId?: string;
+    tokenHash: string;
+    expiresAt: Date;
+  }) {
     const [token] = await db.insert(refreshTokens).values(data).returning();
     return token!;
   },
@@ -226,5 +277,4 @@ export const authRepository = {
       .returning();
     return token;
   },
-
 };

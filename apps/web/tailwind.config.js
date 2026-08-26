@@ -1,12 +1,12 @@
 /** @type {import('tailwindcss').Config} */
-import uiPreset from '../../packages/ui/tailwind-preset.js';
+import uiPreset from "../../packages/ui/tailwind-preset.js";
 
 export default {
   presets: [uiPreset],
   content: [
-    './index.html',
-    './src/**/*.{js,ts,jsx,tsx}',
-    '../../packages/ui/src/**/*.{js,ts,jsx,tsx}',
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+    "../../packages/ui/src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
@@ -18,14 +18,16 @@ export default {
       // `shadow-elevated`) — kept as-is; Phase 1 doesn't touch component
       // internals, so these aren't migrated onto `--shadow-*` yet.
       boxShadow: {
-        card: '0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.06)',
-        elevated: '0 10px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.08)',
-        dropdown: '0 4px 16px -2px rgb(0 0 0 / 0.12), 0 2px 6px -1px rgb(0 0 0 / 0.06)',
+        card: "0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.06)",
+        elevated:
+          "0 10px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.08)",
+        dropdown:
+          "0 4px 16px -2px rgb(0 0 0 / 0.12), 0 2px 6px -1px rgb(0 0 0 / 0.06)",
       },
       spacing: {
-        '4.5': '1.125rem',
-        '13': '3.25rem',
-        '18': '4.5rem',
+        4.5: "1.125rem",
+        13: "3.25rem",
+        18: "4.5rem",
       },
     },
   },

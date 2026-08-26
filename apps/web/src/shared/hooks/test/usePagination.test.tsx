@@ -1,2 +1,28 @@
-import { act, createElement } from 'react'; import { createRoot } from 'react-dom/client'; import { describe, expect, it } from 'vitest'; import { usePagination } from '../usePagination';
-describe('usePagination', () => { it('paginates and clamps navigation', () => { let current: any; function Probe() { current = usePagination([1,2,3,4,5], { pageSize: 2 }); return null; } const root = createRoot(document.createElement('div')); act(() => root.render(createElement(Probe))); expect(current.pageItems).toEqual([1,2]); expect(current.pageCount).toBe(3); expect(current.hasPreviousPage).toBe(false); act(() => current.nextPage()); expect(current.pageItems).toEqual([3,4]); act(() => current.nextPage()); act(() => current.nextPage()); expect(current.page).toBe(3); act(() => current.previousPage()); expect(current.page).toBe(2); act(() => current.setPage(99)); expect(current.page).toBe(3); root.unmount(); }); });
+import { act, createElement } from "react";
+import { createRoot } from "react-dom/client";
+import { describe, expect, it } from "vitest";
+import { usePagination } from "../usePagination";
+describe("usePagination", () => {
+  it("paginates and clamps navigation", () => {
+    let current: any;
+    function Probe() {
+      current = usePagination([1, 2, 3, 4, 5], { pageSize: 2 });
+      return null;
+    }
+    const root = createRoot(document.createElement("div"));
+    act(() => root.render(createElement(Probe)));
+    expect(current.pageItems).toEqual([1, 2]);
+    expect(current.pageCount).toBe(3);
+    expect(current.hasPreviousPage).toBe(false);
+    act(() => current.nextPage());
+    expect(current.pageItems).toEqual([3, 4]);
+    act(() => current.nextPage());
+    act(() => current.nextPage());
+    expect(current.page).toBe(3);
+    act(() => current.previousPage());
+    expect(current.page).toBe(2);
+    act(() => current.setPage(99));
+    expect(current.page).toBe(3);
+    root.unmount();
+  });
+});

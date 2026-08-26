@@ -3,10 +3,10 @@
  * controller: branch resolution/validation on create, and blocking
  * status/delete changes while a table has an active order.
  */
-import type { TableStatus } from '@pos/types';
-import type { AuthContext } from '../../core/auth';
-import { tableRepository } from './table.repository';
-import { branchRepository } from '../branches/branch.repository';
+import type { TableStatus } from "@pos/types";
+import type { AuthContext } from "../../core/auth";
+import { tableRepository } from "./table.repository";
+import { branchRepository } from "../branches/branch.repository";
 import {
   tableNotFound,
   branchNotFound,
@@ -14,13 +14,13 @@ import {
   tablesDisabledForBranch,
   tableHasActiveOrder,
   tableHasOpenOrder,
-} from './table.errors';
+} from "./table.errors";
 import {
   assertTableListScope,
   assertTableResourceAccess,
   requireTablesPermission,
   resolveTableBranch,
-} from './tables-authorization';
+} from "./tables-authorization";
 
 export interface CreateTableInput {
   name: string;
@@ -40,13 +40,13 @@ export const tableService = {
   // Branch-locked staff see only their own branch; OWNER/MANAGER can pass
   // `null` (resolved from "all branches") to see everything, tagged by branch.
   async list(auth: AuthContext) {
-    requireTablesPermission(auth, 'tables:read');
+    requireTablesPermission(auth, "tables:read");
     assertTableListScope(auth);
     return tableRepository.findMany(auth.tenantId, auth.branchId);
   },
 
   async create(auth: AuthContext, input: CreateTableInput) {
-    requireTablesPermission(auth, 'tables:create');
+    requireTablesPermission(auth, "tables:create");
     let branchId: string;
     try {
       branchId = resolveTableBranch(auth, input.branchId);
@@ -73,7 +73,7 @@ export const tableService = {
   },
 
   async update(auth: AuthContext, tableId: string, changes: UpdateTableInput) {
-    requireTablesPermission(auth, 'tables:update');
+    requireTablesPermission(auth, "tables:update");
     const table = await tableRepository.findById(auth.tenantId, tableId);
     if (!table) throw tableNotFound(tableId);
     assertTableResourceAccess(auth, table.branchId);
@@ -82,7 +82,11 @@ export const tableService = {
       await assertNoActiveOrder(auth.tenantId, tableId);
     }
 
-    const updated = await tableRepository.update(auth.tenantId, tableId, changes);
+    const updated = await tableRepository.update(
+      auth.tenantId,
+      tableId,
+      changes,
+    );
     if (!updated) throw tableNotFound(tableId);
     return updated;
   },
@@ -93,25 +97,30 @@ export const tableService = {
   // only changes automatically as a side effect of the order lifecycle
   // (see modules/orders/order.service.ts).
   async updateStatus(auth: AuthContext, tableId: string, status: TableStatus) {
-    requireTablesPermission(auth, 'tables:update');
+    requireTablesPermission(auth, "tables:update");
     const table = await tableRepository.findById(auth.tenantId, tableId);
     if (!table) throw tableNotFound(tableId);
     assertTableResourceAccess(auth, table.branchId);
 
     await assertNoActiveOrder(auth.tenantId, tableId);
 
-    const updated = await tableRepository.update(auth.tenantId, tableId, { status });
+    const updated = await tableRepository.update(auth.tenantId, tableId, {
+      status,
+    });
     if (!updated) throw tableNotFound(tableId);
     return updated;
   },
 
   async remove(auth: AuthContext, tableId: string) {
-    requireTablesPermission(auth, 'tables:delete');
+    requireTablesPermission(auth, "tables:delete");
     const table = await tableRepository.findById(auth.tenantId, tableId);
     if (!table) throw tableNotFound(tableId);
     assertTableResourceAccess(auth, table.branchId);
 
-    const hasOpenOrders = await tableRepository.hasOpenOrders(auth.tenantId, tableId);
+    const hasOpenOrders = await tableRepository.hasOpenOrders(
+      auth.tenantId,
+      tableId,
+    );
     if (hasOpenOrders) throw tableHasOpenOrder();
 
     const deleted = await tableRepository.softDelete(auth.tenantId, tableId);
@@ -120,7 +129,10 @@ export const tableService = {
   },
 };
 
-async function assertNoActiveOrder(tenantId: string, tableId: string): Promise<void> {
+async function assertNoActiveOrder(
+  tenantId: string,
+  tableId: string,
+): Promise<void> {
   const hasOpenOrders = await tableRepository.hasOpenOrders(tenantId, tableId);
   if (hasOpenOrders) throw tableHasActiveOrder();
 }

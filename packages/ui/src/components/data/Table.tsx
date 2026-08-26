@@ -1,7 +1,7 @@
-import { type ComponentType, type ReactNode, useState } from 'react';
-import { ChevronUp, ChevronDown, ChevronsUpDown, Inbox } from 'lucide-react';
-import { cn } from '../../utils/cn';
-import { EmptyState } from '../EmptyState';
+import { type ComponentType, type ReactNode, useState } from "react";
+import { ChevronUp, ChevronDown, ChevronsUpDown, Inbox } from "lucide-react";
+import { cn } from "../../utils/cn";
+import { EmptyState } from "../EmptyState";
 import {
   ALIGN_CLASSES,
   CELL_PADDING,
@@ -13,7 +13,7 @@ import {
   sortRows,
   type SortState,
   type TableDensity,
-} from './shared';
+} from "./shared";
 
 export type { Column, SortState, TableDensity };
 
@@ -71,19 +71,23 @@ export interface TableProps<T> {
    * `<table>` is valid with no accessible name at all, so this is a pure
    * escape hatch, not a gap that needs a fallback value. Prefer this over
    * `aria-labelledby` when there's no existing heading to point to. */
-  'aria-label'?: string | undefined;
+  "aria-label"?: string | undefined;
   /** Points at an existing heading/label element instead of duplicating its text
    * via `aria-label`. Takes precedence over `aria-label` if both are passed
    * (native `aria-labelledby`-over-`aria-label` precedence, not special-cased here). */
-  'aria-labelledby'?: string | undefined;
+  "aria-labelledby"?: string | undefined;
 }
 
 function SortIcon({ direction }: { direction: SortDirectionOrNone }) {
-  if (direction === 'asc') return <ChevronUp aria-hidden="true" className="w-3.5 h-3.5" />;
-  if (direction === 'desc') return <ChevronDown aria-hidden="true" className="w-3.5 h-3.5" />;
-  return <ChevronsUpDown aria-hidden="true" className="w-3.5 h-3.5 opacity-40" />;
+  if (direction === "asc")
+    return <ChevronUp aria-hidden="true" className="w-3.5 h-3.5" />;
+  if (direction === "desc")
+    return <ChevronDown aria-hidden="true" className="w-3.5 h-3.5" />;
+  return (
+    <ChevronsUpDown aria-hidden="true" className="w-3.5 h-3.5 opacity-40" />
+  );
 }
-type SortDirectionOrNone = 'asc' | 'desc' | undefined;
+type SortDirectionOrNone = "asc" | "desc" | undefined;
 
 export function Table<T>({
   columns,
@@ -92,21 +96,23 @@ export function Table<T>({
   loading = false,
   skeletonRows = 5,
   emptyIcon = Inbox,
-  emptyTitle = 'No data',
+  emptyTitle = "No data",
   emptyDescription,
   emptyAction,
   onRowClick,
   sort: sortProp,
   onSortChange,
   defaultSort = null,
-  density = 'comfortable',
+  density = "comfortable",
   stickyHeader = true,
   maxHeight,
   className,
-  'aria-label': ariaLabel,
-  'aria-labelledby': ariaLabelledBy,
+  "aria-label": ariaLabel,
+  "aria-labelledby": ariaLabelledBy,
 }: TableProps<T>) {
-  const [internalSort, setInternalSort] = useState<SortState | null>(defaultSort);
+  const [internalSort, setInternalSort] = useState<SortState | null>(
+    defaultSort,
+  );
   const sort = sortProp !== undefined ? sortProp : internalSort;
 
   function handleHeaderClick(col: Column<T>) {
@@ -118,7 +124,7 @@ export function Table<T>({
 
   if (loading) {
     return (
-      <div className={cn('w-full overflow-x-auto', className)} aria-busy="true">
+      <div className={cn("w-full overflow-x-auto", className)} aria-busy="true">
         <table
           className="w-full text-sm border-collapse"
           aria-label={ariaLabelledBy ? undefined : ariaLabel}
@@ -130,7 +136,10 @@ export function Table<T>({
                 {columns.map((col) => (
                   <td
                     key={col.id}
-                    className={cn(CELL_PADDING[density], ALIGN_CLASSES[col.align ?? 'left'])}
+                    className={cn(
+                      CELL_PADDING[density],
+                      ALIGN_CLASSES[col.align ?? "left"],
+                    )}
                   >
                     <div className="h-3 w-full rounded-md bg-surface-secondary animate-pulse" />
                   </td>
@@ -160,14 +169,21 @@ export function Table<T>({
   const rows = sortRows(data, columns, sort);
 
   return (
-    <div className={cn('w-full overflow-x-auto', maxHeight && 'overflow-y-auto', className)} style={maxHeight ? { maxHeight } : undefined}>
+    <div
+      className={cn(
+        "w-full overflow-x-auto",
+        maxHeight && "overflow-y-auto",
+        className,
+      )}
+      style={maxHeight ? { maxHeight } : undefined}
+    >
       <table
         className="w-full text-sm border-collapse"
         aria-label={ariaLabelledBy ? undefined : ariaLabel}
         aria-labelledby={ariaLabelledBy}
       >
         <thead>
-          <tr className={cn(stickyHeader && 'sticky top-0 z-10', 'bg-surface')}>
+          <tr className={cn(stickyHeader && "sticky top-0 z-10", "bg-surface")}>
             {columns.map((col) => {
               const isSorted = sort?.columnId === col.id;
               return (
@@ -177,25 +193,34 @@ export function Table<T>({
                   style={{ width: col.width, minWidth: col.minWidth }}
                   className={cn(
                     CELL_PADDING[density],
-                    ALIGN_CLASSES[col.align ?? 'left'],
-                    'font-semibold text-xs text-text-secondary uppercase tracking-wide border-b border-border whitespace-nowrap',
-                    col.sortable && 'cursor-pointer select-none hover:text-text-primary',
+                    ALIGN_CLASSES[col.align ?? "left"],
+                    "font-semibold text-xs text-text-secondary uppercase tracking-wide border-b border-border whitespace-nowrap",
+                    col.sortable &&
+                      "cursor-pointer select-none hover:text-text-primary",
                   )}
-                  aria-sort={isSorted ? (sort!.direction === 'asc' ? 'ascending' : 'descending') : undefined}
+                  aria-sort={
+                    isSorted
+                      ? sort!.direction === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : undefined
+                  }
                 >
                   {col.sortable ? (
                     <button
                       type="button"
                       onClick={() => handleHeaderClick(col)}
                       className={cn(
-                        'inline-flex items-center gap-1',
-                        col.align === 'right' && 'flex-row-reverse',
-                        col.align === 'center' && 'justify-center w-full',
+                        "inline-flex items-center gap-1",
+                        col.align === "right" && "flex-row-reverse",
+                        col.align === "center" && "justify-center w-full",
                         SORT_BUTTON_FOCUS_CLASSES,
                       )}
                     >
                       {col.header}
-                      <SortIcon direction={isSorted ? sort!.direction : undefined} />
+                      <SortIcon
+                        direction={isSorted ? sort!.direction : undefined}
+                      />
                     </button>
                   ) : (
                     col.header
@@ -213,14 +238,19 @@ export function Table<T>({
               onKeyDown={clickableRowKeyDown(row, onRowClick)}
               tabIndex={onRowClick ? 0 : undefined}
               className={cn(
-                onRowClick && 'cursor-pointer hover:bg-surface-secondary transition-colors duration-fast ease-standard',
+                onRowClick &&
+                  "cursor-pointer hover:bg-surface-secondary transition-colors duration-fast ease-standard",
                 onRowClick && CLICKABLE_ROW_FOCUS_CLASSES,
               )}
             >
               {columns.map((col) => (
                 <td
                   key={col.id}
-                  className={cn(CELL_PADDING[density], ALIGN_CLASSES[col.align ?? 'left'], 'text-text-primary')}
+                  className={cn(
+                    CELL_PADDING[density],
+                    ALIGN_CLASSES[col.align ?? "left"],
+                    "text-text-primary",
+                  )}
                 >
                   {col.cell(row, rowIndex)}
                 </td>

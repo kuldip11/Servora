@@ -8,8 +8,8 @@
  * collapse to the same `NotFoundError` here. No frontend client checks
  * these code strings (verified — see docs/NEXT_STEPS.md).
  */
-import { NotFoundError } from '../../../core/errors';
+import { NotFoundError } from "../../../core/errors";
 
 export function itemNotFound(id?: string): NotFoundError {
-  return new NotFoundError('Menu item', id);
+  return new NotFoundError("Menu item", id);
 }

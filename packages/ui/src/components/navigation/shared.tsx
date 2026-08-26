@@ -1,5 +1,5 @@
-import type { ComponentType, ElementType, ReactNode } from 'react';
-import { cn } from '../../utils/cn';
+import type { ComponentType, ElementType, ReactNode } from "react";
+import { cn } from "../../utils/cn";
 
 /**
  * Shared foundation for Phase 6 — Navigation Components
@@ -36,12 +36,12 @@ export interface NavItem {
 
 export function navItemClasses(active?: boolean, disabled?: boolean) {
   return cn(
-    'flex items-center gap-3 rounded-md text-sm font-medium transition-colors duration-fast ease-standard outline-none',
-    'focus-visible:ring-2 focus-visible:ring-primary',
-    disabled && 'opacity-50 pointer-events-none',
+    "flex items-center gap-3 rounded-md text-sm font-medium transition-colors duration-fast ease-standard outline-none",
+    "focus-visible:ring-2 focus-visible:ring-primary",
+    disabled && "opacity-50 pointer-events-none",
     active
-      ? 'bg-primary-surface text-primary'
-      : 'text-text-secondary hover:bg-surface-secondary hover:text-text-primary',
+      ? "bg-primary-surface text-primary"
+      : "text-text-secondary hover:bg-surface-secondary hover:text-text-primary",
   );
 }
 
@@ -63,8 +63,8 @@ export function NavLink({
   const { as: As, href, onClick, disabled, active, linkProps } = item;
   const commonProps = {
     className,
-    'aria-current': active ? ('page' as const) : undefined,
-    'aria-disabled': disabled || undefined,
+    "aria-current": active ? ("page" as const) : undefined,
+    "aria-disabled": disabled || undefined,
   };
 
   if (As) {
@@ -91,18 +91,21 @@ export function NavLink({
     // the ideal "fully inert" outcome, but is the correct fix
     // available without either depending on a specific router's API
     // or guessing at one.
-    const existingOnClick = linkProps?.['onClick'];
+    const existingOnClick = linkProps?.["onClick"];
     return (
       <As
         {...linkProps}
         {...commonProps}
-        onClick={(e: { preventDefault: () => void; stopPropagation: () => void }) => {
+        onClick={(e: {
+          preventDefault: () => void;
+          stopPropagation: () => void;
+        }) => {
           if (disabled) {
             e.preventDefault();
             e.stopPropagation();
             return;
           }
-          if (typeof existingOnClick === 'function') existingOnClick(e);
+          if (typeof existingOnClick === "function") existingOnClick(e);
         }}
       >
         {children}
@@ -117,7 +120,12 @@ export function NavLink({
     );
   }
   return (
-    <button type="button" onClick={onClick} disabled={disabled} {...commonProps}>
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      {...commonProps}
+    >
       {children}
     </button>
   );

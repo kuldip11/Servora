@@ -5,21 +5,28 @@
  * overrides, bulk ops, and import/export/templates — none of those have
  * been split out yet, see docs/NEXT_STEPS.md).
  */
-import { eq, and, isNull, or } from 'drizzle-orm';
-import { db } from '../../../db';
-import { menuCategories, menuItems } from '../../../db/schema';
-import { ITEM_DETAIL_RELATIONS } from '../items/item.repository';
-import { compact } from '../../../lib/object-utils';
+import { eq, and, isNull, or } from "drizzle-orm";
+import { db } from "../../../db";
+import { menuCategories, menuItems } from "../../../db/schema";
+import { ITEM_DETAIL_RELATIONS } from "../items/item.repository";
+import { compact } from "../../../lib/object-utils";
 
 export const categoryRepository = {
   async findById(tenantId: string, categoryId: string) {
     return db.query.menuCategories.findFirst({
-      where: and(eq(menuCategories.id, categoryId), eq(menuCategories.tenantId, tenantId)),
+      where: and(
+        eq(menuCategories.id, categoryId),
+        eq(menuCategories.tenantId, tenantId),
+      ),
       columns: { id: true, branchId: true },
     });
   },
 
-  async findMany(tenantId: string, branchId: string | null | undefined, includeUnpublished: boolean) {
+  async findMany(
+    tenantId: string,
+    branchId: string | null | undefined,
+    includeUnpublished: boolean,
+  ) {
     return db.query.menuCategories.findMany({
       where: and(
         eq(menuCategories.tenantId, tenantId),
@@ -27,7 +34,12 @@ export const categoryRepository = {
         // Show categories scoped to this branch, plus tenant-wide shared
         // ones (branchId is null). No branch selected (aggregate view) ->
         // show everything.
-        branchId ? or(eq(menuCategories.branchId, branchId), isNull(menuCategories.branchId)) : undefined,
+        branchId
+          ? or(
+              eq(menuCategories.branchId, branchId),
+              isNull(menuCategories.branchId),
+            )
+          : undefined,
       ),
       orderBy: menuCategories.sortOrder,
       with: {
@@ -35,7 +47,9 @@ export const categoryRepository = {
           where: and(
             isNull(menuItems.deletedAt),
             includeUnpublished ? undefined : eq(menuItems.isPublished, true),
-            branchId ? or(eq(menuItems.branchId, branchId), isNull(menuItems.branchId)) : undefined,
+            branchId
+              ? or(eq(menuItems.branchId, branchId), isNull(menuItems.branchId))
+              : undefined,
           ),
           orderBy: (t: any, { asc }: any) => [asc(t.sortOrder)],
           with: ITEM_DETAIL_RELATIONS,
@@ -71,7 +85,12 @@ export const categoryRepository = {
     const [updated] = await db
       .update(menuCategories)
       .set(compact({ ...data, updatedAt: new Date() }))
-      .where(and(eq(menuCategories.id, categoryId), eq(menuCategories.tenantId, tenantId)))
+      .where(
+        and(
+          eq(menuCategories.id, categoryId),
+          eq(menuCategories.tenantId, tenantId),
+        ),
+      )
       .returning();
     return updated;
   },

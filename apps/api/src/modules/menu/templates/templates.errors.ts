@@ -7,12 +7,12 @@
  * strings (verified — same check as the other menu sub-domains; see
  * docs/NEXT_STEPS.md).
  */
-import { NotFoundError } from '../../../core/errors';
+import { NotFoundError } from "../../../core/errors";
 
 export function templateNotFound(id?: string): NotFoundError {
-  return new NotFoundError('Menu template', id);
+  return new NotFoundError("Menu template", id);
 }
 
 export function templateCategoryNotFound(id?: string): NotFoundError {
-  return new NotFoundError('Category', id);
+  return new NotFoundError("Category", id);
 }

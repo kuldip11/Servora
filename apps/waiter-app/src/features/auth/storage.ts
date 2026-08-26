@@ -1,5 +1,5 @@
-import { STORAGE_KEYS } from '../../shared/constants/storage-keys';
-import type { User } from '@pos/types';
+import { STORAGE_KEYS } from "../../shared/constants/storage-keys";
+import type { User } from "@pos/types";
 
 export function saveTokens(accessToken: string, refreshToken: string) {
   localStorage.setItem(STORAGE_KEYS.token, accessToken);
@@ -19,7 +19,6 @@ export function saveContext(franchiseId: string, branchId: string | null) {
   else localStorage.removeItem(STORAGE_KEYS.branch);
 }
 
-
 export function saveProfile(user: User) {
   localStorage.setItem(STORAGE_KEYS.name, `${user.firstName} ${user.lastName}`);
 }
@@ -29,7 +28,7 @@ export function getToken(): string | null {
 }
 
 export function getWaiterName(): string {
-  return localStorage.getItem(STORAGE_KEYS.name) ?? 'Waiter';
+  return localStorage.getItem(STORAGE_KEYS.name) ?? "Waiter";
 }
 
 export function logout() {

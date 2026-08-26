@@ -1,7 +1,7 @@
-import { ChevronDown } from 'lucide-react';
-import { cn } from '../../utils/cn';
-import { DropdownMenu } from '../overlay/DropdownMenu';
-import type { MenuEntry } from '../overlay/shared';
+import { ChevronDown } from "lucide-react";
+import { cn } from "../../utils/cn";
+import { DropdownMenu } from "../overlay/DropdownMenu";
+import type { MenuEntry } from "../overlay/shared";
 
 export interface UserMenuProps {
   name: string;
@@ -11,7 +11,7 @@ export interface UserMenuProps {
   items: MenuEntry[];
   /** Hide the name/detail text and chevron, showing only the avatar — for a collapsed `Sidebar` or a tight `TopNav`. @default true */
   showDetails?: boolean | undefined;
-  align?: 'start' | 'center' | 'end' | undefined;
+  align?: "start" | "center" | "end" | undefined;
   className?: string | undefined;
 }
 
@@ -28,14 +28,14 @@ export function UserMenu({
   avatarUrl,
   items,
   showDetails = true,
-  align = 'end',
+  align = "end",
   className,
 }: UserMenuProps) {
   const initials = name
-    .split(' ')
+    .split(" ")
     .map((part) => part[0])
     .slice(0, 2)
-    .join('')
+    .join("")
     .toUpperCase();
 
   return (
@@ -46,13 +46,17 @@ export function UserMenu({
         <button
           type="button"
           className={cn(
-            'flex items-center gap-2.5 rounded-md p-1.5 text-left outline-none transition-colors duration-fast ease-standard',
-            'hover:bg-surface-secondary focus-visible:ring-2 focus-visible:ring-primary',
+            "flex items-center gap-2.5 rounded-md p-1.5 text-left outline-none transition-colors duration-fast ease-standard",
+            "hover:bg-surface-secondary focus-visible:ring-2 focus-visible:ring-primary",
             className,
           )}
         >
           {avatarUrl ? (
-            <img src={avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
+            <img
+              src={avatarUrl}
+              alt=""
+              className="w-8 h-8 rounded-full object-cover shrink-0"
+            />
           ) : (
             <span className="w-8 h-8 rounded-full bg-primary-surface text-primary text-xs font-semibold flex items-center justify-center shrink-0">
               {initials}

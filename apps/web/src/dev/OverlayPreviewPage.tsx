@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   AppShell,
   Page,
@@ -19,8 +19,8 @@ import {
   TooltipProvider,
   Toaster,
   toast,
-} from '@pos/ui';
-import { MoreVertical, Pencil, Trash2, Copy, Info } from 'lucide-react';
+} from "@pos/ui";
+import { MoreVertical, Pencil, Trash2, Copy, Info } from "lucide-react";
 
 /**
  * Internal-only route (`/dev/overlay-preview`, no auth guard). Phase 5
@@ -54,7 +54,9 @@ export function OverlayPreviewPage() {
       <AppShell
         topbar={
           <div className="px-6 py-3 flex items-center justify-between">
-            <span className="font-semibold text-text-primary">Overlay Components Preview</span>
+            <span className="font-semibold text-text-primary">
+              Overlay Components Preview
+            </span>
             <StatusBadge label="Phase 5" tone="info" />
           </div>
         }
@@ -69,7 +71,10 @@ export function OverlayPreviewPage() {
             <Card>
               <Stack direction="row" gap="sm">
                 <Button onClick={() => setDialogOpen(true)}>Open dialog</Button>
-                <Button variant="danger" onClick={() => setDestructiveOpen(true)}>
+                <Button
+                  variant="danger"
+                  onClick={() => setDestructiveOpen(true)}
+                >
                   Open destructive dialog
                 </Button>
               </Stack>
@@ -92,28 +97,46 @@ export function OverlayPreviewPage() {
           <Section title="Popover, DropdownMenu, Tooltip">
             <Card>
               <Grid columns={{ base: 1, md: 3 }} gap="md">
-                <Popover trigger={<Button variant="secondary">Open popover</Button>}>
-                  <p className="text-sm text-text-primary font-medium mb-1">Filter by branch</p>
+                <Popover
+                  trigger={<Button variant="secondary">Open popover</Button>}
+                >
+                  <p className="text-sm text-text-primary font-medium mb-1">
+                    Filter by branch
+                  </p>
                   <p className="text-sm text-text-secondary">
-                    Arbitrary content goes here — a form, a filter panel, anything.
+                    Arbitrary content goes here — a form, a filter panel,
+                    anything.
                   </p>
                 </Popover>
 
                 <DropdownMenu
                   trigger={
-                    <Button variant="secondary" className="!px-2" aria-label="More actions">
+                    <Button
+                      variant="secondary"
+                      className="!px-2"
+                      aria-label="More actions"
+                    >
                       <MoreVertical className="w-4 h-4" aria-hidden="true" />
                     </Button>
                   }
                   items={[
-                    { label: 'Edit', icon: Pencil, onSelect: () => toast({ title: 'Edit selected' }) },
-                    { label: 'Duplicate', icon: Copy, onSelect: () => toast({ title: 'Duplicated' }) },
-                    { type: 'separator' },
                     {
-                      label: 'Delete',
+                      label: "Edit",
+                      icon: Pencil,
+                      onSelect: () => toast({ title: "Edit selected" }),
+                    },
+                    {
+                      label: "Duplicate",
+                      icon: Copy,
+                      onSelect: () => toast({ title: "Duplicated" }),
+                    },
+                    { type: "separator" },
+                    {
+                      label: "Delete",
                       icon: Trash2,
                       danger: true,
-                      onSelect: () => toast({ title: 'Deleted', tone: 'danger' }),
+                      onSelect: () =>
+                        toast({ title: "Deleted", tone: "danger" }),
                     },
                   ]}
                 />
@@ -136,14 +159,22 @@ export function OverlayPreviewPage() {
           <Section title="ContextMenu">
             <ContextMenu
               items={[
-                { label: 'Edit', icon: Pencil, onSelect: () => toast({ title: 'Edit selected' }) },
-                { label: 'Duplicate', icon: Copy, onSelect: () => toast({ title: 'Duplicated' }) },
-                { type: 'separator' },
                 {
-                  label: 'Delete',
+                  label: "Edit",
+                  icon: Pencil,
+                  onSelect: () => toast({ title: "Edit selected" }),
+                },
+                {
+                  label: "Duplicate",
+                  icon: Copy,
+                  onSelect: () => toast({ title: "Duplicated" }),
+                },
+                { type: "separator" },
+                {
+                  label: "Delete",
                   icon: Trash2,
                   danger: true,
-                  onSelect: () => toast({ title: 'Deleted', tone: 'danger' }),
+                  onSelect: () => toast({ title: "Deleted", tone: "danger" }),
                 },
               ]}
             >
@@ -158,13 +189,25 @@ export function OverlayPreviewPage() {
           <Section title="Toast">
             <Card>
               <Stack direction="row" gap="sm">
-                <Button onClick={() => toast({ title: 'Saved', description: 'Your changes were saved.', tone: 'success' })}>
+                <Button
+                  onClick={() =>
+                    toast({
+                      title: "Saved",
+                      description: "Your changes were saved.",
+                      tone: "success",
+                    })
+                  }
+                >
                   Trigger success toast
                 </Button>
                 <Button
                   variant="danger"
                   onClick={() =>
-                    toast({ title: 'Something went wrong', description: 'Please try again.', tone: 'danger' })
+                    toast({
+                      title: "Something went wrong",
+                      description: "Please try again.",
+                      tone: "danger",
+                    })
                   }
                 >
                   Trigger error toast
@@ -175,9 +218,14 @@ export function OverlayPreviewPage() {
         </Page>
       </AppShell>
 
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} title="Edit branch">
+      <Dialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        title="Edit branch"
+      >
         <p className="text-sm text-text-secondary">
-          Ordinary dialog content — closes on Escape, outside click, or the ✕ button.
+          Ordinary dialog content — closes on Escape, outside click, or the ✕
+          button.
         </p>
       </Dialog>
 
@@ -188,14 +236,17 @@ export function OverlayPreviewPage() {
         preventDismiss
         footer={
           <>
-            <Button variant="secondary" onClick={() => setDestructiveOpen(false)}>
+            <Button
+              variant="secondary"
+              onClick={() => setDestructiveOpen(false)}
+            >
               Cancel
             </Button>
             <Button
               variant="danger"
               onClick={() => {
                 setDestructiveOpen(false);
-                toast({ title: 'Branch deleted', tone: 'danger' });
+                toast({ title: "Branch deleted", tone: "danger" });
               }}
             >
               Delete
@@ -204,18 +255,30 @@ export function OverlayPreviewPage() {
         }
       >
         <p className="text-sm text-text-secondary">
-          This can't be undone. Escape and outside-click are disabled here on purpose
-          (`preventDismiss`) — only the buttons below or the ✕ close this.
+          This can't be undone. Escape and outside-click are disabled here on
+          purpose (`preventDismiss`) — only the buttons below or the ✕ close
+          this.
         </p>
       </Dialog>
 
-      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} title="Branch details">
-        <p className="text-sm text-text-secondary">Side-panel content, e.g. a detail view.</p>
+      <Drawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        title="Branch details"
+      >
+        <p className="text-sm text-text-secondary">
+          Side-panel content, e.g. a detail view.
+        </p>
       </Drawer>
 
-      <BottomSheet open={sheetOpen} onClose={() => setSheetOpen(false)} title="Quick actions">
+      <BottomSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        title="Quick actions"
+      >
         <p className="text-sm text-text-secondary">
-          Mobile-oriented sheet — Waiter App's primary overlay pattern per the plan.
+          Mobile-oriented sheet — Waiter App's primary overlay pattern per the
+          plan.
         </p>
       </BottomSheet>
 

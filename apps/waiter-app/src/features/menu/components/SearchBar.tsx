@@ -1,4 +1,4 @@
-import { SearchInput } from '@pos/ui';
+import { SearchInput } from "@pos/ui";
 
 interface Props {
   value: string;
@@ -22,7 +22,7 @@ export function SearchBar({ value, onChange }: Props) {
         placeholder="Search menu…"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        onClear={() => onChange('')}
+        onClear={() => onChange("")}
         className="rounded-xl bg-surface-secondary"
       />
     </div>

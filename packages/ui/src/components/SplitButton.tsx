@@ -1,7 +1,17 @@
-import { type ComponentType, type ReactNode, useEffect, useRef, useState } from 'react';
-import { ChevronDown, Loader2 } from 'lucide-react';
-import { cn } from '../utils/cn';
-import { BUTTON_SIZE_CLASSES, BUTTON_ICON_SIZE_CLASSES, type ButtonSize } from './Button';
+import {
+  type ComponentType,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { ChevronDown, Loader2 } from "lucide-react";
+import { cn } from "../utils/cn";
+import {
+  BUTTON_SIZE_CLASSES,
+  BUTTON_ICON_SIZE_CLASSES,
+  type ButtonSize,
+} from "./Button";
 
 export interface SplitButtonAction {
   label: string;
@@ -15,7 +25,7 @@ export interface SplitButtonProps {
   onClick: () => void;
   actions: SplitButtonAction[];
   /** @default 'primary' */
-  variant?: 'primary' | 'secondary';
+  variant?: "primary" | "secondary";
   /** @default 'md' */
   size?: ButtonSize;
   disabled?: boolean;
@@ -24,13 +34,15 @@ export interface SplitButtonProps {
 }
 
 const VARIANT_CLASSES = {
-  primary: 'bg-primary text-primary-foreground hover:bg-primary-hover focus:ring-primary',
-  secondary: 'bg-surface text-text-primary hover:bg-surface-secondary focus:ring-border',
+  primary:
+    "bg-primary text-primary-foreground hover:bg-primary-hover focus:ring-primary",
+  secondary:
+    "bg-surface text-text-primary hover:bg-surface-secondary focus:ring-border",
 };
 
 const DIVIDER_CLASSES = {
-  primary: 'border-l border-white/25',
-  secondary: 'border-l border-border',
+  primary: "border-l border-white/25",
+  secondary: "border-l border-border",
 };
 
 /**
@@ -55,8 +67,8 @@ export function SplitButton({
   children,
   onClick,
   actions,
-  variant = 'primary',
-  size = 'md',
+  variant = "primary",
+  size = "md",
   disabled,
   loading,
   className,
@@ -67,50 +79,57 @@ export function SplitButton({
   useEffect(() => {
     if (!open) return;
     const handlePointerDown = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         setOpen(false);
       }
     };
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === "Escape") setOpen(false);
     };
-    document.addEventListener('mousedown', handlePointerDown);
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
-      document.removeEventListener('mousedown', handlePointerDown);
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [open]);
 
   return (
-    <div ref={containerRef} className={cn('relative inline-flex', className)}>
+    <div ref={containerRef} className={cn("relative inline-flex", className)}>
       <button
         type="button"
         onClick={onClick}
         disabled={disabled || loading}
         aria-busy={loading || undefined}
         className={cn(
-          'inline-flex items-center gap-2 font-medium rounded-l-md',
-          'focus:outline-none focus:ring-2 focus:ring-offset-2',
-          'disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-fast ease-standard',
+          "inline-flex items-center gap-2 font-medium rounded-l-md",
+          "focus:outline-none focus:ring-2 focus:ring-offset-2",
+          "disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-fast ease-standard",
           BUTTON_SIZE_CLASSES[size],
           VARIANT_CLASSES[variant],
         )}
       >
-        {loading && <Loader2 className={cn('animate-spin', BUTTON_ICON_SIZE_CLASSES[size])} />}
+        {loading && (
+          <Loader2
+            className={cn("animate-spin", BUTTON_ICON_SIZE_CLASSES[size])}
+          />
+        )}
         {children}
       </button>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         disabled={disabled || loading}
-        aria-label={open ? 'Close more actions' : 'More actions'}
+        aria-label={open ? "Close more actions" : "More actions"}
         aria-haspopup="menu"
         aria-expanded={open}
         className={cn(
-          'inline-flex items-center justify-center rounded-r-md px-2',
-          'focus:outline-none focus:ring-2 focus:ring-offset-2',
-          'disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-fast ease-standard',
+          "inline-flex items-center justify-center rounded-r-md px-2",
+          "focus:outline-none focus:ring-2 focus:ring-offset-2",
+          "disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-fast ease-standard",
           VARIANT_CLASSES[variant],
           DIVIDER_CLASSES[variant],
         )}
@@ -134,8 +153,8 @@ export function SplitButton({
                   action.onClick();
                 }}
                 className={cn(
-                  'flex w-full items-center gap-2 px-3 py-2 text-sm text-left hover:bg-surface-secondary',
-                  action.danger ? 'text-danger' : 'text-text-primary',
+                  "flex w-full items-center gap-2 px-3 py-2 text-sm text-left hover:bg-surface-secondary",
+                  action.danger ? "text-danger" : "text-text-primary",
                 )}
               >
                 {Icon && <Icon className="w-4 h-4" />}

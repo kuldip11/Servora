@@ -1,5 +1,5 @@
-import { createApiClient, type TokenStorageAdapter } from '@pos/api-client';
-import { STORAGE_KEYS } from '../constants/storage-keys';
+import { createApiClient, type TokenStorageAdapter } from "@pos/api-client";
+import { STORAGE_KEYS } from "../constants/storage-keys";
 
 const kdsStorageAdapter: TokenStorageAdapter = {
   getAccessToken: () => sessionStorage.getItem(STORAGE_KEYS.token),
@@ -14,7 +14,7 @@ const kdsStorageAdapter: TokenStorageAdapter = {
 };
 
 export const apiClient = createApiClient({
-  baseURL: import.meta.env['VITE_API_URL'] ?? '/api',
+  baseURL: import.meta.env["VITE_API_URL"] ?? "/api",
   timeout: 15_000,
   storage: kdsStorageAdapter,
   onRefreshFailure: () => {

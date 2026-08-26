@@ -1,13 +1,29 @@
 import {
-  ShoppingBag, TrendingUp, Package, AlertTriangle,
-  Clock, CheckCircle2, ChefHat,
-} from 'lucide-react';
-import { StatCard, Card, Grid, Page, PageHeader, StatusBadge, Badge } from '@pos/ui';
-import { formatCurrency, formatTime } from '../../../shared/utils/format';
-import { getOrderStatusColor, getOrderStatusLabel } from '../../../shared/utils/order-status';
-import { useDashboardStats } from '../hooks/useDashboardStats';
-import { useDashboardRealtimeSync } from '../hooks/useDashboardRealtimeSync';
-import { useOrders } from '../../orders/hooks/useOrders';
+  ShoppingBag,
+  TrendingUp,
+  Package,
+  AlertTriangle,
+  Clock,
+  CheckCircle2,
+  ChefHat,
+} from "lucide-react";
+import {
+  StatCard,
+  Card,
+  Grid,
+  Page,
+  PageHeader,
+  StatusBadge,
+  Badge,
+} from "@pos/ui";
+import { formatCurrency, formatTime } from "../../../shared/utils/format";
+import {
+  getOrderStatusColor,
+  getOrderStatusLabel,
+} from "../../../shared/utils/order-status";
+import { useDashboardStats } from "../hooks/useDashboardStats";
+import { useDashboardRealtimeSync } from "../hooks/useDashboardRealtimeSync";
+import { useOrders } from "../../orders/hooks/useOrders";
 
 // **Correction to the audit's migration-map note, not a silent
 // reinterpretation:** `phase-0-ui-audit.md` describes this page as
@@ -37,29 +53,54 @@ import { useOrders } from '../../orders/hooks/useOrders';
 // against the full status enum anyway, matching `OrdersPage`'s own
 // defensive convention rather than narrowing it to "whatever this one
 // query happens to return right now."
-const STATUS_TONE: Partial<Record<string, 'info' | 'warning' | 'neutral' | 'danger'>> = {
-  OPEN: 'info',
-  BILL_REQUESTED: 'warning',
-  CLOSED: 'neutral',
-  CANCELLED: 'danger',
+const STATUS_TONE: Partial<
+  Record<string, "info" | "warning" | "neutral" | "danger">
+> = {
+  OPEN: "info",
+  BILL_REQUESTED: "warning",
+  CLOSED: "neutral",
+  CANCELLED: "danger",
   // PAID intentionally omitted — see comment above.
 };
 
 const QUICK_ACTIONS = [
-  { label: 'New Order', icon: ShoppingBag, href: '/orders', color: 'bg-violet-600' },
-  { label: 'Kitchen Queue', icon: ChefHat, href: '/orders?view=kitchen', color: 'bg-amber-500' },
-  { label: 'Inventory', icon: Package, href: '/inventory', color: 'bg-emerald-600' },
-  { label: 'Low Stock', icon: AlertTriangle, href: '/inventory?filter=low', color: 'bg-red-500' },
+  {
+    label: "New Order",
+    icon: ShoppingBag,
+    href: "/orders",
+    color: "bg-violet-600",
+  },
+  {
+    label: "Kitchen Queue",
+    icon: ChefHat,
+    href: "/orders?view=kitchen",
+    color: "bg-amber-500",
+  },
+  {
+    label: "Inventory",
+    icon: Package,
+    href: "/inventory",
+    color: "bg-emerald-600",
+  },
+  {
+    label: "Low Stock",
+    icon: AlertTriangle,
+    href: "/inventory?filter=low",
+    color: "bg-red-500",
+  },
 ];
 
 export function DashboardPage() {
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
-  const { data: activeOrders } = useOrders({ status: 'OPEN' });
+  const { data: activeOrders } = useOrders({ status: "OPEN" });
   useDashboardRealtimeSync();
 
   return (
     <Page>
-      <PageHeader title="Dashboard" description="Real-time overview of your restaurant" />
+      <PageHeader
+        title="Dashboard"
+        description="Real-time overview of your restaurant"
+      />
 
       {/* Stats */}
       {statsLoading ? (
@@ -95,7 +136,7 @@ export function DashboardPage() {
             title="Low Stock Alerts"
             value={stats?.lowStockAlerts ?? 0}
             icon={AlertTriangle}
-            color={stats?.lowStockAlerts ? 'red' : 'emerald'}
+            color={stats?.lowStockAlerts ? "red" : "emerald"}
             subtitle="Items below threshold"
           />
         </Grid>
@@ -105,10 +146,10 @@ export function DashboardPage() {
       <Grid columns={{ base: 1, lg: 2 }} gap="lg">
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-text-primary">Active Orders</h2>
-            <Badge variant="info">
-              {activeOrders?.length ?? 0} orders
-            </Badge>
+            <h2 className="text-base font-semibold text-text-primary">
+              Active Orders
+            </h2>
+            <Badge variant="info">{activeOrders?.length ?? 0} orders</Badge>
           </div>
           {!activeOrders?.length ? (
             <div className="text-center py-8 text-text-disabled">
@@ -129,12 +170,16 @@ export function DashboardPage() {
                         Order #{order.id.slice(-6).toUpperCase()}
                       </p>
                       <p className="text-xs text-text-secondary">
-                        {order.items?.length ?? 0} items · {formatTime(order.createdAt)}
+                        {order.items?.length ?? 0} items ·{" "}
+                        {formatTime(order.createdAt)}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
                       {tone ? (
-                        <StatusBadge tone={tone} label={getOrderStatusLabel(order.status)} />
+                        <StatusBadge
+                          tone={tone}
+                          label={getOrderStatusLabel(order.status)}
+                        />
                       ) : (
                         // PAID — no semantic tone maps onto brand violet, see file-level comment above.
                         <Badge className={getOrderStatusColor(order.status)}>
@@ -154,7 +199,9 @@ export function DashboardPage() {
 
         {/* Quick actions */}
         <Card>
-          <h2 className="text-base font-semibold text-text-primary mb-4">Quick Actions</h2>
+          <h2 className="text-base font-semibold text-text-primary mb-4">
+            Quick Actions
+          </h2>
           <div className="grid grid-cols-2 gap-3">
             {QUICK_ACTIONS.map((action) => {
               const Icon = action.icon;
@@ -164,10 +211,14 @@ export function DashboardPage() {
                   href={action.href}
                   className="flex items-center gap-3 p-4 rounded-lg border border-border hover:shadow-md transition-all duration-fast ease-standard"
                 >
-                  <div className={`w-9 h-9 ${action.color} rounded-lg flex items-center justify-center`}>
+                  <div
+                    className={`w-9 h-9 ${action.color} rounded-lg flex items-center justify-center`}
+                  >
                     <Icon className="w-5 h-5 text-white" />
                   </div>
-                  <span className="text-sm font-medium text-text-secondary">{action.label}</span>
+                  <span className="text-sm font-medium text-text-secondary">
+                    {action.label}
+                  </span>
                 </a>
               );
             })}

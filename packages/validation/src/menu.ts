@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const createMenuCategorySchema = z.object({
   name: z.string().min(1).max(100),
@@ -38,23 +38,63 @@ export const createMenuItemSchema = z.object({
 export type CreateMenuItemInput = z.infer<typeof createMenuItemSchema>;
 /** Form-level schema for the web Menu Item dialog. String fields match HTML inputs. */
 export const menuItemFormSchema = z.object({
-  name: z.string().trim().min(1, 'Item name is required').max(200, 'Item name must be 200 characters or fewer'),
-  description: z.string().max(1000, 'Description must be 1000 characters or fewer'),
-  basePrice: z.string().refine((v) => Number.isFinite(Number(v)) && Number(v) >= 0, 'Base price must be 0 or greater'),
-  taxRate: z.string().refine((v) => Number.isFinite(Number(v)) && Number(v) >= 0 && Number(v) <= 100, 'Tax rate must be between 0 and 100'),
-  foodType: z.enum(['VEG', 'NON_VEG', 'EGG']),
-  spiceLevel: z.enum(['', 'NONE', 'MILD', 'MEDIUM', 'HOT']),
-  sku: z.string().max(100, 'SKU must be 100 characters or fewer'),
-  prepTimeMinutes: z.string().refine((v) => v === '' || (Number.isInteger(Number(v)) && Number(v) >= 0), 'Prep time must be a whole number of minutes'),
-  hsnCode: z.string().max(20, 'HSN code must be 20 characters or fewer'),
-  status: z.enum(['ACTIVE', 'OUT_OF_STOCK', 'HIDDEN', 'SEASONAL', 'DISCONTINUED']),
-  availabilityReason: z.string().max(500, 'Reason must be 500 characters or fewer'),
+  name: z
+    .string()
+    .trim()
+    .min(1, "Item name is required")
+    .max(200, "Item name must be 200 characters or fewer"),
+  description: z
+    .string()
+    .max(1000, "Description must be 1000 characters or fewer"),
+  basePrice: z
+    .string()
+    .refine(
+      (v) => Number.isFinite(Number(v)) && Number(v) >= 0,
+      "Base price must be 0 or greater",
+    ),
+  taxRate: z
+    .string()
+    .refine(
+      (v) => Number.isFinite(Number(v)) && Number(v) >= 0 && Number(v) <= 100,
+      "Tax rate must be between 0 and 100",
+    ),
+  foodType: z.enum(["VEG", "NON_VEG", "EGG"]),
+  spiceLevel: z.enum(["", "NONE", "MILD", "MEDIUM", "HOT"]),
+  sku: z.string().max(100, "SKU must be 100 characters or fewer"),
+  prepTimeMinutes: z
+    .string()
+    .refine(
+      (v) => v === "" || (Number.isInteger(Number(v)) && Number(v) >= 0),
+      "Prep time must be a whole number of minutes",
+    ),
+  hsnCode: z.string().max(20, "HSN code must be 20 characters or fewer"),
+  status: z.enum([
+    "ACTIVE",
+    "OUT_OF_STOCK",
+    "HIDDEN",
+    "SEASONAL",
+    "DISCONTINUED",
+  ]),
+  availabilityReason: z
+    .string()
+    .max(500, "Reason must be 500 characters or fewer"),
   enableRecipeDeduction: z.boolean(),
-  variants: z.array(z.object({
-    name: z.string().trim().min(1, 'Variant name is required').max(100, 'Variant name must be 100 characters or fewer'),
-    price: z.string().refine((v) => Number.isFinite(Number(v)) && Number(v) >= 0, 'Variant price must be 0 or greater'),
-  })),
-  imageUrls: z.array(z.string().url('Image URL must be a valid URL')),
+  variants: z.array(
+    z.object({
+      name: z
+        .string()
+        .trim()
+        .min(1, "Variant name is required")
+        .max(100, "Variant name must be 100 characters or fewer"),
+      price: z
+        .string()
+        .refine(
+          (v) => Number.isFinite(Number(v)) && Number(v) >= 0,
+          "Variant price must be 0 or greater",
+        ),
+    }),
+  ),
+  imageUrls: z.array(z.string().url("Image URL must be a valid URL")),
   modifierGroupIds: z.array(z.string().uuid()),
   tagIds: z.array(z.string().uuid()),
   allergenIds: z.array(z.string().uuid()),

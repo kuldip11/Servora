@@ -1,5 +1,5 @@
-import { apiClient } from '../../../shared/lib/api-client';
-import type { Holiday } from '@pos/types';
+import { apiClient } from "../../../shared/lib/api-client";
+import type { Holiday } from "@pos/types";
 
 export interface HolidayFormInput {
   name: string;
@@ -9,12 +9,12 @@ export interface HolidayFormInput {
 
 export const menuHolidaysService = {
   async list(): Promise<Holiday[]> {
-    const res = await apiClient.get('/menu/holidays');
+    const res = await apiClient.get("/menu/holidays");
     return res.data.data;
   },
 
   async add(input: HolidayFormInput): Promise<Holiday> {
-    const res = await apiClient.post('/menu/holidays', input);
+    const res = await apiClient.post("/menu/holidays", input);
     return res.data.data;
   },
 

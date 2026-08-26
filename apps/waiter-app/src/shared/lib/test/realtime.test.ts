@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   createRealtimeClient: vi.fn(() => ({ connected: true })),
@@ -7,20 +7,24 @@ const mocks = vi.hoisted(() => ({
   useRealtimeConnection: vi.fn(() => true),
 }));
 
-vi.mock('@pos/realtime', () => ({
+vi.mock("@pos/realtime", () => ({
   createRealtimeClient: mocks.createRealtimeClient,
   useRealtime: mocks.useRealtimeBase,
   useRealtimeEvent: mocks.useRealtimeEventBase,
   useRealtimeConnection: mocks.useRealtimeConnection,
 }));
 
-import { useRealtime, useRealtimeEvent, useConnectionStatus } from '../realtime';
+import {
+  useRealtime,
+  useRealtimeEvent,
+  useConnectionStatus,
+} from "../realtime";
 
-describe('realtime', () => {
-  it('creates and forwards realtime hooks', () => {
+describe("realtime", () => {
+  it("creates and forwards realtime hooks", () => {
     const handler = vi.fn();
     useRealtime(handler as any);
-    useRealtimeEvent('order.updated' as any, handler as any);
+    useRealtimeEvent("order.updated" as any, handler as any);
 
     expect(mocks.createRealtimeClient).toHaveBeenCalledTimes(1);
     expect(mocks.useRealtimeBase).toHaveBeenCalled();

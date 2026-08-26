@@ -16,22 +16,22 @@
 // into the workspace scripts in this change; see docs/accessibility/README.md
 // "Not done" for why.)
 
-const jsxA11y = require('eslint-plugin-jsx-a11y');
-const tsParser = require('@typescript-eslint/parser');
+const jsxA11y = require("eslint-plugin-jsx-a11y");
+const tsParser = require("@typescript-eslint/parser");
 
 module.exports = [
   {
     ignores: [
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/build/**',
-      '**/.turbo/**',
-      '**/coverage/**',
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/.turbo/**",
+      "**/coverage/**",
     ],
   },
   {
-    files: ['**/*.{jsx,tsx}'],
-    plugins: { 'jsx-a11y': jsxA11y },
+    files: ["**/*.{jsx,tsx}"],
+    plugins: { "jsx-a11y": jsxA11y },
     languageOptions: {
       // TS-syntax-aware parser (`interface`, `import type`, generics,
       // etc.) — without this, every `.tsx` file in this repo fails to
@@ -57,18 +57,18 @@ module.exports = [
       // this catches the positive-integer case specifically, on *any*
       // element, interactive or not — a positive tabIndex reorders the
       // whole page's tab sequence and is never the right fix.
-      'jsx-a11y/tabindex-no-positive': 'error',
+      "jsx-a11y/tabindex-no-positive": "error",
 
       // "ARIA should never replace semantic HTML." Forces a real
       // interactive element (or an explicit, deliberate exception) over
       // e.g. `<div role="button" onClick={...}>`.
-      'jsx-a11y/no-static-element-interactions': 'error',
-      'jsx-a11y/no-noninteractive-element-interactions': 'error',
+      "jsx-a11y/no-static-element-interactions": "error",
+      "jsx-a11y/no-noninteractive-element-interactions": "error",
 
       // Every keyboard handler needs a real interactive target so it's
       // actually reachable by keyboard, not just mouse/pointer.
-      'jsx-a11y/click-events-have-key-events': 'error',
-      'jsx-a11y/no-autofocus': 'warn',
+      "jsx-a11y/click-events-have-key-events": "error",
+      "jsx-a11y/no-autofocus": "warn",
     },
   },
 ];

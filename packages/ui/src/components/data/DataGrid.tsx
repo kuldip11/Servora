@@ -4,14 +4,21 @@ import {
   useMemo,
   useRef,
   useState,
-} from 'react';
-import { ChevronUp, ChevronDown, ChevronsUpDown, Columns3, Inbox, Search } from 'lucide-react';
-import { cn } from '../../utils/cn';
-import { EmptyState } from '../EmptyState';
-import { Button } from '../Button';
-import { Popover } from '../overlay/Popover';
-import { SkeletonTable } from './SkeletonLoader';
-import { Pagination, type PaginationProps } from './Pagination';
+} from "react";
+import {
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
+  Columns3,
+  Inbox,
+  Search,
+} from "lucide-react";
+import { cn } from "../../utils/cn";
+import { EmptyState } from "../EmptyState";
+import { Button } from "../Button";
+import { Popover } from "../overlay/Popover";
+import { SkeletonTable } from "./SkeletonLoader";
+import { Pagination, type PaginationProps } from "./Pagination";
 import {
   ALIGN_CLASSES,
   CELL_PADDING,
@@ -26,7 +33,7 @@ import {
   type SortState,
   type TableDensity,
   useVirtualizedRows,
-} from './shared';
+} from "./shared";
 
 export type { Column, SortState, TableDensity };
 
@@ -106,7 +113,8 @@ export interface DataGridProps<T> {
    * `false` = hidden. Pass alongside `onColumnVisibilityChange`; omit both for
    * uncontrolled (grid manages its own, seeded from each column's `hidden` prop). */
   columnVisibility?: Record<string, boolean> | undefined;
-  onColumnVisibilityChange?: ((visibility: Record<string, boolean>) => void) | undefined;
+  onColumnVisibilityChange?:
+    ((visibility: Record<string, boolean>) => void) | undefined;
 
   // --- Global search ---
   /** Renders a built-in search box above the grid. Requires `getGlobalFilterValue`
@@ -128,7 +136,7 @@ export interface DataGridProps<T> {
    * component — `DataGrid` doesn't paginate `data` itself either way; pass
    * already-paged `data` for server-side paging, or slice it yourself for
    * client-side paging before handing it to `DataGrid`. */
-  pagination?: Omit<PaginationProps, 'className'> | undefined;
+  pagination?: Omit<PaginationProps, "className"> | undefined;
 
   /** Rendered top-right, alongside the global-search box and the columns
    * toggle if either is enabled — e.g. bulk-action buttons that appear once
@@ -136,10 +144,14 @@ export interface DataGridProps<T> {
   toolbarActions?: ReactNode;
 }
 
-function SortIcon({ direction }: { direction: 'asc' | 'desc' | undefined }) {
-  if (direction === 'asc') return <ChevronUp aria-hidden="true" className="w-3.5 h-3.5" />;
-  if (direction === 'desc') return <ChevronDown aria-hidden="true" className="w-3.5 h-3.5" />;
-  return <ChevronsUpDown aria-hidden="true" className="w-3.5 h-3.5 opacity-40" />;
+function SortIcon({ direction }: { direction: "asc" | "desc" | undefined }) {
+  if (direction === "asc")
+    return <ChevronUp aria-hidden="true" className="w-3.5 h-3.5" />;
+  if (direction === "desc")
+    return <ChevronDown aria-hidden="true" className="w-3.5 h-3.5" />;
+  return (
+    <ChevronsUpDown aria-hidden="true" className="w-3.5 h-3.5 opacity-40" />
+  );
 }
 
 /** Native checkbox styled to token colors, with `indeterminate` support (not
@@ -169,9 +181,9 @@ function GridCheckbox({
       onChange={(e) => onChange(e.target.checked)}
       onClick={(e) => e.stopPropagation()}
       className={cn(
-        'w-4 h-4 rounded border-border text-primary cursor-pointer',
-        'focus:outline-none focus:ring-2 focus:ring-primary',
-        disabled && 'opacity-50 cursor-not-allowed',
+        "w-4 h-4 rounded border-border text-primary cursor-pointer",
+        "focus:outline-none focus:ring-2 focus:ring-primary",
+        disabled && "opacity-50 cursor-not-allowed",
       )}
     />
   );
@@ -186,16 +198,16 @@ export function DataGrid<T>({
   loading = false,
   skeletonRows = 8,
   emptyIcon = Inbox,
-  emptyTitle = 'No data',
+  emptyTitle = "No data",
   emptyDescription,
   emptyAction,
   onRowClick,
   sort: sortProp,
   onSortChange,
   defaultSort = null,
-  density = 'comfortable',
+  density = "comfortable",
   rowHeight = 44,
-  maxHeight = '560px',
+  maxHeight = "560px",
   className,
   selectable = false,
   selectedIds: selectedIdsProp,
@@ -209,25 +221,30 @@ export function DataGrid<T>({
   globalFilter: globalFilterProp,
   onGlobalFilterChange,
   getGlobalFilterValue,
-  globalFilterPlaceholder = 'Search...',
+  globalFilterPlaceholder = "Search...",
   pagination,
   toolbarActions,
 }: DataGridProps<T>) {
-  const [internalSort, setInternalSort] = useState<SortState | null>(defaultSort);
+  const [internalSort, setInternalSort] = useState<SortState | null>(
+    defaultSort,
+  );
   const sort = sortProp !== undefined ? sortProp : internalSort;
 
   const [internalSelectedIds, setInternalSelectedIds] = useState<Set<string>>(
     defaultSelectedIds ?? new Set(),
   );
-  const selectedIds = selectedIdsProp !== undefined ? selectedIdsProp : internalSelectedIds;
+  const selectedIds =
+    selectedIdsProp !== undefined ? selectedIdsProp : internalSelectedIds;
 
-  const [internalVisibility, setInternalVisibility] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(columns.map((c) => [c.id, !c.hidden])),
-  );
-  const visibility = visibilityProp !== undefined ? visibilityProp : internalVisibility;
+  const [internalVisibility, setInternalVisibility] = useState<
+    Record<string, boolean>
+  >(() => Object.fromEntries(columns.map((c) => [c.id, !c.hidden])));
+  const visibility =
+    visibilityProp !== undefined ? visibilityProp : internalVisibility;
 
-  const [internalGlobalFilter, setInternalGlobalFilter] = useState('');
-  const globalFilter = globalFilterProp !== undefined ? globalFilterProp : internalGlobalFilter;
+  const [internalGlobalFilter, setInternalGlobalFilter] = useState("");
+  const globalFilter =
+    globalFilterProp !== undefined ? globalFilterProp : internalGlobalFilter;
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -257,21 +274,34 @@ export function DataGrid<T>({
     () => columns.filter((c) => visibility[c.id] !== false),
     [columns, visibility],
   );
-  const stickyOffsets = useMemo(() => computeStickyOffsets(visibleColumns), [visibleColumns]);
+  const stickyOffsets = useMemo(
+    () => computeStickyOffsets(visibleColumns),
+    [visibleColumns],
+  );
 
   const filtered = useMemo(() => {
-    if (!enableGlobalFilter || !getGlobalFilterValue || !globalFilter.trim()) return data;
-    return data.filter((row) => matchesGlobalFilter(getGlobalFilterValue(row), globalFilter));
+    if (!enableGlobalFilter || !getGlobalFilterValue || !globalFilter.trim())
+      return data;
+    return data.filter((row) =>
+      matchesGlobalFilter(getGlobalFilterValue(row), globalFilter),
+    );
   }, [data, enableGlobalFilter, getGlobalFilterValue, globalFilter]);
 
-  const rows = useMemo(() => sortRows(filtered, columns, sort), [filtered, columns, sort]);
+  const rows = useMemo(
+    () => sortRows(filtered, columns, sort),
+    [filtered, columns, sort],
+  );
 
   const selectableRowIds = useMemo(
     () => rows.map(getRowId).filter((id) => !disabledSelectionIds?.has(id)),
     [rows, getRowId, disabledSelectionIds],
   );
-  const selectedOnPageCount = selectableRowIds.filter((id) => selectedIds.has(id)).length;
-  const allOnPageSelected = selectableRowIds.length > 0 && selectedOnPageCount === selectableRowIds.length;
+  const selectedOnPageCount = selectableRowIds.filter((id) =>
+    selectedIds.has(id),
+  ).length;
+  const allOnPageSelected =
+    selectableRowIds.length > 0 &&
+    selectedOnPageCount === selectableRowIds.length;
   const someOnPageSelected = selectedOnPageCount > 0 && !allOnPageSelected;
 
   function toggleSelectAll() {
@@ -298,15 +328,19 @@ export function DataGrid<T>({
   );
   const visibleRows = rows.slice(startIndex, endIndex);
 
-  const showToolbar = enableGlobalFilter || enableColumnVisibility || !!toolbarActions;
+  const showToolbar =
+    enableGlobalFilter || enableColumnVisibility || !!toolbarActions;
 
   return (
-    <div className={cn('w-full', className)}>
+    <div className={cn("w-full", className)}>
       {showToolbar && (
         <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
           {enableGlobalFilter ? (
             <div className="relative flex-1 min-w-[200px] max-w-xs">
-              <Search aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary pointer-events-none" />
+              <Search
+                aria-hidden="true"
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary pointer-events-none"
+              />
               <input
                 type="text"
                 value={globalFilter}
@@ -314,8 +348,8 @@ export function DataGrid<T>({
                 placeholder={globalFilterPlaceholder}
                 aria-label={globalFilterPlaceholder}
                 className={cn(
-                  'w-full pl-9 pr-3 py-2 text-sm bg-surface border border-border rounded-md text-text-primary',
-                  'focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                  "w-full pl-9 pr-3 py-2 text-sm bg-surface border border-border rounded-md text-text-primary",
+                  "focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent",
                 )}
               />
             </div>
@@ -343,7 +377,9 @@ export function DataGrid<T>({
                       <GridCheckbox
                         label={`Toggle ${String(col.header)} column`}
                         checked={visibility[col.id] !== false}
-                        onChange={(checked) => setVisibility({ ...visibility, [col.id]: checked })}
+                        onChange={(checked) =>
+                          setVisibility({ ...visibility, [col.id]: checked })
+                        }
                       />
                       {col.header}
                     </label>
@@ -375,14 +411,20 @@ export function DataGrid<T>({
           className="w-full overflow-auto border border-border rounded-lg"
           style={{ maxHeight }}
         >
-          <table className="w-full text-sm border-collapse" style={{ tableLayout: 'fixed' }}>
+          <table
+            className="w-full text-sm border-collapse"
+            style={{ tableLayout: "fixed" }}
+          >
             <thead>
               <tr className="sticky top-0 z-20 bg-surface">
                 {selectable && (
                   <th
                     scope="col"
                     style={{ width: CHECKBOX_COL_WIDTH }}
-                    className={cn(CELL_PADDING[density], 'border-b border-border sticky left-0 z-30 bg-surface')}
+                    className={cn(
+                      CELL_PADDING[density],
+                      "border-b border-border sticky left-0 z-30 bg-surface",
+                    )}
                   >
                     <GridCheckbox
                       label="Select all rows on this page"
@@ -403,33 +445,52 @@ export function DataGrid<T>({
                         width: col.width,
                         minWidth: col.minWidth,
                         ...(sticky?.left !== undefined
-                          ? { position: 'sticky', left: sticky.left + (selectable ? CHECKBOX_COL_WIDTH : 0), zIndex: 30 }
+                          ? {
+                              position: "sticky",
+                              left:
+                                sticky.left +
+                                (selectable ? CHECKBOX_COL_WIDTH : 0),
+                              zIndex: 30,
+                            }
                           : sticky?.right !== undefined
-                            ? { position: 'sticky', right: sticky.right, zIndex: 30 }
+                            ? {
+                                position: "sticky",
+                                right: sticky.right,
+                                zIndex: 30,
+                              }
                             : {}),
                       }}
                       className={cn(
                         CELL_PADDING[density],
-                        ALIGN_CLASSES[col.align ?? 'left'],
-                        'font-semibold text-xs text-text-secondary uppercase tracking-wide border-b border-border whitespace-nowrap',
-                        col.sortable && 'cursor-pointer select-none hover:text-text-primary',
-                        col.sticky && 'bg-surface',
+                        ALIGN_CLASSES[col.align ?? "left"],
+                        "font-semibold text-xs text-text-secondary uppercase tracking-wide border-b border-border whitespace-nowrap",
+                        col.sortable &&
+                          "cursor-pointer select-none hover:text-text-primary",
+                        col.sticky && "bg-surface",
                       )}
-                      aria-sort={isSorted ? (sort!.direction === 'asc' ? 'ascending' : 'descending') : undefined}
+                      aria-sort={
+                        isSorted
+                          ? sort!.direction === "asc"
+                            ? "ascending"
+                            : "descending"
+                          : undefined
+                      }
                     >
                       {col.sortable ? (
                         <button
                           type="button"
                           onClick={() => handleHeaderClick(col)}
                           className={cn(
-                            'inline-flex items-center gap-1',
-                            col.align === 'right' && 'flex-row-reverse',
-                            col.align === 'center' && 'justify-center w-full',
+                            "inline-flex items-center gap-1",
+                            col.align === "right" && "flex-row-reverse",
+                            col.align === "center" && "justify-center w-full",
                             SORT_BUTTON_FOCUS_CLASSES,
                           )}
                         >
                           {col.header}
-                          <SortIcon direction={isSorted ? sort!.direction : undefined} />
+                          <SortIcon
+                            direction={isSorted ? sort!.direction : undefined}
+                          />
                         </button>
                       ) : (
                         col.header
@@ -442,7 +503,10 @@ export function DataGrid<T>({
             <tbody className="relative divide-y divide-divider">
               {startIndex > 0 && (
                 <tr style={{ height: offsetY }} aria-hidden="true">
-                  <td colSpan={visibleColumns.length + (selectable ? 1 : 0)} className="p-0" />
+                  <td
+                    colSpan={visibleColumns.length + (selectable ? 1 : 0)}
+                    className="p-0"
+                  />
                 </tr>
               )}
               {visibleRows.map((row, i) => {
@@ -458,15 +522,18 @@ export function DataGrid<T>({
                     onKeyDown={clickableRowKeyDown(row, onRowClick)}
                     tabIndex={onRowClick ? 0 : undefined}
                     className={cn(
-                      onRowClick && 'cursor-pointer',
-                      'bg-surface hover:bg-surface-secondary transition-colors duration-fast ease-standard',
-                      selected && 'bg-primary-surface',
+                      onRowClick && "cursor-pointer",
+                      "bg-surface hover:bg-surface-secondary transition-colors duration-fast ease-standard",
+                      selected && "bg-primary-surface",
                       onRowClick && CLICKABLE_ROW_FOCUS_CLASSES,
                     )}
                   >
                     {selectable && (
                       <td
-                        className={cn(CELL_PADDING[density], 'sticky left-0 z-10 bg-inherit')}
+                        className={cn(
+                          CELL_PADDING[density],
+                          "sticky left-0 z-10 bg-inherit",
+                        )}
                       >
                         <GridCheckbox
                           label={`Select row ${rowIndex + 1}`}
@@ -483,16 +550,26 @@ export function DataGrid<T>({
                           key={col.id}
                           style={
                             sticky?.left !== undefined
-                              ? { position: 'sticky', left: sticky.left + (selectable ? CHECKBOX_COL_WIDTH : 0), zIndex: 10 }
+                              ? {
+                                  position: "sticky",
+                                  left:
+                                    sticky.left +
+                                    (selectable ? CHECKBOX_COL_WIDTH : 0),
+                                  zIndex: 10,
+                                }
                               : sticky?.right !== undefined
-                                ? { position: 'sticky', right: sticky.right, zIndex: 10 }
+                                ? {
+                                    position: "sticky",
+                                    right: sticky.right,
+                                    zIndex: 10,
+                                  }
                                 : undefined
                           }
                           className={cn(
                             CELL_PADDING[density],
-                            ALIGN_CLASSES[col.align ?? 'left'],
-                            'text-text-primary truncate',
-                            col.sticky && 'bg-inherit',
+                            ALIGN_CLASSES[col.align ?? "left"],
+                            "text-text-primary truncate",
+                            col.sticky && "bg-inherit",
                           )}
                         >
                           {col.cell(row, rowIndex)}
@@ -503,8 +580,14 @@ export function DataGrid<T>({
                 );
               })}
               {endIndex < rows.length && (
-                <tr style={{ height: totalHeight - endIndex * rowHeight }} aria-hidden="true">
-                  <td colSpan={visibleColumns.length + (selectable ? 1 : 0)} className="p-0" />
+                <tr
+                  style={{ height: totalHeight - endIndex * rowHeight }}
+                  aria-hidden="true"
+                >
+                  <td
+                    colSpan={visibleColumns.length + (selectable ? 1 : 0)}
+                    className="p-0"
+                  />
                 </tr>
               )}
             </tbody>

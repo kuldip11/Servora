@@ -13,26 +13,28 @@
  * `GET /bills/:id`'s `BILL_NOT_FOUND` was already a 404 — no change there.
  * Original code strings are preserved in `details.reason` either way.
  */
-import { NotFoundError, DomainRuleError } from '../../core/errors';
+import { NotFoundError, DomainRuleError } from "../../core/errors";
 
 export function orderNotFound(id: string): NotFoundError {
-  return new NotFoundError('Order', id, { reason: 'ORDER_NOT_FOUND' });
+  return new NotFoundError("Order", id, { reason: "ORDER_NOT_FOUND" });
 }
 
 export function paymentNotFound(id: string): NotFoundError {
-  return new NotFoundError('Payment', id, { reason: 'PAYMENT_NOT_FOUND' });
+  return new NotFoundError("Payment", id, { reason: "PAYMENT_NOT_FOUND" });
 }
 
 export function billNotFound(id: string): NotFoundError {
-  return new NotFoundError('Bill', id, { reason: 'BILL_NOT_FOUND' });
+  return new NotFoundError("Bill", id, { reason: "BILL_NOT_FOUND" });
 }
 
 export function paymentNotRefundable(): DomainRuleError {
-  return new DomainRuleError('Payment is not refundable', { reason: 'PAYMENT_NOT_REFUNDABLE' });
+  return new DomainRuleError("Payment is not refundable", {
+    reason: "PAYMENT_NOT_REFUNDABLE",
+  });
 }
 
 export function refundExceedsPaymentAmount(): DomainRuleError {
-  return new DomainRuleError('Refund amount exceeds payment amount', {
-    reason: 'REFUND_AMOUNT_EXCEEDS_PAYMENT',
+  return new DomainRuleError("Refund amount exceeds payment amount", {
+    reason: "REFUND_AMOUNT_EXCEEDS_PAYMENT",
   });
 }

@@ -1,15 +1,15 @@
-import { useCallback } from 'react';
-import { Spinner, IconButton } from '@pos/ui';
-import { X } from 'lucide-react';
-import { useOrder } from '../hooks/useOrder';
-import { useUpdateOrderStatus } from '../hooks/useUpdateOrderStatus';
-import { useUpdateTicketStatus } from '../hooks/useUpdateTicketStatus';
-import { OrderDetailHeader } from '../components/OrderDetailHeader';
-import { OrderBanners } from '../components/OrderBanners';
-import { TicketGroup } from '../components/TicketGroup';
-import { OrderTotals } from '../components/OrderTotals';
-import { OrderTimeline } from '../components/OrderTimeline';
-import { OrderActions } from '../components/OrderActions';
+import { useCallback } from "react";
+import { Spinner, IconButton } from "@pos/ui";
+import { X } from "lucide-react";
+import { useOrder } from "../hooks/useOrder";
+import { useUpdateOrderStatus } from "../hooks/useUpdateOrderStatus";
+import { useUpdateTicketStatus } from "../hooks/useUpdateTicketStatus";
+import { OrderDetailHeader } from "../components/OrderDetailHeader";
+import { OrderBanners } from "../components/OrderBanners";
+import { TicketGroup } from "../components/TicketGroup";
+import { OrderTotals } from "../components/OrderTotals";
+import { OrderTimeline } from "../components/OrderTimeline";
+import { OrderActions } from "../components/OrderActions";
 
 interface Props {
   orderId: string;
@@ -44,7 +44,8 @@ export function OrderDetailPage({ orderId, onBack, onAddItems }: Props) {
   // duration of that one request. Scoped via `variables` the same way.
   const isTicketUpdating = useCallback(
     (ticketId: string) =>
-      updateTicketStatus.isPending && updateTicketStatus.variables?.ticketId === ticketId,
+      updateTicketStatus.isPending &&
+      updateTicketStatus.variables?.ticketId === ticketId,
     [updateTicketStatus.isPending, updateTicketStatus.variables],
   );
 
@@ -53,40 +54,43 @@ export function OrderDetailPage({ orderId, onBack, onAddItems }: Props) {
   // on every render — same reasoning `KitchenBoard`'s `handleUpdateStatus`
   // comment already documents.
   const handleMarkServed = useCallback(
-    (ticketId: string) => updateTicketStatus.mutate({ ticketId, status: 'SERVED' }),
+    (ticketId: string) =>
+      updateTicketStatus.mutate({ ticketId, status: "SERVED" }),
     [updateTicketStatus],
   );
 
-  if (isLoading) return (
-    <div className="flex flex-col h-screen bg-background">
-      <div className="bg-surface border-b border-border px-4 py-3 flex items-center gap-3">
-        {/* Same `IconButton` back-button treatment as the loaded
+  if (isLoading)
+    return (
+      <div className="flex flex-col h-screen bg-background">
+        <div className="bg-surface border-b border-border px-4 py-3 flex items-center gap-3">
+          {/* Same `IconButton` back-button treatment as the loaded
             header (`OrderDetailHeader.tsx`) — kept in sync rather than
             left on raw markup now that the real header has moved. */}
-        <IconButton
-          icon={X}
-          aria-label="Back to Orders"
-          size="lg"
-          className="w-9 h-9 rounded-xl bg-surface-secondary hover:bg-surface-secondary"
-          onClick={onBack}
-        />
-        <h2 className="font-bold text-text-primary">Order Detail</h2>
+          <IconButton
+            icon={X}
+            aria-label="Back to Orders"
+            size="lg"
+            className="w-9 h-9 rounded-xl bg-surface-secondary hover:bg-surface-secondary"
+            onClick={onBack}
+          />
+          <h2 className="font-bold text-text-primary">Order Detail</h2>
+        </div>
+        <div className="flex justify-center py-12">
+          <Spinner className="w-6 h-6" />
+        </div>
       </div>
-      <div className="flex justify-center py-12">
-        <Spinner className="w-6 h-6" />
-      </div>
-    </div>
-  );
+    );
 
   if (!order) return null;
 
   const tickets = order.kitchenTickets ?? [];
-  const readyTickets = tickets.filter((t) => t.status === 'READY');
-  const allTicketsServed = tickets.length > 0 && tickets.every((t) => t.status === 'SERVED');
+  const readyTickets = tickets.filter((t) => t.status === "READY");
+  const allTicketsServed =
+    tickets.length > 0 && tickets.every((t) => t.status === "SERVED");
 
-  const canRequestBill = order.status === 'OPEN' && allTicketsServed;
-  const canAddItems    = order.status === 'OPEN';
-  const canCancel      = order.status === 'OPEN';
+  const canRequestBill = order.status === "OPEN" && allTicketsServed;
+  const canAddItems = order.status === "OPEN";
+  const canCancel = order.status === "OPEN";
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -106,7 +110,9 @@ export function OrderDetailPage({ orderId, onBack, onAddItems }: Props) {
 
         {order.notes && (
           <div className="mx-4 mt-3 bg-warning-surface border border-warning/20 rounded-2xl px-4 py-3">
-            <p className="text-xs font-semibold text-warning mb-1">Order Notes</p>
+            <p className="text-xs font-semibold text-warning mb-1">
+              Order Notes
+            </p>
             <p className="text-sm text-warning">{order.notes}</p>
           </div>
         )}
@@ -122,9 +128,13 @@ export function OrderDetailPage({ orderId, onBack, onAddItems }: Props) {
         canCancel={canCancel}
         allTicketsServed={allTicketsServed}
         isUpdatingStatus={updateStatus.isPending}
-        onRequestBill={() => updateStatus.mutate({ id: orderId, status: 'BILL_REQUESTED' })}
+        onRequestBill={() =>
+          updateStatus.mutate({ id: orderId, status: "BILL_REQUESTED" })
+        }
         onAddItems={() => onAddItems(orderId)}
-        onCancel={() => updateStatus.mutate({ id: orderId, status: 'CANCELLED' })}
+        onCancel={() =>
+          updateStatus.mutate({ id: orderId, status: "CANCELLED" })
+        }
       />
     </div>
   );

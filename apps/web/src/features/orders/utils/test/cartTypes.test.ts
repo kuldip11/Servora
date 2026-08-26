@@ -1,34 +1,64 @@
-import { describe, expect, it } from 'vitest';
-import { cartItemKey, type CartItem } from '../cartTypes';
+import { describe, expect, it } from "vitest";
+import { cartItemKey, type CartItem } from "../cartTypes";
 
 const item = (overrides: Partial<CartItem> = {}): CartItem => ({
-  menuItemId: 'item-1',
-  menuItemName: 'Paneer Tikka',
+  menuItemId: "item-1",
+  menuItemName: "Paneer Tikka",
   basePrice: 250,
   modifiers: [],
   quantity: 1,
-  chefNotes: '',
+  chefNotes: "",
   unitPrice: 250,
   ...overrides,
 });
 
-describe('cartItemKey', () => {
-  it('groups identical item and modifier selections', () => {
+describe("cartItemKey", () => {
+  it("groups identical item and modifier selections", () => {
     expect(
-      cartItemKey(item({
-        modifiers: [
-          { optionId: 'm2', groupId: 'g', groupName: 'Extras', name: 'Cheese', price: 20, quantity: 1 },
-          { optionId: 'm1', groupId: 'g', groupName: 'Extras', name: 'Sauce', price: 10, quantity: 2 },
-        ],
-      })),
-    ).toBe('item-1____m1x2,m2x1');
+      cartItemKey(
+        item({
+          modifiers: [
+            {
+              optionId: "m2",
+              groupId: "g",
+              groupName: "Extras",
+              name: "Cheese",
+              price: 20,
+              quantity: 1,
+            },
+            {
+              optionId: "m1",
+              groupId: "g",
+              groupName: "Extras",
+              name: "Sauce",
+              price: 10,
+              quantity: 2,
+            },
+          ],
+        }),
+      ),
+    ).toBe("item-1____m1x2,m2x1");
   });
 
-  it('is independent of modifier ordering', () => {
+  it("is independent of modifier ordering", () => {
     const a = item({
       modifiers: [
-        { optionId: 'm1', groupId: 'g', groupName: 'Extras', name: 'Sauce', price: 10, quantity: 1 },
-        { optionId: 'm2', groupId: 'g', groupName: 'Extras', name: 'Cheese', price: 20, quantity: 1 },
+        {
+          optionId: "m1",
+          groupId: "g",
+          groupName: "Extras",
+          name: "Sauce",
+          price: 10,
+          quantity: 1,
+        },
+        {
+          optionId: "m2",
+          groupId: "g",
+          groupName: "Extras",
+          name: "Cheese",
+          price: 20,
+          quantity: 1,
+        },
       ],
     });
     const b = item({
@@ -37,20 +67,40 @@ describe('cartItemKey', () => {
     expect(cartItemKey(a)).toBe(cartItemKey(b));
   });
 
-  it('distinguishes variants and modifier quantities', () => {
-    expect(cartItemKey(item({ variantId: 'small' }))).not.toBe(cartItemKey(item({ variantId: 'large' })));
+  it("distinguishes variants and modifier quantities", () => {
+    expect(cartItemKey(item({ variantId: "small" }))).not.toBe(
+      cartItemKey(item({ variantId: "large" })),
+    );
     expect(
-      cartItemKey(item({
-        modifiers: [
-          { optionId: 'm1', groupId: 'g', groupName: 'Extras', name: 'Sauce', price: 10, quantity: 1 },
-        ],
-      })),
+      cartItemKey(
+        item({
+          modifiers: [
+            {
+              optionId: "m1",
+              groupId: "g",
+              groupName: "Extras",
+              name: "Sauce",
+              price: 10,
+              quantity: 1,
+            },
+          ],
+        }),
+      ),
     ).not.toBe(
-      cartItemKey(item({
-        modifiers: [
-          { optionId: 'm1', groupId: 'g', groupName: 'Extras', name: 'Sauce', price: 10, quantity: 2 },
-        ],
-      })),
+      cartItemKey(
+        item({
+          modifiers: [
+            {
+              optionId: "m1",
+              groupId: "g",
+              groupName: "Extras",
+              name: "Sauce",
+              price: 10,
+              quantity: 2,
+            },
+          ],
+        }),
+      ),
     );
   });
 });

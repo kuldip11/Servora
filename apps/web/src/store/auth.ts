@@ -1,15 +1,15 @@
-import { create } from 'zustand';
-import type { AvailableMembership, User } from '@pos/types';
+import { create } from "zustand";
+import type { AvailableMembership, User } from "@pos/types";
 
-const REFRESH_TOKEN_KEY = 'pos-refresh-token';
+const REFRESH_TOKEN_KEY = "pos-refresh-token";
 
 function readRefreshToken(): string | null {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === "undefined") return null;
   return window.localStorage.getItem(REFRESH_TOKEN_KEY);
 }
 
 function writeRefreshToken(token: string | null): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   if (token) window.localStorage.setItem(REFRESH_TOKEN_KEY, token);
   else window.localStorage.removeItem(REFRESH_TOKEN_KEY);
 }
@@ -61,7 +61,13 @@ export const useAuthStore = create<AuthState>((set) => ({
   branchId: null,
   isAuthenticated: false,
 
-  setAuth: ({ user, accessToken, refreshToken, membershipId = null, memberships = [] }) => {
+  setAuth: ({
+    user,
+    accessToken,
+    refreshToken,
+    membershipId = null,
+    memberships = [],
+  }) => {
     writeRefreshToken(refreshToken);
     set({
       user,

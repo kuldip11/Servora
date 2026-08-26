@@ -1,8 +1,8 @@
-import type { KitchenTicket } from '@pos/types';
+import type { KitchenTicket } from "@pos/types";
 
 interface Props {
-  notes: KitchenTicket['notes'];
-  items: KitchenTicket['items'];
+  notes: KitchenTicket["notes"];
+  items: KitchenTicket["items"];
 }
 
 // **Flagged, considered choice — different call than `constants.ts`'s
@@ -22,7 +22,9 @@ export function TicketItems({ notes, items }: Props) {
     <>
       {/* Ticket-level notes — scoped to just this round */}
       {notes && (
-        <p className="text-xs text-warning bg-warning-surface rounded-md px-2 py-1.5">📝 {notes}</p>
+        <p className="text-xs text-warning bg-warning-surface rounded-md px-2 py-1.5">
+          📝 {notes}
+        </p>
       )}
 
       <div className="space-y-1.5 flex-1">
@@ -34,15 +36,25 @@ export function TicketItems({ notes, items }: Props) {
             <div>
               <p className="text-text-primary text-sm font-medium">
                 {item.menuItemName}
-                {item.variantName && <span className="text-warning"> · {item.variantName}</span>}
+                {item.variantName && (
+                  <span className="text-warning"> · {item.variantName}</span>
+                )}
               </p>
               {item.chefNotes && (
-                <p className="text-xs text-warning mt-0.5">📝 {item.chefNotes}</p>
+                <p className="text-xs text-warning mt-0.5">
+                  📝 {item.chefNotes}
+                </p>
               )}
               {item.modifiers?.map((m, i) => (
                 <p key={i} className="text-xs text-text-secondary">
-                  + {m.name}{m.quantity > 1 ? ` ×${m.quantity}` : ''}
-                  {m.modifierGroupName ? <span className="text-text-disabled"> ({m.modifierGroupName})</span> : null}
+                  + {m.name}
+                  {m.quantity > 1 ? ` ×${m.quantity}` : ""}
+                  {m.modifierGroupName ? (
+                    <span className="text-text-disabled">
+                      {" "}
+                      ({m.modifierGroupName})
+                    </span>
+                  ) : null}
                 </p>
               ))}
             </div>

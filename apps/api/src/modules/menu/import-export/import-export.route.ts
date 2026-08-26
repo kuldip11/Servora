@@ -1,11 +1,15 @@
-import { Elysia } from 'elysia';
-import { requireAuthPlugin } from '../../../core/auth';
-import { importExportController } from './import-export.controller';
-import { exportItemsQuery, exportQuery, importFileBody } from './import-export.validator';
-import type { ExportFormat } from './import-export.service';
+import { Elysia } from "elysia";
+import { requireAuthPlugin } from "../../../core/auth";
+import { importExportController } from "./import-export.controller";
+import {
+  exportItemsQuery,
+  exportQuery,
+  importFileBody,
+} from "./import-export.validator";
+import type { ExportFormat } from "./import-export.service";
 
 function toFormat(raw: string | undefined): ExportFormat {
-  return raw === 'xlsx' ? 'xlsx' : 'csv';
+  return raw === "xlsx" ? "xlsx" : "csv";
 }
 
 // Mounted at the shared `/api/menu` base prefix (export/import don't share
@@ -13,27 +17,35 @@ function toFormat(raw: string | undefined): ExportFormat {
 // `menuRouter` and the other menu sub-routers. No path collisions
 // (verified — the legacy router no longer has these routes after this
 // migration; see docs/NEXT_STEPS.md).
-export const menuImportExportRouter = new Elysia({ prefix: '/api/menu' })
+export const menuImportExportRouter = new Elysia({ prefix: "/api/menu" })
   .use(requireAuthPlugin())
   // ─── Export ────────────────────────────────────────────────────────────
   .get(
-    '/export/items',
-    ({ auth, query }) => importExportController.exportItems(auth, toFormat(query.format), query.branchId),
+    "/export/items",
+    ({ auth, query }) =>
+      importExportController.exportItems(
+        auth,
+        toFormat(query.format),
+        query.branchId,
+      ),
     { query: exportItemsQuery },
   )
   .get(
-    '/export/categories',
-    ({ auth, query }) => importExportController.exportCategories(auth, toFormat(query.format)),
+    "/export/categories",
+    ({ auth, query }) =>
+      importExportController.exportCategories(auth, toFormat(query.format)),
     { query: exportQuery },
   )
   .get(
-    '/export/recipes',
-    ({ auth, query }) => importExportController.exportRecipes(auth, toFormat(query.format)),
+    "/export/recipes",
+    ({ auth, query }) =>
+      importExportController.exportRecipes(auth, toFormat(query.format)),
     { query: exportQuery },
   )
   .get(
-    '/export/modifiers',
-    ({ auth, query }) => importExportController.exportModifiers(auth, toFormat(query.format)),
+    "/export/modifiers",
+    ({ auth, query }) =>
+      importExportController.exportModifiers(auth, toFormat(query.format)),
     { query: exportQuery },
   )
   // ─── Import ────────────────────────────────────────────────────────────
@@ -41,17 +53,18 @@ export const menuImportExportRouter = new Elysia({ prefix: '/api/menu' })
   // does, and it re-validates first so nothing can slip an invalid row
   // through between the two calls.
   .get(
-    '/import/items/template',
-    ({ query }) => importExportController.importTemplate(toFormat(query.format)),
+    "/import/items/template",
+    ({ query }) =>
+      importExportController.importTemplate(toFormat(query.format)),
     { query: exportQuery },
   )
   .post(
-    '/import/items/validate',
+    "/import/items/validate",
     ({ auth, body }) => importExportController.validateImport(auth, body.file),
     { body: importFileBody },
   )
   .post(
-    '/import/items/commit',
+    "/import/items/commit",
     ({ auth, body }) => importExportController.commitImport(auth, body.file),
     { body: importFileBody },
   );

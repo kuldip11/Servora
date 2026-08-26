@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { Minus, Plus, Check } from 'lucide-react';
-import { BottomSheet, Button, TextInput } from '@pos/ui';
-import type { SelectedModifier, CartItem } from '../types';
-import { COURSE_LABELS } from '../constants';
-import { itemCustomizationSchema } from '@pos/validation';
+import { useState, useEffect } from "react";
+import { Minus, Plus, Check } from "lucide-react";
+import { BottomSheet, Button, TextInput } from "@pos/ui";
+import type { SelectedModifier, CartItem } from "../types";
+import { COURSE_LABELS } from "../constants";
+import { itemCustomizationSchema } from "@pos/validation";
 
 interface Props {
   item: any;
@@ -54,23 +54,36 @@ interface Props {
  * `overlayPanelClasses`), not something this page-migration sprint
  * can fix from the outside.
  */
-export function ItemCustomiser({ item, existingCartItem, onConfirm, onClose }: Props) {
+export function ItemCustomiser({
+  item,
+  existingCartItem,
+  onConfirm,
+  onClose,
+}: Props) {
   const hasVariants = item.variants?.length > 0;
   // Each link is { modifierGroupId, group: { id, name, selectionType, minSelections, maxSelections, options } }
-  const groups: any[] = (item.modifierGroupLinks ?? []).map((l: any) => l.group);
+  const groups: any[] = (item.modifierGroupLinks ?? []).map(
+    (l: any) => l.group,
+  );
   const hasModifierGroups = groups.length > 0;
 
-  const [variantId, setVariantId] = useState(existingCartItem?.variantId ?? (hasVariants ? item.variants[0].id : ''));
+  const [variantId, setVariantId] = useState(
+    existingCartItem?.variantId ?? (hasVariants ? item.variants[0].id : ""),
+  );
   // groupId -> selected modifiers (list, since a MULTIPLE group can have more than one)
-  const [selections, setSelections] = useState<Record<string, SelectedModifier[]>>(() => {
+  const [selections, setSelections] = useState<
+    Record<string, SelectedModifier[]>
+  >(() => {
     const initial: Record<string, SelectedModifier[]> = {};
     for (const mod of existingCartItem?.modifiers ?? []) {
       (initial[mod.groupId] ??= []).push(mod);
     }
     return initial;
   });
-  const [chefNotes, setChefNotes] = useState(existingCartItem?.chefNotes ?? '');
-  const [course, setCourse] = useState<1 | 2 | 3>(existingCartItem?.course ?? 1);
+  const [chefNotes, setChefNotes] = useState(existingCartItem?.chefNotes ?? "");
+  const [course, setCourse] = useState<1 | 2 | 3>(
+    existingCartItem?.course ?? 1,
+  );
   const [quantity, setQuantity] = useState(existingCartItem?.quantity ?? 1);
 
   const selectedVariant = item.variants?.find((v: any) => v.id === variantId);
@@ -78,18 +91,27 @@ export function ItemCustomiser({ item, existingCartItem, onConfirm, onClose }: P
   // add-ons — picking one REPLACES the base price rather than adding to it.
   // This was the root cause of the variant pricing bug: base 200 + "Half"
   // entered as 200 was showing 400 instead of 200. Modifiers stay additive.
-  const priceBeforeModifiers = selectedVariant ? parseFloat(selectedVariant.price) : parseFloat(item.basePrice);
+  const priceBeforeModifiers = selectedVariant
+    ? parseFloat(selectedVariant.price)
+    : parseFloat(item.basePrice);
   const allSelectedModifiers = Object.values(selections).flat();
-  const modifiersPrice = allSelectedModifiers.reduce((s, m) => s + m.price * m.quantity, 0);
+  const modifiersPrice = allSelectedModifiers.reduce(
+    (s, m) => s + m.price * m.quantity,
+    0,
+  );
   const unitPrice = priceBeforeModifiers + modifiersPrice;
 
   // If no customisation needed at all, auto-confirm immediately.
   useEffect(() => {
     if (!hasVariants && !hasModifierGroups && !existingCartItem) {
       onConfirm({
-        menuItemId: item.id, name: item.name,
+        menuItemId: item.id,
+        name: item.name,
         basePrice: parseFloat(item.basePrice),
-        modifiers: [], chefNotes: '', course: 1, quantity: 1,
+        modifiers: [],
+        chefNotes: "",
+        course: 1,
+        quantity: 1,
         unitPrice: parseFloat(item.basePrice),
       });
       onClose();
@@ -103,26 +125,51 @@ export function ItemCustomiser({ item, existingCartItem, onConfirm, onClose }: P
       const current = prev[group.id] ?? [];
       const already = current.find((m) => m.optionId === option.id);
 
-      if (group.selectionType === 'SINGLE') {
+      if (group.selectionType === "SINGLE") {
         // Radio behaviour — picking one replaces whatever was picked in this group.
         if (already) return { ...prev, [group.id]: [] };
-        return { ...prev, [group.id]: [{
-          optionId: option.id, groupId: group.id, groupName: group.name,
-          name: option.name, price: parseFloat(option.additionalPrice), quantity: 1,
-        }] };
+        return {
+          ...prev,
+          [group.id]: [
+            {
+              optionId: option.id,
+              groupId: group.id,
+              groupName: group.name,
+              name: option.name,
+              price: parseFloat(option.additionalPrice),
+              quantity: 1,
+            },
+          ],
+        };
       }
 
       // MULTIPLE — checkbox behaviour, respecting the group's max selections.
       if (already) {
-        return { ...prev, [group.id]: current.filter((m) => m.optionId !== option.id) };
+        return {
+          ...prev,
+          [group.id]: current.filter((m) => m.optionId !== option.id),
+        };
       }
-      if (group.maxSelections != null && current.length >= group.maxSelections) {
+      if (
+        group.maxSelections != null &&
+        current.length >= group.maxSelections
+      ) {
         return prev; // at the cap — ignore further taps until one is removed
       }
-      return { ...prev, [group.id]: [...current, {
-        optionId: option.id, groupId: group.id, groupName: group.name,
-        name: option.name, price: parseFloat(option.additionalPrice), quantity: 1,
-      }] };
+      return {
+        ...prev,
+        [group.id]: [
+          ...current,
+          {
+            optionId: option.id,
+            groupId: group.id,
+            groupName: group.name,
+            name: option.name,
+            price: parseFloat(option.additionalPrice),
+            quantity: 1,
+          },
+        ],
+      };
     });
   }
 
@@ -130,13 +177,20 @@ export function ItemCustomiser({ item, existingCartItem, onConfirm, onClose }: P
     setSelections((prev) => {
       const current = prev[group.id] ?? [];
       const clamped = Math.max(1, Math.min(qty, option.maxQuantity ?? 1));
-      return { ...prev, [group.id]: current.map((m) => m.optionId === option.id ? { ...m, quantity: clamped } : m) };
+      return {
+        ...prev,
+        [group.id]: current.map((m) =>
+          m.optionId === option.id ? { ...m, quantity: clamped } : m,
+        ),
+      };
     });
   }
 
   // A required group (minSelections > 0) that doesn't yet meet its minimum
   // blocks confirming — mirrors the same rule the API enforces server-side.
-  const unmetGroup = groups.find((g) => (selections[g.id]?.length ?? 0) < g.minSelections);
+  const unmetGroup = groups.find(
+    (g) => (selections[g.id]?.length ?? 0) < g.minSelections,
+  );
 
   function handleConfirm() {
     if (unmetGroup) return;
@@ -146,16 +200,24 @@ export function ItemCustomiser({ item, existingCartItem, onConfirm, onClose }: P
       variantId: variantId || undefined,
       quantity,
       chefNotes,
-      selectedOptions: allSelectedModifiers.map((m) => ({ optionId: m.optionId, quantity: m.quantity })),
+      selectedOptions: allSelectedModifiers.map((m) => ({
+        optionId: m.optionId,
+        quantity: m.quantity,
+      })),
     });
     if (!validated.success) return;
 
     onConfirm({
-      menuItemId: item.id, name: item.name,
+      menuItemId: item.id,
+      name: item.name,
       basePrice: parseFloat(item.basePrice),
       variantId: variantId || undefined,
       variantName: selectedVariant?.name,
-      modifiers: allSelectedModifiers, chefNotes, course, quantity, unitPrice,
+      modifiers: allSelectedModifiers,
+      chefNotes,
+      course,
+      quantity,
+      unitPrice,
     });
     onClose();
   }
@@ -166,8 +228,12 @@ export function ItemCustomiser({ item, existingCartItem, onConfirm, onClose }: P
       onClose={onClose}
       title={item.name}
       footer={
-        <Button onClick={handleConfirm} disabled={!!unmetGroup} className="w-full rounded-2xl py-4 justify-between">
-          <span>{existingCartItem ? 'Update Item' : 'Add to Order'}</span>
+        <Button
+          onClick={handleConfirm}
+          disabled={!!unmetGroup}
+          className="w-full rounded-2xl py-4 justify-between"
+        >
+          <span>{existingCartItem ? "Update Item" : "Add to Order"}</span>
           <span>₹{(unitPrice * quantity).toFixed(2)}</span>
         </Button>
       }
@@ -176,20 +242,29 @@ export function ItemCustomiser({ item, existingCartItem, onConfirm, onClose }: P
         {/* Live price — see file-level doc comment on why this isn't in
             the BottomSheet header. */}
         <p className="text-sm text-primary font-semibold -mt-1">
-          ₹{unitPrice.toFixed(2)} × {quantity} = ₹{(unitPrice * quantity).toFixed(2)}
+          ₹{unitPrice.toFixed(2)} × {quantity} = ₹
+          {(unitPrice * quantity).toFixed(2)}
         </p>
 
         {/* Quantity */}
         <div>
-          <p className="text-xs font-semibold text-text-secondary uppercase tracking-wide mb-2">Quantity</p>
+          <p className="text-xs font-semibold text-text-secondary uppercase tracking-wide mb-2">
+            Quantity
+          </p>
           <div className="flex items-center gap-4">
-            <button onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              className="w-10 h-10 flex items-center justify-center bg-surface-secondary rounded-full">
+            <button
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              className="w-10 h-10 flex items-center justify-center bg-surface-secondary rounded-full"
+            >
               <Minus className="w-4 h-4 text-text-primary" />
             </button>
-            <span className="text-xl font-bold text-text-primary w-8 text-center">{quantity}</span>
-            <button onClick={() => setQuantity((q) => q + 1)}
-              className="w-10 h-10 flex items-center justify-center bg-primary rounded-full">
+            <span className="text-xl font-bold text-text-primary w-8 text-center">
+              {quantity}
+            </span>
+            <button
+              onClick={() => setQuantity((q) => q + 1)}
+              className="w-10 h-10 flex items-center justify-center bg-primary rounded-full"
+            >
               <Plus className="w-4 h-4 text-primary-foreground" />
             </button>
           </div>
@@ -203,20 +278,35 @@ export function ItemCustomiser({ item, existingCartItem, onConfirm, onClose }: P
             </p>
             <div className="space-y-2">
               {item.variants.map((v: any) => (
-                <button key={v.id} onClick={() => setVariantId(v.id)}
+                <button
+                  key={v.id}
+                  onClick={() => setVariantId(v.id)}
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 transition-all ${
-                    variantId === v.id ? 'border-primary bg-primary-surface' : 'border-border'
-                  }`}>
+                    variantId === v.id
+                      ? "border-primary bg-primary-surface"
+                      : "border-border"
+                  }`}
+                >
                   <div className="flex items-center gap-2">
-                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                      variantId === v.id ? 'border-primary' : 'border-text-disabled'
-                    }`}>
-                      {variantId === v.id && <div className="w-2 h-2 rounded-full bg-primary" />}
+                    <div
+                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        variantId === v.id
+                          ? "border-primary"
+                          : "border-text-disabled"
+                      }`}
+                    >
+                      {variantId === v.id && (
+                        <div className="w-2 h-2 rounded-full bg-primary" />
+                      )}
                     </div>
-                    <span className="text-sm font-medium text-text-primary">{v.name}</span>
+                    <span className="text-sm font-medium text-text-primary">
+                      {v.name}
+                    </span>
                   </div>
                   {parseFloat(v.price) > 0 && (
-                    <span className="text-sm text-text-secondary">₹{parseFloat(v.price).toFixed(2)}</span>
+                    <span className="text-sm text-text-secondary">
+                      ₹{parseFloat(v.price).toFixed(2)}
+                    </span>
                   )}
                 </button>
               ))}
@@ -227,62 +317,110 @@ export function ItemCustomiser({ item, existingCartItem, onConfirm, onClose }: P
         {/* Modifier groups — e.g. "Choose your sides" (Aachar/Curd/Raita), "Extras" */}
         {groups.map((group) => {
           const picked = selections[group.id] ?? [];
-          const atCap = group.maxSelections != null && picked.length >= group.maxSelections;
+          const atCap =
+            group.maxSelections != null && picked.length >= group.maxSelections;
           return (
             <div key={group.id}>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-semibold text-text-secondary uppercase tracking-wide">{group.name}</p>
-                <span className={`text-[11px] font-medium ${group.minSelections > 0 ? 'text-warning' : 'text-text-disabled'}`}>
+                <p className="text-xs font-semibold text-text-secondary uppercase tracking-wide">
+                  {group.name}
+                </p>
+                <span
+                  className={`text-[11px] font-medium ${group.minSelections > 0 ? "text-warning" : "text-text-disabled"}`}
+                >
                   {group.minSelections > 0
-                    ? `Required · choose ${group.minSelections}${group.maxSelections ? `–${group.maxSelections}` : '+'}`
-                    : group.selectionType === 'SINGLE' ? 'Optional · choose 1' : `Optional${group.maxSelections ? ` · up to ${group.maxSelections}` : ''}`}
+                    ? `Required · choose ${group.minSelections}${group.maxSelections ? `–${group.maxSelections}` : "+"}`
+                    : group.selectionType === "SINGLE"
+                      ? "Optional · choose 1"
+                      : `Optional${group.maxSelections ? ` · up to ${group.maxSelections}` : ""}`}
                 </span>
               </div>
               <div className="space-y-2">
-                {group.options.filter((o: any) => o.isAvailable).map((option: any) => {
-                  const selected = picked.find((m) => m.optionId === option.id);
-                  const disabled = !selected && group.selectionType === 'MULTIPLE' && atCap;
-                  return (
-                    <div key={option.id}
-                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 transition-all ${
-                        selected ? 'border-primary bg-primary-surface' : disabled ? 'border-divider opacity-40' : 'border-border'
-                      }`}
-                    >
-                      <button
-                        onClick={() => !disabled && selectOption(group, option)}
-                        disabled={disabled}
-                        className="flex items-center gap-2 flex-1 text-left"
+                {group.options
+                  .filter((o: any) => o.isAvailable)
+                  .map((option: any) => {
+                    const selected = picked.find(
+                      (m) => m.optionId === option.id,
+                    );
+                    const disabled =
+                      !selected && group.selectionType === "MULTIPLE" && atCap;
+                    return (
+                      <div
+                        key={option.id}
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 transition-all ${
+                          selected
+                            ? "border-primary bg-primary-surface"
+                            : disabled
+                              ? "border-divider opacity-40"
+                              : "border-border"
+                        }`}
                       >
-                        <div className={`flex items-center justify-center border-2 ${
-                          group.selectionType === 'SINGLE' ? 'w-4 h-4 rounded-full' : 'w-4 h-4 rounded'
-                        } ${selected ? 'border-primary bg-primary' : 'border-text-disabled'}`}>
-                          {selected && (group.selectionType === 'SINGLE'
-                            ? <div className="w-2 h-2 rounded-full bg-primary-foreground" />
-                            : <Check className="w-3 h-3 text-primary-foreground" />)}
-                        </div>
-                        <span className="text-sm font-medium text-text-primary">{option.name}</span>
-                      </button>
-                      <div className="flex items-center gap-2">
-                        {selected && option.maxQuantity > 1 && (
-                          <div className="flex items-center gap-1.5">
-                            <button onClick={() => setOptionQuantity(group, option, selected.quantity - 1)}
-                              className="w-6 h-6 flex items-center justify-center bg-surface-secondary rounded-full text-text-secondary">
-                              <Minus className="w-3 h-3" />
-                            </button>
-                            <span className="text-xs font-semibold w-4 text-center">{selected.quantity}</span>
-                            <button onClick={() => setOptionQuantity(group, option, selected.quantity + 1)}
-                              className="w-6 h-6 flex items-center justify-center bg-primary rounded-full text-primary-foreground">
-                              <Plus className="w-3 h-3" />
-                            </button>
+                        <button
+                          onClick={() =>
+                            !disabled && selectOption(group, option)
+                          }
+                          disabled={disabled}
+                          className="flex items-center gap-2 flex-1 text-left"
+                        >
+                          <div
+                            className={`flex items-center justify-center border-2 ${
+                              group.selectionType === "SINGLE"
+                                ? "w-4 h-4 rounded-full"
+                                : "w-4 h-4 rounded"
+                            } ${selected ? "border-primary bg-primary" : "border-text-disabled"}`}
+                          >
+                            {selected &&
+                              (group.selectionType === "SINGLE" ? (
+                                <div className="w-2 h-2 rounded-full bg-primary-foreground" />
+                              ) : (
+                                <Check className="w-3 h-3 text-primary-foreground" />
+                              ))}
                           </div>
-                        )}
-                        <span className="text-sm text-text-secondary min-w-[3.5rem] text-right">
-                          {parseFloat(option.additionalPrice) > 0 ? `+₹${parseFloat(option.additionalPrice).toFixed(2)}` : 'Free'}
-                        </span>
+                          <span className="text-sm font-medium text-text-primary">
+                            {option.name}
+                          </span>
+                        </button>
+                        <div className="flex items-center gap-2">
+                          {selected && option.maxQuantity > 1 && (
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() =>
+                                  setOptionQuantity(
+                                    group,
+                                    option,
+                                    selected.quantity - 1,
+                                  )
+                                }
+                                className="w-6 h-6 flex items-center justify-center bg-surface-secondary rounded-full text-text-secondary"
+                              >
+                                <Minus className="w-3 h-3" />
+                              </button>
+                              <span className="text-xs font-semibold w-4 text-center">
+                                {selected.quantity}
+                              </span>
+                              <button
+                                onClick={() =>
+                                  setOptionQuantity(
+                                    group,
+                                    option,
+                                    selected.quantity + 1,
+                                  )
+                                }
+                                className="w-6 h-6 flex items-center justify-center bg-primary rounded-full text-primary-foreground"
+                              >
+                                <Plus className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
+                          <span className="text-sm text-text-secondary min-w-[3.5rem] text-right">
+                            {parseFloat(option.additionalPrice) > 0
+                              ? `+₹${parseFloat(option.additionalPrice).toFixed(2)}`
+                              : "Free"}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
               </div>
             </div>
           );
@@ -290,16 +428,23 @@ export function ItemCustomiser({ item, existingCartItem, onConfirm, onClose }: P
 
         {/* Allergens & tags — surfaced here so whoever's taking the order
             can flag them for the guest, not just in the back-office menu editor. */}
-        {((item.allergenLinks?.length ?? 0) > 0 || (item.tagLinks?.length ?? 0) > 0) && (
+        {((item.allergenLinks?.length ?? 0) > 0 ||
+          (item.tagLinks?.length ?? 0) > 0) && (
           <div className="flex flex-wrap gap-1.5">
             {item.tagLinks?.map((l: any) => (
-              <span key={l.tagId} className="text-[11px] font-medium px-2 py-1 rounded-full text-white"
-                style={{ backgroundColor: l.tag.color ?? '#8b5cf6' }}>
+              <span
+                key={l.tagId}
+                className="text-[11px] font-medium px-2 py-1 rounded-full text-white"
+                style={{ backgroundColor: l.tag.color ?? "#8b5cf6" }}
+              >
                 {l.tag.name}
               </span>
             ))}
             {item.allergenLinks?.map((l: any) => (
-              <span key={l.allergenId} className="text-[11px] font-medium px-2 py-1 rounded-full border border-danger/20 bg-danger-surface text-danger">
+              <span
+                key={l.allergenId}
+                className="text-[11px] font-medium px-2 py-1 rounded-full border border-danger/20 bg-danger-surface text-danger"
+              >
                 ⚠ {l.allergen.name}
               </span>
             ))}
@@ -308,15 +453,20 @@ export function ItemCustomiser({ item, existingCartItem, onConfirm, onClose }: P
 
         {/* Course */}
         <div>
-          <p className="text-xs font-semibold text-text-secondary uppercase tracking-wide mb-2">Course</p>
+          <p className="text-xs font-semibold text-text-secondary uppercase tracking-wide mb-2">
+            Course
+          </p>
           <div className="flex gap-2">
             {([1, 2, 3] as const).map((c) => (
-              <button key={c} onClick={() => setCourse(c)}
+              <button
+                key={c}
+                onClick={() => setCourse(c)}
                 className={`flex-1 py-2.5 rounded-xl text-xs font-semibold border-2 transition-all ${
                   course === c
-                    ? 'border-primary bg-primary-surface text-primary'
-                    : 'border-border text-text-secondary'
-                }`}>
+                    ? "border-primary bg-primary-surface text-primary"
+                    : "border-border text-text-secondary"
+                }`}
+              >
                 {COURSE_LABELS[c]}
               </button>
             ))}
@@ -334,7 +484,8 @@ export function ItemCustomiser({ item, existingCartItem, onConfirm, onClose }: P
 
         {unmetGroup && (
           <p className="text-xs text-warning text-center">
-            Choose {unmetGroup.minSelections} from "{unmetGroup.name}" to continue
+            Choose {unmetGroup.minSelections} from "{unmetGroup.name}" to
+            continue
           </p>
         )}
       </div>

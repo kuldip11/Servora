@@ -14,21 +14,37 @@
  * `SELECT ... FOR UPDATE` then either — same level of concurrency safety
  * as before, not a new guarantee).
  */
-import { eq, and, isNull, inArray } from 'drizzle-orm';
-import type { InventoryTransactionType, InventoryUnit } from '@pos/types';
-import { db } from '../../db';
-import { inventoryItems, inventoryTransactions, recipes, menuItems, orderInventoryDeductions, branches, orders } from '../../db/schema';
-import { resolveStockBalance } from './inventory-stock';
+import { eq, and, isNull, inArray } from "drizzle-orm";
+import type { InventoryTransactionType, InventoryUnit } from "@pos/types";
+import { db } from "../../db";
+import {
+  inventoryItems,
+  inventoryTransactions,
+  recipes,
+  menuItems,
+  orderInventoryDeductions,
+  branches,
+  orders,
+} from "../../db/schema";
+import { resolveStockBalance } from "./inventory-stock";
 
 export type StockUpdateResult =
-  | { status: 'not_found' }
-  | { status: 'insufficient_stock' }
-  | { status: 'ok'; item: typeof inventoryItems.$inferSelect; transaction: typeof inventoryTransactions.$inferSelect };
+  | { status: "not_found" }
+  | { status: "insufficient_stock" }
+  | {
+      status: "ok";
+      item: typeof inventoryItems.$inferSelect;
+      transaction: typeof inventoryTransactions.$inferSelect;
+    };
 
 export const inventoryRepository = {
   async findBranch(tenantId: string, branchId: string) {
     return db.query.branches.findFirst({
-      where: and(eq(branches.id, branchId), eq(branches.tenantId, tenantId), eq(branches.isActive, true)),
+      where: and(
+        eq(branches.id, branchId),
+        eq(branches.tenantId, tenantId),
+        eq(branches.isActive, true),
+      ),
       columns: { id: true },
     });
   },
@@ -61,7 +77,10 @@ export const inventoryRepository = {
 
   async findById(tenantId: string, id: string) {
     return db.query.inventoryItems.findFirst({
-      where: and(eq(inventoryItems.id, id), eq(inventoryItems.tenantId, tenantId)),
+      where: and(
+        eq(inventoryItems.id, id),
+        eq(inventoryItems.tenantId, tenantId),
+      ),
     });
   },
 
@@ -100,13 +119,22 @@ export const inventoryRepository = {
       const [item] = await tx
         .select()
         .from(inventoryItems)
-        .where(and(eq(inventoryItems.id, itemId), eq(inventoryItems.tenantId, tenantId)));
+        .where(
+          and(
+            eq(inventoryItems.id, itemId),
+            eq(inventoryItems.tenantId, tenantId),
+          ),
+        );
 
-      if (!item) return { status: 'not_found' };
+      if (!item) return { status: "not_found" };
 
       const balanceBefore = parseFloat(item.currentStock);
-      const resolution = resolveStockBalance(balanceBefore, quantity, transactionType);
-      if (!resolution.ok) return { status: 'insufficient_stock' };
+      const resolution = resolveStockBalance(
+        balanceBefore,
+        quantity,
+        transactionType,
+      );
+      if (!resolution.ok) return { status: "insufficient_stock" };
 
       const balanceAfter = resolution.balanceAfter;
 
@@ -133,14 +161,17 @@ export const inventoryRepository = {
         .from(inventoryItems)
         .where(eq(inventoryItems.id, itemId));
 
-      return { status: 'ok', item: updated!, transaction: transaction! };
+      return { status: "ok", item: updated!, transaction: transaction! };
     });
   },
 
   async findByIds(tenantId: string, ids: string[]) {
     if (!ids.length) return [];
     return db.query.inventoryItems.findMany({
-      where: and(eq(inventoryItems.tenantId, tenantId), inArray(inventoryItems.id, ids)),
+      where: and(
+        eq(inventoryItems.tenantId, tenantId),
+        inArray(inventoryItems.id, ids),
+      ),
     });
   },
 
@@ -152,15 +183,22 @@ export const inventoryRepository = {
         eq(inventoryItems.isActive, true),
       ),
     });
-    return items.filter((item) => parseFloat(item.currentStock) <= parseFloat(item.minimumStock));
+    return items.filter(
+      (item) => parseFloat(item.currentStock) <= parseFloat(item.minimumStock),
+    );
   },
 
   async findLowStockAllBranches(tenantId: string) {
     const items = await db.query.inventoryItems.findMany({
-      where: and(eq(inventoryItems.tenantId, tenantId), eq(inventoryItems.isActive, true)),
+      where: and(
+        eq(inventoryItems.tenantId, tenantId),
+        eq(inventoryItems.isActive, true),
+      ),
       with: { branch: true },
     });
-    return items.filter((item) => parseFloat(item.currentStock) <= parseFloat(item.minimumStock));
+    return items.filter(
+      (item) => parseFloat(item.currentStock) <= parseFloat(item.minimumStock),
+    );
   },
 
   // Raw audit trail of what a specific order deducted — used by the
@@ -168,7 +206,10 @@ export const inventoryRepository = {
   async findOrderDeductions(orderId: string) {
     return db.query.orderInventoryDeductions.findMany({
       where: eq(orderInventoryDeductions.orderId, orderId),
-      with: { inventoryItem: true, menuItem: { columns: { id: true, name: true } } },
+      with: {
+        inventoryItem: true,
+        menuItem: { columns: { id: true, name: true } },
+      },
       orderBy: (t, { asc }) => [asc(t.deductedAt)],
     });
   },
@@ -182,8 +223,14 @@ export const inventoryRepository = {
   async findRequiredRecipeLines(menuItemIds: string[]) {
     if (!menuItemIds.length) return [];
     return db.query.recipes.findMany({
-      where: and(inArray(recipes.menuItemId, menuItemIds), eq(recipes.isOptional, false)),
-      with: { inventoryItem: true, menuItem: { columns: { enableRecipeDeduction: true } } },
+      where: and(
+        inArray(recipes.menuItemId, menuItemIds),
+        eq(recipes.isOptional, false),
+      ),
+      with: {
+        inventoryItem: true,
+        menuItem: { columns: { enableRecipeDeduction: true } },
+      },
     });
   },
 
@@ -195,7 +242,12 @@ export const inventoryRepository = {
     tenantId: string,
     branchId: string,
     orderId: string,
-    lines: Array<{ inventoryItemId: string; menuItemId: string; unit: InventoryUnit; neededQuantity: number }>,
+    lines: Array<{
+      inventoryItemId: string;
+      menuItemId: string;
+      unit: InventoryUnit;
+      neededQuantity: number;
+    }>,
     performedBy: string,
   ): Promise<{
     deducted: number;
@@ -210,15 +262,26 @@ export const inventoryRepository = {
       const [order] = await tx
         .select({ id: orders.id })
         .from(orders)
-        .where(and(eq(orders.id, orderId), eq(orders.tenantId, tenantId), eq(orders.branchId, branchId)));
+        .where(
+          and(
+            eq(orders.id, orderId),
+            eq(orders.tenantId, tenantId),
+            eq(orders.branchId, branchId),
+          ),
+        );
       if (!order) return;
 
       for (const line of lines) {
-        const [invItem] = await tx.select().from(inventoryItems).where(and(
-          eq(inventoryItems.id, line.inventoryItemId),
-          eq(inventoryItems.tenantId, tenantId),
-          eq(inventoryItems.branchId, branchId),
-        ));
+        const [invItem] = await tx
+          .select()
+          .from(inventoryItems)
+          .where(
+            and(
+              eq(inventoryItems.id, line.inventoryItemId),
+              eq(inventoryItems.tenantId, tenantId),
+              eq(inventoryItems.branchId, branchId),
+            ),
+          );
         if (!invItem) continue;
 
         const balanceBefore = parseFloat(invItem.currentStock);
@@ -233,7 +296,7 @@ export const inventoryRepository = {
 
         await tx.insert(inventoryTransactions).values({
           inventoryItemId: line.inventoryItemId,
-          transactionType: 'OUT',
+          transactionType: "OUT",
           quantity: actuallyDeducted.toFixed(3),
           balanceBefore: balanceBefore.toFixed(3),
           balanceAfter: balanceAfter.toFixed(3),
@@ -252,13 +315,23 @@ export const inventoryRepository = {
 
         deducted++;
         touchedInventoryItemIds.add(line.inventoryItemId);
-        if (wasShort && !short.some((s) => s.inventoryItemId === line.inventoryItemId)) {
-          short.push({ inventoryItemId: line.inventoryItemId, name: invItem.name });
+        if (
+          wasShort &&
+          !short.some((s) => s.inventoryItemId === line.inventoryItemId)
+        ) {
+          short.push({
+            inventoryItemId: line.inventoryItemId,
+            name: invItem.name,
+          });
         }
       }
     });
 
-    return { deducted, touchedInventoryItemIds: Array.from(touchedInventoryItemIds), short };
+    return {
+      deducted,
+      touchedInventoryItemIds: Array.from(touchedInventoryItemIds),
+      short,
+    };
   },
 
   // Menu items whose recipe touches any of the given inventory items —
@@ -270,14 +343,20 @@ export const inventoryRepository = {
       .selectDistinct({ id: recipes.menuItemId })
       .from(recipes)
       .innerJoin(menuItems, eq(menuItems.id, recipes.menuItemId))
-      .where(and(
-        inArray(recipes.inventoryItemId, inventoryItemIds),
-        eq(menuItems.branchId, branchId),
-      ));
+      .where(
+        and(
+          inArray(recipes.inventoryItemId, inventoryItemIds),
+          eq(menuItems.branchId, branchId),
+        ),
+      );
     return rows.map((r) => r.id);
   },
 
-  async findMenuItemsForAvailability(tenantId: string, branchId: string, menuItemIds: string[]) {
+  async findMenuItemsForAvailability(
+    tenantId: string,
+    branchId: string,
+    menuItemIds: string[],
+  ) {
     if (!menuItemIds.length) return [];
     return db.query.menuItems.findMany({
       where: and(
@@ -290,7 +369,11 @@ export const inventoryRepository = {
     });
   },
 
-  async findNonOptionalIngredients(tenantId: string, branchId: string, menuItemId: string) {
+  async findNonOptionalIngredients(
+    tenantId: string,
+    branchId: string,
+    menuItemId: string,
+  ) {
     return db
       .select({
         quantityRequired: recipes.quantityRequired,
@@ -298,17 +381,19 @@ export const inventoryRepository = {
       })
       .from(recipes)
       .innerJoin(inventoryItems, eq(inventoryItems.id, recipes.inventoryItemId))
-      .where(and(
-        eq(recipes.menuItemId, menuItemId),
-        eq(recipes.isOptional, false),
-        eq(inventoryItems.tenantId, tenantId),
-        eq(inventoryItems.branchId, branchId),
-      ));
+      .where(
+        and(
+          eq(recipes.menuItemId, menuItemId),
+          eq(recipes.isOptional, false),
+          eq(inventoryItems.tenantId, tenantId),
+          eq(inventoryItems.branchId, branchId),
+        ),
+      );
   },
 
   async setMenuItemAvailabilityStatus(
     menuItemId: string,
-    status: 'ACTIVE' | 'OUT_OF_STOCK',
+    status: "ACTIVE" | "OUT_OF_STOCK",
     availabilityReason: string | null,
   ) {
     await db
@@ -317,7 +402,7 @@ export const inventoryRepository = {
         status,
         availabilityReason,
         statusChangedAt: new Date(),
-        isAvailable: status === 'ACTIVE',
+        isAvailable: status === "ACTIVE",
         updatedAt: new Date(),
       })
       .where(eq(menuItems.id, menuItemId));

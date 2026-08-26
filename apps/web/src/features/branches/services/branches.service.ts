@@ -1,5 +1,5 @@
-import { apiClient } from '../../../shared/lib/api-client';
-import type { Branch } from '@pos/types';
+import { apiClient } from "../../../shared/lib/api-client";
+import type { Branch } from "@pos/types";
 
 export interface BranchFormInput {
   name: string;
@@ -19,12 +19,12 @@ export const branchesService = {
    * supplied branch header.
    */
   async list(): Promise<Branch[]> {
-    const res = await apiClient.get('/branches');
+    const res = await apiClient.get("/branches");
     return res.data.data;
   },
 
   async create(input: BranchFormInput): Promise<Branch> {
-    const res = await apiClient.post('/branches', input);
+    const res = await apiClient.post("/branches", input);
     return res.data.data;
   },
 

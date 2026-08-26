@@ -1,10 +1,15 @@
-import { and, eq } from 'drizzle-orm';
-import { ForbiddenError } from '../../core/errors';
+import { and, eq } from "drizzle-orm";
+import { ForbiddenError } from "../../core/errors";
 
-import type { AvailableMembership } from '@pos/types';
-import { branches, tenantMemberships, users, globalUserRoles } from '../../db/schema';
-import { type ActiveAuthContext } from './auth-context';
-import { resolveMembership } from './authorization';
+import type { AvailableMembership } from "@pos/types";
+import {
+  branches,
+  tenantMemberships,
+  users,
+  globalUserRoles,
+} from "../../db/schema";
+import { type ActiveAuthContext } from "./auth-context";
+import { resolveMembership } from "./authorization";
 
 export async function listUserMemberships(
   db: any,
@@ -12,7 +17,10 @@ export async function listUserMemberships(
 ): Promise<AvailableMembership[]> {
   const [memberships, user] = await Promise.all([
     db.query.tenantMemberships.findMany({
-      where: and(eq(tenantMemberships.userId, userId), eq(tenantMemberships.status, 'ACTIVE')),
+      where: and(
+        eq(tenantMemberships.userId, userId),
+        eq(tenantMemberships.status, "ACTIVE"),
+      ),
       with: {
         tenant: true,
         roles: {
@@ -32,7 +40,10 @@ export async function listUserMemberships(
   ]);
 
   const isGlobalOwner = Boolean(
-    user?.globalUserRoles?.some((item: any) => item.role?.name === 'OWNER' && item.role?.scope === 'GLOBAL'),
+    user?.globalUserRoles?.some(
+      (item: any) =>
+        item.role?.name === "OWNER" && item.role?.scope === "GLOBAL",
+    ),
   );
 
   return memberships.map((membership: any) => ({
@@ -40,11 +51,11 @@ export async function listUserMemberships(
     isGlobalOwner,
     tenant: membership.tenant
       ? { id: membership.tenant.id, name: membership.tenant.name }
-      : { id: membership.tenantId, name: '' },
+      : { id: membership.tenantId, name: "" },
     roles: membership.roles.map((item: any) => ({
       id: item.roleId,
       name: item.role?.name ?? item.roleId,
-      scope: item.role?.scope ?? 'BRANCH',
+      scope: item.role?.scope ?? "BRANCH",
     })),
     branches: membership.branches
       .map((item: any) => item.branch)
@@ -70,14 +81,21 @@ export async function resolveActiveBranch(
   context: ActiveAuthContext,
   branchId: string,
 ): Promise<ActiveAuthContext> {
-  const membership = await resolveMembership(db, context.userId, context.tenantId);
+  const membership = await resolveMembership(
+    db,
+    context.userId,
+    context.tenantId,
+  );
 
   if (!membership || membership.id !== context.membershipId) {
-    throw new ForbiddenError('Membership access denied');
+    throw new ForbiddenError("Membership access denied");
   }
 
   const branch = await db.query.branches.findFirst({
-    where: and(eq(branches.id, branchId), eq(branches.tenantId, context.tenantId)),
+    where: and(
+      eq(branches.id, branchId),
+      eq(branches.tenantId, context.tenantId),
+    ),
     columns: { id: true, tenantId: true },
   });
 
@@ -85,16 +103,18 @@ export async function resolveActiveBranch(
   // enforce tenant isolation — explicitly reject a branch record that
   // doesn't belong to the active tenant even if one was returned.
   if (!branch || branch.tenantId !== context.tenantId) {
-    throw new ForbiddenError('Membership access denied');
+    throw new ForbiddenError("Membership access denied");
   }
 
   const globalRoles = await db.query.globalUserRoles.findMany({
     where: eq(globalUserRoles.userId, context.userId),
     with: { role: true },
   });
-  const tenantWide = membership.roles.some(
-    (item: any) => item.role?.scope === 'GLOBAL' || item.role?.scope === 'TENANT',
-  ) || globalRoles.some((item: any) => item.role?.scope === 'GLOBAL');
+  const tenantWide =
+    membership.roles.some(
+      (item: any) =>
+        item.role?.scope === "GLOBAL" || item.role?.scope === "TENANT",
+    ) || globalRoles.some((item: any) => item.role?.scope === "GLOBAL");
 
   if (!tenantWide) {
     const assigned = membership.branches.some(
@@ -102,7 +122,7 @@ export async function resolveActiveBranch(
     );
 
     if (!assigned) {
-      throw new ForbiddenError('Membership access denied');
+      throw new ForbiddenError("Membership access denied");
     }
   }
 

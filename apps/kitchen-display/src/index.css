@@ -1,5 +1,5 @@
-@import '../../../packages/ui/src/theme/tokens.css';
-@import '../../../packages/ui/src/theme/motion.css';
+@import "../../../packages/ui/src/theme/tokens.css";
+@import "../../../packages/ui/src/theme/motion.css";
 
 @tailwind base;
 @tailwind components;
@@ -10,6 +10,6 @@
     /* Phase 16 token audit — was `bg-gray-950 text-white`, hardcoded to
        KDS's dark-native palette even though it's now switchable. */
     @apply bg-background text-text-primary antialiased;
-    font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
   }
 }

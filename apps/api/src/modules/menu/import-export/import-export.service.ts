@@ -4,63 +4,94 @@
  * (row parsing/validation), the same split `orders/order-pricing.ts`
  * established between DB access and pure business rules.
  */
-import * as XLSX from 'xlsx';
-import type { AuthContext } from '../../../core/auth';
-import { importExportRepository } from './import-export.repository';
-import { requirePermission } from '../../../core/auth';
-import { resolveMenuBranch } from '../menu-authorization';
-import { parseFile, buildTemplate, validateRows, type ImportItemRow, type ValidatedRow, type RowError } from './menu-import-parser';
-import { noFileUploaded, emptyImportFile, importValidationFailed } from './import-export.errors';
+import * as XLSX from "xlsx";
+import type { AuthContext } from "../../../core/auth";
+import { importExportRepository } from "./import-export.repository";
+import { requirePermission } from "../../../core/auth";
+import { resolveMenuBranch } from "../menu-authorization";
+import {
+  parseFile,
+  buildTemplate,
+  validateRows,
+  type ImportItemRow,
+  type ValidatedRow,
+  type RowError,
+} from "./menu-import-parser";
+import {
+  noFileUploaded,
+  emptyImportFile,
+  importValidationFailed,
+} from "./import-export.errors";
 
-export type ExportFormat = 'csv' | 'xlsx';
+export type ExportFormat = "csv" | "xlsx";
 
 // Flat, spreadsheet-friendly row shapes — deliberately not the nested
 // relation trees the rest of the menu module uses internally, since these
 // are meant to open cleanly in Excel/Sheets and (for items) double as the
 // column shape the importer validates against.
-function toSheet(rows: Record<string, unknown>[], format: ExportFormat): { content: string | Buffer; contentType: string } {
+function toSheet(
+  rows: Record<string, unknown>[],
+  format: ExportFormat,
+): { content: string | Buffer; contentType: string } {
   const sheet = XLSX.utils.json_to_sheet(rows);
-  if (format === 'csv') {
-    return { content: XLSX.utils.sheet_to_csv(sheet), contentType: 'text/csv' };
+  if (format === "csv") {
+    return { content: XLSX.utils.sheet_to_csv(sheet), contentType: "text/csv" };
   }
   const book = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(book, sheet, 'Sheet1');
-  const buffer = XLSX.write(book, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
-  return { content: buffer, contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' };
+  XLSX.utils.book_append_sheet(book, sheet, "Sheet1");
+  const buffer = XLSX.write(book, {
+    type: "buffer",
+    bookType: "xlsx",
+  }) as Buffer;
+  return {
+    content: buffer,
+    contentType:
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  };
 }
 
 export const importExportService = {
   // ─── Export ────────────────────────────────────────────────────────────
 
-  async exportItems(auth: AuthContext, format: ExportFormat, branchId?: string | undefined) {
-    requirePermission(auth, 'menu:read');
+  async exportItems(
+    auth: AuthContext,
+    format: ExportFormat,
+    branchId?: string | undefined,
+  ) {
+    requirePermission(auth, "menu:read");
     const effectiveBranchId = resolveMenuBranch(auth, branchId);
-    const items = await importExportRepository.findItemsForExport(auth.tenantId, effectiveBranchId);
+    const items = await importExportRepository.findItemsForExport(
+      auth.tenantId,
+      effectiveBranchId,
+    );
     const rows = items.map((i) => ({
       id: i.id,
       name: i.name,
-      category: i.category?.name ?? '',
-      description: i.description ?? '',
+      category: i.category?.name ?? "",
+      description: i.description ?? "",
       basePrice: i.basePrice,
       taxRate: i.taxRate,
       foodType: i.foodType,
-      spiceLevel: i.spiceLevel ?? '',
-      sku: i.sku ?? '',
+      spiceLevel: i.spiceLevel ?? "",
+      sku: i.sku ?? "",
       status: i.status,
-      hsnCode: i.hsnCode ?? '',
-      prepTimeMinutes: i.prepTimeMinutes ?? '',
+      hsnCode: i.hsnCode ?? "",
+      prepTimeMinutes: i.prepTimeMinutes ?? "",
     }));
     return toSheet(rows, format);
   },
 
   async exportCategories(auth: AuthContext, format: ExportFormat) {
-    requirePermission(auth, 'menu:read');
+    requirePermission(auth, "menu:read");
     const effectiveBranchId = resolveMenuBranch(auth);
-    const cats = await importExportRepository.findCategoriesForExport(auth.tenantId, effectiveBranchId);
+    const cats = await importExportRepository.findCategoriesForExport(
+      auth.tenantId,
+      effectiveBranchId,
+    );
     const rows = cats.map((c) => ({
       id: c.id,
       name: c.name,
-      description: c.description ?? '',
+      description: c.description ?? "",
       sortOrder: c.sortOrder,
       isActive: c.isActive,
     }));
@@ -68,9 +99,12 @@ export const importExportService = {
   },
 
   async exportRecipes(auth: AuthContext, format: ExportFormat) {
-    requirePermission(auth, 'menu:read');
+    requirePermission(auth, "menu:read");
     const effectiveBranchId = resolveMenuBranch(auth);
-    const rows_ = await importExportRepository.findRecipesForExport(auth.tenantId, effectiveBranchId);
+    const rows_ = await importExportRepository.findRecipesForExport(
+      auth.tenantId,
+      effectiveBranchId,
+    );
     const rows = rows_.map((r) => ({
       menuItem: r.menuItem.name,
       ingredient: r.inventoryItem.name,
@@ -82,13 +116,22 @@ export const importExportService = {
   },
 
   async exportModifiers(auth: AuthContext, format: ExportFormat) {
-    requirePermission(auth, 'menu:read');
+    requirePermission(auth, "menu:read");
     const effectiveBranchId = resolveMenuBranch(auth);
-    const groups = await importExportRepository.findModifiersForExport(auth.tenantId, effectiveBranchId);
+    const groups = await importExportRepository.findModifiersForExport(
+      auth.tenantId,
+      effectiveBranchId,
+    );
     const rows: Record<string, unknown>[] = [];
     for (const g of groups) {
       if (!g.options.length) {
-        rows.push({ modifierGroup: g.name, selectionType: g.selectionType, option: '', additionalPrice: '', isAvailable: '' });
+        rows.push({
+          modifierGroup: g.name,
+          selectionType: g.selectionType,
+          option: "",
+          additionalPrice: "",
+          isAvailable: "",
+        });
         continue;
       }
       for (const o of g.options) {
@@ -122,28 +165,50 @@ export const importExportService = {
   // existing item SKUs, hands them to the pure `validateRows`, and returns
   // a preview of what each row will do (insert/update) plus per-row
   // errors.
-  async validateItemsImport(auth: AuthContext, rows: ImportItemRow[]): Promise<{ valid: ValidatedRow[]; errors: RowError[] }> {
-    requirePermission(auth, 'menu:create');
+  async validateItemsImport(
+    auth: AuthContext,
+    rows: ImportItemRow[],
+  ): Promise<{ valid: ValidatedRow[]; errors: RowError[] }> {
+    requirePermission(auth, "menu:create");
     const effectiveBranchId = resolveMenuBranch(auth);
-    const categories = await importExportRepository.findCategoriesForImport(auth.tenantId, effectiveBranchId);
-    const categoryByName = new Map(categories.map((c) => [c.name.trim().toLowerCase(), c.id]));
+    const categories = await importExportRepository.findCategoriesForImport(
+      auth.tenantId,
+      effectiveBranchId,
+    );
+    const categoryByName = new Map(
+      categories.map((c) => [c.name.trim().toLowerCase(), c.id]),
+    );
 
-    const existingSkus = await importExportRepository.findExistingSkuItems(auth.tenantId, effectiveBranchId);
+    const existingSkus = await importExportRepository.findExistingSkuItems(
+      auth.tenantId,
+      effectiveBranchId,
+    );
     const existingItemIds = new Set(existingSkus.map((i) => i.id));
-    const skuToItemId = new Map(existingSkus.filter((i) => i.sku).map((i) => [i.sku!.trim().toLowerCase(), i.id]));
+    const skuToItemId = new Map(
+      existingSkus
+        .filter((i) => i.sku)
+        .map((i) => [i.sku!.trim().toLowerCase(), i.id]),
+    );
 
     return validateRows(rows, categoryByName, existingItemIds, skuToItemId);
   },
 
   // Re-validates (data may have changed between preview and commit) then
   // writes everything in one transaction via the repository.
-  async commitItemsImport(auth: AuthContext, rows: ImportItemRow[]): Promise<{ inserted: number; updated: number; errors: RowError[] }> {
+  async commitItemsImport(
+    auth: AuthContext,
+    rows: ImportItemRow[],
+  ): Promise<{ inserted: number; updated: number; errors: RowError[] }> {
     const { valid, errors } = await this.validateItemsImport(auth, rows);
 
-    requirePermission(auth, 'menu:create');
+    requirePermission(auth, "menu:create");
     const effectiveBranchId = resolveMenuBranch(auth);
     const { inserted, updated } = valid.length
-      ? await importExportRepository.commitRows(auth.tenantId, effectiveBranchId, valid.map((r) => ({ action: r.action, data: r.data })))
+      ? await importExportRepository.commitRows(
+          auth.tenantId,
+          effectiveBranchId,
+          valid.map((r) => ({ action: r.action, data: r.data })),
+        )
       : { inserted: 0, updated: 0 };
 
     if (errors.length && inserted === 0 && updated === 0) {

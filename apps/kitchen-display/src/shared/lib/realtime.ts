@@ -3,15 +3,17 @@ import {
   useRealtime as useRealtimeBase,
   useRealtimeEvent as useRealtimeEventBase,
   useRealtimeConnection,
-} from '@pos/realtime';
-import type { RealtimeEvent } from '@pos/types';
-import { STORAGE_KEYS } from '../constants/storage-keys';
+} from "@pos/realtime";
+import type { RealtimeEvent } from "@pos/types";
+import { STORAGE_KEYS } from "../constants/storage-keys";
 
 // Matches the protocol-detection this app's original inline WebSocket used
 // (wss over https, ws otherwise) — kept here since it was already correct
 // and apps/web's hardcoded 'ws://' isn't something to copy.
-const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-const wsUrl = import.meta.env['VITE_WS_URL'] ?? `${proto}://${window.location.host}/ws/events`;
+const proto = window.location.protocol === "https:" ? "wss" : "ws";
+const wsUrl =
+  import.meta.env["VITE_WS_URL"] ??
+  `${proto}://${window.location.host}/ws/events`;
 
 const client = createRealtimeClient<RealtimeEvent>({
   url: wsUrl,
@@ -24,7 +26,7 @@ export function useRealtime(handler: (event: RealtimeEvent) => void) {
   useRealtimeBase(client, handler);
 }
 
-export function useRealtimeEvent<T extends RealtimeEvent['type']>(
+export function useRealtimeEvent<T extends RealtimeEvent["type"]>(
   type: T,
   handler: (event: Extract<RealtimeEvent, { type: T }>) => void,
 ) {

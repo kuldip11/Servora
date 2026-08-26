@@ -1,15 +1,19 @@
-import { Elysia } from 'elysia';
-import { requireAuthPlugin } from '../../core/auth';
-import { branchController } from './branch.controller';
-import { createBranchBody, updateBranchBody, branchIdParams } from './branch.validator';
+import { Elysia } from "elysia";
+import { requireAuthPlugin } from "../../core/auth";
+import { branchController } from "./branch.controller";
+import {
+  createBranchBody,
+  updateBranchBody,
+  branchIdParams,
+} from "./branch.validator";
 
 export const branchesRouter = new Elysia()
   // Branch-locked staff → return only their own branch.
   // Owner/manager → return all branches, or one specific branch from the server-issued active context.
   .use(requireAuthPlugin())
-  .get('/api/branches/', ({ auth }) => branchController.list(auth))
+  .get("/api/branches/", ({ auth }) => branchController.list(auth))
   .post(
-    '/api/branches/',
+    "/api/branches/",
     ({ auth, body, set }) => {
       set.status = 201;
       return branchController.create(auth, body);
@@ -17,10 +21,14 @@ export const branchesRouter = new Elysia()
     { body: createBranchBody },
   )
   .patch(
-    '/api/branches/:id',
+    "/api/branches/:id",
     ({ auth, params, body }) => branchController.update(auth, params.id, body),
     { params: branchIdParams, body: updateBranchBody },
   )
-  .delete('/api/branches/:id', ({ auth, params }) => branchController.deactivate(auth, params.id), {
-    params: branchIdParams,
-  });
+  .delete(
+    "/api/branches/:id",
+    ({ auth, params }) => branchController.deactivate(auth, params.id),
+    {
+      params: branchIdParams,
+    },
+  );

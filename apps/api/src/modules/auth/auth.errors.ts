@@ -18,23 +18,28 @@
  * service throw the same fixed error for every case in that group,
  * rather than distinguishing them for the client.
  */
-import { UnauthorizedError, NotFoundError } from '../../core/errors';
-
+import { UnauthorizedError, NotFoundError } from "../../core/errors";
 
 /** Covers both "no such user" and "wrong password" — same response either way. */
 export function invalidCredentials(): UnauthorizedError {
-  return new UnauthorizedError('Invalid credentials', { reason: 'AUTH_INVALID_CREDENTIALS' });
+  return new UnauthorizedError("Invalid credentials", {
+    reason: "AUTH_INVALID_CREDENTIALS",
+  });
 }
 
 export function userInactive(): UnauthorizedError {
-  return new UnauthorizedError('Invalid credentials', { reason: 'AUTH_USER_INACTIVE' });
+  return new UnauthorizedError("Invalid credentials", {
+    reason: "AUTH_USER_INACTIVE",
+  });
 }
 
 /** Covers both "token not found/expired" and "owning user no longer exists". */
 export function invalidRefreshToken(): UnauthorizedError {
-  return new UnauthorizedError('Invalid refresh token', { reason: 'AUTH_INVALID_REFRESH_TOKEN' });
+  return new UnauthorizedError("Invalid refresh token", {
+    reason: "AUTH_INVALID_REFRESH_TOKEN",
+  });
 }
 
 export function authUserNotFound(): NotFoundError {
-  return new NotFoundError('User', undefined, { reason: 'USER_NOT_FOUND' });
+  return new NotFoundError("User", undefined, { reason: "USER_NOT_FOUND" });
 }

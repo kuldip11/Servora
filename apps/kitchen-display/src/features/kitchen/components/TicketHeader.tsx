@@ -1,6 +1,6 @@
-import { StatusBadge, type StatusTone } from '@pos/ui';
-import type { KitchenTicket } from '@pos/types';
-import { Timer } from './Timer';
+import { StatusBadge, type StatusTone } from "@pos/ui";
+import type { KitchenTicket } from "@pos/types";
+import { Timer } from "./Timer";
 
 interface Props {
   ticket: KitchenTicket;
@@ -13,10 +13,15 @@ interface Props {
 // `--text-primary` is `#f9fafb` (gray-50), not pure `#ffffff` — an
 // imperceptible, standard token-vs-literal delta, not flagged again at
 // every other place this same swap recurs in this sprint's files.
-export function TicketHeader({ ticket, statusLabel, statusTone, statusTextClass }: Props) {
+export function TicketHeader({
+  ticket,
+  statusLabel,
+  statusTone,
+  statusTextClass,
+}: Props) {
   const order = ticket.order;
   const tableName = order?.table?.name;
-  const orderTypeLabel = order?.type?.replace('_', ' ').toLowerCase();
+  const orderTypeLabel = order?.type?.replace("_", " ").toLowerCase();
 
   return (
     <div className="flex items-start justify-between">
@@ -24,7 +29,9 @@ export function TicketHeader({ ticket, statusLabel, statusTone, statusTextClass 
         <p className="text-text-primary font-bold text-sm">
           {tableName ? `Table ${tableName}` : orderTypeLabel}
           {ticket.ticketNumber > 1 && (
-            <span className="ml-2 text-xs font-semibold text-text-secondary">Round {ticket.ticketNumber}</span>
+            <span className="ml-2 text-xs font-semibold text-text-secondary">
+              Round {ticket.ticketNumber}
+            </span>
           )}
         </p>
         <p className="text-xs text-text-secondary mt-0.5">
@@ -45,7 +52,12 @@ export function TicketHeader({ ticket, statusLabel, statusTone, statusTextClass 
             dark theme vs. the original's literal `/20%`, and its
             `font-semibold px-2.5` vs. the original's `font-bold px-2`
             — both close enough not to override further. */}
-        <StatusBadge label={statusLabel} tone={statusTone} dot={false} className={statusTextClass} />
+        <StatusBadge
+          label={statusLabel}
+          tone={statusTone}
+          dot={false}
+          className={statusTextClass}
+        />
         <Timer firedAt={ticket.firedAt} />
       </div>
     </div>

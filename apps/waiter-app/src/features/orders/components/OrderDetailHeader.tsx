@@ -1,8 +1,8 @@
-import { X } from 'lucide-react';
-import { IconButton } from '@pos/ui';
-import type { Order } from '@pos/types';
-import { StatusBadge } from './StatusBadge';
-import { shortOrderId } from '../utils/orderHelpers';
+import { X } from "lucide-react";
+import { IconButton } from "@pos/ui";
+import type { Order } from "@pos/types";
+import { StatusBadge } from "./StatusBadge";
+import { shortOrderId } from "../utils/orderHelpers";
 
 interface Props {
   order: Order;
@@ -33,10 +33,12 @@ export function OrderDetailHeader({ order, onBack }: Props) {
         onClick={onBack}
       />
       <div className="flex-1">
-        <h2 className="font-bold text-text-primary">{shortOrderId(order.id)}</h2>
+        <h2 className="font-bold text-text-primary">
+          {shortOrderId(order.id)}
+        </h2>
         <p className="text-xs text-text-disabled">
-          {order.type?.replace('_', ' ')}
-          {order.table ? ` · Table ${order.table.name}` : ''}
+          {order.type?.replace("_", " ")}
+          {order.table ? ` · Table ${order.table.name}` : ""}
         </p>
       </div>
       <StatusBadge status={order.status} />

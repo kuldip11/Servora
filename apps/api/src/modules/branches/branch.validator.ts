@@ -1,4 +1,4 @@
-import { t } from 'elysia';
+import { t } from "elysia";
 
 export const createBranchBody = t.Object({
   name: t.String({ minLength: 1, maxLength: 200 }),

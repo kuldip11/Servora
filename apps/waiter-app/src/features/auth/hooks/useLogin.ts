@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { toast } from '@pos/ui';
-import { extractApiError } from '@pos/api-client';
-import { login, fetchMemberships } from '../api/login';
-import { saveTokens, saveProfile, saveContext, clearTokens } from '../storage';
-import type { AvailableMembership, CredentialsForm } from '../types';
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "@pos/ui";
+import { extractApiError } from "@pos/api-client";
+import { login, fetchMemberships } from "../api/login";
+import { saveTokens, saveProfile, saveContext, clearTokens } from "../storage";
+import type { AvailableMembership, CredentialsForm } from "../types";
 
 interface UseLoginResult {
-  step: 'credentials' | 'membership' | 'branch';
+  step: "credentials" | "membership" | "branch";
   memberships: AvailableMembership[];
-  branches: AvailableMembership['branches'];
+  branches: AvailableMembership["branches"];
   submitCredentials: (creds: CredentialsForm) => void;
   selectMembership: (membershipId: string) => void;
   selectBranchForMembership: (branchId: string) => void;
@@ -18,37 +18,69 @@ interface UseLoginResult {
 }
 
 export function useLogin(onLogin: () => void): UseLoginResult {
-  const [step, setStep] = useState<'credentials' | 'membership' | 'branch'>('credentials');
+  const [step, setStep] = useState<"credentials" | "membership" | "branch">(
+    "credentials",
+  );
   const [memberships, setMemberships] = useState<AvailableMembership[]>([]);
-  const [activeMembership, setActiveMembership] = useState<AvailableMembership | null>(null);
-  const [branches, setBranches] = useState<AvailableMembership['branches']>([]);
+  const [activeMembership, setActiveMembership] =
+    useState<AvailableMembership | null>(null);
+  const [branches, setBranches] = useState<AvailableMembership["branches"]>([]);
 
   const activate = async (membership: AvailableMembership) => {
     setActiveMembership(membership);
-    const branchId = membership.roles.some((role) => role.scope === 'TENANT') ? null : membership.branches[0]?.id ?? null;
+    const branchId = membership.roles.some((role) => role.scope === "TENANT")
+      ? null
+      : (membership.branches[0]?.id ?? null);
     saveContext(membership.tenant.id, branchId);
-    if (branchId || membership.roles.some((role) => role.scope === 'TENANT')) { onLogin(); return; }
-    setBranches(membership.branches); setStep('branch');
+    if (branchId || membership.roles.some((role) => role.scope === "TENANT")) {
+      onLogin();
+      return;
+    }
+    setBranches(membership.branches);
+    setStep("branch");
   };
 
   const mutation = useMutation({
     mutationFn: async (creds: CredentialsForm) => {
       const result = await login(creds.email, creds.password);
-      saveTokens(result.accessToken, result.refreshToken); saveProfile(result.user);
+      saveTokens(result.accessToken, result.refreshToken);
+      saveProfile(result.user);
       const list = await fetchMemberships();
-      if (!list.length) throw new Error('No business membership is assigned to this account.');
+      if (!list.length)
+        throw new Error("No business membership is assigned to this account.");
       setMemberships(list);
-      if (list.length === 1) await activate(list[0]!); else setStep('membership');
+      if (list.length === 1) await activate(list[0]!);
+      else setStep("membership");
     },
-    onError: (err: unknown) => { clearTokens(); toast({ title: extractApiError(err), tone: 'danger' }); },
+    onError: (err: unknown) => {
+      clearTokens();
+      toast({ title: extractApiError(err), tone: "danger" });
+    },
   });
 
   return {
-    step, memberships, branches,
+    step,
+    memberships,
+    branches,
     submitCredentials: (creds) => mutation.mutate(creds),
-    selectMembership: (id) => { const m = memberships.find((item) => item.membershipId === id); if (m) void activate(m).catch((err: unknown) => toast({ title: extractApiError(err), tone: 'danger' })); },
-    selectBranchForMembership: (id) => { if (!activeMembership) return; saveContext(activeMembership.tenant.id, id); onLogin(); },
+    selectMembership: (id) => {
+      const m = memberships.find((item) => item.membershipId === id);
+      if (m)
+        void activate(m).catch((err: unknown) =>
+          toast({ title: extractApiError(err), tone: "danger" }),
+        );
+    },
+    selectBranchForMembership: (id) => {
+      if (!activeMembership) return;
+      saveContext(activeMembership.tenant.id, id);
+      onLogin();
+    },
     isLoading: mutation.isPending,
-    resetToCredentials: () => { setStep('credentials'); setActiveMembership(null); setBranches([]); clearTokens(); },
+    resetToCredentials: () => {
+      setStep("credentials");
+      setActiveMembership(null);
+      setBranches([]);
+      clearTokens();
+    },
   };
 }

@@ -1,8 +1,8 @@
-import Redis from 'ioredis';
+import Redis from "ioredis";
 
-const redisUrl = process.env['REDIS_URL'];
+const redisUrl = process.env["REDIS_URL"];
 if (!redisUrl) {
-  throw new Error('REDIS_URL environment variable is required');
+  throw new Error("REDIS_URL environment variable is required");
 }
 
 const redisOptions = {
@@ -20,11 +20,13 @@ export const publisher = new Redis(redisUrl, redisOptions);
 // Dedicated subscriber (blocks connection for pub/sub only)
 export const subscriber = new Redis(redisUrl, redisOptions);
 
-redis.on('error', (err) => console.error('[Redis] Error:', err));
-publisher.on('error', (err) => console.error('[Redis Publisher] Error:', err));
-subscriber.on('error', (err) => console.error('[Redis Subscriber] Error:', err));
+redis.on("error", (err) => console.error("[Redis] Error:", err));
+publisher.on("error", (err) => console.error("[Redis Publisher] Error:", err));
+subscriber.on("error", (err) =>
+  console.error("[Redis Subscriber] Error:", err),
+);
 
-redis.on('connect', () => console.log('[Redis] Connected'));
+redis.on("connect", () => console.log("[Redis] Connected"));
 
 export const CACHE_TTL = {
   SHORT: 60,
@@ -34,8 +36,8 @@ export const CACHE_TTL = {
 } as const;
 
 export const REDIS_CHANNELS = {
-  ORDER_EVENTS: 'pos:order_events',
-  KITCHEN_EVENTS: 'pos:kitchen_events',
-  INVENTORY_EVENTS: 'pos:inventory_events',
-  TABLE_EVENTS: 'pos:table_events',
+  ORDER_EVENTS: "pos:order_events",
+  KITCHEN_EVENTS: "pos:kitchen_events",
+  INVENTORY_EVENTS: "pos:inventory_events",
+  TABLE_EVENTS: "pos:table_events",
 } as const;

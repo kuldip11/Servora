@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   AppShell,
   Page,
@@ -18,8 +18,8 @@ import {
   CurrencyInput,
   PasswordInput,
   OTPInput,
-} from '@pos/ui';
-import { Mail, Trash2, Copy, Archive, Download } from 'lucide-react';
+} from "@pos/ui";
+import { Mail, Trash2, Copy, Archive, Download } from "lucide-react";
 
 /**
  * Internal-only route (`/dev/form-preview`, no auth guard). Phase 3
@@ -37,26 +37,30 @@ import { Mail, Trash2, Copy, Archive, Download } from 'lucide-react';
  *   should announce its error text, not just show it visually.
  */
 export function FormPreviewPage() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState<string | undefined>();
-  const [bio, setBio] = useState('');
-  const [search, setSearch] = useState('');
+  const [bio, setBio] = useState("");
+  const [search, setSearch] = useState("");
   const [covers, setCovers] = useState(2);
   const [price, setPrice] = useState(12.5);
-  const [password, setPassword] = useState('');
-  const [otp, setOtp] = useState('');
+  const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
   const [otpComplete, setOtpComplete] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setEmailError(email.includes('@') ? undefined : 'Enter a valid email address.');
+    setEmailError(
+      email.includes("@") ? undefined : "Enter a valid email address.",
+    );
   };
 
   return (
     <AppShell
       topbar={
         <div className="px-6 py-3 flex items-center justify-between">
-          <span className="font-semibold text-text-primary">Form & Button Preview</span>
+          <span className="font-semibold text-text-primary">
+            Form & Button Preview
+          </span>
           <StatusBadge label="Phase 3" tone="info" />
         </div>
       }
@@ -78,7 +82,9 @@ export function FormPreviewPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 error={emailError}
-                hint={emailError ? undefined : "We'll send the confirmation here."}
+                hint={
+                  emailError ? undefined : "We'll send the confirmation here."
+                }
               />
               <PasswordInput
                 label="Password"
@@ -92,7 +98,7 @@ export function FormPreviewPage() {
                 placeholder="Margherita, Caesar salad…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                onClear={() => setSearch('')}
+                onClear={() => setSearch("")}
               />
               <TextArea
                 label="Bio"
@@ -110,7 +116,11 @@ export function FormPreviewPage() {
                 max={20}
                 hint="Party size for this reservation."
               />
-              <CurrencyInput label="Menu item price" value={price} onChange={setPrice} />
+              <CurrencyInput
+                label="Menu item price"
+                value={price}
+                onChange={setPrice}
+              />
             </Grid>
 
             <div className="mt-lg">
@@ -120,20 +130,31 @@ export function FormPreviewPage() {
                 value={otp}
                 onChange={setOtp}
                 onComplete={() => setOtpComplete(true)}
-                hint={otpComplete ? 'Code complete.' : 'Enter the 6-digit code we sent you.'}
+                hint={
+                  otpComplete
+                    ? "Code complete."
+                    : "Enter the 6-digit code we sent you."
+                }
               />
             </div>
 
             <Stack direction="row" gap="sm" className="mt-lg">
               <Button type="submit">Submit</Button>
-              <Button type="button" variant="secondary" onClick={() => setEmailError(undefined)}>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setEmailError(undefined)}
+              >
                 Reset error
               </Button>
             </Stack>
           </form>
         </Section>
 
-        <Section title="Button family" description="Every variant × the icon and split variants.">
+        <Section
+          title="Button family"
+          description="Every variant × the icon and split variants."
+        >
           <Stack direction="row" gap="sm" wrap>
             <Button variant="primary">Primary</Button>
             <Button variant="secondary">Secondary</Button>
@@ -147,13 +168,22 @@ export function FormPreviewPage() {
           <Stack direction="row" gap="sm" wrap className="mt-md">
             <IconButton icon={Trash2} aria-label="Delete" variant="danger" />
             <IconButton icon={Copy} aria-label="Duplicate" />
-            <IconButton icon={Download} aria-label="Download" variant="secondary" />
+            <IconButton
+              icon={Download}
+              aria-label="Download"
+              variant="secondary"
+            />
             <SplitButton
               onClick={() => {}}
               actions={[
-                { label: 'Duplicate', icon: Copy, onClick: () => {} },
-                { label: 'Archive', icon: Archive, onClick: () => {} },
-                { label: 'Delete', icon: Trash2, onClick: () => {}, danger: true },
+                { label: "Duplicate", icon: Copy, onClick: () => {} },
+                { label: "Archive", icon: Archive, onClick: () => {} },
+                {
+                  label: "Delete",
+                  icon: Trash2,
+                  onClick: () => {},
+                  danger: true,
+                },
               ]}
             >
               Save order
@@ -161,7 +191,10 @@ export function FormPreviewPage() {
           </Stack>
         </Section>
 
-        <Section title="StatusBadge" description="Every tone the Phase 3 primitive supports.">
+        <Section
+          title="StatusBadge"
+          description="Every tone the Phase 3 primitive supports."
+        >
           <Stack direction="row" gap="sm" wrap>
             <StatusBadge label="Active" tone="success" />
             <StatusBadge label="Pending" tone="warning" />
@@ -176,17 +209,28 @@ export function FormPreviewPage() {
           description="Every input's loading/disabled treatment side by side."
         >
           <Grid columns={{ base: 1, md: 2 }} gap="md">
-            <TextInput label="Loading" loading value="Saving…" onChange={() => {}} />
-            <TextInput label="Disabled" disabled value="Read-only" onChange={() => {}} />
+            <TextInput
+              label="Loading"
+              loading
+              value="Saving…"
+              onChange={() => {}}
+            />
+            <TextInput
+              label="Disabled"
+              disabled
+              value="Read-only"
+              onChange={() => {}}
+            />
           </Grid>
         </Section>
 
         <Card className="mt-lg">
           <p className="text-sm text-text-secondary">
-            Live state — email: <span className="text-text-primary">{email || '(empty)'}</span>,
-            covers: <span className="text-text-primary">{covers}</span>, price:{' '}
-            <span className="text-text-primary">${price.toFixed(2)}</span>, OTP:{' '}
-            <span className="text-text-primary">{otp || '(empty)'}</span>
+            Live state — email:{" "}
+            <span className="text-text-primary">{email || "(empty)"}</span>,
+            covers: <span className="text-text-primary">{covers}</span>, price:{" "}
+            <span className="text-text-primary">${price.toFixed(2)}</span>, OTP:{" "}
+            <span className="text-text-primary">{otp || "(empty)"}</span>
           </p>
         </Card>
       </Page>

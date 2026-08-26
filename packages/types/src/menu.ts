@@ -1,24 +1,17 @@
-import type { Branch } from './auth';
-import { Recipe } from './inventory';
+import type { Branch } from "./auth";
+import { Recipe } from "./inventory";
 
-export type FoodType = 'VEG' | 'NON_VEG' | 'EGG';
+export type FoodType = "VEG" | "NON_VEG" | "EGG";
 
-export type SpiceLevel = 'NONE' | 'MILD' | 'MEDIUM' | 'HOT';
+export type SpiceLevel = "NONE" | "MILD" | "MEDIUM" | "HOT";
 
-export type ModifierSelectionType = 'SINGLE' | 'MULTIPLE';
+export type ModifierSelectionType = "SINGLE" | "MULTIPLE";
 
 export type MenuItemStatus =
-  | 'ACTIVE'
-  | 'OUT_OF_STOCK'
-  | 'HIDDEN'
-  | 'SEASONAL'
-  | 'DISCONTINUED';
+  "ACTIVE" | "OUT_OF_STOCK" | "HIDDEN" | "SEASONAL" | "DISCONTINUED";
 
 export type MenuItemScheduleType =
-  | 'DAILY'
-  | 'WEEKLY'
-  | 'SPECIFIC_DATE'
-  | 'HOLIDAY';
+  "DAILY" | "WEEKLY" | "SPECIFIC_DATE" | "HOLIDAY";
 
 export interface MenuItemSchedule {
   id: string;

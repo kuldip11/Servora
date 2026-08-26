@@ -18,11 +18,14 @@
     <script>
       (function () {
         try {
-          var t = localStorage.getItem('pos-theme');
-          var valid = t === 'light' || t === 'dark' || t === 'high-contrast';
-          document.documentElement.setAttribute('data-theme', valid ? t : 'dark');
+          var t = localStorage.getItem("pos-theme");
+          var valid = t === "light" || t === "dark" || t === "high-contrast";
+          document.documentElement.setAttribute(
+            "data-theme",
+            valid ? t : "dark",
+          );
         } catch (e) {
-          document.documentElement.setAttribute('data-theme', 'dark');
+          document.documentElement.setAttribute("data-theme", "dark");
         }
       })();
     </script>

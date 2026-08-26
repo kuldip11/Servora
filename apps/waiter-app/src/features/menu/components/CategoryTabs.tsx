@@ -1,8 +1,8 @@
-import { FOOD_TYPE_FILTERS } from '../constants';
+import { FOOD_TYPE_FILTERS } from "../constants";
 
 interface Props {
-  foodTypeFilter: 'ALL' | 'VEG' | 'NON_VEG' | 'EGG';
-  onFoodTypeChange: (value: 'ALL' | 'VEG' | 'NON_VEG' | 'EGG') => void;
+  foodTypeFilter: "ALL" | "VEG" | "NON_VEG" | "EGG";
+  onFoodTypeChange: (value: "ALL" | "VEG" | "NON_VEG" | "EGG") => void;
   categories: any[] | undefined;
   activeCategory: string | null;
   onCategoryChange: (id: string) => void;
@@ -29,10 +29,15 @@ export function CategoryTabs({
     <>
       <div className="flex gap-2 px-4 pb-3 overflow-x-auto no-scrollbar">
         {FOOD_TYPE_FILTERS.map((f) => (
-          <button key={f.value} onClick={() => onFoodTypeChange(f.value)}
+          <button
+            key={f.value}
+            onClick={() => onFoodTypeChange(f.value)}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-colors ${
-              foodTypeFilter === f.value ? 'bg-primary text-primary-foreground' : 'bg-surface-secondary text-text-secondary'
-            }`}>
+              foodTypeFilter === f.value
+                ? "bg-primary text-primary-foreground"
+                : "bg-surface-secondary text-text-secondary"
+            }`}
+          >
             {f.label}
           </button>
         ))}
@@ -40,10 +45,15 @@ export function CategoryTabs({
       {!menuSearch && (
         <div className="flex gap-2 px-4 pb-3 overflow-x-auto no-scrollbar">
           {categories?.map((cat: any) => (
-            <button key={cat.id} onClick={() => onCategoryChange(cat.id)}
+            <button
+              key={cat.id}
+              onClick={() => onCategoryChange(cat.id)}
               className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-colors ${
-                activeCategory === cat.id ? 'bg-primary text-primary-foreground' : 'bg-surface-secondary text-text-secondary'
-              }`}>
+                activeCategory === cat.id
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-surface-secondary text-text-secondary"
+              }`}
+            >
               {cat.name}
             </button>
           ))}

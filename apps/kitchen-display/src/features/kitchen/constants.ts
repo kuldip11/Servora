@@ -1,5 +1,5 @@
-import type { KitchenTicketStatus } from '@pos/types';
-import type { StatusTone } from '@pos/ui';
+import type { KitchenTicketStatus } from "@pos/types";
+import type { StatusTone } from "@pos/ui";
 
 // Design-system Phase 12, Sprint KDS-1: colors retokenized onto
 // `--info`/`--warning`/`--success` (dark theme values were pulled 1:1
@@ -36,20 +36,32 @@ import type { StatusTone } from '@pos/ui';
 // `--primary-hover` exists).
 export const STATUS_CONFIG = {
   FIRED: {
-    label: 'Waiting', next: 'PREPARING', nextLabel: 'Start Cooking',
-    border: 'border-info/40', badgeTone: 'info' as StatusTone, badgeTextClass: 'text-blue-400',
-    btn: 'bg-info hover:opacity-90 text-info-foreground',
+    label: "Waiting",
+    next: "PREPARING",
+    nextLabel: "Start Cooking",
+    border: "border-info/40",
+    badgeTone: "info" as StatusTone,
+    badgeTextClass: "text-blue-400",
+    btn: "bg-info hover:opacity-90 text-info-foreground",
   },
   PREPARING: {
-    label: 'Cooking', next: 'READY', nextLabel: 'Mark Ready',
-    border: 'border-warning/40', badgeTone: 'warning' as StatusTone, badgeTextClass: 'text-amber-400',
-    btn: 'bg-warning hover:opacity-90 text-warning-foreground',
+    label: "Cooking",
+    next: "READY",
+    nextLabel: "Mark Ready",
+    border: "border-warning/40",
+    badgeTone: "warning" as StatusTone,
+    badgeTextClass: "text-amber-400",
+    btn: "bg-warning hover:opacity-90 text-warning-foreground",
   },
   READY: {
     // Chef's job ends here — serving is the waiter's action, not the kitchen's.
-    label: 'Ready', next: null, nextLabel: null,
-    border: 'border-success/40', badgeTone: 'success' as StatusTone, badgeTextClass: 'text-emerald-400',
-    btn: '',
+    label: "Ready",
+    next: null,
+    nextLabel: null,
+    border: "border-success/40",
+    badgeTone: "success" as StatusTone,
+    badgeTextClass: "text-emerald-400",
+    btn: "",
   },
 } as const satisfies Partial<Record<KitchenTicketStatus, unknown>>;
 
@@ -60,8 +72,12 @@ export const TICKETS_POLL_INTERVAL_MS = 20_000;
 // as `badgeTextClass` above — these label the board's column headers,
 // not a background chip, so the lighter shade is the deliberate
 // choice here too.
-export const BOARD_COLUMNS: Array<{ title: string; status: KitchenTicketStatus; color: string }> = [
-  { title: 'New Tickets', status: 'FIRED',     color: 'text-blue-400' },
-  { title: 'In Prep',     status: 'PREPARING', color: 'text-amber-400' },
-  { title: 'Ready',       status: 'READY',     color: 'text-emerald-400' },
+export const BOARD_COLUMNS: Array<{
+  title: string;
+  status: KitchenTicketStatus;
+  color: string;
+}> = [
+  { title: "New Tickets", status: "FIRED", color: "text-blue-400" },
+  { title: "In Prep", status: "PREPARING", color: "text-amber-400" },
+  { title: "Ready", status: "READY", color: "text-emerald-400" },
 ];

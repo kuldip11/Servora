@@ -1,5 +1,5 @@
-import type { CSSProperties, HTMLAttributes, ReactNode } from 'react';
-import { cn } from '../../utils/cn';
+import type { CSSProperties, HTMLAttributes, ReactNode } from "react";
+import { cn } from "../../utils/cn";
 
 export interface SplitViewProps extends HTMLAttributes<HTMLDivElement> {
   /** e.g. a list or filter panel. */
@@ -22,19 +22,23 @@ export interface SplitViewProps extends HTMLAttributes<HTMLDivElement> {
 export function SplitView({
   primary,
   secondary,
-  primaryWidth = '320px',
+  primaryWidth = "320px",
   stackOnMobile = true,
   className,
   ...props
 }: SplitViewProps) {
   return (
     <div
-      className={cn('flex gap-lg', stackOnMobile ? 'flex-col lg:flex-row' : 'flex-row', className)}
+      className={cn(
+        "flex gap-lg",
+        stackOnMobile ? "flex-col lg:flex-row" : "flex-row",
+        className,
+      )}
       {...props}
     >
       <div
         className="w-full lg:shrink-0 lg:w-[var(--split-primary-width)] lg:sticky lg:top-6 lg:self-start"
-        style={{ '--split-primary-width': primaryWidth } as CSSProperties}
+        style={{ "--split-primary-width": primaryWidth } as CSSProperties}
       >
         {primary}
       </div>

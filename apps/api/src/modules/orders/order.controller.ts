@@ -3,13 +3,20 @@
  * from `requireAuthPlugin` (applied in `order.route.ts`); business logic
  * lives in `order.service.ts`.
  */
-import type { OrderStatus } from '@pos/types';
-import type { AuthContext } from '../../core/auth';
-import { successResponse, createdResponse } from '../../core/response';
-import { orderService, type CreateOrderInput, type FireTicketInput } from './order.service';
+import type { OrderStatus } from "@pos/types";
+import type { AuthContext } from "../../core/auth";
+import { successResponse, createdResponse } from "../../core/response";
+import {
+  orderService,
+  type CreateOrderInput,
+  type FireTicketInput,
+} from "./order.service";
 
 export const orderController = {
-  async list(auth: AuthContext, filters: { status?: string | undefined; type?: string | undefined }) {
+  async list(
+    auth: AuthContext,
+    filters: { status?: string | undefined; type?: string | undefined },
+  ) {
     const orders = await orderService.list(auth, filters);
     return successResponse(orders);
   },
@@ -35,7 +42,12 @@ export const orderController = {
     status: OrderStatus,
     reason: string | undefined,
   ) {
-    const order = await orderService.updateStatus(auth, orderId, status, reason);
+    const order = await orderService.updateStatus(
+      auth,
+      orderId,
+      status,
+      reason,
+    );
     return successResponse(order);
   },
 

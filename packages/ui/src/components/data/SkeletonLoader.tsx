@@ -1,5 +1,5 @@
-import { cn } from '../../utils/cn';
-import { CELL_PADDING, type TableDensity } from './shared';
+import { cn } from "../../utils/cn";
+import { CELL_PADDING, type TableDensity } from "./shared";
 
 /**
  * Phase 7 (Part 1) — Skeleton loading primitives. `Skeleton` is the base
@@ -31,24 +31,29 @@ export interface SkeletonProps {
   /** @default '100%' */
   width?: string | undefined;
   /** @default 'md' — matches most text/badge corners; use 'full' for avatars. */
-  radius?: 'sm' | 'md' | 'lg' | 'full' | undefined;
+  radius?: "sm" | "md" | "lg" | "full" | undefined;
 }
 
 const RADIUS_CLASSES = {
-  sm: 'rounded-sm',
-  md: 'rounded-md',
-  lg: 'rounded-lg',
-  full: 'rounded-full',
+  sm: "rounded-sm",
+  md: "rounded-md",
+  lg: "rounded-lg",
+  full: "rounded-full",
 };
 
-export function Skeleton({ className, height = '1rem', width = '100%', radius = 'md' }: SkeletonProps) {
+export function Skeleton({
+  className,
+  height = "1rem",
+  width = "100%",
+  radius = "md",
+}: SkeletonProps) {
   return (
     <div
       aria-hidden="true"
       className={cn(
-        'relative overflow-hidden bg-surface-secondary',
-        'before:absolute before:inset-0 before:-translate-x-full before:animate-shimmer',
-        'before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent',
+        "relative overflow-hidden bg-surface-secondary",
+        "before:absolute before:inset-0 before:-translate-x-full before:animate-shimmer",
+        "before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent",
         RADIUS_CLASSES[radius],
         className,
       )}
@@ -65,11 +70,19 @@ export interface SkeletonTextProps {
   className?: string | undefined;
 }
 
-export function SkeletonText({ lines = 1, lastLineWidth = '60%', className }: SkeletonTextProps) {
+export function SkeletonText({
+  lines = 1,
+  lastLineWidth = "60%",
+  className,
+}: SkeletonTextProps) {
   return (
-    <div className={cn('flex flex-col gap-2', className)}>
+    <div className={cn("flex flex-col gap-2", className)}>
       {Array.from({ length: lines }).map((_, i) => (
-        <Skeleton key={i} height="0.875rem" width={i === lines - 1 ? lastLineWidth : '100%'} />
+        <Skeleton
+          key={i}
+          height="0.875rem"
+          width={i === lines - 1 ? lastLineWidth : "100%"}
+        />
       ))}
     </div>
   );
@@ -81,9 +94,17 @@ export interface SkeletonCardProps {
   withMedia?: boolean | undefined;
 }
 
-export function SkeletonCard({ className, withMedia = false }: SkeletonCardProps) {
+export function SkeletonCard({
+  className,
+  withMedia = false,
+}: SkeletonCardProps) {
   return (
-    <div className={cn('flex flex-col gap-3 p-md border border-border rounded-lg bg-surface', className)}>
+    <div
+      className={cn(
+        "flex flex-col gap-3 p-md border border-border rounded-lg bg-surface",
+        className,
+      )}
+    >
       {withMedia && <Skeleton height="2.5rem" width="2.5rem" radius="full" />}
       <SkeletonText lines={3} />
     </div>
@@ -104,13 +125,21 @@ export interface SkeletonTableProps {
  * surface that isn't built on `Table` (e.g. a card grid that wants a table-like
  * loading placeholder before its first real render decides the layout).
  */
-export function SkeletonTable({ rows = 5, columns = 4, density = 'comfortable', className }: SkeletonTableProps) {
+export function SkeletonTable({
+  rows = 5,
+  columns = 4,
+  density = "comfortable",
+  className,
+}: SkeletonTableProps) {
   return (
-    <div className={cn('w-full', className)} aria-hidden="true">
+    <div className={cn("w-full", className)} aria-hidden="true">
       {Array.from({ length: rows }).map((_, r) => (
         <div
           key={r}
-          className={cn('flex items-center gap-4 border-b border-divider last:border-b-0', CELL_PADDING[density])}
+          className={cn(
+            "flex items-center gap-4 border-b border-divider last:border-b-0",
+            CELL_PADDING[density],
+          )}
         >
           {Array.from({ length: columns }).map((_, c) => (
             <Skeleton key={c} height="0.875rem" className="flex-1" />

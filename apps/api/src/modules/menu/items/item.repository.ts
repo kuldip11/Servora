@@ -13,9 +13,9 @@
  * would touch a working, already-migrated integration point for no
  * behavioral benefit.
  */
-import { eq, and, isNull, or, inArray } from 'drizzle-orm';
-import type { FoodType, MenuItemStatus, SpiceLevel } from '@pos/types';
-import { db } from '../../../db';
+import { eq, and, isNull, or, inArray } from "drizzle-orm";
+import type { FoodType, MenuItemStatus, SpiceLevel } from "@pos/types";
+import { db } from "../../../db";
 import {
   menuItems,
   menuItemVariants,
@@ -26,7 +26,7 @@ import {
   menuCategories,
   menuItemSchedules,
   recipes,
-} from '../../../db/schema';
+} from "../../../db/schema";
 
 // Full relation tree for a menu item — used wherever the frontend needs to
 // render/edit everything about an item (order-time resolution just needs
@@ -43,7 +43,9 @@ export const ITEM_DETAIL_RELATIONS = {
   modifierGroupLinks: {
     with: {
       group: {
-        with: { options: { orderBy: (t: any, { asc }: any) => [asc(t.sortOrder)] } },
+        with: {
+          options: { orderBy: (t: any, { asc }: any) => [asc(t.sortOrder)] },
+        },
       },
     },
   },
@@ -55,7 +57,10 @@ export const ITEM_DETAIL_RELATIONS = {
 export const itemRepository = {
   async findCategory(tenantId: string, categoryId: string) {
     return db.query.menuCategories.findFirst({
-      where: and(eq(menuCategories.id, categoryId), eq(menuCategories.tenantId, tenantId)),
+      where: and(
+        eq(menuCategories.id, categoryId),
+        eq(menuCategories.tenantId, tenantId),
+      ),
       columns: { id: true, branchId: true },
     });
   },
@@ -100,15 +105,15 @@ export const itemRepository = {
           name: data.name,
           description: data.description ?? null,
           basePrice: data.basePrice,
-          taxRate: data.taxRate ?? '0',
-          foodType: data.foodType ?? 'VEG',
+          taxRate: data.taxRate ?? "0",
+          foodType: data.foodType ?? "VEG",
           spiceLevel: data.spiceLevel ?? null,
           sku: data.sku ?? null,
           prepTimeMinutes: data.prepTimeMinutes ?? null,
           sortOrder: data.sortOrder ?? 0,
           hsnCode: data.hsnCode ?? null,
-          status: data.status ?? 'ACTIVE',
-          isAvailable: (data.status ?? 'ACTIVE') === 'ACTIVE',
+          status: data.status ?? "ACTIVE",
+          isAvailable: (data.status ?? "ACTIVE") === "ACTIVE",
           enableRecipeDeduction: data.enableRecipeDeduction ?? true,
           isPublished: data.isPublished ?? true,
           publishedAt: (data.isPublished ?? true) ? new Date() : null,
@@ -116,9 +121,9 @@ export const itemRepository = {
         .returning();
 
       if (data.variants?.length) {
-        await tx.insert(menuItemVariants).values(
-          data.variants.map((v) => ({ menuItemId: item!.id, ...v })),
-        );
+        await tx
+          .insert(menuItemVariants)
+          .values(data.variants.map((v) => ({ menuItemId: item!.id, ...v })));
       }
 
       if (data.modifierGroupIds?.length) {
@@ -132,20 +137,29 @@ export const itemRepository = {
       }
 
       if (data.tagIds?.length) {
-        await tx.insert(menuItemTags).values(
-          data.tagIds.map((tagId) => ({ menuItemId: item!.id, tagId })),
-        );
+        await tx
+          .insert(menuItemTags)
+          .values(
+            data.tagIds.map((tagId) => ({ menuItemId: item!.id, tagId })),
+          );
       }
 
       if (data.allergenIds?.length) {
         await tx.insert(menuItemAllergens).values(
-          data.allergenIds.map((allergenId) => ({ menuItemId: item!.id, allergenId })),
+          data.allergenIds.map((allergenId) => ({
+            menuItemId: item!.id,
+            allergenId,
+          })),
         );
       }
 
       if (data.imageUrls?.length) {
         await tx.insert(menuItemImages).values(
-          data.imageUrls.map((url, i) => ({ menuItemId: item!.id, url, sortOrder: i })),
+          data.imageUrls.map((url, i) => ({
+            menuItemId: item!.id,
+            url,
+            sortOrder: i,
+          })),
         );
       }
 
@@ -181,10 +195,10 @@ export const itemRepository = {
     // unless the caller also explicitly sent isAvailable (rare/legacy path).
     const patch: Record<string, unknown> = { ...data, updatedAt: new Date() };
     if (data.status !== undefined && data.isAvailable === undefined) {
-      patch['isAvailable'] = data.status === 'ACTIVE';
+      patch["isAvailable"] = data.status === "ACTIVE";
     }
     if (data.status !== undefined) {
-      patch['statusChangedAt'] = new Date();
+      patch["statusChangedAt"] = new Date();
     }
     const [updated] = await db
       .update(menuItems)
@@ -214,7 +228,11 @@ export const itemRepository = {
     } = {},
   ) {
     const source = await db.query.menuItems.findFirst({
-      where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId), isNull(menuItems.deletedAt)),
+      where: and(
+        eq(menuItems.id, itemId),
+        eq(menuItems.tenantId, tenantId),
+        isNull(menuItems.deletedAt),
+      ),
       with: {
         variants: true,
         tagLinks: true,
@@ -255,19 +273,29 @@ export const itemRepository = {
 
       if (source.variants.length) {
         await tx.insert(menuItemVariants).values(
-          source.variants.map((v) => ({ menuItemId: newItemId, name: v.name, price: v.price })),
+          source.variants.map((v) => ({
+            menuItemId: newItemId,
+            name: v.name,
+            price: v.price,
+          })),
         );
       }
 
       if (source.tagLinks.length) {
         await tx.insert(menuItemTags).values(
-          source.tagLinks.map((l) => ({ menuItemId: newItemId, tagId: l.tagId })),
+          source.tagLinks.map((l) => ({
+            menuItemId: newItemId,
+            tagId: l.tagId,
+          })),
         );
       }
 
       if (source.allergenLinks.length) {
         await tx.insert(menuItemAllergens).values(
-          source.allergenLinks.map((l) => ({ menuItemId: newItemId, allergenId: l.allergenId })),
+          source.allergenLinks.map((l) => ({
+            menuItemId: newItemId,
+            allergenId: l.allergenId,
+          })),
         );
       }
 
@@ -324,17 +352,28 @@ export const itemRepository = {
     });
   },
 
-  async updateStatus(tenantId: string, itemId: string, status: MenuItemStatus, reason?: string | undefined) {
+  async updateStatus(
+    tenantId: string,
+    itemId: string,
+    status: MenuItemStatus,
+    reason?: string | undefined,
+  ) {
     const [updated] = await db
       .update(menuItems)
       .set({
         status,
         availabilityReason: reason ?? null,
         statusChangedAt: new Date(),
-        isAvailable: status === 'ACTIVE',
+        isAvailable: status === "ACTIVE",
         updatedAt: new Date(),
       })
-      .where(and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId), isNull(menuItems.deletedAt)))
+      .where(
+        and(
+          eq(menuItems.id, itemId),
+          eq(menuItems.tenantId, tenantId),
+          isNull(menuItems.deletedAt),
+        ),
+      )
       .returning();
     return updated;
   },
@@ -350,7 +389,9 @@ export const itemRepository = {
         eq(menuItems.tenantId, tenantId),
         isNull(menuItems.deletedAt),
         inArray(menuItems.status, statuses),
-        branchId ? or(eq(menuItems.branchId, branchId), isNull(menuItems.branchId)) : undefined,
+        branchId
+          ? or(eq(menuItems.branchId, branchId), isNull(menuItems.branchId))
+          : undefined,
         categoryId ? eq(menuItems.categoryId, categoryId) : undefined,
       ),
       orderBy: (t, { asc }) => [asc(t.sortOrder)],
@@ -361,42 +402,76 @@ export const itemRepository = {
   // Full replace of an item's tag/allergen/modifier-group/image links — the
   // edit form always sends the complete desired set, simpler than diffing.
   async setTags(tenantId: string, itemId: string, tagIds: string[]) {
-    const item = await db.query.menuItems.findFirst({ where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)), columns: { id: true } });
+    const item = await db.query.menuItems.findFirst({
+      where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)),
+      columns: { id: true },
+    });
     if (!item) return;
     await db.delete(menuItemTags).where(eq(menuItemTags.menuItemId, itemId));
     if (tagIds.length) {
-      await db.insert(menuItemTags).values(tagIds.map((tagId) => ({ menuItemId: itemId, tagId })));
+      await db
+        .insert(menuItemTags)
+        .values(tagIds.map((tagId) => ({ menuItemId: itemId, tagId })));
     }
   },
 
   async setAllergens(tenantId: string, itemId: string, allergenIds: string[]) {
-    const item = await db.query.menuItems.findFirst({ where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)), columns: { id: true } });
+    const item = await db.query.menuItems.findFirst({
+      where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)),
+      columns: { id: true },
+    });
     if (!item) return;
-    await db.delete(menuItemAllergens).where(eq(menuItemAllergens.menuItemId, itemId));
+    await db
+      .delete(menuItemAllergens)
+      .where(eq(menuItemAllergens.menuItemId, itemId));
     if (allergenIds.length) {
-      await db.insert(menuItemAllergens).values(
-        allergenIds.map((allergenId) => ({ menuItemId: itemId, allergenId })),
-      );
+      await db
+        .insert(menuItemAllergens)
+        .values(
+          allergenIds.map((allergenId) => ({ menuItemId: itemId, allergenId })),
+        );
     }
   },
 
-  async setModifierGroups(tenantId: string, itemId: string, modifierGroupIds: string[]) {
-    const item = await db.query.menuItems.findFirst({ where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)), columns: { id: true } });
+  async setModifierGroups(
+    tenantId: string,
+    itemId: string,
+    modifierGroupIds: string[],
+  ) {
+    const item = await db.query.menuItems.findFirst({
+      where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)),
+      columns: { id: true },
+    });
     if (!item) return;
-    await db.delete(menuItemModifierGroups).where(eq(menuItemModifierGroups.menuItemId, itemId));
+    await db
+      .delete(menuItemModifierGroups)
+      .where(eq(menuItemModifierGroups.menuItemId, itemId));
     if (modifierGroupIds.length) {
       await db.insert(menuItemModifierGroups).values(
-        modifierGroupIds.map((modifierGroupId, i) => ({ menuItemId: itemId, modifierGroupId, sortOrder: i })),
+        modifierGroupIds.map((modifierGroupId, i) => ({
+          menuItemId: itemId,
+          modifierGroupId,
+          sortOrder: i,
+        })),
       );
     }
   },
 
   async setImages(tenantId: string, itemId: string, urls: string[]) {
-    const item = await db.query.menuItems.findFirst({ where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)), columns: { id: true } });
+    const item = await db.query.menuItems.findFirst({
+      where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)),
+      columns: { id: true },
+    });
     if (!item) return;
-    await db.delete(menuItemImages).where(eq(menuItemImages.menuItemId, itemId));
+    await db
+      .delete(menuItemImages)
+      .where(eq(menuItemImages.menuItemId, itemId));
     if (urls.length) {
-      await db.insert(menuItemImages).values(urls.map((url, i) => ({ menuItemId: itemId, url, sortOrder: i })));
+      await db
+        .insert(menuItemImages)
+        .values(
+          urls.map((url, i) => ({ menuItemId: itemId, url, sortOrder: i })),
+        );
     }
   },
 
@@ -411,7 +486,13 @@ export const itemRepository = {
     const [updated] = await db
       .update(menuItems)
       .set({ isPublished: true, publishedAt: new Date() })
-      .where(and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId), isNull(menuItems.deletedAt)))
+      .where(
+        and(
+          eq(menuItems.id, itemId),
+          eq(menuItems.tenantId, tenantId),
+          isNull(menuItems.deletedAt),
+        ),
+      )
       .returning();
     return updated;
   },
@@ -423,7 +504,13 @@ export const itemRepository = {
     const [updated] = await db
       .update(menuItems)
       .set({ isPublished: false })
-      .where(and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId), isNull(menuItems.deletedAt)))
+      .where(
+        and(
+          eq(menuItems.id, itemId),
+          eq(menuItems.tenantId, tenantId),
+          isNull(menuItems.deletedAt),
+        ),
+      )
       .returning();
     return updated;
   },

@@ -1,15 +1,15 @@
-import type { ReactNode } from 'react';
-import * as RadixPopover from '@radix-ui/react-popover';
-import { cn } from '../../utils/cn';
-import { menuContentClasses } from './shared';
+import type { ReactNode } from "react";
+import * as RadixPopover from "@radix-ui/react-popover";
+import { cn } from "../../utils/cn";
+import { menuContentClasses } from "./shared";
 
 export interface PopoverProps {
   trigger: ReactNode;
   children: ReactNode;
   open?: boolean | undefined;
   onOpenChange?: ((open: boolean) => void) | undefined;
-  align?: 'start' | 'center' | 'end' | undefined;
-  side?: 'top' | 'right' | 'bottom' | 'left' | undefined;
+  align?: "start" | "center" | "end" | undefined;
+  side?: "top" | "right" | "bottom" | "left" | undefined;
   className?: string | undefined;
 }
 
@@ -33,8 +33,8 @@ export function Popover({
   children,
   open,
   onOpenChange,
-  align = 'center',
-  side = 'bottom',
+  align = "center",
+  side = "bottom",
   className,
 }: PopoverProps) {
   return (
@@ -48,7 +48,7 @@ export function Popover({
           align={align}
           side={side}
           sideOffset={6}
-          className={cn(menuContentClasses, 'p-4', className)}
+          className={cn(menuContentClasses, "p-4", className)}
         >
           {children}
         </RadixPopover.Content>

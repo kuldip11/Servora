@@ -2,23 +2,27 @@
  * Auth service — signup/login/refresh business logic and token issuing.
  * Data access lives in `auth.repository.ts`.
  */
-import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
-import { authRepository } from './auth.repository';
-import { listUserMemberships } from '../../lib/authorization/membership-context';
-import { db } from '../../db';
-import { ConflictError, ForbiddenError, ServiceUnavailableError } from '../../core/errors';
-import { signAccessToken } from '../../lib/jwt';
-import type { SignupInput, LoginInput } from '@pos/validation';
+import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import { authRepository } from "./auth.repository";
+import { listUserMemberships } from "../../lib/authorization/membership-context";
+import { db } from "../../db";
+import {
+  ConflictError,
+  ForbiddenError,
+  ServiceUnavailableError,
+} from "../../core/errors";
+import { signAccessToken } from "../../lib/jwt";
+import type { SignupInput, LoginInput } from "@pos/validation";
 import {
   invalidCredentials,
   userInactive,
   invalidRefreshToken,
   authUserNotFound,
-} from './auth.errors';
+} from "./auth.errors";
 
 function hashToken(token: string): string {
-  return crypto.createHash('sha256').update(token).digest('hex');
+  return crypto.createHash("sha256").update(token).digest("hex");
 }
 
 export const authService = {
@@ -27,16 +31,19 @@ export const authService = {
     // established later through the tenant/membership flow; tenantName is
     // accepted temporarily for older clients but is deliberately ignored.
     const normalizedEmail = input.email.trim().toLowerCase();
-    const existing = await authRepository.findStandaloneUserByEmail(normalizedEmail);
+    const existing =
+      await authRepository.findStandaloneUserByEmail(normalizedEmail);
     if (existing) {
-      throw new ConflictError('Account already exists');
+      throw new ConflictError("Account already exists");
     }
 
     const passwordHash = await bcrypt.hash(input.password, 12);
 
     // Create the identity and bootstrap its GLOBAL OWNER role in one database
     // transaction. If RBAC is missing, no half-created account is left behind.
-    let user: Awaited<ReturnType<typeof authRepository.createUserWithGlobalOwnerRole>>['user'];
+    let user: Awaited<
+      ReturnType<typeof authRepository.createUserWithGlobalOwnerRole>
+    >["user"];
     try {
       ({ user } = await authRepository.createUserWithGlobalOwnerRole({
         firstName: input.firstName,
@@ -45,19 +52,24 @@ export const authService = {
         passwordHash,
       }));
     } catch (error) {
-      if (error instanceof Error && error.message.includes('RBAC reference data is not installed')) {
-        throw new ServiceUnavailableError('RBAC reference data is not available. Run the database migrations before signing up.');
+      if (
+        error instanceof Error &&
+        error.message.includes("RBAC reference data is not installed")
+      ) {
+        throw new ServiceUnavailableError(
+          "RBAC reference data is not available. Run the database migrations before signing up.",
+        );
       }
       throw error;
     }
 
     const fullUser = await authRepository.findUserById(user.id);
-    if (!fullUser) throw new Error('User creation failed');
+    if (!fullUser) throw new Error("User creation failed");
 
     return {
       user: {
         id: fullUser.id,
-        tenantId: '',
+        tenantId: "",
         branchId: null,
         firstName: fullUser.firstName,
         lastName: fullUser.lastName,
@@ -66,7 +78,7 @@ export const authService = {
         roles: fullUser.globalUserRoles.map((ur: any) => ({
           id: ur.roleId,
           name: ur.role.name,
-          description: ur.role.description ?? '',
+          description: ur.role.description ?? "",
           permissions: ur.role.rolePermissions.map((rp: any) => rp.permission),
         })),
       },
@@ -77,7 +89,10 @@ export const authService = {
     const users = await authRepository.findUsersByEmail(input.email);
     const matches = [];
     for (const candidate of users) {
-      if (candidate.status === 'ACTIVE' && await bcrypt.compare(input.password, candidate.passwordHash)) {
+      if (
+        candidate.status === "ACTIVE" &&
+        (await bcrypt.compare(input.password, candidate.passwordHash))
+      ) {
         matches.push(candidate);
       }
     }
@@ -106,9 +121,16 @@ export const authService = {
   async me(userId: string, membershipId?: string) {
     const user = await authRepository.findUserById(userId);
     if (!user) throw authUserNotFound();
-    const membership = membershipId ? await authRepository.findMembershipById(membershipId) : undefined;
-    if (membershipId && (!membership || membership.userId !== userId || membership.status !== 'ACTIVE')) {
-      throw new ForbiddenError('Membership access denied');
+    const membership = membershipId
+      ? await authRepository.findMembershipById(membershipId)
+      : undefined;
+    if (
+      membershipId &&
+      (!membership ||
+        membership.userId !== userId ||
+        membership.status !== "ACTIVE")
+    ) {
+      throw new ForbiddenError("Membership access denied");
     }
     return { user, membership };
   },
@@ -120,12 +142,12 @@ export const authService = {
   async _issueTokens(
     user: Awaited<ReturnType<typeof authRepository.findUserById>>,
   ) {
-    if (!user) throw new Error('User not found');
+    if (!user) throw new Error("User not found");
 
     const globalRoles = user.globalUserRoles.map((ur: any) => ({
       id: ur.roleId,
       name: ur.role.name,
-      description: ur.role.description ?? '',
+      description: ur.role.description ?? "",
       permissions: ur.role.rolePermissions.map((rp: any) => rp.permission),
     }));
 
@@ -135,7 +157,7 @@ export const authService = {
       roles: globalRoles,
     });
 
-    const refreshTokenValue = crypto.randomBytes(64).toString('hex');
+    const refreshTokenValue = crypto.randomBytes(64).toString("hex");
     const tokenHash = hashToken(refreshTokenValue);
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     await authRepository.saveRefreshToken({
@@ -161,5 +183,5 @@ export const authService = {
         roles: globalRoles,
       },
     };
-  }
+  },
 };

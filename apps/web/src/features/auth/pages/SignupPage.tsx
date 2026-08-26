@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from '@tanstack/react-router';
-import { ChefHat } from 'lucide-react';
-import { z } from 'zod';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "@tanstack/react-router";
+import { ChefHat } from "lucide-react";
+import { z } from "zod";
 
-import { authService } from '../services/auth.service';
-import { useAuthStore } from '../../../store/auth';
-import { Button, Card, Input, toast } from '@pos/ui';
-import { extractApiError } from '../../../shared/lib/api-client';
-import { signupSchema } from '@pos/validation';
+import { authService } from "../services/auth.service";
+import { useAuthStore } from "../../../store/auth";
+import { Button, Card, Input, toast } from "@pos/ui";
+import { extractApiError } from "../../../shared/lib/api-client";
+import { signupSchema } from "@pos/validation";
 
 type SignupFormValues = z.infer<typeof signupSchema>;
 
@@ -24,10 +24,10 @@ export function SignupPage() {
   } = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      password: '',
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
     },
   });
 
@@ -36,16 +36,33 @@ export function SignupPage() {
     try {
       await authService.signup(
         form.tenantName
-          ? { firstName: form.firstName, lastName: form.lastName, email: form.email, password: form.password, tenantName: form.tenantName }
-          : { firstName: form.firstName, lastName: form.lastName, email: form.email, password: form.password },
+          ? {
+              firstName: form.firstName,
+              lastName: form.lastName,
+              email: form.email,
+              password: form.password,
+              tenantName: form.tenantName,
+            }
+          : {
+              firstName: form.firstName,
+              lastName: form.lastName,
+              email: form.email,
+              password: form.password,
+            },
       );
       // Signup creates the identity only; authenticate next so the user can create/select a business.
-      const login = await authService.login({ email: form.email, password: form.password });
+      const login = await authService.login({
+        email: form.email,
+        password: form.password,
+      });
       setAuth(login);
-      toast({ title: 'Account created. Choose or create a business.', tone: 'success' });
-      router.navigate({ to: '/context' });
+      toast({
+        title: "Account created. Choose or create a business.",
+        tone: "success",
+      });
+      router.navigate({ to: "/context" });
     } catch (err: unknown) {
-      toast({ title: extractApiError(err), tone: 'danger' });
+      toast({ title: extractApiError(err), tone: "danger" });
     } finally {
       setLoading(false);
     }
@@ -59,25 +76,31 @@ export function SignupPage() {
             <ChefHat className="w-7 h-7 text-primary-foreground" />
           </div>
           <h1 className="text-2xl font-bold text-text-primary">Get started</h1>
-          <p className="text-sm text-text-secondary mt-1">Create your account</p>
+          <p className="text-sm text-text-secondary mt-1">
+            Create your account
+          </p>
         </div>
 
         <Card className="rounded-xl p-8" padding="none">
-          <form onSubmit={handleSubmit(handleSignup)} className="space-y-5" noValidate>
+          <form
+            onSubmit={handleSubmit(handleSignup)}
+            className="space-y-5"
+            noValidate
+          >
             <div className="grid grid-cols-2 gap-3">
               <Input
                 label="First name"
                 placeholder="John"
                 error={errors.firstName?.message}
                 autoComplete="given-name"
-                {...register('firstName')}
+                {...register("firstName")}
               />
               <Input
                 label="Last name"
                 placeholder="Doe"
                 error={errors.lastName?.message}
                 autoComplete="family-name"
-                {...register('lastName')}
+                {...register("lastName")}
               />
             </div>
             <Input
@@ -86,7 +109,7 @@ export function SignupPage() {
               placeholder="you@restaurant.com"
               error={errors.email?.message}
               autoComplete="email"
-              {...register('email')}
+              {...register("email")}
             />
             <Input
               label="Password"
@@ -94,7 +117,7 @@ export function SignupPage() {
               placeholder="Min. 8 characters"
               error={errors.password?.message}
               autoComplete="new-password"
-              {...register('password')}
+              {...register("password")}
             />
             <Button type="submit" loading={loading} className="w-full mt-2">
               Create account
@@ -102,8 +125,11 @@ export function SignupPage() {
           </form>
 
           <p className="text-center text-sm text-text-secondary mt-6">
-            Already have an account?{' '}
-            <a href="/login" className="text-primary hover:text-primary-hover font-medium">
+            Already have an account?{" "}
+            <a
+              href="/login"
+              className="text-primary hover:text-primary-hover font-medium"
+            >
               Sign in
             </a>
           </p>

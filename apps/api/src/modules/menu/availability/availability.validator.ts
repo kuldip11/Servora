@@ -1,18 +1,18 @@
-import { t } from 'elysia';
+import { t } from "elysia";
 
 const ITEM_STATUS = t.Union([
-  t.Literal('ACTIVE'),
-  t.Literal('OUT_OF_STOCK'),
-  t.Literal('HIDDEN'),
-  t.Literal('SEASONAL'),
-  t.Literal('DISCONTINUED'),
+  t.Literal("ACTIVE"),
+  t.Literal("OUT_OF_STOCK"),
+  t.Literal("HIDDEN"),
+  t.Literal("SEASONAL"),
+  t.Literal("DISCONTINUED"),
 ]);
 
 const SCHEDULE_TYPE = t.Union([
-  t.Literal('DAILY'),
-  t.Literal('WEEKLY'),
-  t.Literal('SPECIFIC_DATE'),
-  t.Literal('HOLIDAY'),
+  t.Literal("DAILY"),
+  t.Literal("WEEKLY"),
+  t.Literal("SPECIFIC_DATE"),
+  t.Literal("HOLIDAY"),
 ]);
 
 export const createScheduleBody = t.Object({
@@ -41,7 +41,10 @@ export const updateScheduleBody = t.Object({
 
 export const itemIdParams = t.Object({ id: t.String() });
 export const scheduleIdParams = t.Object({ scheduleId: t.String() });
-export const itemBranchParams = t.Object({ id: t.String(), branchId: t.String() });
+export const itemBranchParams = t.Object({
+  id: t.String(),
+  branchId: t.String(),
+});
 
 export const currentStatusQuery = t.Object({
   timestamp: t.Optional(t.String()),

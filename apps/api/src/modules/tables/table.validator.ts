@@ -1,10 +1,10 @@
-import { t } from 'elysia';
+import { t } from "elysia";
 
 const STATUS_VALUES = [
-  t.Literal('AVAILABLE'),
-  t.Literal('OCCUPIED'),
-  t.Literal('CLEANING'),
-  t.Literal('RESERVED'),
+  t.Literal("AVAILABLE"),
+  t.Literal("OCCUPIED"),
+  t.Literal("CLEANING"),
+  t.Literal("RESERVED"),
 ];
 
 export const createTableBody = t.Object({

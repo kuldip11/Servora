@@ -1,6 +1,6 @@
-import { t } from 'elysia';
+import { t } from "elysia";
 
-const SELECTION_TYPE = t.Union([t.Literal('SINGLE'), t.Literal('MULTIPLE')]);
+const SELECTION_TYPE = t.Union([t.Literal("SINGLE"), t.Literal("MULTIPLE")]);
 
 export const createModifierGroupBody = t.Object({
   name: t.String({ minLength: 1 }),

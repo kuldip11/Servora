@@ -1,14 +1,22 @@
-import { t } from 'elysia';
+import { t } from "elysia";
 
 const ITEM_STATUS = t.Union([
-  t.Literal('ACTIVE'),
-  t.Literal('OUT_OF_STOCK'),
-  t.Literal('HIDDEN'),
-  t.Literal('SEASONAL'),
-  t.Literal('DISCONTINUED'),
+  t.Literal("ACTIVE"),
+  t.Literal("OUT_OF_STOCK"),
+  t.Literal("HIDDEN"),
+  t.Literal("SEASONAL"),
+  t.Literal("DISCONTINUED"),
 ]);
-const BULK_MODE = t.Union([t.Literal('add'), t.Literal('remove'), t.Literal('replace')]);
-const PRICE_MODE = t.Union([t.Literal('set'), t.Literal('increase'), t.Literal('decrease')]);
+const BULK_MODE = t.Union([
+  t.Literal("add"),
+  t.Literal("remove"),
+  t.Literal("replace"),
+]);
+const PRICE_MODE = t.Union([
+  t.Literal("set"),
+  t.Literal("increase"),
+  t.Literal("decrease"),
+]);
 
 export const bulkStatusBody = t.Object({
   itemIds: t.Array(t.String(), { minItems: 1 }),

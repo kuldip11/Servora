@@ -1,4 +1,9 @@
-import { Outlet, Link, useRouter, useRouterState } from '@tanstack/react-router';
+import {
+  Outlet,
+  Link,
+  useRouter,
+  useRouterState,
+} from "@tanstack/react-router";
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -13,41 +18,79 @@ import {
   Bell,
   Building2,
   Menu as MenuIcon,
-} from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { useAuthStore } from '../../../store/auth';
-import { queryClient } from '../../lib/query-client';
-import { cn } from '../../utils';
-import { Dialog, SkipLink, toast } from '@pos/ui';
-import { BranchSwitcher } from './BranchSwitcher';
-import { TenantSwitcher } from './TenantSwitcher';
-import { useBranches } from '../../../features/branches/hooks/useBranches';
-import { usePermissions } from '../../auth/permissions';
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useAuthStore } from "../../../store/auth";
+import { queryClient } from "../../lib/query-client";
+import { cn } from "../../utils";
+import { Dialog, SkipLink, toast } from "@pos/ui";
+import { BranchSwitcher } from "./BranchSwitcher";
+import { TenantSwitcher } from "./TenantSwitcher";
+import { useBranches } from "../../../features/branches/hooks/useBranches";
+import { usePermissions } from "../../auth/permissions";
 
 const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, permission: 'analytics:read' },
-  { to: '/orders', label: 'Orders', icon: ShoppingBag, permission: 'orders:read' },
-  { to: '/menu', label: 'Menu', icon: UtensilsCrossed, permission: 'menu:read' },
-  { to: '/tables', label: 'Tables', icon: Table2, permission: 'tables:read', hideWhenTablesDisabled: true },
-  { to: '/inventory', label: 'Inventory', icon: Package, permission: 'inventory:read' },
-  { to: '/staff', label: 'Staff', icon: Users, permission: 'staff:read' },
-  { to: '/billing', label: 'Billing', icon: Receipt, permission: 'billing:read' },
-  { to: '/branches', label: 'Branches', icon: Building2, permission: 'branch:read' },
-  { to: '/settings', label: 'Settings', icon: Settings },
+  {
+    to: "/dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    permission: "analytics:read",
+  },
+  {
+    to: "/orders",
+    label: "Orders",
+    icon: ShoppingBag,
+    permission: "orders:read",
+  },
+  {
+    to: "/menu",
+    label: "Menu",
+    icon: UtensilsCrossed,
+    permission: "menu:read",
+  },
+  {
+    to: "/tables",
+    label: "Tables",
+    icon: Table2,
+    permission: "tables:read",
+    hideWhenTablesDisabled: true,
+  },
+  {
+    to: "/inventory",
+    label: "Inventory",
+    icon: Package,
+    permission: "inventory:read",
+  },
+  { to: "/staff", label: "Staff", icon: Users, permission: "staff:read" },
+  {
+    to: "/billing",
+    label: "Billing",
+    icon: Receipt,
+    permission: "billing:read",
+  },
+  {
+    to: "/branches",
+    label: "Branches",
+    icon: Building2,
+    permission: "branch:read",
+  },
+  { to: "/settings", label: "Settings", icon: Settings },
 ];
 
 export function DashboardLayout() {
   const { user, branchId, logout } = useAuthStore();
   const { has } = usePermissions();
   const router = useRouter();
-  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
   const previousPathname = useRef(pathname);
   const mobileNavTriggerRef = useRef<HTMLButtonElement>(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     if (previousPathname.current !== pathname) {
-      document.getElementById('main-content')?.focus();
+      document.getElementById("main-content")?.focus();
       previousPathname.current = pathname;
     }
   }, [pathname]);
@@ -60,16 +103,20 @@ export function DashboardLayout() {
   // Only look up capability when a specific branch is selected — in "All
   // Branches" aggregate view, hiding Tables wouldn't make sense since other
   // branches might still use them.
-  const { data: branchesInScope } = useBranches({ enabled: !!branchId && branchId !== 'all' });
+  const { data: branchesInScope } = useBranches({
+    enabled: !!branchId && branchId !== "all",
+  });
 
-  const currentBranch = branchesInScope?.length === 1 ? branchesInScope[0] : undefined;
-  const tablesHidden = branchId !== 'all' && currentBranch ? !currentBranch.tablesEnabled : false;
+  const currentBranch =
+    branchesInScope?.length === 1 ? branchesInScope[0] : undefined;
+  const tablesHidden =
+    branchId !== "all" && currentBranch ? !currentBranch.tablesEnabled : false;
 
   function handleLogout() {
     logout();
     queryClient.clear();
-    toast({ title: 'Logged out successfully', tone: 'success' });
-    router.navigate({ to: '/login' });
+    toast({ title: "Logged out successfully", tone: "success" });
+    router.navigate({ to: "/login" });
   }
 
   return (
@@ -82,7 +129,10 @@ export function DashboardLayout() {
         <div className="px-6 py-5 border-b border-divider">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
-              <ChefHat aria-hidden="true" className="w-5 h-5 text-primary-foreground" />
+              <ChefHat
+                aria-hidden="true"
+                className="w-5 h-5 text-primary-foreground"
+              />
             </div>
             <div>
               <p className="text-sm font-bold text-text-primary">POS System</p>
@@ -94,36 +144,43 @@ export function DashboardLayout() {
         </div>
 
         {/* Nav */}
-        <nav aria-label="Main" className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+        <nav
+          aria-label="Main"
+          className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto"
+        >
           {navItems
             .filter((item) => !item.permission || has(item.permission))
             .filter((item) => !item.hideWhenTablesDisabled || !tablesHidden)
             .map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors',
-                  'text-text-secondary hover:bg-surface-secondary hover:text-text-primary',
-                  '[&.active]:bg-primary-surface [&.active]:text-primary',
-                )}
-                activeProps={{ className: 'active' }}
-              >
-                <Icon aria-hidden="true" className="w-5 h-5 flex-shrink-0" />
-                {item.label}
-              </Link>
-            );
-          })}
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
+                    "text-text-secondary hover:bg-surface-secondary hover:text-text-primary",
+                    "[&.active]:bg-primary-surface [&.active]:text-primary",
+                  )}
+                  activeProps={{ className: "active" }}
+                >
+                  <Icon aria-hidden="true" className="w-5 h-5 flex-shrink-0" />
+                  {item.label}
+                </Link>
+              );
+            })}
         </nav>
 
         {/* User footer */}
         <div className="p-3 border-t border-divider">
           <div className="flex items-center gap-3 px-3 py-2 rounded-md mb-1">
             <div className="w-8 h-8 bg-primary-surface rounded-full flex items-center justify-center">
-              <span aria-hidden="true" className="text-xs font-semibold text-primary">
-                {user?.firstName?.[0]}{user?.lastName?.[0]}
+              <span
+                aria-hidden="true"
+                className="text-xs font-semibold text-primary"
+              >
+                {user?.firstName?.[0]}
+                {user?.lastName?.[0]}
               </span>
             </div>
             <div className="flex-1 min-w-0">
@@ -131,7 +188,7 @@ export function DashboardLayout() {
                 {user?.firstName} {user?.lastName}
               </p>
               <p className="text-xs text-text-secondary truncate">
-                {user?.roles[0]?.name ?? 'Staff'}
+                {user?.roles[0]?.name ?? "Staff"}
               </p>
             </div>
           </div>
@@ -146,32 +203,37 @@ export function DashboardLayout() {
       </aside>
 
       {mobileNavOpen && (
-        <Dialog open onClose={closeMobileNavigation} title="Navigation" size="sm">
-        <nav aria-label="Mobile navigation" className="flex flex-col gap-1">
-          {navItems
-            .filter((item) => !item.permission || has(item.permission))
-            .filter((item) => !item.hideWhenTablesDisabled || !tablesHidden)
-            .map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  onClick={closeMobileNavigation}
-                  className={cn(
-                    'flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors',
-                    'text-text-secondary hover:bg-surface-secondary hover:text-text-primary',
-                    '[&.active]:bg-primary-surface [&.active]:text-primary',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                  )}
-                  activeProps={{ className: 'active' }}
-                >
-                  <Icon aria-hidden="true" className="w-5 h-5 shrink-0" />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-        </nav>
+        <Dialog
+          open
+          onClose={closeMobileNavigation}
+          title="Navigation"
+          size="sm"
+        >
+          <nav aria-label="Mobile navigation" className="flex flex-col gap-1">
+            {navItems
+              .filter((item) => !item.permission || has(item.permission))
+              .filter((item) => !item.hideWhenTablesDisabled || !tablesHidden)
+              .map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    onClick={closeMobileNavigation}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors",
+                      "text-text-secondary hover:bg-surface-secondary hover:text-text-primary",
+                      "[&.active]:bg-primary-surface [&.active]:text-primary",
+                      "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                    )}
+                    activeProps={{ className: "active" }}
+                  >
+                    <Icon aria-hidden="true" className="w-5 h-5 shrink-0" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+          </nav>
         </Dialog>
       )}
 
@@ -208,7 +270,11 @@ export function DashboardLayout() {
         </header>
 
         {/* Page content */}
-        <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto outline-none">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="flex-1 overflow-y-auto outline-none"
+        >
           <Outlet />
         </main>
       </div>

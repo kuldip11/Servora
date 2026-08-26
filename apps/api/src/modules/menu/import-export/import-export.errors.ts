@@ -12,15 +12,15 @@
  * `data` key to `details.result` (same reasoning as `CATEGORY_HAS_ITEMS`
  * moving its extra field into `details` in Sprint 1F).
  */
-import { ValidationError, DomainRuleError } from '../../../core/errors';
-import type { RowError } from './menu-import-parser';
+import { ValidationError, DomainRuleError } from "../../../core/errors";
+import type { RowError } from "./menu-import-parser";
 
 export function noFileUploaded(): ValidationError {
-  return new ValidationError('No file uploaded', { reason: 'NO_FILE' });
+  return new ValidationError("No file uploaded", { reason: "NO_FILE" });
 }
 
 export function emptyImportFile(): ValidationError {
-  return new ValidationError('File has no data rows', { reason: 'EMPTY_FILE' });
+  return new ValidationError("File has no data rows", { reason: "EMPTY_FILE" });
 }
 
 export function importValidationFailed(result: {
@@ -28,5 +28,8 @@ export function importValidationFailed(result: {
   updated: number;
   errors: RowError[];
 }): DomainRuleError {
-  return new DomainRuleError('No rows were valid', { reason: 'VALIDATION_FAILED', result });
+  return new DomainRuleError("No rows were valid", {
+    reason: "VALIDATION_FAILED",
+    result,
+  });
 }

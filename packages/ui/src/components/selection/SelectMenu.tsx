@@ -1,8 +1,13 @@
-import { type KeyboardEvent, useEffect, useId, useRef, useState } from 'react';
-import * as Popover from '@radix-ui/react-popover';
-import { ChevronDown } from 'lucide-react';
-import { cn } from '../../utils/cn';
-import { FieldLabel, FieldFooter, useFieldIds, describedBy } from '../form/shared';
+import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
+import * as Popover from "@radix-ui/react-popover";
+import { ChevronDown } from "lucide-react";
+import { cn } from "../../utils/cn";
+import {
+  FieldLabel,
+  FieldFooter,
+  useFieldIds,
+  describedBy,
+} from "../form/shared";
 import {
   type SelectOption,
   buildRows,
@@ -13,7 +18,7 @@ import {
   VirtualListbox,
   popoverContentClasses,
   triggerBaseClasses,
-} from './shared';
+} from "./shared";
 
 export interface SelectMenuProps {
   options: SelectOption[];
@@ -21,7 +26,7 @@ export interface SelectMenuProps {
   onChange: (value: string) => void;
   label?: string | undefined;
   /** Accessible name used when the visible field label is omitted. */
-  'aria-label'?: string | undefined;
+  "aria-label"?: string | undefined;
   placeholder?: string | undefined;
   hint?: string | undefined;
   error?: string | undefined;
@@ -65,8 +70,8 @@ export function SelectMenu({
   value,
   onChange,
   label,
-  'aria-label': ariaLabel,
-  placeholder = 'Select…',
+  "aria-label": ariaLabel,
+  placeholder = "Select…",
   hint,
   error,
   required,
@@ -85,28 +90,34 @@ export function SelectMenu({
 
   const commitRow = (rowIndex: number) => {
     const row = rows[rowIndex];
-    if (row?.kind !== 'option' || row.option.disabled) return;
+    if (row?.kind !== "option" || row.option.disabled) return;
     onChange(row.option.value);
     setOpen(false);
   };
 
-  const { activeRowIndex, setActiveRowIndex, onKeyDown, typeahead } = useActiveRow(rows, commitRow);
+  const { activeRowIndex, setActiveRowIndex, onKeyDown, typeahead } =
+    useActiveRow(rows, commitRow);
   const { onKeyDown: onTypeaheadKeyDown } = useTypeaheadBuffer(typeahead);
   useScrollActiveIntoView(listRef, activeRowIndex, open);
 
   useEffect(() => {
     if (!open) return;
-    const selectedRow = rows.findIndex((r) => r.kind === 'option' && r.option.value === value);
+    const selectedRow = rows.findIndex(
+      (r) => r.kind === "option" && r.option.value === value,
+    );
     if (selectedRow >= 0) setActiveRowIndex(selectedRow);
     // re-sync the highlighted row to the current value every time the popover opens
   }, [open]);
 
   const handleTriggerKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
-    if (e.key === 'Escape') {
+    if (e.key === "Escape") {
       setOpen(false);
       return;
     }
-    if (!open && (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter')) {
+    if (
+      !open &&
+      (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter")
+    ) {
       e.preventDefault();
       setOpen(true);
       return;
@@ -131,7 +142,9 @@ export function SelectMenu({
             aria-expanded={open}
             aria-controls={listboxId}
             aria-activedescendant={
-              open && activeRowIndex >= 0 ? rowDomId(listboxId, activeRowIndex) : undefined
+              open && activeRowIndex >= 0
+                ? rowDomId(listboxId, activeRowIndex)
+                : undefined
             }
             aria-label={label ? undefined : ariaLabel}
             aria-invalid={!!error || undefined}
@@ -139,11 +152,18 @@ export function SelectMenu({
             onKeyDown={handleTriggerKeyDown}
             className={cn(
               triggerBaseClasses,
-              error ? 'border-danger focus:ring-danger' : 'border-border focus:ring-primary',
+              error
+                ? "border-danger focus:ring-danger"
+                : "border-border focus:ring-primary",
               className,
             )}
           >
-            <span className={cn('truncate', !selectedOption && 'text-text-secondary')}>
+            <span
+              className={cn(
+                "truncate",
+                !selectedOption && "text-text-secondary",
+              )}
+            >
               {selectedOption?.label ?? placeholder}
             </span>
             <ChevronDown className="w-4 h-4 text-text-secondary shrink-0" />
@@ -153,7 +173,10 @@ export function SelectMenu({
           <Popover.Content
             align="start"
             sideOffset={4}
-            className={cn(popoverContentClasses, 'w-[var(--radix-popover-trigger-width)]')}
+            className={cn(
+              popoverContentClasses,
+              "w-[var(--radix-popover-trigger-width)]",
+            )}
             onOpenAutoFocus={(e) => e.preventDefault()}
           >
             <VirtualListbox
@@ -168,7 +191,12 @@ export function SelectMenu({
           </Popover.Content>
         </Popover.Portal>
       </Popover.Root>
-      <FieldFooter hint={hint} error={error} hintId={hintId} errorId={errorId} />
+      <FieldFooter
+        hint={hint}
+        error={error}
+        hintId={hintId}
+        errorId={errorId}
+      />
     </div>
   );
 }

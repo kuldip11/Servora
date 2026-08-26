@@ -20,7 +20,7 @@
  */
 
 :root,
-[data-theme='light'] {
+[data-theme="light"] {
   /* Surfaces */
   --background: #f9fafb; /* gray-50 */
   --surface: #ffffff;
@@ -69,8 +69,10 @@
 
   /* Shadow */
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.06);
-  --shadow-md: 0 10px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.08);
-  --shadow-dropdown: 0 4px 16px -2px rgb(0 0 0 / 0.12), 0 2px 6px -1px rgb(0 0 0 / 0.06);
+  --shadow-md:
+    0 10px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.08);
+  --shadow-dropdown:
+    0 4px 16px -2px rgb(0 0 0 / 0.12), 0 2px 6px -1px rgb(0 0 0 / 0.06);
 
   /* Spacing */
   --spacing-xs: 4px;
@@ -80,7 +82,7 @@
 }
 
 /* Dark — Kitchen Display's native theme, also selectable in Admin/Waiter App */
-[data-theme='dark'] {
+[data-theme="dark"] {
   --background: #030712; /* gray-950 */
   --surface: #111827; /* gray-900 */
   --surface-secondary: #1f2937; /* gray-800 */
@@ -131,8 +133,10 @@
   --radius-xl: 24px;
 
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.3);
-  --shadow-md: 0 10px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.4);
-  --shadow-dropdown: 0 4px 16px -2px rgb(0 0 0 / 0.5), 0 2px 6px -1px rgb(0 0 0 / 0.3);
+  --shadow-md:
+    0 10px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.4);
+  --shadow-dropdown:
+    0 4px 16px -2px rgb(0 0 0 / 0.5), 0 2px 6px -1px rgb(0 0 0 / 0.3);
 
   --spacing-xs: 4px;
   --spacing-sm: 8px;
@@ -142,7 +146,7 @@
 
 /* High-contrast — built against WCAG AAA (7:1) text contrast targets;
    no existing app implements this today, so nothing to extract from. */
-[data-theme='high-contrast'] {
+[data-theme="high-contrast"] {
   --background: #ffffff;
   --surface: #ffffff;
   --surface-secondary: #ececec;

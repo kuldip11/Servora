@@ -1,5 +1,5 @@
-import { apiClient } from '../../../shared/lib/api-client';
-import type { InventoryItem } from '@pos/types';
+import { apiClient } from "../../../shared/lib/api-client";
+import type { InventoryItem } from "@pos/types";
 
 export interface InventoryItemFormInput {
   name: string;
@@ -19,12 +19,12 @@ export interface StockUpdateInput {
 
 export const inventoryService = {
   async list(): Promise<InventoryItem[]> {
-    const res = await apiClient.get('/inventory/items');
+    const res = await apiClient.get("/inventory/items");
     return res.data.data;
   },
 
   async add(input: InventoryItemFormInput): Promise<void> {
-    await apiClient.post('/inventory/items', {
+    await apiClient.post("/inventory/items", {
       ...input,
       branchId: input.branchId || undefined,
       currentStock: parseFloat(input.currentStock),

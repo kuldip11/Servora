@@ -1,6 +1,6 @@
-import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
-import * as schema from './schema';
+import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import * as schema from "./schema";
 
 /**
  * Lazy connection setup.
@@ -14,9 +14,9 @@ import * as schema from './schema';
  * therefore deferred until the database is actually used.
  */
 function getConnectionString(): string {
-  const connectionString = process.env['DATABASE_URL'];
+  const connectionString = process.env["DATABASE_URL"];
   if (!connectionString) {
-    throw new Error('DATABASE_URL environment variable is required');
+    throw new Error("DATABASE_URL environment variable is required");
   }
   return connectionString;
 }
@@ -38,31 +38,44 @@ function getQueryClient() {
 
 function getDb(): PostgresJsDatabase<typeof schema> {
   if (!dbInstance) {
-    dbInstance = drizzle(getQueryClient(), { schema, logger: process.env['NODE_ENV'] === 'development' });
+    dbInstance = drizzle(getQueryClient(), {
+      schema,
+      logger: process.env["NODE_ENV"] === "development",
+    });
   }
   return dbInstance;
 }
 
 // Migration client (single connection) — also lazy, for the same reason.
-export const migrationClient: ReturnType<typeof postgres> = new Proxy({} as ReturnType<typeof postgres>, {
-  get(_target, prop, receiver) {
-    if (!migrationClientInstance) {
-      migrationClientInstance = postgres(getConnectionString(), { max: 1 });
-    }
-    return Reflect.get(migrationClientInstance, prop, receiver);
+export const migrationClient: ReturnType<typeof postgres> = new Proxy(
+  {} as ReturnType<typeof postgres>,
+  {
+    get(_target, prop, receiver) {
+      if (!migrationClientInstance) {
+        migrationClientInstance = postgres(getConnectionString(), { max: 1 });
+      }
+      return Reflect.get(migrationClientInstance, prop, receiver);
+    },
+    apply(_target, thisArg, args) {
+      if (!migrationClientInstance) {
+        migrationClientInstance = postgres(getConnectionString(), { max: 1 });
+      }
+      return Reflect.apply(
+        migrationClientInstance as unknown as (...a: unknown[]) => unknown,
+        thisArg,
+        args,
+      );
+    },
   },
-  apply(_target, thisArg, args) {
-    if (!migrationClientInstance) {
-      migrationClientInstance = postgres(getConnectionString(), { max: 1 });
-    }
-    return Reflect.apply(migrationClientInstance as unknown as (...a: unknown[]) => unknown, thisArg, args);
-  },
-}) as ReturnType<typeof postgres>;
+) as ReturnType<typeof postgres>;
 
-export const db: PostgresJsDatabase<typeof schema> = new Proxy({} as PostgresJsDatabase<typeof schema>, {
-  get(_target, prop, receiver) {
-    return Reflect.get(getDb(), prop, receiver);
+export const db: PostgresJsDatabase<typeof schema> = new Proxy(
+  {} as PostgresJsDatabase<typeof schema>,
+  {
+    get(_target, prop, receiver) {
+      return Reflect.get(getDb(), prop, receiver);
+    },
   },
-}) as PostgresJsDatabase<typeof schema>;
+) as PostgresJsDatabase<typeof schema>;
 
 export type Database = typeof db;
