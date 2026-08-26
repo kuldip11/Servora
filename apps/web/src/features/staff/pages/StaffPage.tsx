@@ -1,15 +1,10 @@
 import { usePermissions } from "../../../shared/auth/permissions";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { createStaffSchema, type CreateStaffInput } from "@pos/validation";
+import { useState } from "react";
 import { Plus, Users, Trash2, UserCheck, UserX, Pencil } from "lucide-react";
 import {
   Button,
   Card,
   Modal,
-  Input,
-  Select,
   IconButton,
   StatusBadge,
   Page,
@@ -29,6 +24,8 @@ import { queryClient } from "../../../shared/lib/query-client";
 import { notifyError, notifySuccess } from "../../../shared/lib/notify";
 import { staffService } from "../services/staff.service";
 import { staffKeys } from "../query-keys";
+import { AddStaffForm } from "../components/forms/AddStaffForm";
+import { EditStaffForm } from "../components/forms/EditStaffForm";
 
 // The staff service returns `any[]` (see `staff.service.ts` — never
 // typed, not something this render-only migration changes). This local
@@ -51,122 +48,15 @@ const STATUS_TONES: Record<string, StatusTone> = {
   SUSPENDED: "danger",
 };
 
-function EditStaffForm({
-  member,
-  roles,
-  branches,
-  onCancel,
-  onSubmit,
-  loading,
-}: {
-  member: StaffRow;
-  roles: Array<{ id: string; name: string; scope: string }>;
-  branches: Array<{ id: string; name: string }>;
-  onCancel: () => void;
-  onSubmit: (input: { firstName: string; lastName: string; roleId: string; branchIds: string[] }) => void;
-  loading: boolean;
-}) {
-  const { register, handleSubmit, watch, setValue } = useForm({
-    defaultValues: {
-      firstName: member.firstName ?? "",
-      lastName: member.lastName ?? "",
-      roleId: roles.find((role) => role.name === member.roles?.[0]?.name)?.id ?? "",
-      branchIds: member.assignedBranches?.map((branch) => branch.id!).filter(Boolean) ?? [],
-    },
-  });
-  const roleId = watch("roleId");
-  const role = roles.find((item) => item.id === roleId);
-  const branchRequired = role?.scope === "BRANCH";
-  const branchIds = watch("branchIds");
-
-  useEffect(() => {
-    if (branchRequired && branchIds.length === 0 && branches.length === 1) {
-      setValue("branchIds", [branches[0]!.id]);
-    }
-    if (!branchRequired) setValue("branchIds", []);
-  }, [branchRequired, branchIds.length, branches, setValue]);
-
-  return (
-    <form
-      onSubmit={handleSubmit((values) => onSubmit(values))}
-      className="space-y-4"
-    >
-      <div className="grid grid-cols-2 gap-3">
-        <Input label="First name" {...register("firstName", { required: true })} />
-        <Input label="Last name" {...register("lastName", { required: true })} />
-      </div>
-      <Select
-        label="Role"
-        options={[{ value: "", label: "Select role" }, ...roles.filter((role) => role.name !== "OWNER").map((role) => ({ value: role.id, label: role.name }))]}
-        {...register("roleId", { required: true })}
-      />
-      {branchRequired && (
-        <Select
-          label="Branch"
-          options={[{ value: "", label: "Select branch" }, ...branches.map((branch) => ({ value: branch.id, label: branch.name }))]}
-          value={branchIds[0] ?? ""}
-          onChange={(event) => setValue("branchIds", event.target.value ? [event.target.value] : [])}
-        />
-      )}
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="secondary" onClick={onCancel}>Cancel</Button>
-        <Button type="submit" loading={loading}>Save changes</Button>
-      </div>
-    </form>
-  );
-}
-
 export function StaffPage() {
   const { has } = usePermissions();
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<StaffRow | null>(null);
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<CreateStaffInput>({
-    resolver: zodResolver(createStaffSchema),
-    defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      password: "",
-      roleId: "",
-      branchId: undefined,
-    },
-  });
 
   const { data: staff, isLoading } = useStaff();
   const { data: rolesData } = useRoles();
   const { data: branches } = useBranches();
-  const selectedRoleId = watch("roleId");
-  const selectedRole = rolesData?.find((role) => role.id === selectedRoleId);
-  const showBranchPicker = selectedRole?.scope === "BRANCH" && (branches?.length ?? 0) > 0;
 
-  useEffect(() => {
-    if (selectedRole?.scope !== "BRANCH") {
-      setValue("branchId", undefined);
-      return;
-    }
-    if (!watch("branchId") && branches?.length === 1) {
-      setValue("branchId", branches[0]!.id, { shouldValidate: true });
-    }
-  }, [selectedRole?.scope, branches, setValue, watch]);
-
-  const roleSelectOptions = [
-    { value: "", label: "Select role" },
-    ...(rolesData
-      ?.filter((r) => r.name !== "OWNER")
-      .map((r) => ({ value: r.id, label: r.name })) ?? []),
-  ];
-
-  const branchSelectOptions = [
-    { value: "", label: "Select branch" },
-    ...(branches?.map((b) => ({ value: b.id, label: b.name })) ?? []),
-  ];
 
   const addMutation = useAddStaff();
   const deleteMutation = useDeleteStaff();
@@ -182,24 +72,7 @@ export function StaffPage() {
     onError: (err) => notifyError(err, "Failed to update staff"),
   });
 
-  function handleAdd(values: CreateStaffInput) {
-    addMutation.mutate(
-      values,
-      {
-        onSuccess: () => {
-          setShowAdd(false);
-          reset({
-            firstName: "",
-            lastName: "",
-            email: "",
-            password: "",
-            roleId: "",
-            branchId: undefined,
-          });
-        },
-      },
-    );
-  }
+
 
   const columns: Column<StaffRow>[] = [
     {
@@ -347,67 +220,14 @@ export function StaffPage() {
         />
       </Card>
 
-      <Modal
-        open={showAdd}
-        onClose={() => setShowAdd(false)}
-        title="Add Staff Member"
-      >
-        <form onSubmit={handleSubmit(handleAdd)} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              label="First name"
-              placeholder="John"
-              error={errors.firstName?.message}
-              {...register("firstName")}
-            />
-            <Input
-              label="Last name"
-              placeholder="Doe"
-              error={errors.lastName?.message}
-              {...register("lastName")}
-            />
-          </div>
-          <Input
-            label="Email"
-            type="email"
-            placeholder="staff@restaurant.com"
-            error={errors.email?.message}
-            {...register("email")}
-          />
-          <Input
-            label="Password"
-            type="password"
-            placeholder="Min. 8 characters"
-            error={errors.password?.message}
-            {...register("password")}
-          />
-          <Select
-            label="Role"
-            options={roleSelectOptions}
-            error={errors.roleId?.message}
-            {...register("roleId")}
-          />
-          {showBranchPicker && (
-            <Select
-              label="Branch"
-              options={branchSelectOptions}
-              error={errors.branchId?.message}
-              {...register("branchId")}
-            />
-          )}
-          <div className="flex gap-2 justify-end">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setShowAdd(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" loading={addMutation.isPending}>
-              Add Staff
-            </Button>
-          </div>
-        </form>
+      <Modal open={showAdd} onClose={() => setShowAdd(false)} title="Add Staff Member">
+        <AddStaffForm
+          roles={rolesData ?? []}
+          branches={branches ?? []}
+          loading={addMutation.isPending}
+          onCancel={() => setShowAdd(false)}
+          onSubmit={(values) => addMutation.mutate(values, { onSuccess: () => setShowAdd(false) })}
+        />
       </Modal>
 
       <Modal
