@@ -47,8 +47,17 @@ function getDb(): PostgresJsDatabase<typeof schema> {
 }
 
 // Migration client (single connection) — also lazy, for the same reason.
+//
+// NOTE: the Proxy target must itself be callable. `migrationClient` is used
+// as a tagged-template function (e.g. `migrationClient\`SELECT ...\``), and
+// per spec a Proxy only gets a [[Call]] internal method if the *target*
+// passed to `new Proxy()` was callable at creation time — the `apply` trap
+// alone isn't enough. A plain object literal target makes the proxy
+// permanently non-callable ("... is not a function"), even though `get`
+// works fine for property access (which is why `db` below, only ever used
+// via property access, didn't hit this).
 export const migrationClient: ReturnType<typeof postgres> = new Proxy(
-  {} as ReturnType<typeof postgres>,
+  function () {} as unknown as ReturnType<typeof postgres>,
   {
     get(_target, prop, receiver) {
       if (!migrationClientInstance) {
