@@ -7,15 +7,15 @@ the site end to end.
 
 ## Documents in this set
 
-| # | File | What it defines |
-|---|---|---|
-| 1 | `01-information-architecture.md` | Full sitemap, URL structure, nav, footer, redirects |
-| 2 | `02-design-system.md` | Colors, type, spacing, components — pulled from the **real** Servora app tokens, not invented |
-| 3 | `03-component-library-spec.md` | Every reusable marketing component: props, states, content slots |
-| 4 | `04-page-content-specs.md` | Section-by-section spec for every page: purpose, content, CTA, copy guardrails |
-| 5 | `05-technical-build-plan.md` | Stack, repo layout, data model, forms, integrations, deployment |
-| 6 | `06-seo-analytics-spec.md` | Per-page metadata, structured data, sitemap/robots, event taxonomy |
-| 7 | `07-launch-phasing-and-checklist.md` | Phase 0→4 build order, release gates, QA/legal checklist |
+| #   | File                                 | What it defines                                                                               |
+| --- | ------------------------------------ | --------------------------------------------------------------------------------------------- |
+| 1   | `01-information-architecture.md`     | Full sitemap, URL structure, nav, footer, redirects                                           |
+| 2   | `02-design-system.md`                | Colors, type, spacing, components — pulled from the **real** Servora app tokens, not invented |
+| 3   | `03-component-library-spec.md`       | Every reusable marketing component: props, states, content slots                              |
+| 4   | `04-page-content-specs.md`           | Section-by-section spec for every page: purpose, content, CTA, copy guardrails                |
+| 5   | `05-technical-build-plan.md`         | Stack, repo layout, data model, forms, integrations, deployment                               |
+| 6   | `06-seo-analytics-spec.md`           | Per-page metadata, structured data, sitemap/robots, event taxonomy                            |
+| 7   | `07-launch-phasing-and-checklist.md` | Phase 0→4 build order, release gates, QA/legal checklist                                      |
 
 ## How these fit together
 

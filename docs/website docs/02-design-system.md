@@ -2,32 +2,32 @@
 
 **Source of truth**: `packages/ui/src/theme/tokens.css` and
 `packages/ui/tailwind-preset.js` in the Servora monorepo. These are the
-*real* values already shipping in the dashboard, waiter app, and kitchen
+_real_ values already shipping in the dashboard, waiter app, and kitchen
 display — the marketing site reuses them rather than inventing a new palette,
 per the master plan's "single design system across marketing and application"
 goal.
 
 ## 1. Color Tokens (light theme — marketing site default)
 
-| Token | Value | Use |
-|---|---|---|
-| `--background` | `#f9fafb` | Page background |
-| `--surface` | `#ffffff` | Cards, nav bar, modals |
-| `--surface-secondary` | `#f3f4f6` | Subtle section backgrounds, alternating rows |
-| `--text-primary` | `#111827` | Headlines, body copy |
-| `--text-secondary` | `#4b5563` | Subheads, captions |
-| `--text-disabled` | `#6b7280` | Disabled/placeholder text |
-| `--border` | `#e5e7eb` | Card borders, dividers between sections |
-| `--divider` | `#f3f4f6` | Hairlines within a card |
-| `--primary` | `#7c3aed` (violet-600) | Primary buttons, links, active nav state |
-| `--primary-hover` | `#6d28d9` (violet-700) | Hover/active state |
-| `--primary-surface` | `#f5f3ff` (violet-50) | Highlighted panels, selected states |
-| `--primary-border` | `#ddd6fe` (violet-200) | Border on primary-tinted elements |
-| `--primary-foreground` | `#ffffff` | Text on solid primary buttons (AA-passing, 5.70:1) |
-| `--success` | `#047857` | Confirmation states, "included" checkmarks |
-| `--warning` | `#92400e` | Caution copy (e.g. "beta" labels, if ever used) |
-| `--danger` | `#b91c1c` | Error states in forms |
-| `--info` | `#1d4ed8` | Informational callouts |
+| Token                  | Value                  | Use                                                |
+| ---------------------- | ---------------------- | -------------------------------------------------- |
+| `--background`         | `#f9fafb`              | Page background                                    |
+| `--surface`            | `#ffffff`              | Cards, nav bar, modals                             |
+| `--surface-secondary`  | `#f3f4f6`              | Subtle section backgrounds, alternating rows       |
+| `--text-primary`       | `#111827`              | Headlines, body copy                               |
+| `--text-secondary`     | `#4b5563`              | Subheads, captions                                 |
+| `--text-disabled`      | `#6b7280`              | Disabled/placeholder text                          |
+| `--border`             | `#e5e7eb`              | Card borders, dividers between sections            |
+| `--divider`            | `#f3f4f6`              | Hairlines within a card                            |
+| `--primary`            | `#7c3aed` (violet-600) | Primary buttons, links, active nav state           |
+| `--primary-hover`      | `#6d28d9` (violet-700) | Hover/active state                                 |
+| `--primary-surface`    | `#f5f3ff` (violet-50)  | Highlighted panels, selected states                |
+| `--primary-border`     | `#ddd6fe` (violet-200) | Border on primary-tinted elements                  |
+| `--primary-foreground` | `#ffffff`              | Text on solid primary buttons (AA-passing, 5.70:1) |
+| `--success`            | `#047857`              | Confirmation states, "included" checkmarks         |
+| `--warning`            | `#92400e`              | Caution copy (e.g. "beta" labels, if ever used)    |
+| `--danger`             | `#b91c1c`              | Error states in forms                              |
+| `--info`               | `#1d4ed8`              | Informational callouts                             |
 
 **Do not introduce a new accent color for marketing.** Violet is the brand
 color across the entire product; the marketing site should feel like the
@@ -49,18 +49,19 @@ design it separately for a daylight/reading context, not lifted from KDS.
   since the dashboard has no hero/landing typography — add these on top of
   the shared tokens, don't remove anything from the shared set):
 
-| Role | Size (desktop) | Size (mobile) | Weight |
-|---|---|---|---|
-| Display / Hero H1 | 56px / 1.1 | 34px / 1.15 | 700 |
-| H2 (section) | 40px / 1.15 | 28px / 1.2 | 700 |
-| H3 (subsection/card title) | 24px / 1.3 | 20px / 1.3 | 600 |
-| Body large (hero subhead) | 20px / 1.6 | 17px / 1.6 | 400 |
-| Body | 16px / 1.6 | 16px / 1.6 | 400 |
-| Small / caption | 14px / 1.5 | 13px / 1.5 | 400/500 |
+| Role                       | Size (desktop) | Size (mobile) | Weight  |
+| -------------------------- | -------------- | ------------- | ------- |
+| Display / Hero H1          | 56px / 1.1     | 34px / 1.15   | 700     |
+| H2 (section)               | 40px / 1.15    | 28px / 1.2    | 700     |
+| H3 (subsection/card title) | 24px / 1.3     | 20px / 1.3    | 600     |
+| Body large (hero subhead)  | 20px / 1.6     | 17px / 1.6    | 400     |
+| Body                       | 16px / 1.6     | 16px / 1.6    | 400     |
+| Small / caption            | 14px / 1.5     | 13px / 1.5    | 400/500 |
 
 ## 3. Spacing & Radius
 
 Reuse shared tokens directly — do not redefine:
+
 - Radius: `--radius-sm: 8px`, `--radius-md: 12px`, `--radius-lg: 16px`,
   `--radius-xl: 24px`
 - Spacing base unit: 4px, scale `4 / 8 / 16 / 24` px from tokens, extended

@@ -23,12 +23,19 @@ for (const key of required) {
     errors.push(`${key} is required`);
     continue;
   }
-  if (placeholderPattern.test(value)) errors.push(`${key} still contains a placeholder value`);
+  if (placeholderPattern.test(value))
+    errors.push(`${key} still contains a placeholder value`);
 }
 
-for (const key of ["JWT_SECRET", "REFRESH_TOKEN_SECRET", "POSTGRES_PASSWORD", "REDIS_PASSWORD"]) {
+for (const key of [
+  "JWT_SECRET",
+  "REFRESH_TOKEN_SECRET",
+  "POSTGRES_PASSWORD",
+  "REDIS_PASSWORD",
+]) {
   const value = process.env[key] ?? "";
-  if (value && value.length < 32) errors.push(`${key} must be at least 32 characters`);
+  if (value && value.length < 32)
+    errors.push(`${key} must be at least 32 characters`);
 }
 
 if (
@@ -67,12 +74,16 @@ if (process.env.PUBLIC_WS_URL) {
   }
 }
 
-const cors = (process.env.CORS_ORIGIN ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+const cors = (process.env.CORS_ORIGIN ?? "")
+  .split(",")
+  .map((x) => x.trim())
+  .filter(Boolean);
 if (cors.includes("*")) errors.push("CORS_ORIGIN cannot contain wildcard *");
 for (const origin of cors) {
   try {
     const url = new URL(origin);
-    if (url.protocol !== "https:") errors.push(`CORS origin must use HTTPS: ${origin}`);
+    if (url.protocol !== "https:")
+      errors.push(`CORS origin must use HTTPS: ${origin}`);
   } catch {
     errors.push(`Invalid CORS origin: ${origin}`);
   }

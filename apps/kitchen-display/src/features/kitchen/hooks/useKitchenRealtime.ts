@@ -1,10 +1,17 @@
 import { useQueryClient } from "@tanstack/react-query";
 import type { KitchenTicket } from "@pos/types";
-import { useRealtimeEvent, useConnectionStatus } from "../../../shared/lib/realtime";
+import {
+  useRealtimeEvent,
+  useConnectionStatus,
+} from "../../../shared/lib/realtime";
 import { KITCHEN_TICKETS_QUERY_KEY } from "./useKitchenTickets";
 
 function isVisible(ticket: KitchenTicket) {
-  return ticket.status === "FIRED" || ticket.status === "PREPARING" || ticket.status === "READY";
+  return (
+    ticket.status === "FIRED" ||
+    ticket.status === "PREPARING" ||
+    ticket.status === "READY"
+  );
 }
 
 export function useKitchenRealtime(): { connected: boolean } {

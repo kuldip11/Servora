@@ -1,4 +1,10 @@
-import { BarChart3, ChefHat, QrCode, UtensilsCrossed, type LucideIcon } from "lucide-react";
+import {
+  BarChart3,
+  ChefHat,
+  QrCode,
+  UtensilsCrossed,
+  type LucideIcon,
+} from "lucide-react";
 import { appUrls } from "@/lib/app-urls";
 
 export interface ServoraAppLink {
@@ -15,7 +21,8 @@ export const servoraApps: ServoraAppLink[] = [
     key: "web",
     name: "Management & POS",
     shortName: "Web App",
-    description: "Manage branches, orders, payments, inventory, staff and analytics.",
+    description:
+      "Manage branches, orders, payments, inventory, staff and analytics.",
     href: appUrls.web,
     icon: BarChart3,
   },
@@ -23,7 +30,8 @@ export const servoraApps: ServoraAppLink[] = [
     key: "kitchen",
     name: "Kitchen Display",
     shortName: "Kitchen",
-    description: "Run the live kitchen queue and move tickets through preparation.",
+    description:
+      "Run the live kitchen queue and move tickets through preparation.",
     href: appUrls.kitchen,
     icon: ChefHat,
   },
@@ -39,7 +47,8 @@ export const servoraApps: ServoraAppLink[] = [
     key: "customer",
     name: "Customer Ordering",
     shortName: "Customer",
-    description: "Let guests browse the menu, customize items and place QR orders.",
+    description:
+      "Let guests browse the menu, customize items and place QR orders.",
     href: appUrls.customer,
     icon: QrCode,
   },

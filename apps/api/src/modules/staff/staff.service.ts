@@ -161,9 +161,9 @@ export const staffService = {
       await writeAudit({
         tenantId: auth.tenantId,
         userId: auth.userId,
-      branchId: auth.branchId,
-      requestId: auth.requestId,
-      ipAddress: auth.ipAddress,
+        branchId: auth.branchId,
+        requestId: auth.requestId,
+        ipAddress: auth.ipAddress,
         action:
           input.status === "ACTIVE" ? "STAFF_REACTIVATED" : "STAFF_DEACTIVATED",
         entity: "tenant_membership",
@@ -189,9 +189,9 @@ export const staffService = {
       await writeAudit({
         tenantId: auth.tenantId,
         userId: auth.userId,
-      branchId: auth.branchId,
-      requestId: auth.requestId,
-      ipAddress: auth.ipAddress,
+        branchId: auth.branchId,
+        requestId: auth.requestId,
+        ipAddress: auth.ipAddress,
         action: "STAFF_ROLE_ASSIGNED",
         entity: "tenant_membership",
         entityId: membership.id,
@@ -218,9 +218,9 @@ export const staffService = {
       await writeAudit({
         tenantId: auth.tenantId,
         userId: auth.userId,
-      branchId: auth.branchId,
-      requestId: auth.requestId,
-      ipAddress: auth.ipAddress,
+        branchId: auth.branchId,
+        requestId: auth.requestId,
+        ipAddress: auth.ipAddress,
         action: "STAFF_BRANCHES_ASSIGNED",
         entity: "tenant_membership",
         entityId: membership.id,

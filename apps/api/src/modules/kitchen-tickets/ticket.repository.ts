@@ -37,7 +37,10 @@ export const ticketRepository = {
 
   async findDetailedById(tenantId: string, ticketId: string) {
     return db.query.kitchenTickets.findFirst({
-      where: and(eq(kitchenTickets.id, ticketId), eq(kitchenTickets.tenantId, tenantId)),
+      where: and(
+        eq(kitchenTickets.id, ticketId),
+        eq(kitchenTickets.tenantId, tenantId),
+      ),
       with: {
         items: { with: { modifiers: true } },
         order: { with: { table: true } },

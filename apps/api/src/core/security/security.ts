@@ -46,12 +46,15 @@ export const rateLimitPlugin = () =>
       if (isRateLimitExempt(pathname)) return;
 
       const ip = requestIp(headers as Record<string, string | undefined>);
-      const bucket = Math.floor(Date.now() / (env.RATE_LIMIT_WINDOW_SECONDS * 1000));
+      const bucket = Math.floor(
+        Date.now() / (env.RATE_LIMIT_WINDOW_SECONDS * 1000),
+      );
       const key = `${RATE_LIMIT_PREFIX}:${ip}:${bucket}`;
 
       try {
         const count = await redis.incr(key);
-        if (count === 1) await redis.expire(key, env.RATE_LIMIT_WINDOW_SECONDS + 1);
+        if (count === 1)
+          await redis.expire(key, env.RATE_LIMIT_WINDOW_SECONDS + 1);
 
         set.headers["x-ratelimit-limit"] = String(env.RATE_LIMIT_MAX);
         set.headers["x-ratelimit-remaining"] = String(

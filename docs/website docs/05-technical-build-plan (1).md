@@ -46,6 +46,7 @@ apps/marketing/
 
 **Recommendation: Next.js (App Router)** over Astro, for this specific
 codebase, because:
+
 - One React codebase shared with `packages/ui` — components, not just
   tokens, can be reused directly (Button, Card, Accordion primitives)
   without a second implementation.
@@ -145,6 +146,7 @@ export function GET() {
   redirect(process.env.NEXT_PUBLIC_APP_SIGNIN_URL!); // e.g. https://app.servora.com/login
 }
 ```
+
 Keep the real target URL in an env var, not hardcoded, since the dashboard's
 domain/path may change independent of the marketing site's deploy cycle.
 

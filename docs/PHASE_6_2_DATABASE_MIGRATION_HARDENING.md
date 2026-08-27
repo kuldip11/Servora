@@ -3,6 +3,7 @@
 Status: **COMPLETE**
 
 Implemented:
+
 - Added an ordered SQL migration integrity audit (`bun run verify:migrations`).
 - The audit rejects gaps, duplicate numeric prefixes, empty migrations and destructive public-schema resets.
 - Confirmed the current chain contains 42 sequential migrations (`0000` through `0041`).
@@ -12,6 +13,7 @@ Implemented:
 - Added guarded PostgreSQL backup and restore commands for release operations.
 
 Commands:
+
 ```bash
 bun run verify:migrations
 bun run db:backup

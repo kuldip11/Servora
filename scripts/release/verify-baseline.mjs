@@ -70,7 +70,9 @@ function writeReport(report) {
 if (planOnly) {
   console.log("Servora Phase 6.1 verification plan");
   for (const [index, step] of steps.entries()) {
-    console.log(`${String(index + 1).padStart(2, "0")}. ${step.label}: ${commandText(step.command)}`);
+    console.log(
+      `${String(index + 1).padStart(2, "0")}. ${step.label}: ${commandText(step.command)}`,
+    );
   }
   process.exit(0);
 }
@@ -93,17 +95,22 @@ const report = {
 if (!existsSync(resolve(root, "node_modules"))) {
   report.status = "blocked";
   report.finishedAt = new Date().toISOString();
-  report.blocker = "node_modules is missing. Run `bun install --frozen-lockfile` first.";
+  report.blocker =
+    "node_modules is missing. Run `bun install --frozen-lockfile` first.";
   writeReport(report);
   console.error(report.blocker);
   process.exit(2);
 }
 
-const bunCheck = spawnSync("bun", ["--version"], { cwd: root, encoding: "utf8" });
+const bunCheck = spawnSync("bun", ["--version"], {
+  cwd: root,
+  encoding: "utf8",
+});
 if (bunCheck.error || bunCheck.status !== 0) {
   report.status = "blocked";
   report.finishedAt = new Date().toISOString();
-  report.blocker = "Bun is required. Install the version declared by packageManager in package.json.";
+  report.blocker =
+    "Bun is required. Install the version declared by packageManager in package.json.";
   writeReport(report);
   console.error(report.blocker);
   process.exit(2);

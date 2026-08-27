@@ -4,9 +4,18 @@
 @tailwind utilities;
 
 @layer base {
-  html, body, #root { @apply h-full; }
-  body { @apply m-0 bg-background text-text-primary font-sans antialiased overscroll-none; }
-  * { -webkit-tap-highlight-color: transparent; }
-  :where(a, button, input, select, textarea, [tabindex]):focus-visible { @apply outline-2 outline-offset-2 outline-primary; }
+  html,
+  body,
+  #root {
+    @apply h-full;
+  }
+  body {
+    @apply m-0 bg-background text-text-primary font-sans antialiased overscroll-none;
+  }
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary;
+  }
 }
-

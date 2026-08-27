@@ -27,13 +27,17 @@ export const organizationRepository = {
 
   async create(data: { name: string; createdBy: string }) {
     return db.transaction(async (tx) => {
-      const [organization] = await tx.insert(organizations).values(data).returning();
+      const [organization] = await tx
+        .insert(organizations)
+        .values(data)
+        .returning();
       if (!organization) throw new Error("Organization creation failed");
       const [membership] = await tx
         .insert(organizationMemberships)
         .values({ userId: data.createdBy, organizationId: organization.id })
         .returning();
-      if (!membership) throw new Error("Organization membership creation failed");
+      if (!membership)
+        throw new Error("Organization membership creation failed");
       return { organization, membership };
     });
   },

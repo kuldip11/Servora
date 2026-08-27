@@ -18,7 +18,11 @@
  * service throw the same fixed error for every case in that group,
  * rather than distinguishing them for the client.
  */
-import { UnauthorizedError, NotFoundError, TooManyRequestsError } from "../../core/errors";
+import {
+  UnauthorizedError,
+  NotFoundError,
+  TooManyRequestsError,
+} from "../../core/errors";
 
 /** Covers both "no such user" and "wrong password" — same response either way. */
 export function invalidCredentials(): UnauthorizedError {
@@ -45,7 +49,10 @@ export function authUserNotFound(): NotFoundError {
 }
 
 export function accountTemporarilyLocked(): TooManyRequestsError {
-  return new TooManyRequestsError("Too many failed login attempts. Try again later.", {
-    reason: "AUTH_ACCOUNT_LOCKED",
-  });
+  return new TooManyRequestsError(
+    "Too many failed login attempts. Try again later.",
+    {
+      reason: "AUTH_ACCOUNT_LOCKED",
+    },
+  );
 }

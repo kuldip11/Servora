@@ -63,11 +63,16 @@ export const kitchenTickets = pgTable(
     ),
     statusIdx: index("kitchen_tickets_status_idx").on(t.status),
     orderIdx: index("kitchen_tickets_order_idx").on(t.orderId),
-    customerRequestUnique: uniqueIndex("kitchen_tickets_customer_request_unique").on(t.orderId, t.customerRequestId),
+    customerRequestUnique: uniqueIndex(
+      "kitchen_tickets_customer_request_unique",
+    ).on(t.orderId, t.customerRequestId),
   }),
 );
 
-export const orderItemFulfillmentTypeEnum = pgEnum("order_item_fulfillment_type", ["DINE_IN", "TAKEAWAY"]);
+export const orderItemFulfillmentTypeEnum = pgEnum(
+  "order_item_fulfillment_type",
+  ["DINE_IN", "TAKEAWAY"],
+);
 
 export const orderItems = pgTable("order_items", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -90,7 +95,9 @@ export const orderItems = pgTable("order_items", {
   unitPrice: numeric("unit_price", { precision: 10, scale: 2 }).notNull(),
   subtotal: numeric("subtotal", { precision: 10, scale: 2 }).notNull(),
   chefNotes: text("chef_notes"),
-  fulfillmentType: orderItemFulfillmentTypeEnum("fulfillment_type").notNull().default("DINE_IN"),
+  fulfillmentType: orderItemFulfillmentTypeEnum("fulfillment_type")
+    .notNull()
+    .default("DINE_IN"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

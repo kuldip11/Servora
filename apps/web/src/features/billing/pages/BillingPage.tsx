@@ -196,11 +196,16 @@ export function BillingPage() {
                     Number(payModal.totalAmount) -
                       (payModal.payments ?? [])
                         .filter((payment) => payment.status === "SUCCESS")
-                        .reduce((sum, payment) => sum + Number(payment.amount), 0),
+                        .reduce(
+                          (sum, payment) => sum + Number(payment.amount),
+                          0,
+                        ),
                   ),
                 )}
               </p>
-              <p className="mt-1 text-xs text-text-secondary">Outstanding balance</p>
+              <p className="mt-1 text-xs text-text-secondary">
+                Outstanding balance
+              </p>
             </div>
 
             <Select

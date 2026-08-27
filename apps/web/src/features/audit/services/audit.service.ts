@@ -13,7 +13,10 @@ export interface AuditEntry {
 
 export const auditService = {
   async list(limit = 50): Promise<AuditEntry[]> {
-    const response = await apiClient.get<{ success: boolean; data: AuditEntry[] }>("/audit", { params: { limit } });
+    const response = await apiClient.get<{
+      success: boolean;
+      data: AuditEntry[];
+    }>("/audit", { params: { limit } });
     return response.data.data;
   },
 };

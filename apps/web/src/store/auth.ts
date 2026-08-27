@@ -85,7 +85,14 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
   },
 
-  setContext: ({ membershipId, organizationId, franchiseId, memberships, branchId, user }) =>
+  setContext: ({
+    membershipId,
+    organizationId,
+    franchiseId,
+    memberships,
+    branchId,
+    user,
+  }) =>
     set((state) => ({
       membershipId,
       ...(organizationId !== undefined ? { organizationId } : {}),
@@ -110,7 +117,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       accessToken: null,
       refreshToken: null,
       membershipId: null,
-    organizationId: null,
+      organizationId: null,
       memberships: [],
       franchiseId: null,
       branchId: null,

@@ -99,7 +99,10 @@ export const branchRepository = {
   async regenerateTakeawayQr(tenantId: string, id: string) {
     const [regenerated] = await db
       .update(branches)
-      .set({ publicTakeawayQrToken: sql`gen_random_uuid()`, updatedAt: new Date() })
+      .set({
+        publicTakeawayQrToken: sql`gen_random_uuid()`,
+        updatedAt: new Date(),
+      })
       .where(and(eq(branches.id, id), eq(branches.tenantId, tenantId)))
       .returning();
     return regenerated;

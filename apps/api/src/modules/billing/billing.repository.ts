@@ -1,7 +1,14 @@
 import { and, eq, sum } from "drizzle-orm";
 import type { PaymentMethod } from "@pos/types";
 import { db } from "../../db";
-import { bills, payments, paymentRefunds, orders, orderStatusHistory, restaurantTables } from "../../db/schema";
+import {
+  bills,
+  payments,
+  paymentRefunds,
+  orders,
+  orderStatusHistory,
+  restaurantTables,
+} from "../../db/schema";
 import { resolveRefundEligibility } from "./billing-refund";
 
 export type RecordPaymentResult =
@@ -73,7 +80,9 @@ export const billingRepository = {
             eq(payments.status, "SUCCESS"),
           ),
         );
-      const alreadyPaid = parseFloat(existingSuccessfulPayments[0]?.total ?? "0");
+      const alreadyPaid = parseFloat(
+        existingSuccessfulPayments[0]?.total ?? "0",
+      );
       const dueAmount = Math.max(0, parseFloat(bill.totalAmount) - alreadyPaid);
       if (data.amount > dueAmount + 0.01) {
         return { status: "payment_exceeds_due", dueAmount };
@@ -130,11 +139,13 @@ export const billingRepository = {
             const [table] = await tx
               .update(restaurantTables)
               .set({ status: "AVAILABLE", updatedAt: new Date() })
-              .where(and(
-                eq(restaurantTables.id, paid.tableId),
-                eq(restaurantTables.tenantId, data.tenantId),
-                eq(restaurantTables.branchId, paid.branchId),
-              ))
+              .where(
+                and(
+                  eq(restaurantTables.id, paid.tableId),
+                  eq(restaurantTables.tenantId, data.tenantId),
+                  eq(restaurantTables.branchId, paid.branchId),
+                ),
+              )
               .returning();
             releasedTable = table;
           }

@@ -245,17 +245,18 @@ export const orderService = {
     // Best-effort: a recipe-deduction hiccup shouldn't roll back an order
     // that's already been placed and sent to the kitchen.
     try {
-      if (createdTicket) await inventoryService.deductForOrderItems(
-        auth.tenantId,
-        branchId,
-        order.id,
-        createdTicket.id,
-        resolved.map((r) => ({
-          menuItemId: r.menuItemId,
-          quantity: r.quantity,
-        })),
-        auth.userId,
-      );
+      if (createdTicket)
+        await inventoryService.deductForOrderItems(
+          auth.tenantId,
+          branchId,
+          order.id,
+          createdTicket.id,
+          resolved.map((r) => ({
+            menuItemId: r.menuItemId,
+            quantity: r.quantity,
+          })),
+          auth.userId,
+        );
     } catch (err) {
       console.error("Inventory deduction failed for order", order.id, err);
     }
@@ -390,7 +391,9 @@ export const orderService = {
       auth.tenantId,
       order.branchId,
     );
-    const createdTicket = fullOrder?.kitchenTickets?.find((candidate: any) => candidate.id === ticket.id);
+    const createdTicket = fullOrder?.kitchenTickets?.find(
+      (candidate: any) => candidate.id === ticket.id,
+    );
     if (createdTicket) {
       await eventBus.publish(
         { type: "kitchen.ticket.created", payload: createdTicket as any },

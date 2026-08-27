@@ -8,15 +8,24 @@ export function useOrder(orderId: string | null) {
   const qc = useQueryClient();
 
   useRealtimeEvent("order.updated", (event) => {
-    if (orderId && event.payload.id === orderId) qc.setQueryData(orderKeys.detail(orderId), event.payload);
+    if (orderId && event.payload.id === orderId)
+      qc.setQueryData(orderKeys.detail(orderId), event.payload);
   });
   useRealtimeEvent("order.created", (event) => {
-    if (orderId && event.payload.id === orderId) qc.setQueryData(orderKeys.detail(orderId), event.payload);
+    if (orderId && event.payload.id === orderId)
+      qc.setQueryData(orderKeys.detail(orderId), event.payload);
   });
   useRealtimeEvent("kitchen.ticket.updated", (event) => {
     if (!orderId || event.payload.orderId !== orderId) return;
     qc.setQueryData<Order>(orderKeys.detail(orderId), (current) =>
-      current ? { ...current, kitchenTickets: (current.kitchenTickets ?? []).map((ticket) => ticket.id === event.payload.id ? event.payload : ticket) } : current,
+      current
+        ? {
+            ...current,
+            kitchenTickets: (current.kitchenTickets ?? []).map((ticket) =>
+              ticket.id === event.payload.id ? event.payload : ticket,
+            ),
+          }
+        : current,
     );
   });
 

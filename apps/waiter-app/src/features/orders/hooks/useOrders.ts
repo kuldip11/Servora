@@ -27,16 +27,29 @@ export function useOrders() {
   useRealtimeEvent("order.created", (event) => upsert(event.payload));
   useRealtimeEvent("order.updated", (event) => upsert(event.payload));
   useRealtimeEvent("kitchen.ticket.updated", (event) => {
-    qc.setQueryData<Order[]>(orderKeys.all, (current) => current?.map((order) =>
-      order.id !== event.payload.orderId ? order : {
-        ...order,
-        kitchenTickets: (order.kitchenTickets ?? []).map((ticket) =>
-          ticket.id === event.payload.id ? event.payload : ticket,
-        ),
-      },
-    ));
-    qc.setQueryData<Order>(orderKeys.detail(event.payload.orderId), (current) =>
-      current ? { ...current, kitchenTickets: (current.kitchenTickets ?? []).map((ticket) => ticket.id === event.payload.id ? event.payload : ticket) } : current,
+    qc.setQueryData<Order[]>(orderKeys.all, (current) =>
+      current?.map((order) =>
+        order.id !== event.payload.orderId
+          ? order
+          : {
+              ...order,
+              kitchenTickets: (order.kitchenTickets ?? []).map((ticket) =>
+                ticket.id === event.payload.id ? event.payload : ticket,
+              ),
+            },
+      ),
+    );
+    qc.setQueryData<Order>(
+      orderKeys.detail(event.payload.orderId),
+      (current) =>
+        current
+          ? {
+              ...current,
+              kitchenTickets: (current.kitchenTickets ?? []).map((ticket) =>
+                ticket.id === event.payload.id ? event.payload : ticket,
+              ),
+            }
+          : current,
     );
   });
 

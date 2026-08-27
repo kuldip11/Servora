@@ -17,7 +17,9 @@ const errors = [];
 
 for (let i = 0; i < numbers.length; i += 1) {
   if (numbers[i] !== i) {
-    errors.push(`Expected migration ${String(i).padStart(4, "0")}, found ${names[i] ?? "nothing"}.`);
+    errors.push(
+      `Expected migration ${String(i).padStart(4, "0")}, found ${names[i] ?? "nothing"}.`,
+    );
     break;
   }
 }
@@ -31,7 +33,9 @@ for (const name of names) {
   const sql = readFileSync(resolve(folder, name), "utf8").trim();
   if (!sql) errors.push(`Empty migration: ${name}`);
   if (/DROP\s+SCHEMA\s+public\s+CASCADE/i.test(sql)) {
-    errors.push(`Destructive schema reset is not allowed in a migration: ${name}`);
+    errors.push(
+      `Destructive schema reset is not allowed in a migration: ${name}`,
+    );
   }
 }
 
@@ -41,4 +45,6 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log(`Migration integrity OK: ${names.length} ordered SQL migrations (${names[0]} → ${names.at(-1)}).`);
+console.log(
+  `Migration integrity OK: ${names.length} ordered SQL migrations (${names[0]} → ${names.at(-1)}).`,
+);

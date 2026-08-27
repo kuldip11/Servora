@@ -3,6 +3,7 @@
 ## 1. Per-page metadata requirements
 
 Every page needs, at minimum:
+
 - Unique `<title>` — pattern: `{Page Topic} | Servora` (Home: `Servora — {short value prop}`)
 - Unique meta description, 140–160 chars, written for a click from search
   results, not just a restated H1
@@ -13,6 +14,7 @@ Every page needs, at minimum:
 - Twitter card: `summary_large_image`
 
 Example (feature page):
+
 ```
 title: "QR Ordering for Restaurants | Servora"
 description: "Let guests order and pay from their table with a QR code — no app download, synced to your kitchen and POS in real time."
@@ -66,17 +68,17 @@ description: "Let guests order and pay from their table with a QR code — no ap
 Track these as the core conversion funnel (tool-agnostic — implement in
 whichever analytics platform the team chooses, e.g. GA4, Plausible, PostHog):
 
-| Event | Fires when | Key properties |
-|---|---|---|
-| `page_view` | Every page load | `path`, `referrer` |
-| `nav_cta_click` | Header/footer "Book a Demo" clicked | `location: "header"\|"footer"\|"mobile_sticky"` |
-| `module_card_click` | Any `<ModuleCard>` clicked | `module_slug`, `source_page` |
-| `demo_form_start` | First field focused in `<DemoRequestForm>` | `source_page` |
-| `demo_form_submit` | Successful submission | `location_count_bucket` (from the form field) |
-| `demo_form_error` | Validation or submit failure | `error_type` |
-| `contact_form_submit` | `<ContactForm>` successful submission | `subject` |
-| `pricing_cta_click` | Any `<PricingCard>` CTA clicked | `plan_name` |
-| `faq_item_expand` | `<FaqAccordion>` item opened | `question` |
+| Event                 | Fires when                                 | Key properties                                  |
+| --------------------- | ------------------------------------------ | ----------------------------------------------- |
+| `page_view`           | Every page load                            | `path`, `referrer`                              |
+| `nav_cta_click`       | Header/footer "Book a Demo" clicked        | `location: "header"\|"footer"\|"mobile_sticky"` |
+| `module_card_click`   | Any `<ModuleCard>` clicked                 | `module_slug`, `source_page`                    |
+| `demo_form_start`     | First field focused in `<DemoRequestForm>` | `source_page`                                   |
+| `demo_form_submit`    | Successful submission                      | `location_count_bucket` (from the form field)   |
+| `demo_form_error`     | Validation or submit failure               | `error_type`                                    |
+| `contact_form_submit` | `<ContactForm>` successful submission      | `subject`                                       |
+| `pricing_cta_click`   | Any `<PricingCard>` CTA clicked            | `plan_name`                                     |
+| `faq_item_expand`     | `<FaqAccordion>` item opened               | `question`                                      |
 
 Because `/book-a-demo` is the single canonical URL for the primary CTA (per
 `01-information-architecture.md §4`), funnel reporting can key off that one

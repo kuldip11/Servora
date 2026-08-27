@@ -62,7 +62,9 @@ describe("authService", () => {
       if (url === "/auth/memberships")
         return Promise.resolve({ data: { data: ["m1"] } });
       if (url === "/organizations")
-        return Promise.resolve({ data: { data: [{ id: "o1", name: "Org", isActive: true }] } });
+        return Promise.resolve({
+          data: { data: [{ id: "o1", name: "Org", isActive: true }] },
+        });
       return Promise.resolve({ data: { data: user } });
     });
     api.post.mockResolvedValue({
@@ -79,18 +81,27 @@ describe("authService", () => {
       membershipId: "m1",
     });
     await expect(authService.me()).resolves.toEqual(user);
-    expect(api.post).toHaveBeenCalledWith("/tenants", { name: "Tenant", organizationId: "o1" });
+    expect(api.post).toHaveBeenCalledWith("/tenants", {
+      name: "Tenant",
+      organizationId: "o1",
+    });
     expect(api.get).toHaveBeenCalledWith("/auth/me");
   });
 });
 
-
 it("updates the authenticated profile", async () => {
-  api.patch.mockResolvedValue({ data: { data: { id: "u1", firstName: "New", lastName: "Name" } } });
-  await expect(authService.updateProfile({ firstName: "New", lastName: "Name" })).resolves.toEqual({
+  api.patch.mockResolvedValue({
+    data: { data: { id: "u1", firstName: "New", lastName: "Name" } },
+  });
+  await expect(
+    authService.updateProfile({ firstName: "New", lastName: "Name" }),
+  ).resolves.toEqual({
     id: "u1",
     firstName: "New",
     lastName: "Name",
   });
-  expect(api.patch).toHaveBeenCalledWith("/auth/me", { firstName: "New", lastName: "Name" });
+  expect(api.patch).toHaveBeenCalledWith("/auth/me", {
+    firstName: "New",
+    lastName: "Name",
+  });
 });

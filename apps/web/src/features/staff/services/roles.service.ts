@@ -25,7 +25,10 @@ export const rolesService = {
     const res = await apiClient.post("/roles", input);
     return res.data.data;
   },
-  async update(id: string, input: Pick<CreateRoleInput, "name" | "description">): Promise<Role> {
+  async update(
+    id: string,
+    input: Pick<CreateRoleInput, "name" | "description">,
+  ): Promise<Role> {
     const res = await apiClient.patch(`/roles/${id}`, input);
     return res.data.data;
   },

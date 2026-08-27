@@ -31,8 +31,8 @@ traffic.
 1. **Hero** — Eyebrow: "Restaurant POS, built as one system." Headline:
    something like "One platform to run your restaurant — orders, kitchen,
    billing, and staff." Subhead: 1–2 sentences naming the 4 surfaces
-   (dashboard, waiter app, kitchen display, QR ordering) as *one connected
-   system* — this "connectedness" is the actual differentiator vs. bolted-
+   (dashboard, waiter app, kitchen display, QR ordering) as _one connected
+   system_ — this "connectedness" is the actual differentiator vs. bolted-
    together point solutions. Primary CTA: Book a Demo. Secondary CTA: "See
    the product" → `/product`. Media: real dashboard screenshot or short
    silent product video loop.
@@ -66,6 +66,7 @@ claims, "trusted by" language.
 wants the full picture before drilling into specifics.
 
 **Sections**:
+
 1. Short hero (headline + one-paragraph framing, no separate big CTA needed
    beyond header/sticky bar)
 2. Full `<FeatureGrid columns=3>` of all 9 modules with 2–3 sentence
@@ -94,6 +95,7 @@ produce and consistent for the visitor:
 5. **CTA banner**
 
 ### Per-module notes (verified capabilities to draw from — confirm against
+
 current code before publishing, since the app is under active development):
 
 - **POS & Orders** (`/product/pos-and-orders`): order creation, item
@@ -158,8 +160,9 @@ attributed to a named restaurant that doesn't exist), CTA banner.
 
 **Current honest state**: no self-serve tiers exist yet operationally.
 Structure the page as:
+
 1. Short hero: "Pricing built around your restaurant" or similar
-2. 2–3 illustrative plan *shapes* (e.g. "Single Location," "Multi-Location,"
+2. 2–3 illustrative plan _shapes_ (e.g. "Single Location," "Multi-Location,"
    "Enterprise/Franchise") **without hard numbers** — use `<PricingCard priceDisplay="Contact Sales">`
    for all tiers, differentiated by feature scope only
 3. A short FAQ block addressing "why isn't there a price?" honestly (e.g.
@@ -190,6 +193,7 @@ chat widget unless someone is actually staffing it — an unmanned chat bubble
 that never responds is a worse experience than no chat bubble.
 
 ## 8. Support (`/contact` or dedicated `/support` — Phase 0 can fold this
+
 into Contact)
 
 Where existing customers/pilot users go: email, and if applicable, a link to

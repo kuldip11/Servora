@@ -85,15 +85,23 @@ export const inventoryRepository = {
     });
   },
 
-  async findRecentTransactions(tenantId: string, branchId: string | null, limit = 25) {
+  async findRecentTransactions(
+    tenantId: string,
+    branchId: string | null,
+    limit = 25,
+  ) {
     const rows = await db.query.inventoryTransactions.findMany({
-      with: { inventoryItem: { with: { branch: true } }, performedByUser: true },
+      with: {
+        inventoryItem: { with: { branch: true } },
+        performedByUser: true,
+      },
       orderBy: (transaction, { desc }) => [desc(transaction.createdAt)],
       limit: Math.min(Math.max(limit, 1), 100),
     });
-    return rows.filter((row) =>
-      row.inventoryItem.tenantId === tenantId &&
-      (!branchId || row.inventoryItem.branchId === branchId),
+    return rows.filter(
+      (row) =>
+        row.inventoryItem.tenantId === tenantId &&
+        (!branchId || row.inventoryItem.branchId === branchId),
     );
   },
 
@@ -233,23 +241,38 @@ export const inventoryRepository = {
   // and `deductForOrderItems` (the same lines, actually applied) so the
   // "what counts as a required ingredient" query can't drift between the
   // two call sites.
-  async findRequiredRecipeLines(tenantId: string, branchId: string, menuItemIds: string[]) {
+  async findRequiredRecipeLines(
+    tenantId: string,
+    branchId: string,
+    menuItemIds: string[],
+  ) {
     if (!menuItemIds.length) return [];
-    return db.query.recipes.findMany({
-      where: and(
-        inArray(recipes.menuItemId, menuItemIds),
-        eq(recipes.isOptional, false),
-      ),
-      with: {
-        inventoryItem: true,
-        menuItem: { columns: { enableRecipeDeduction: true, tenantId: true, branchId: true } },
-      },
-    }).then((rows) => rows.filter((row) =>
-      row.menuItem.tenantId === tenantId &&
-      row.menuItem.branchId === branchId &&
-      row.inventoryItem.tenantId === tenantId &&
-      row.inventoryItem.branchId === branchId
-    ));
+    return db.query.recipes
+      .findMany({
+        where: and(
+          inArray(recipes.menuItemId, menuItemIds),
+          eq(recipes.isOptional, false),
+        ),
+        with: {
+          inventoryItem: true,
+          menuItem: {
+            columns: {
+              enableRecipeDeduction: true,
+              tenantId: true,
+              branchId: true,
+            },
+          },
+        },
+      })
+      .then((rows) =>
+        rows.filter(
+          (row) =>
+            row.menuItem.tenantId === tenantId &&
+            row.menuItem.branchId === branchId &&
+            row.inventoryItem.tenantId === tenantId &&
+            row.inventoryItem.branchId === branchId,
+        ),
+      );
   },
 
   // Applies a batch of already-resolved deduction lines inside one
@@ -279,7 +302,9 @@ export const inventoryRepository = {
 
     await db.transaction(async (tx) => {
       // Serialize retries for one fired round so stock cannot be consumed twice.
-      await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${kitchenTicketId}))`);
+      await tx.execute(
+        sql`select pg_advisory_xact_lock(hashtext(${kitchenTicketId}))`,
+      );
 
       const [order] = await tx
         .select({ id: orders.id })

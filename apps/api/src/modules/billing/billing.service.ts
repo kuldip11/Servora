@@ -40,7 +40,8 @@ export const billingService = {
       changedBy: auth.userId,
     });
     if (result.status === "order_not_found") throw orderNotFound(input.orderId);
-    if (result.status === "payment_exceeds_due") throw paymentExceedsDueAmount();
+    if (result.status === "payment_exceeds_due")
+      throw paymentExceedsDueAmount();
     assertBillingResourceAccess(auth, result.orderBranchId);
 
     await writeAudit({
@@ -76,7 +77,10 @@ export const billingService = {
     );
 
     if (result.orderPaid && result.order.status === "PAID") {
-      const paidOrder = await orderRepository.findById(auth.tenantId, input.orderId);
+      const paidOrder = await orderRepository.findById(
+        auth.tenantId,
+        input.orderId,
+      );
       if (paidOrder) {
         await eventBus.publish(
           { type: "order.updated", payload: paidOrder as never },
@@ -86,7 +90,10 @@ export const billingService = {
       }
       if (result.releasedTable) {
         await eventBus.publish(
-          { type: "table.updated", payload: result.releasedTable as unknown as RestaurantTable },
+          {
+            type: "table.updated",
+            payload: result.releasedTable as unknown as RestaurantTable,
+          },
           auth.tenantId,
           result.orderBranchId,
         );

@@ -20,7 +20,13 @@ export type CustomerMenuItem = {
       selectionType: "SINGLE" | "MULTIPLE";
       minSelections: number;
       maxSelections: number | null;
-      options: Array<{ id: string; name: string; additionalPrice: string; isAvailable: boolean; maxQuantity: number }>; 
+      options: Array<{
+        id: string;
+        name: string;
+        additionalPrice: string;
+        isAvailable: boolean;
+        maxQuantity: number;
+      }>;
     };
   }>;
   tagLinks: Array<{ tag: { name: string } }>;

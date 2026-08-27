@@ -2,7 +2,13 @@
 import Link from "next/link";
 import { track } from "@/lib/analytics";
 
-export function PricingCta({ planName, cta }: { planName: string; cta: string }) {
+export function PricingCta({
+  planName,
+  cta,
+}: {
+  planName: string;
+  cta: string;
+}) {
   return (
     <Link
       onClick={() => track({ event: "pricing_cta_click", plan_name: planName })}

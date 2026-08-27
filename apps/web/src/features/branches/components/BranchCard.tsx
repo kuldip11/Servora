@@ -40,7 +40,9 @@ export function BranchCard({
           </div>
           <div>
             <p className="font-semibold text-text-primary">{branch.name}</p>
-            <p className="text-[11px] font-medium uppercase tracking-wide text-text-disabled">{branch.code}</p>
+            <p className="text-[11px] font-medium uppercase tracking-wide text-text-disabled">
+              {branch.code}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-0.5">
@@ -72,8 +74,14 @@ export function BranchCard({
         </p>
       )}
       <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-text-secondary">
-        <span className="flex items-center gap-1.5"><Clock3 className="h-3.5 w-3.5" />{branch.timezone}</span>
-        <span className="flex items-center gap-1.5"><CircleDollarSign className="h-3.5 w-3.5" />{branch.currency}</span>
+        <span className="flex items-center gap-1.5">
+          <Clock3 className="h-3.5 w-3.5" />
+          {branch.timezone}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <CircleDollarSign className="h-3.5 w-3.5" />
+          {branch.currency}
+        </span>
       </div>
       <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-divider">
         {CAPABILITY_BADGES.map(({ key, label, icon: Icon }) => (

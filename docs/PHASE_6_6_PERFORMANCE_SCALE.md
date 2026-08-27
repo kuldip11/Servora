@@ -3,6 +3,7 @@
 Status: **COMPLETE**
 
 Implemented:
+
 - Added dependency-free HTTP performance smoke tooling.
 - Supports configurable target, path, request count, concurrency, p95 threshold and maximum error rate.
 - Writes machine-readable evidence to `.verification/performance-smoke.json`.
@@ -10,6 +11,7 @@ Implemented:
 - CI runs the smoke test against a live API after the full verification baseline.
 
 Command:
+
 ```bash
 PERF_BASE_URL=https://staging-api.example.com bun run verify:performance
 ```

@@ -105,7 +105,10 @@ export const orderInventoryDeductions = pgTable(
     orderId: uuid("order_id")
       .notNull()
       .references(() => orders.id, { onDelete: "cascade" }),
-    kitchenTicketId: uuid("kitchen_ticket_id").references(() => kitchenTickets.id, { onDelete: "cascade" }),
+    kitchenTicketId: uuid("kitchen_ticket_id").references(
+      () => kitchenTickets.id,
+      { onDelete: "cascade" },
+    ),
     menuItemId: uuid("menu_item_id")
       .notNull()
       .references(() => menuItems.id, { onDelete: "cascade" }),
@@ -128,6 +131,8 @@ export const orderInventoryDeductions = pgTable(
     menuItemIdx: index("order_inventory_deductions_menu_item_idx").on(
       t.menuItemId,
     ),
-    ticketIdx: index("order_inventory_deductions_ticket_idx").on(t.kitchenTicketId),
+    ticketIdx: index("order_inventory_deductions_ticket_idx").on(
+      t.kitchenTicketId,
+    ),
   }),
 );

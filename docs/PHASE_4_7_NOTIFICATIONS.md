@@ -1,6 +1,7 @@
 # Phase 4.7 — Notifications
 
 Completed notification polish across operational apps:
+
 - Admin: realtime low-stock, customer-request and failed-payment alerts
 - KDS: realtime new-ticket attention alerts
 - Waiter: realtime ready-order and customer-request alerts

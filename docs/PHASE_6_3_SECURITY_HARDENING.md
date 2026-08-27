@@ -3,6 +3,7 @@
 Status: **COMPLETE**
 
 Implemented:
+
 - Added global API security response headers.
 - Added Redis-backed fixed-window rate limiting with configurable limits.
 - Health, Swagger and WebSocket paths are excluded from general request throttling.
@@ -13,6 +14,7 @@ Implemented:
 - Existing secret/token redaction in structured logs is preserved.
 
 New API environment values:
+
 ```text
 APP_VERSION
 RATE_LIMIT_MAX

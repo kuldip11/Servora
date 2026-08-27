@@ -3,12 +3,14 @@
 Status: **COMPLETE (tooling)**
 
 Implemented:
+
 - `bun run release:certify` requires both the full Phase 6 verification baseline and the performance smoke report to have passed.
 - Generates `.verification/release-certificate.json`.
 - Certificate records the app version / commit SHA when supplied and references the baseline/performance evidence.
 - CI uploads the verification directory as immutable workflow evidence.
 
 Release certification command sequence:
+
 ```bash
 bun install --frozen-lockfile
 bun run verify:baseline:all
@@ -17,6 +19,7 @@ bun run release:certify
 ```
 
 Operational acceptance before production traffic should additionally exercise:
+
 - owner/POS order creation,
 - customer QR ordering,
 - kitchen ticket progression,

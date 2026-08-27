@@ -15,12 +15,15 @@ const placeholders = new Set([
 ]);
 
 const missing = required.filter((name) => !process.env[name]);
-const placeholder = required.filter((name) => placeholders.has(process.env[name]));
+const placeholder = required.filter((name) =>
+  placeholders.has(process.env[name]),
+);
 
 if (missing.length || placeholder.length) {
   console.error("Production configuration is incomplete.");
   if (missing.length) console.error(`Missing: ${missing.join(", ")}`);
-  if (placeholder.length) console.error(`Placeholder values: ${placeholder.join(", ")}`);
+  if (placeholder.length)
+    console.error(`Placeholder values: ${placeholder.join(", ")}`);
   process.exit(1);
 }
 

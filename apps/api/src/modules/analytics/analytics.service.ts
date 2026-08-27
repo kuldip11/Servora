@@ -30,15 +30,19 @@ export const analyticsService = {
       paidOrdersToday,
       cancelledOrdersToday,
     ] = await Promise.all([
-        analyticsRepository.countOrdersSince(auth.tenantId, branchId, since),
-        analyticsRepository.sumPaidRevenueSince(auth.tenantId, branchId, since),
-        analyticsRepository.countActiveOrders(auth.tenantId, branchId),
-        analyticsRepository.findActiveInventoryItems(auth.tenantId, branchId),
-        analyticsRepository.findTopItems(auth.tenantId, branchId, since),
-        analyticsRepository.revenueByHour(auth.tenantId, branchId, since),
-        analyticsRepository.countPaidOrdersSince(auth.tenantId, branchId, since),
-        analyticsRepository.countCancelledOrdersSince(auth.tenantId, branchId, since),
-      ]);
+      analyticsRepository.countOrdersSince(auth.tenantId, branchId, since),
+      analyticsRepository.sumPaidRevenueSince(auth.tenantId, branchId, since),
+      analyticsRepository.countActiveOrders(auth.tenantId, branchId),
+      analyticsRepository.findActiveInventoryItems(auth.tenantId, branchId),
+      analyticsRepository.findTopItems(auth.tenantId, branchId, since),
+      analyticsRepository.revenueByHour(auth.tenantId, branchId, since),
+      analyticsRepository.countPaidOrdersSince(auth.tenantId, branchId, since),
+      analyticsRepository.countCancelledOrdersSince(
+        auth.tenantId,
+        branchId,
+        since,
+      ),
+    ]);
 
     const lowStockAlerts = inventoryItems.filter(
       (item) => parseFloat(item.currentStock) <= parseFloat(item.minimumStock),
@@ -53,7 +57,8 @@ export const analyticsService = {
       revenueByHour,
       paidOrdersToday,
       cancelledOrdersToday,
-      averageOrderValue: paidOrdersToday > 0 ? revenueToday / paidOrdersToday : 0,
+      averageOrderValue:
+        paidOrdersToday > 0 ? revenueToday / paidOrdersToday : 0,
     };
   },
 };

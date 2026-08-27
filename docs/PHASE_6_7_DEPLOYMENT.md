@@ -3,6 +3,7 @@
 Status: **COMPLETE**
 
 Implemented:
+
 - Added production Dockerfiles for Customer, Kitchen, Waiter and Website; API and Web Dockerfiles remain supported.
 - Added SPA-safe nginx runtime configuration and container health checks for Vite applications.
 - Added `docker-compose.production.yml` covering PostgreSQL, Redis, API, Web, Kitchen, Waiter, Customer and Website.

@@ -7,12 +7,18 @@ const requestLog = new Map<string, number[]>();
 
 function clientKey(request: Request) {
   const forwarded = request.headers.get("x-forwarded-for");
-  return (forwarded?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown");
+  return (
+    forwarded?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+  );
 }
 
 function isRateLimited(key: string) {
   const now = Date.now();
-  const recent = (requestLog.get(key) ?? []).filter((time) => now - time < WINDOW_MS);
+  const recent = (requestLog.get(key) ?? []).filter(
+    (time) => now - time < WINDOW_MS,
+  );
   if (recent.length >= MAX_REQUESTS_PER_WINDOW) {
     requestLog.set(key, recent);
     return true;
@@ -25,30 +31,70 @@ function isRateLimited(key: string) {
 export async function POST(request: Request) {
   try {
     if (isRateLimited(clientKey(request))) {
-      return NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429, headers: { "Retry-After": "600" } });
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429, headers: { "Retry-After": "600" } },
+      );
     }
 
     const body = await request.json();
     const name = typeof body.name === "string" ? body.name.trim() : "";
-    const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
-    const business = typeof body.business === "string" ? body.business.trim() : "";
-    const locations = typeof body.locations === "string" ? body.locations.trim() : "";
+    const email =
+      typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+    const business =
+      typeof body.business === "string" ? body.business.trim() : "";
+    const locations =
+      typeof body.locations === "string" ? body.locations.trim() : "";
     const message = typeof body.message === "string" ? body.message.trim() : "";
-    const source = typeof body.source === "string" ? body.source.trim() : "website";
+    const source =
+      typeof body.source === "string" ? body.source.trim() : "website";
     const subject = typeof body.subject === "string" ? body.subject.trim() : "";
-    const honeypot = typeof body.website === "string" ? body.website.trim() : "";
+    const honeypot =
+      typeof body.website === "string" ? body.website.trim() : "";
 
     if (honeypot) return NextResponse.json({ ok: true });
-    if (!name || name.length > 120) return NextResponse.json({ error: "Please enter your name." }, { status: 400 });
-    if (!EMAIL_RE.test(email) || email.length > 254) return NextResponse.json({ error: "Please enter a valid work email." }, { status: 400 });
-    if (business.length > 160 || locations.length > 40 || message.length > 4000 || subject.length > 120) return NextResponse.json({ error: "One or more fields are too long." }, { status: 400 });
+    if (!name || name.length > 120)
+      return NextResponse.json(
+        { error: "Please enter your name." },
+        { status: 400 },
+      );
+    if (!EMAIL_RE.test(email) || email.length > 254)
+      return NextResponse.json(
+        { error: "Please enter a valid work email." },
+        { status: 400 },
+      );
+    if (
+      business.length > 160 ||
+      locations.length > 40 ||
+      message.length > 4000 ||
+      subject.length > 120
+    )
+      return NextResponse.json(
+        { error: "One or more fields are too long." },
+        { status: 400 },
+      );
 
-    const lead = { name, email, business, locations, subject, message, source, receivedAt: new Date().toISOString() };
+    const lead = {
+      name,
+      email,
+      business,
+      locations,
+      subject,
+      message,
+      source,
+      receivedAt: new Date().toISOString(),
+    };
     const webhook = process.env.LEAD_WEBHOOK_URL;
 
     if (!webhook) {
-      console.error("LEAD_WEBHOOK_URL is not configured. Lead received but no delivery destination is available.", lead);
-      return NextResponse.json({ error: "Lead delivery is not configured yet." }, { status: 503 });
+      console.error(
+        "LEAD_WEBHOOK_URL is not configured. Lead received but no delivery destination is available.",
+        lead,
+      );
+      return NextResponse.json(
+        { error: "Lead delivery is not configured yet." },
+        { status: 503 },
+      );
     }
 
     const response = await fetch(webhook, {
@@ -60,8 +106,15 @@ export async function POST(request: Request) {
     });
 
     if (!response.ok) {
-      console.error("Lead webhook failed", response.status, await response.text());
-      return NextResponse.json({ error: "We could not submit your request. Please try again." }, { status: 502 });
+      console.error(
+        "Lead webhook failed",
+        response.status,
+        await response.text(),
+      );
+      return NextResponse.json(
+        { error: "We could not submit your request. Please try again." },
+        { status: 502 },
+      );
     }
 
     return NextResponse.json({ ok: true });

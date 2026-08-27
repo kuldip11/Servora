@@ -8,7 +8,9 @@ export function useKitchenAttention() {
 
   useEffect(() => {
     initialized.current = true;
-    return () => { initialized.current = false; };
+    return () => {
+      initialized.current = false;
+    };
   }, []);
 
   useRealtimeEvent("kitchen.ticket.created", (event) => {

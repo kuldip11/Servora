@@ -23,7 +23,11 @@ export function Analytics() {
 
   useEffect(() => {
     if (consent === "accepted") {
-      track({ event: "page_view", path: window.location.pathname, referrer: document.referrer || undefined });
+      track({
+        event: "page_view",
+        path: window.location.pathname,
+        referrer: document.referrer || undefined,
+      });
     }
   }, [consent]);
 
@@ -31,7 +35,10 @@ export function Analytics() {
 
   return (
     <>
-      <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
+      <Script
+        src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+        strategy="afterInteractive"
+      />
       <Script id="servora-gtag" strategy="afterInteractive">
         {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${GA_ID}',{send_page_view:false});`}
       </Script>

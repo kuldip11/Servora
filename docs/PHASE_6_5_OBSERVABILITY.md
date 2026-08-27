@@ -3,6 +3,7 @@
 Status: **COMPLETE**
 
 Implemented:
+
 - Preserved request IDs and response-time headers.
 - Added structured `request.completed` events for method, path, status and duration.
 - Added structured startup/shutdown lifecycle logging.

@@ -46,7 +46,9 @@ function AppLayout({ children }: { children?: ReactNode }) {
   return (
     <div className="flex flex-col h-screen bg-background">
       <div className="absolute left-4 top-4 z-10 rounded-full bg-surface/80 px-2.5 py-1 text-[11px] font-semibold text-text-secondary shadow-sm backdrop-blur">
-        <span className={`mr-1.5 inline-block h-2 w-2 rounded-full ${connected ? "bg-success" : "bg-warning"}`} />
+        <span
+          className={`mr-1.5 inline-block h-2 w-2 rounded-full ${connected ? "bg-success" : "bg-warning"}`}
+        />
         {connected ? "Live" : "Reconnecting"}
       </div>
       <div className="absolute top-4 right-4 z-10 flex items-center gap-2">

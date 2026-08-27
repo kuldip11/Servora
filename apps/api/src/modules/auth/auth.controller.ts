@@ -39,7 +39,9 @@ export const authController = {
   },
 
   async revokeSession(auth: AuthContext, sessionId: string) {
-    return successResponse(await authService.revokeSession(auth.userId, sessionId));
+    return successResponse(
+      await authService.revokeSession(auth.userId, sessionId),
+    );
   },
 
   async updateProfile(

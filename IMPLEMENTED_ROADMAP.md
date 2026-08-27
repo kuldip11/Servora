@@ -25,6 +25,7 @@
 - [x] Audit log — append-only tenant/branch-scoped audit history with request context.
 
 Detailed implementation notes:
+
 - `docs/PHASE2_AUTHENTICATION.md`
 - `docs/PHASE2_ORGANIZATION.md`
 - `docs/PHASE_2_3_FRANCHISE.md`
@@ -59,12 +60,12 @@ Full kitchen-ticket updates now flow directly into Waiter caches. See `docs/PHAS
 
 Payment completion now atomically records order history and table release, with realtime fan-out. See `docs/PHASE_3_6_PAYMENT_TO_ORDER_STATE.md`.
 
-
 ## Phase 3.7 — Inventory → Recipe consumption ✅
 
 Ticket-idempotent, tenant/branch-scoped recipe consumption is implemented. See `docs/PHASE_3_7_INVENTORY_RECIPE_CONSUMPTION.md`.
 
 ## Phase 4 — Product polish — COMPLETE
+
 - [x] Owner dashboard
 - [x] KDS UX
 - [x] Waiter UX
@@ -73,11 +74,12 @@ Ticket-idempotent, tenant/branch-scoped recipe consumption is implemented. See `
 - [x] Analytics
 - [x] Notifications
 
-
 ## Phase 5 — Website — COMPLETE
+
 - [x] Application ecosystem navigation
 
 Detailed implementation notes:
+
 - `docs/PHASE_5_WEBSITE_ECOSYSTEM_NAVIGATION.md`
 
 ## Phase 6 — Production readiness — COMPLETE
@@ -92,6 +94,7 @@ Detailed implementation notes:
 - [x] 6.8 Release certification tooling
 
 Detailed implementation notes:
+
 - `docs/PHASE_6_1_FULL_VERIFICATION_BASELINE.md`
 - `docs/PHASE_6_2_DATABASE_MIGRATION_HARDENING.md`
 - `docs/PHASE_6_3_SECURITY_HARDENING.md`

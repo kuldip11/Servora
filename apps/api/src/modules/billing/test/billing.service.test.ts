@@ -9,7 +9,9 @@ vi.mock("../billing.repository", () => ({
 }));
 vi.mock("../../../core/audit", () => ({ writeAudit }));
 vi.mock("../../../lib/event-bus", () => ({ eventBus: { publish: vi.fn() } }));
-vi.mock("../../orders/order.repository", () => ({ orderRepository: { findById: vi.fn() } }));
+vi.mock("../../orders/order.repository", () => ({
+  orderRepository: { findById: vi.fn() },
+}));
 
 import { billingService } from "../billing.service";
 
@@ -62,7 +64,11 @@ describe("billing service", () => {
         method: "CARD",
         amount: 10,
       }),
-    ).resolves.toEqual({ bill: result.bill, payment: result.payment, paymentState: "PARTIALLY_PAID" });
+    ).resolves.toEqual({
+      bill: result.bill,
+      payment: result.payment,
+      paymentState: "PARTIALLY_PAID",
+    });
     recordPayment.mockResolvedValue({
       status: "ok",
       ...result,

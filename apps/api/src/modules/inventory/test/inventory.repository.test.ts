@@ -37,7 +37,12 @@ const {
   orderInventoryDeductions: { orderId: "orderId" },
   branches: { id: "id", tenantId: "tenantId", isActive: "isActive" },
   orders: { id: "id", tenantId: "tenantId", branchId: "branchId" },
-  kitchenTickets: { id: "id", orderId: "orderId", tenantId: "tenantId", branchId: "branchId" },
+  kitchenTickets: {
+    id: "id",
+    orderId: "orderId",
+    tenantId: "tenantId",
+    branchId: "branchId",
+  },
 }));
 vi.mock("../../../db/schema", () => ({
   inventoryItems,

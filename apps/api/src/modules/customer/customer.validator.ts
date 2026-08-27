@@ -13,7 +13,9 @@ const customerOrderItem = t.Object({
   variantId: t.Optional(t.String()),
   quantity: t.Number({ minimum: 1, maximum: 50 }),
   chefNotes: t.Optional(t.String({ maxLength: 500 })),
-  fulfillmentType: t.Optional(t.Union([t.Literal("DINE_IN"), t.Literal("TAKEAWAY")])),
+  fulfillmentType: t.Optional(
+    t.Union([t.Literal("DINE_IN"), t.Literal("TAKEAWAY")]),
+  ),
   selectedOptions: t.Optional(
     t.Array(
       t.Object({
@@ -30,7 +32,9 @@ export const createCustomerOrderBody = t.Object({
   notes: t.Optional(t.String({ maxLength: 1000 })),
 });
 
-export const customerOrderIdParams = t.Object({ id: t.String({ minLength: 1 }) });
+export const customerOrderIdParams = t.Object({
+  id: t.String({ minLength: 1 }),
+});
 
 export const customerCheckoutBody = t.Object({
   method: t.Literal("CASH"),

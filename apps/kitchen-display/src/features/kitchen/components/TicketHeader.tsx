@@ -28,7 +28,11 @@ export function TicketHeader({
     <div className="flex items-start justify-between">
       <div>
         <p className="text-text-primary font-bold text-sm">
-          {tableName ? `Table ${tableName}` : isTakeaway ? "Takeaway" : orderTypeLabel}
+          {tableName
+            ? `Table ${tableName}`
+            : isTakeaway
+              ? "Takeaway"
+              : orderTypeLabel}
           {ticket.ticketNumber > 1 && (
             <span className="ml-2 text-xs font-semibold text-text-secondary">
               Round {ticket.ticketNumber}

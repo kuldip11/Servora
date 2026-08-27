@@ -72,9 +72,15 @@ describe("branchFormSchema", () => {
       ).toBe(true);
   });
   it("validates branch identity fields", () => {
-    expect(branchFormSchema.safeParse({ ...branch, code: "bad code" }).success).toBe(false);
-    expect(branchFormSchema.safeParse({ ...branch, currency: "RUPEE" }).success).toBe(false);
-    expect(branchFormSchema.safeParse({ ...branch, timezone: "" }).success).toBe(false);
+    expect(
+      branchFormSchema.safeParse({ ...branch, code: "bad code" }).success,
+    ).toBe(false);
+    expect(
+      branchFormSchema.safeParse({ ...branch, currency: "RUPEE" }).success,
+    ).toBe(false);
+    expect(
+      branchFormSchema.safeParse({ ...branch, timezone: "" }).success,
+    ).toBe(false);
   });
   it("enforces name, address, and phone lengths", () => {
     expect(

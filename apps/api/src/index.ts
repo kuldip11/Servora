@@ -31,7 +31,10 @@ import { rolesRouter } from "./modules/roles/role.route";
 import { permissionsRouter } from "./modules/permissions/permission.route";
 import { analyticsRouter } from "./modules/analytics/analytics.route";
 import { auditRouter } from "./modules/audit/audit.route";
-import { realtimeRouter, customerRealtimeRouter } from "./modules/realtime/gateway";
+import {
+  realtimeRouter,
+  customerRealtimeRouter,
+} from "./modules/realtime/gateway";
 import { customerRouter } from "./modules/customer/customer.route";
 import { customerRequestRouter } from "./modules/customer/customer-requests.route";
 import { razorpayWebhookRouter } from "./modules/billing/razorpay-webhook.route";
@@ -41,9 +44,7 @@ import { sql } from "drizzle-orm";
 import { env } from "./config/env";
 import { redis, closeRedisConnections } from "./lib/redis";
 
-const corsOrigins = (
-  env.CORS_ORIGIN
-).split(",");
+const corsOrigins = env.CORS_ORIGIN.split(",");
 
 // The route-mounting chain below is long (20+ `.use()` calls across every
 // module router). Elysia's context type accumulates through each `.use()`,
@@ -118,7 +119,11 @@ let app = new Elysia()
 
     if (!checks.database || !checks.redis) {
       set.status = 503;
-      return { status: "not_ready", checks, timestamp: new Date().toISOString() };
+      return {
+        status: "not_ready",
+        checks,
+        timestamp: new Date().toISOString(),
+      };
     }
     return { status: "ready", checks, timestamp: new Date().toISOString() };
   }) as AnyElysia;
@@ -157,65 +162,69 @@ app = app
 
 // Global error handler
 app = app.onError(({ code, error, set, requestContext }) => {
-    // New, typed errors (AppError and subclasses) — the pattern new modules
-    // are being migrated to. Checked first; everything below is unchanged
-    // legacy behavior for modules that haven't migrated yet.
-    if (AppError.isAppError(error)) {
-      rootLogger.warn(`API Error: ${error.code}`, {
-        requestId: requestContext?.requestId,
-        statusCode: error.statusCode,
-        message: error.message,
-        details: error.details,
-      });
-      set.status = error.statusCode;
-      return error.toJSON();
-    }
-
-    rootLogger.error(`Unhandled API error: ${code}`, error instanceof Error ? error : undefined, {
+  // New, typed errors (AppError and subclasses) — the pattern new modules
+  // are being migrated to. Checked first; everything below is unchanged
+  // legacy behavior for modules that haven't migrated yet.
+  if (AppError.isAppError(error)) {
+    rootLogger.warn(`API Error: ${error.code}`, {
       requestId: requestContext?.requestId,
+      statusCode: error.statusCode,
+      message: error.message,
+      details: error.details,
     });
+    set.status = error.statusCode;
+    return error.toJSON();
+  }
 
-    if (code === "VALIDATION") {
-      set.status = 400;
-      return {
-        success: false,
-        code: "VALIDATION_ERROR",
-        message: "Invalid request data",
-        details: error.message,
-      };
-    }
+  rootLogger.error(
+    `Unhandled API error: ${code}`,
+    error instanceof Error ? error : undefined,
+    {
+      requestId: requestContext?.requestId,
+    },
+  );
 
-    if (code === "NOT_FOUND") {
-      set.status = 404;
-      return { success: false, code: "NOT_FOUND", message: "Route not found" };
-    }
-
-    // PostgreSQL uniqueness violations are expected domain conflicts, not
-    // internal server errors. This is especially important for tenant-scoped
-    // natural keys such as (tenant_id, branch_name): the database remains the
-    // final authority for concurrent requests, so the API must translate a
-    // 23505 into a stable 409 response.
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      (error as { code?: unknown }).code === "23505"
-    ) {
-      set.status = 409;
-      return {
-        success: false,
-        code: "CONFLICT",
-        message: "The requested resource conflicts with an existing record",
-      };
-    }
-
-    set.status = 500;
+  if (code === "VALIDATION") {
+    set.status = 400;
     return {
       success: false,
-      code: "INTERNAL_ERROR",
-      message: "Internal server error",
+      code: "VALIDATION_ERROR",
+      message: "Invalid request data",
+      details: error.message,
     };
-  });
+  }
+
+  if (code === "NOT_FOUND") {
+    set.status = 404;
+    return { success: false, code: "NOT_FOUND", message: "Route not found" };
+  }
+
+  // PostgreSQL uniqueness violations are expected domain conflicts, not
+  // internal server errors. This is especially important for tenant-scoped
+  // natural keys such as (tenant_id, branch_name): the database remains the
+  // final authority for concurrent requests, so the API must translate a
+  // 23505 into a stable 409 response.
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === "23505"
+  ) {
+    set.status = 409;
+    return {
+      success: false,
+      code: "CONFLICT",
+      message: "The requested resource conflicts with an existing record",
+    };
+  }
+
+  set.status = 500;
+  return {
+    success: false,
+    code: "INTERNAL_ERROR",
+    message: "Internal server error",
+  };
+});
 
 const port = env.PORT;
 

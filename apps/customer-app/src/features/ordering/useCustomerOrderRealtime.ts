@@ -22,7 +22,9 @@ export function useCustomerOrderRealtime(
 
     const proto = window.location.protocol === "https:" ? "wss" : "ws";
     const configured = import.meta.env.VITE_WS_URL as string | undefined;
-    const wsBase = (configured ?? `${proto}://${window.location.host}/ws/events`).replace(/\/events$/, "");
+    const wsBase = (
+      configured ?? `${proto}://${window.location.host}/ws/events`
+    ).replace(/\/events$/, "");
     let stopped = false;
     let socket: WebSocket | undefined;
 
@@ -53,7 +55,9 @@ export function useCustomerOrderRealtime(
     const connect = () => {
       if (stopped) return;
       clearTimers();
-      socket = new WebSocket(`${wsBase}/customer/events?session=${encodeURIComponent(sessionToken)}`);
+      socket = new WebSocket(
+        `${wsBase}/customer/events?session=${encodeURIComponent(sessionToken)}`,
+      );
 
       socket.onopen = () => {
         reconnectAttempt.current = 0;
@@ -69,7 +73,10 @@ export function useCustomerOrderRealtime(
             type?: string;
             payload?: CustomerOrder & { id?: string };
           };
-          if (message.type === "order.updated" && message.payload?.id === orderId) {
+          if (
+            message.type === "order.updated" &&
+            message.payload?.id === orderId
+          ) {
             onOrder(message.payload);
           }
         } catch {

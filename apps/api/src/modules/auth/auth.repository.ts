@@ -31,7 +31,6 @@ export const authRepository = {
     return user!;
   },
 
-
   async updateUserProfile(
     userId: string,
     data: { firstName?: string; lastName?: string },
@@ -61,12 +60,23 @@ export const authRepository = {
     });
   },
 
-  async recordFailedLogin(userId: string, attempts: number, lockedUntil: Date | null) {
+  async recordFailedLogin(
+    userId: string,
+    attempts: number,
+    lockedUntil: Date | null,
+  ) {
     const [updated] = await db
       .update(users)
-      .set({ failedLoginAttempts: attempts, lockedUntil, updatedAt: new Date() })
+      .set({
+        failedLoginAttempts: attempts,
+        lockedUntil,
+        updatedAt: new Date(),
+      })
       .where(and(eq(users.id, userId), isNull(users.deletedAt)))
-      .returning({ failedLoginAttempts: users.failedLoginAttempts, lockedUntil: users.lockedUntil });
+      .returning({
+        failedLoginAttempts: users.failedLoginAttempts,
+        lockedUntil: users.lockedUntil,
+      });
     return updated;
   },
 
@@ -183,7 +193,11 @@ export const authRepository = {
       if (!user) throw new Error("User creation failed");
 
       let role = await tx.query.roles.findFirst({
-        where: and(eq(roles.name, "OWNER"), eq(roles.scope, "GLOBAL"), isNull(roles.tenantId)),
+        where: and(
+          eq(roles.name, "OWNER"),
+          eq(roles.scope, "GLOBAL"),
+          isNull(roles.tenantId),
+        ),
       });
       if (!role) {
         const [createdRole] = await tx
@@ -230,7 +244,11 @@ export const authRepository = {
   async ensureGlobalOwnerRole() {
     return db.transaction(async (tx) => {
       let role = await tx.query.roles.findFirst({
-        where: and(eq(roles.name, "OWNER"), eq(roles.scope, "GLOBAL"), isNull(roles.tenantId)),
+        where: and(
+          eq(roles.name, "OWNER"),
+          eq(roles.scope, "GLOBAL"),
+          isNull(roles.tenantId),
+        ),
       });
       if (!role) {
         const [createdRole] = await tx
@@ -269,7 +287,11 @@ export const authRepository = {
 
   async findRoleByName(name: string) {
     return db.query.roles.findFirst({
-      where: and(eq(roles.name, name as any), isNull(roles.tenantId), eq(roles.isSystem, true)),
+      where: and(
+        eq(roles.name, name as any),
+        isNull(roles.tenantId),
+        eq(roles.isSystem, true),
+      ),
     });
   },
 
@@ -295,8 +317,17 @@ export const authRepository = {
     const [token] = await db
       .update(refreshTokens)
       .set({ revokedAt: new Date() })
-      .where(and(eq(refreshTokens.tokenHash, tokenHash), isNull(refreshTokens.revokedAt)))
-      .returning({ id: refreshTokens.id, sessionId: refreshTokens.sessionId, userId: refreshTokens.userId });
+      .where(
+        and(
+          eq(refreshTokens.tokenHash, tokenHash),
+          isNull(refreshTokens.revokedAt),
+        ),
+      )
+      .returning({
+        id: refreshTokens.id,
+        sessionId: refreshTokens.sessionId,
+        userId: refreshTokens.userId,
+      });
     return token;
   },
 
@@ -314,32 +345,67 @@ export const authRepository = {
       .returning();
     return token;
   },
-  async createSession(data: { userId: string; expiresAt: Date; userAgent?: string; ipAddress?: string }) {
+  async createSession(data: {
+    userId: string;
+    expiresAt: Date;
+    userAgent?: string;
+    ipAddress?: string;
+  }) {
     const [session] = await db.insert(userSessions).values(data).returning();
     return session!;
   },
 
   async findSession(userId: string, sessionId: string) {
     return db.query.userSessions.findFirst({
-      where: and(eq(userSessions.id, sessionId), eq(userSessions.userId, userId)),
+      where: and(
+        eq(userSessions.id, sessionId),
+        eq(userSessions.userId, userId),
+      ),
     });
   },
 
   async listActiveSessions(userId: string) {
     return db.query.userSessions.findMany({
-      where: and(eq(userSessions.userId, userId), isNull(userSessions.revokedAt), gt(userSessions.expiresAt, new Date())),
+      where: and(
+        eq(userSessions.userId, userId),
+        isNull(userSessions.revokedAt),
+        gt(userSessions.expiresAt, new Date()),
+      ),
       orderBy: (s, { desc }) => [desc(s.lastSeenAt)],
     });
   },
 
   async touchSession(sessionId: string, expiresAt: Date) {
-    await db.update(userSessions).set({ lastSeenAt: new Date(), expiresAt }).where(and(eq(userSessions.id, sessionId), isNull(userSessions.revokedAt)));
+    await db
+      .update(userSessions)
+      .set({ lastSeenAt: new Date(), expiresAt })
+      .where(
+        and(eq(userSessions.id, sessionId), isNull(userSessions.revokedAt)),
+      );
   },
 
   async revokeSession(userId: string, sessionId: string) {
-    const [session] = await db.update(userSessions).set({ revokedAt: new Date() }).where(and(eq(userSessions.id, sessionId), eq(userSessions.userId, userId), isNull(userSessions.revokedAt))).returning();
-    if (session) await db.update(refreshTokens).set({ revokedAt: new Date() }).where(and(eq(refreshTokens.sessionId, sessionId), isNull(refreshTokens.revokedAt)));
+    const [session] = await db
+      .update(userSessions)
+      .set({ revokedAt: new Date() })
+      .where(
+        and(
+          eq(userSessions.id, sessionId),
+          eq(userSessions.userId, userId),
+          isNull(userSessions.revokedAt),
+        ),
+      )
+      .returning();
+    if (session)
+      await db
+        .update(refreshTokens)
+        .set({ revokedAt: new Date() })
+        .where(
+          and(
+            eq(refreshTokens.sessionId, sessionId),
+            isNull(refreshTokens.revokedAt),
+          ),
+        );
     return session;
   },
-
 };

@@ -78,7 +78,9 @@ export const staffRepository = {
       where: and(
         eq(roles.id, roleId),
         eq(roles.isActive, true),
-        tenantId ? or(isNull(roles.tenantId), eq(roles.tenantId, tenantId)) : undefined,
+        tenantId
+          ? or(isNull(roles.tenantId), eq(roles.tenantId, tenantId))
+          : undefined,
       ),
     });
   },
@@ -229,7 +231,10 @@ export const staffRepository = {
 
   async findAllRoles(tenantId: string) {
     return db.query.roles.findMany({
-      where: and(eq(roles.isActive, true), or(isNull(roles.tenantId), eq(roles.tenantId, tenantId))),
+      where: and(
+        eq(roles.isActive, true),
+        or(isNull(roles.tenantId), eq(roles.tenantId, tenantId)),
+      ),
     });
   },
 };

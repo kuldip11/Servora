@@ -6,7 +6,9 @@ const dir = resolve(root, ".verification");
 const baselinePath = resolve(dir, "phase6-baseline.json");
 const performancePath = resolve(dir, "performance-smoke.json");
 
-const missing = [baselinePath, performancePath].filter((path) => !existsSync(path));
+const missing = [baselinePath, performancePath].filter(
+  (path) => !existsSync(path),
+);
 if (missing.length) {
   console.error("Release certification evidence is incomplete.");
   for (const path of missing) console.error(`Missing: ${path}`);
@@ -36,6 +38,9 @@ const certificate = {
 };
 
 mkdirSync(dir, { recursive: true });
-writeFileSync(resolve(dir, "release-certificate.json"), `${JSON.stringify(certificate, null, 2)}\n`);
+writeFileSync(
+  resolve(dir, "release-certificate.json"),
+  `${JSON.stringify(certificate, null, 2)}\n`,
+);
 console.log(JSON.stringify(certificate, null, 2));
 process.exit(passed ? 0 : 1);

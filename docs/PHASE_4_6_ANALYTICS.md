@@ -1,6 +1,7 @@
 # Phase 4.6 — Analytics
 
 Completed analytics polish:
+
 - paid-order count today
 - cancelled-order count today
 - average paid order value

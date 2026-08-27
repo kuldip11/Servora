@@ -1,12 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-const { getQueue, findById, findDetailedById, setStatus, publish, findOrder } = vi.hoisted(() => ({
-  getQueue: vi.fn(),
-  findById: vi.fn(),
-  findDetailedById: vi.fn(),
-  setStatus: vi.fn(),
-  publish: vi.fn(),
-  findOrder: vi.fn(),
-}));
+const { getQueue, findById, findDetailedById, setStatus, publish, findOrder } =
+  vi.hoisted(() => ({
+    getQueue: vi.fn(),
+    findById: vi.fn(),
+    findDetailedById: vi.fn(),
+    setStatus: vi.fn(),
+    publish: vi.fn(),
+    findOrder: vi.fn(),
+  }));
 vi.mock("../ticket.repository", () => ({
   ticketRepository: { getQueue, findById, findDetailedById, setStatus },
 }));

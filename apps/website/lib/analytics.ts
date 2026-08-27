@@ -16,6 +16,7 @@ export function track(event: AnalyticsEvent) {
   window.dispatchEvent(new CustomEvent("servora:analytics", { detail: event }));
   const consent = window.localStorage.getItem("servora_cookie_consent");
   if (consent !== "accepted") return;
-  const gtag = (window as Window & { gtag?: (...args: unknown[]) => void }).gtag;
+  const gtag = (window as Window & { gtag?: (...args: unknown[]) => void })
+    .gtag;
   gtag?.("event", event.event, { ...event, event: undefined });
 }

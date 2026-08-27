@@ -12,7 +12,9 @@ function matchesFilters(order: Order, filters: OrdersListFilters) {
 
 function upsertOrder(order: Order) {
   queryClient.setQueryData(orderKeys.detail(order.id), order);
-  for (const query of queryClient.getQueryCache().findAll({ queryKey: orderKeys.lists() })) {
+  for (const query of queryClient
+    .getQueryCache()
+    .findAll({ queryKey: orderKeys.lists() })) {
     const filters = (query.queryKey.at(-1) ?? {}) as OrdersListFilters;
     queryClient.setQueryData<Order[]>(query.queryKey, (current) => {
       if (!current) return current;
@@ -27,15 +29,20 @@ export function useOrdersRealtimeSync() {
   useRealtimeEvent("order.updated", (event) => upsertOrder(event.payload));
 
   useRealtimeEvent("kitchen.ticket.updated", (event) => {
-    queryClient.setQueryData<Order>(orderKeys.detail(event.payload.orderId), (current) => {
-      if (!current?.kitchenTickets) return current;
-      return {
-        ...current,
-        kitchenTickets: current.kitchenTickets.map((ticket) =>
-          ticket.id === event.payload.id ? { ...ticket, ...event.payload } : ticket,
-        ),
-        updatedAt: event.payload.updatedAt,
-      };
-    });
+    queryClient.setQueryData<Order>(
+      orderKeys.detail(event.payload.orderId),
+      (current) => {
+        if (!current?.kitchenTickets) return current;
+        return {
+          ...current,
+          kitchenTickets: current.kitchenTickets.map((ticket) =>
+            ticket.id === event.payload.id
+              ? { ...ticket, ...event.payload }
+              : ticket,
+          ),
+          updatedAt: event.payload.updatedAt,
+        };
+      },
+    );
   });
 }

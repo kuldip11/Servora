@@ -1,4 +1,12 @@
-import { pgTable, uuid, varchar, text, timestamp, index, integer } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  uuid,
+  varchar,
+  text,
+  timestamp,
+  index,
+  integer,
+} from "drizzle-orm/pg-core";
 
 export const paymentWebhookEvents = pgTable(
   "payment_webhook_events",
@@ -14,5 +22,7 @@ export const paymentWebhookEvents = pgTable(
     nextAttemptAt: timestamp("next_attempt_at"),
     error: text("error"),
   },
-  (t) => ({ eventTypeIdx: index("payment_webhook_events_type_idx").on(t.eventType) }),
+  (t) => ({
+    eventTypeIdx: index("payment_webhook_events_type_idx").on(t.eventType),
+  }),
 );

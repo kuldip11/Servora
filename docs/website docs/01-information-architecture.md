@@ -53,18 +53,21 @@ Resources   → /resources   (hide this nav item entirely until Phase 3 has ≥3
 ```
 
 ### 2.1 Product mega-menu columns
+
 1. **Operations** — POS & Orders, Menu Management, Kitchen Operations
-2. **Guest Experience** — QR Ordering (badge: "Differentiator"), 
+2. **Guest Experience** — QR Ordering (badge: "Differentiator"),
 3. **Management** — Staff & Roles, Inventory, Analytics, Multi-Branch
 4. **Trust** — Security & Reliability
-Each item: icon + 1-line description, links to its feature page. Footer row
-of the mega-menu: "See the full product →" linking to `/product`.
+   Each item: icon + 1-line description, links to its feature page. Footer row
+   of the mega-menu: "See the full product →" linking to `/product`.
 
 ### 2.2 Solutions dropdown
+
 Flat list, 4 items, no mega-menu needed: Quick Service, Full Service,
 Multi-Location, Cloud Kitchens.
 
 ### Mobile nav
+
 Hamburger → full-screen overlay. Order: Product (expandable accordion listing
 all 9 feature pages), Solutions (accordion), Pricing, Resources (if live),
 About, FAQ, then Sign In / Book a Demo as two full-width stacked buttons at
@@ -101,6 +104,7 @@ omitting it).
 
 Reserve these now even if unused in Phase 0, so Phase 2/3 URLs don't collide
 with anything already indexed:
+
 - `/demo` → `/book-a-demo`
 - `/features` → `/product`
 - `/customers` → reserved for future case studies index (do not build until
@@ -111,6 +115,7 @@ with anything already indexed:
 
 See `07-launch-phasing-and-checklist.md` for the authoritative phase
 assignment. Summary:
+
 - **Phase 0**: `/`, `/product`, `/pricing`, `/book-a-demo`, `/contact`,
   `/login` (redirect), `/legal/*`, `/404`
 - **Phase 1**: all 9 `/product/*` feature pages

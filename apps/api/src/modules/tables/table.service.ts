@@ -77,7 +77,10 @@ export const tableService = {
     const table = await tableRepository.findById(auth.tenantId, tableId);
     if (!table) throw tableNotFound(tableId);
     assertTableResourceAccess(auth, table.branchId);
-    const updated = await tableRepository.regenerateQrToken(auth.tenantId, tableId);
+    const updated = await tableRepository.regenerateQrToken(
+      auth.tenantId,
+      tableId,
+    );
     if (!updated) throw tableNotFound(tableId);
     return updated;
   },

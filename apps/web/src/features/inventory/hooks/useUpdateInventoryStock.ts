@@ -18,7 +18,9 @@ export function useUpdateInventoryStock() {
     }) => inventoryService.updateStock(itemId, input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: inventoryKeys.items() });
-      queryClient.invalidateQueries({ queryKey: ["inventory", "transactions"] });
+      queryClient.invalidateQueries({
+        queryKey: ["inventory", "transactions"],
+      });
       notifySuccess("Stock updated");
     },
     onError: (err) => notifyError(err, "Failed to update stock"),

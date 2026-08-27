@@ -22,7 +22,6 @@ export const tenantRepository = {
     });
   },
 
-
   async findOrganizationMembership(userId: string, organizationId: string) {
     return db.query.organizationMemberships.findFirst({
       where: and(
@@ -38,7 +37,11 @@ export const tenantRepository = {
     return db.query.tenants.findFirst({ where: eq(tenants.id, id) });
   },
 
-  async create(data: { name: string; createdBy: string; organizationId: string }) {
+  async create(data: {
+    name: string;
+    createdBy: string;
+    organizationId: string;
+  }) {
     const [tenant] = await db.insert(tenants).values(data).returning();
     return tenant!;
   },
@@ -73,7 +76,11 @@ export const tenantRepository = {
 
   async findRoleByName(name: string) {
     return db.query.roles.findFirst({
-      where: and(eq(roles.name, name as any), isNull(roles.tenantId), eq(roles.isSystem, true)),
+      where: and(
+        eq(roles.name, name as any),
+        isNull(roles.tenantId),
+        eq(roles.isSystem, true),
+      ),
     });
   },
 

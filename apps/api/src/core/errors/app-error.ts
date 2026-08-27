@@ -105,7 +105,10 @@ export class UnauthorizedError extends AppError {
 }
 
 export class TooManyRequestsError extends AppError {
-  constructor(message = "Too many requests", details?: Record<string, unknown> | undefined) {
+  constructor(
+    message = "Too many requests",
+    details?: Record<string, unknown> | undefined,
+  ) {
     super({ code: ErrorCode.RATE_LIMITED, message, details }, 429);
     this.name = "TooManyRequestsError";
   }

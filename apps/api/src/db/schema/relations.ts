@@ -51,20 +51,38 @@ import { customerSessions } from "./customer-session.schema";
 
 // ─── Relations ────────────────────────────────────────────────────────────────
 
-export const organizationsRelations = relations(organizations, ({ one, many }) => ({
-  creator: one(users, { fields: [organizations.createdBy], references: [users.id] }),
-  memberships: many(organizationMemberships),
-  tenants: many(tenants),
-}));
+export const organizationsRelations = relations(
+  organizations,
+  ({ one, many }) => ({
+    creator: one(users, {
+      fields: [organizations.createdBy],
+      references: [users.id],
+    }),
+    memberships: many(organizationMemberships),
+    tenants: many(tenants),
+  }),
+);
 
-export const organizationMembershipsRelations = relations(organizationMemberships, ({ one }) => ({
-  user: one(users, { fields: [organizationMemberships.userId], references: [users.id] }),
-  organization: one(organizations, { fields: [organizationMemberships.organizationId], references: [organizations.id] }),
-}));
+export const organizationMembershipsRelations = relations(
+  organizationMemberships,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [organizationMemberships.userId],
+      references: [users.id],
+    }),
+    organization: one(organizations, {
+      fields: [organizationMemberships.organizationId],
+      references: [organizations.id],
+    }),
+  }),
+);
 
 export const tenantsRelations = relations(tenants, ({ one, many }) => ({
   creator: one(users, { fields: [tenants.createdBy], references: [users.id] }),
-  organization: one(organizations, { fields: [tenants.organizationId], references: [organizations.id] }),
+  organization: one(organizations, {
+    fields: [tenants.organizationId],
+    references: [organizations.id],
+  }),
   branches: many(branches),
   memberships: many(tenantMemberships),
   menuCategories: many(menuCategories),
@@ -104,13 +122,24 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
   payments: many(payments),
 }));
 
-
-export const customerSessionsRelations = relations(customerSessions, ({ one, many }) => ({
-  tenant: one(tenants, { fields: [customerSessions.tenantId], references: [tenants.id] }),
-  branch: one(branches, { fields: [customerSessions.branchId], references: [branches.id] }),
-  table: one(restaurantTables, { fields: [customerSessions.tableId], references: [restaurantTables.id] }),
-  orders: many(orders),
-}));
+export const customerSessionsRelations = relations(
+  customerSessions,
+  ({ one, many }) => ({
+    tenant: one(tenants, {
+      fields: [customerSessions.tenantId],
+      references: [tenants.id],
+    }),
+    branch: one(branches, {
+      fields: [customerSessions.branchId],
+      references: [branches.id],
+    }),
+    table: one(restaurantTables, {
+      fields: [customerSessions.tableId],
+      references: [restaurantTables.id],
+    }),
+    orders: many(orders),
+  }),
+);
 
 export const kitchenTicketsRelations = relations(
   kitchenTickets,
@@ -356,10 +385,13 @@ export const rolePermissionsRelations = relations(
   }),
 );
 
-export const userSessionsRelations = relations(userSessions, ({ one, many }) => ({
-  user: one(users, { fields: [userSessions.userId], references: [users.id] }),
-  refreshTokens: many(refreshTokens),
-}));
+export const userSessionsRelations = relations(
+  userSessions,
+  ({ one, many }) => ({
+    user: one(users, { fields: [userSessions.userId], references: [users.id] }),
+    refreshTokens: many(refreshTokens),
+  }),
+);
 
 export const refreshTokensRelations = relations(refreshTokens, ({ one }) => ({
   user: one(users, { fields: [refreshTokens.userId], references: [users.id] }),
@@ -367,7 +399,10 @@ export const refreshTokensRelations = relations(refreshTokens, ({ one }) => ({
     fields: [refreshTokens.membershipId],
     references: [tenantMemberships.id],
   }),
-  session: one(userSessions, { fields: [refreshTokens.sessionId], references: [userSessions.id] }),
+  session: one(userSessions, {
+    fields: [refreshTokens.sessionId],
+    references: [userSessions.id],
+  }),
 }));
 
 export const restaurantTablesRelations = relations(

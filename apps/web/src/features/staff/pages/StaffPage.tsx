@@ -58,13 +58,22 @@ export function StaffPage() {
   const { data: rolesData } = useRoles();
   const { data: branches } = useBranches();
 
-
   const addMutation = useAddStaff();
   const deleteMutation = useDeleteStaff();
   const updateStatusMutation = useUpdateStaffStatus();
   const updateMutation = useMutation({
-    mutationFn: ({ id, input }: { id: string; input: { firstName: string; lastName: string; roleId: string; branchIds: string[] } }) =>
-      staffService.update(id, input),
+    mutationFn: ({
+      id,
+      input,
+    }: {
+      id: string;
+      input: {
+        firstName: string;
+        lastName: string;
+        roleId: string;
+        branchIds: string[];
+      };
+    }) => staffService.update(id, input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: staffKeys.list() });
       notifySuccess("Staff member updated");
@@ -72,8 +81,6 @@ export function StaffPage() {
     },
     onError: (err) => notifyError(err, "Failed to update staff"),
   });
-
-
 
   const columns: Column<StaffRow>[] = [
     {
@@ -106,7 +113,10 @@ export function StaffPage() {
       header: "Branch",
       cell: (member: StaffRow) => (
         <span className="text-text-secondary">
-          {member.assignedBranches?.map((branch) => branch.name).filter(Boolean).join(", ") || "—"}
+          {member.assignedBranches
+            ?.map((branch) => branch.name)
+            .filter(Boolean)
+            .join(", ") || "—"}
         </span>
       ),
     },
@@ -221,15 +231,25 @@ export function StaffPage() {
         />
       </Card>
 
-      <RoleManager roles={rolesData ?? []} canManage={has("roles:create")} canManagePermissions={has("roles:assign_permissions")} />
+      <RoleManager
+        roles={rolesData ?? []}
+        canManage={has("roles:create")}
+        canManagePermissions={has("roles:assign_permissions")}
+      />
 
-      <Modal open={showAdd} onClose={() => setShowAdd(false)} title="Add Staff Member">
+      <Modal
+        open={showAdd}
+        onClose={() => setShowAdd(false)}
+        title="Add Staff Member"
+      >
         <AddStaffForm
           roles={rolesData ?? []}
           branches={branches ?? []}
           loading={addMutation.isPending}
           onCancel={() => setShowAdd(false)}
-          onSubmit={(values) => addMutation.mutate(values, { onSuccess: () => setShowAdd(false) })}
+          onSubmit={(values) =>
+            addMutation.mutate(values, { onSuccess: () => setShowAdd(false) })
+          }
         />
       </Modal>
 
@@ -244,7 +264,9 @@ export function StaffPage() {
             roles={rolesData ?? []}
             branches={branches ?? []}
             onCancel={() => setEditing(null)}
-            onSubmit={(input) => updateMutation.mutate({ id: editing.id, input })}
+            onSubmit={(input) =>
+              updateMutation.mutate({ id: editing.id, input })
+            }
             loading={updateMutation.isPending}
           />
         )}

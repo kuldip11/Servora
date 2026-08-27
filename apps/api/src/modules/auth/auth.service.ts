@@ -96,15 +96,23 @@ export const authService = {
       throw accountTemporarilyLocked();
     }
 
-    const passwordMatches = await bcrypt.compare(input.password, user.passwordHash);
+    const passwordMatches = await bcrypt.compare(
+      input.password,
+      user.passwordHash,
+    );
     if (!passwordMatches) {
       const nextAttempts = user.failedLoginAttempts + 1;
       const maxAttempts = 5;
       const lockMinutes = 15;
-      const lockedUntil = nextAttempts >= maxAttempts
-        ? new Date(Date.now() + lockMinutes * 60 * 1000)
-        : null;
-      await authRepository.recordFailedLogin(user.id, nextAttempts, lockedUntil);
+      const lockedUntil =
+        nextAttempts >= maxAttempts
+          ? new Date(Date.now() + lockMinutes * 60 * 1000)
+          : null;
+      await authRepository.recordFailedLogin(
+        user.id,
+        nextAttempts,
+        lockedUntil,
+      );
       if (lockedUntil) throw accountTemporarilyLocked();
       throw invalidCredentials();
     }
@@ -116,7 +124,8 @@ export const authService = {
   async logout(tokenValue: string) {
     const tokenHash = hashToken(tokenValue);
     const token = await authRepository.revokeRefreshToken(tokenHash);
-    if (token?.sessionId) await authRepository.revokeSession(token.userId, token.sessionId);
+    if (token?.sessionId)
+      await authRepository.revokeSession(token.userId, token.sessionId);
     return { loggedOut: true };
   },
 
@@ -129,8 +138,12 @@ export const authService = {
 
     const user = await authRepository.findUserById(stored.userId);
     if (!user || !stored.sessionId) throw invalidRefreshToken();
-    const session = await authRepository.findSession(stored.userId, stored.sessionId);
-    if (!session || session.revokedAt || session.expiresAt <= new Date()) throw invalidRefreshToken();
+    const session = await authRepository.findSession(
+      stored.userId,
+      stored.sessionId,
+    );
+    if (!session || session.revokedAt || session.expiresAt <= new Date())
+      throw invalidRefreshToken();
 
     // Refresh restores authentication identity only. The active franchise and
     // branch are intentionally not persisted in refresh tokens; the client
@@ -176,7 +189,8 @@ export const authService = {
     const changes = Object.fromEntries(
       Object.entries(input).filter(([, value]) => value !== undefined),
     );
-    if (!Object.keys(changes).length) return authRepository.findUserById(userId);
+    if (!Object.keys(changes).length)
+      return authRepository.findUserById(userId);
     const updated = await authRepository.updateUserProfile(userId, changes);
     if (!updated) throw authUserNotFound();
     return authRepository.findUserById(userId);
@@ -206,7 +220,10 @@ export const authService = {
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     let sessionId = existingSessionId;
     if (!sessionId) {
-      const session = await authRepository.createSession({ userId: user.id, expiresAt });
+      const session = await authRepository.createSession({
+        userId: user.id,
+        expiresAt,
+      });
       sessionId = session.id;
     } else {
       await authRepository.touchSession(sessionId, expiresAt);

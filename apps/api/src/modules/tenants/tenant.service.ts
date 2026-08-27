@@ -38,17 +38,24 @@ export const tenantService = {
     );
   },
 
-  async create(auth: AuthContext, input: { name: string; organizationId: string }) {
+  async create(
+    auth: AuthContext,
+    input: { name: string; organizationId: string },
+  ) {
     // Creating a new franchise is an ownership operation, not a generic
     // tenant permission. Only the global OWNER can create another franchise.
     if (!auth.roles.includes("OWNER")) {
       throw new ForbiddenError("Only the global Owner can create tenants");
     }
-    const organizationMembership = await tenantRepository.findOrganizationMembership(
-      auth.userId,
-      input.organizationId,
-    );
-    if (!organizationMembership || !organizationMembership.organization.isActive) {
+    const organizationMembership =
+      await tenantRepository.findOrganizationMembership(
+        auth.userId,
+        input.organizationId,
+      );
+    if (
+      !organizationMembership ||
+      !organizationMembership.organization.isActive
+    ) {
       throw new ForbiddenError("Organization access denied");
     }
 
@@ -89,10 +96,11 @@ export const tenantService = {
     requirePermission(auth, "tenant:update");
     const tenant = await tenantRepository.findById(tenantId);
     if (!tenant) throw tenantNotFound(tenantId);
-    const organizationMembership = await tenantRepository.findOrganizationMembership(
-      auth.userId,
-      tenant.organizationId,
-    );
+    const organizationMembership =
+      await tenantRepository.findOrganizationMembership(
+        auth.userId,
+        tenant.organizationId,
+      );
     if (!organizationMembership) throw tenantNotFound(tenantId);
     if (!auth.roles.includes("OWNER") && tenantId !== auth.tenantId)
       throw tenantNotFound(tenantId);
@@ -119,10 +127,11 @@ export const tenantService = {
     requirePermission(auth, "tenant:archive");
     const tenant = await tenantRepository.findById(tenantId);
     if (!tenant) throw tenantNotFound(tenantId);
-    const organizationMembership = await tenantRepository.findOrganizationMembership(
-      auth.userId,
-      tenant.organizationId,
-    );
+    const organizationMembership =
+      await tenantRepository.findOrganizationMembership(
+        auth.userId,
+        tenant.organizationId,
+      );
     if (!organizationMembership) throw tenantNotFound(tenantId);
     if (!auth.roles.includes("OWNER") && tenantId !== auth.tenantId)
       throw tenantNotFound(tenantId);

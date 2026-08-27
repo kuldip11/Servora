@@ -99,7 +99,8 @@ export function TenantSwitcher() {
     try {
       const organizations = await authService.organizations();
       const organization = organizations.find((item) => item.isActive);
-      if (!organization) throw new Error("Create or select an active organization first");
+      if (!organization)
+        throw new Error("Create or select an active organization first");
       const created = await authService.createTenant(name, organization.id);
       const next = await authService.memberships();
       setItems(next);

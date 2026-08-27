@@ -26,8 +26,13 @@ describe("branch errors", () => {
     expect(branchHasOpenOrders().details).toMatchObject({
       reason: "BRANCH_HAS_OPEN_ORDERS",
     });
-    expect(branchCodeAlreadyExists("MAIN-01").details).toMatchObject({ reason: "BRANCH_CODE_EXISTS", code: "MAIN-01" });
-    expect(tablesRequireDineIn().details).toMatchObject({ reason: "TABLES_REQUIRE_DINE_IN" });
+    expect(branchCodeAlreadyExists("MAIN-01").details).toMatchObject({
+      reason: "BRANCH_CODE_EXISTS",
+      code: "MAIN-01",
+    });
+    expect(tablesRequireDineIn().details).toMatchObject({
+      reason: "TABLES_REQUIRE_DINE_IN",
+    });
     expect(lastActiveBranch().statusCode).toBe(409);
   });
 });

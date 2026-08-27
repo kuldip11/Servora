@@ -89,7 +89,6 @@ export const db: PostgresJsDatabase<typeof schema> = new Proxy(
 
 export type Database = typeof db;
 
-
 export async function closeDatabaseConnections(): Promise<void> {
   const clients: ReturnType<typeof postgres>[] = [];
   if (queryClient) clients.push(queryClient);

@@ -13,9 +13,7 @@ export function LoginPage({ onLogin }: Props) {
     <div className="min-h-screen bg-primary flex flex-col">
       <div className="flex-1 flex items-center justify-center pt-12 pb-4">
         <div className="text-center">
-          <div
-            className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4 bg-primary-foreground/20"
-          >
+          <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4 bg-primary-foreground/20">
             <ChefHat className="w-10 h-10 text-primary-foreground" />
           </div>
           <h1 className="text-3xl font-bold text-primary-foreground">

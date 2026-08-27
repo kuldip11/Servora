@@ -25,6 +25,7 @@ Updated: 2026-08-27
 ## Pass 2 — SEO, structured data, analytics instrumentation
 
 Implemented:
+
 - Canonical URLs and page-specific Open Graph/Twitter metadata across primary pages.
 - Generated OG image endpoint at `/og` for page-specific preview content.
 - Organization, SoftwareApplication and BreadcrumbList JSON-LD on product detail pages.
@@ -33,6 +34,7 @@ Implemented:
 - Optional GA4 loading controlled by `NEXT_PUBLIC_GA_ID` and only usable after optional-cookie consent.
 
 Still pending:
+
 - Real approved legal copy.
 - Contact-specific submission/event workflow.
 - Full automated test/a11y suite and CI execution.
@@ -41,6 +43,7 @@ Still pending:
 \n## Pass 3 — Functional forms, consent loading, and API hardening
 
 Implemented:
+
 - Added a dedicated `ContactForm` with subject/message fields and `contact_form_submit` analytics.
 - Extended `/api/lead` payload validation for contact subjects, location length, and a 10-second delivery timeout.
 - Fixed analytics so the GA script itself is not loaded until optional-cookie consent is present.
@@ -48,6 +51,7 @@ Implemented:
 - Added initial Vitest coverage for lead validation, honeypot handling, and successful delivery.
 
 Still pending:
+
 - Configure and verify the real CRM/email webhook in a deployed environment.
 - Replace legal placeholders with approved legal text.
 - Add full E2E/browser accessibility coverage and run CI.
@@ -56,49 +60,54 @@ Still pending:
 ## Pass 4 — Security baseline and abuse protection
 
 Implemented:
+
 - Added security response headers: nosniff, frame denial, strict referrer policy, permissions policy, and cross-origin opener policy.
 - Added baseline API rate limiting for lead submissions (8 requests per IP per 10 minutes) with HTTP 429/Retry-After handling.
 - Corrected contact-form start analytics event to use `contact_form_start`.
 - Expanded environment documentation for the production lead endpoint.
 
 Caveat:
+
 - The rate limiter is process-local and is a baseline safeguard; a distributed production deployment should use an external rate-limit store/WAF before launch.
 
 Next:
-- Add browser E2E and accessibility tests, then validate with installed dependencies and a production-like environment.
 
+- Add browser E2E and accessibility tests, then validate with installed dependencies and a production-like environment.
 
 ## Pass 5 — Quality and accessibility gate
 
 Implemented:
+
 - Added Playwright accessibility smoke tests using axe-core for primary conversion and product routes.
 - Added lead-delivery failure coverage so upstream webhook failures return a controlled 502 response.
 - Added a GitHub Actions website quality workflow covering install, typecheck, lint, unit tests, production build, browser installation, and E2E tests.
 
 Still pending:
+
 - Run the new CI suite against the real dependency graph and fix any source/build failures it exposes.
 - Configure the real production lead destination and validate delivery.
 - Replace legal placeholders with approved copy.
 - Configure the real production domain and external analytics/consent verification.
 
-
 ## Pass 6 — Consent UX and production configuration guard
 
 Implemented:
+
 - Added a persistent Cookie settings control in the footer so visitors can reopen consent choices.
 - Added consent-aware page-view dispatch so a visitor who accepts analytics after initial load receives a page-view event.
 - Added contact-form error analytics.
 - Added a production-environment validation script for the public site URL, application sign-in URL, and lead webhook, including HTTPS and placeholder checks.
 
 Still pending:
+
 - Supply the real production URLs/secrets and run the production validation in the deployment environment.
 - Replace legal placeholders with approved legal copy.
 - Connect and verify the CRM/email destination end-to-end.
 
-
 ## Pass 7 — Funnel instrumentation and route integrity
 
 Implemented:
+
 - Added `nav_cta_click` tracking to header and footer Book a Demo CTAs.
 - Added `pricing_cta_click` tracking to all pricing CTAs with plan names.
 - Added a web app manifest for installable/PWA metadata.
@@ -106,15 +115,16 @@ Implemented:
 - Added browser checks for `robots.txt` and `sitemap.xml`, including exclusion of unpublished `/resources` routes.
 
 Still pending:
+
 - Configure and verify the real CRM/email destination.
 - Replace legal placeholders with qualified, approved policy text.
 - Run the complete CI suite successfully in an environment with dependencies/network access.
 - Deploy with real production URLs and submit the sitemap to search engines.
 
-
 ## Phase 5 — Application ecosystem navigation
 
 Implemented:
+
 - Added a dedicated `/apps` launcher for Management/POS, Kitchen Display, Waiter and Customer Ordering.
 - Added environment-driven application navigation to desktop and mobile website headers.
 - Centralized website application metadata so header, launcher and footer use the same destinations.

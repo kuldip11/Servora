@@ -3,6 +3,7 @@
 Status: **COMPLETE**
 
 Implemented:
+
 - Readiness now validates both PostgreSQL and Redis instead of database-only readiness.
 - Added explicit Redis connection shutdown.
 - Added explicit database connection shutdown.

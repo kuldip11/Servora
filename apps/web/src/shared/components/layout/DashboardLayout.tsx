@@ -76,7 +76,12 @@ const navItems = [
     icon: Building2,
     permission: "branch:read",
   },
-  { to: "/audit", label: "Audit Log", icon: ShieldCheck, permission: "audit:read" },
+  {
+    to: "/audit",
+    label: "Audit Log",
+    icon: ShieldCheck,
+    permission: "audit:read",
+  },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 

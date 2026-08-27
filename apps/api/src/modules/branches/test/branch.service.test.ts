@@ -74,10 +74,21 @@ describe("branch service", () => {
     await expect(
       branchService.create(
         { ...baseAuth, permissions: ["branch:create"] },
-        { name: "Main", code: " main-01 ", timezone: "Asia/Kolkata", currency: "inr" },
+        {
+          name: "Main",
+          code: " main-01 ",
+          timezone: "Asia/Kolkata",
+          currency: "inr",
+        },
       ),
     ).resolves.toMatchObject({ id: "b1" });
-    expect(create).toHaveBeenCalledWith({ tenantId: "t1", name: "Main", code: "MAIN-01", timezone: "Asia/Kolkata", currency: "INR" });
+    expect(create).toHaveBeenCalledWith({
+      tenantId: "t1",
+      name: "Main",
+      code: "MAIN-01",
+      timezone: "Asia/Kolkata",
+      currency: "INR",
+    });
     expect(writeAudit).toHaveBeenCalledWith(
       expect.objectContaining({ action: "BRANCH_CREATED", entityId: "b1" }),
     );
@@ -86,7 +97,12 @@ describe("branch service", () => {
     await expect(
       branchService.create(
         { ...baseAuth, permissions: ["branch:create"] },
-        { name: "Bad TZ", code: "BAD-TZ", timezone: "Mars/Olympus", currency: "INR" },
+        {
+          name: "Bad TZ",
+          code: "BAD-TZ",
+          timezone: "Mars/Olympus",
+          currency: "INR",
+        },
       ),
     ).rejects.toMatchObject({ code: "VALIDATION_FAILED" });
 
@@ -110,7 +126,12 @@ describe("branch service", () => {
     await expect(
       branchService.create(
         { ...baseAuth, permissions: ["branch:create"] },
-        { name: "Second", code: "MAIN-01", timezone: "Asia/Kolkata", currency: "INR" },
+        {
+          name: "Second",
+          code: "MAIN-01",
+          timezone: "Asia/Kolkata",
+          currency: "INR",
+        },
       ),
     ).rejects.toMatchObject({ details: { reason: "BRANCH_CODE_EXISTS" } });
     expect(create).not.toHaveBeenCalled();
@@ -194,10 +215,16 @@ describe("branch service", () => {
   });
 });
 
-
 it("lists every branch for tenant-wide users even when an active branch is selected", async () => {
   const { branchService } = await import("../branch.service");
-  const auth = { tenantId: "t1", branchId: "b1", tenantWide: true, authorizedBranchIds: ["b1"], permissions: ["branch:read"], userId: "u1" } as any;
+  const auth = {
+    tenantId: "t1",
+    branchId: "b1",
+    tenantWide: true,
+    authorizedBranchIds: ["b1"],
+    permissions: ["branch:read"],
+    userId: "u1",
+  } as any;
   await branchService.list(auth);
   expect(findMany).toHaveBeenCalledWith("t1", null, undefined);
 });

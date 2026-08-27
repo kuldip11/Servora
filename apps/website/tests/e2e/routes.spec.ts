@@ -2,8 +2,15 @@ import { test, expect } from "@playwright/test";
 import { modules } from "../../content/modules";
 
 const routes = [
-  "/", "/product", "/apps", "/pricing", "/book-a-demo", "/contact",
-  "/legal/privacy", "/legal/terms", "/legal/cookies",
+  "/",
+  "/product",
+  "/apps",
+  "/pricing",
+  "/book-a-demo",
+  "/contact",
+  "/legal/privacy",
+  "/legal/terms",
+  "/legal/cookies",
   ...modules.map((module) => `/product/${module.slug}`),
 ];
 
@@ -27,8 +34,9 @@ test("robots and sitemap are available", async ({ request }) => {
   expect(body).not.toContain("/resources");
 });
 
-
-test("application ecosystem navigation exposes all configured apps", async ({ page }) => {
+test("application ecosystem navigation exposes all configured apps", async ({
+  page,
+}) => {
   await page.goto("/apps");
   const destinations = [
     process.env.NEXT_PUBLIC_WEB_APP_URL ?? "/app",

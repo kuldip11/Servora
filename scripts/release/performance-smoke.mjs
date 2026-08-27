@@ -7,8 +7,10 @@ const concurrency = Math.max(1, Number(process.env.PERF_CONCURRENCY ?? 10));
 const maxP95 = Number(process.env.PERF_MAX_P95_MS ?? 500);
 const maxErrorRate = Number(process.env.PERF_MAX_ERROR_RATE ?? 0.01);
 
-if (!Number.isFinite(total) || total <= 0) throw new Error("PERF_REQUESTS must be positive");
-if (!Number.isFinite(concurrency) || concurrency <= 0) throw new Error("PERF_CONCURRENCY must be positive");
+if (!Number.isFinite(total) || total <= 0)
+  throw new Error("PERF_REQUESTS must be positive");
+if (!Number.isFinite(concurrency) || concurrency <= 0)
+  throw new Error("PERF_CONCURRENCY must be positive");
 
 const durations = [];
 let failures = 0;
@@ -33,10 +35,15 @@ async function worker() {
   }
 }
 
-await Promise.all(Array.from({ length: Math.min(concurrency, total) }, () => worker()));
+await Promise.all(
+  Array.from({ length: Math.min(concurrency, total) }, () => worker()),
+);
 durations.sort((a, b) => a - b);
 
-const percentile = (p) => durations[Math.min(durations.length - 1, Math.ceil(durations.length * p) - 1)] ?? 0;
+const percentile = (p) =>
+  durations[
+    Math.min(durations.length - 1, Math.ceil(durations.length * p) - 1)
+  ] ?? 0;
 const result = {
   target: new URL(path, baseUrl).toString(),
   requests: total,
@@ -52,11 +59,19 @@ const result = {
   thresholds: { maxP95Ms: maxP95, maxErrorRate },
 };
 
-const passed = result.errorRate <= maxErrorRate && result.latencyMs.p95 <= maxP95;
-const report = { ...result, status: passed ? "passed" : "failed", completedAt: new Date().toISOString() };
+const passed =
+  result.errorRate <= maxErrorRate && result.latencyMs.p95 <= maxP95;
+const report = {
+  ...result,
+  status: passed ? "passed" : "failed",
+  completedAt: new Date().toISOString(),
+};
 const reportDir = resolve(process.cwd(), ".verification");
 mkdirSync(reportDir, { recursive: true });
-writeFileSync(resolve(reportDir, "performance-smoke.json"), `${JSON.stringify(report, null, 2)}\n`);
+writeFileSync(
+  resolve(reportDir, "performance-smoke.json"),
+  `${JSON.stringify(report, null, 2)}\n`,
+);
 console.log(JSON.stringify(report, null, 2));
 
 if (!passed) {

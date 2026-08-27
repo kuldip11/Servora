@@ -82,8 +82,12 @@ export function KitchenBoard({ onLogout }: Props) {
     [updateMutation],
   );
 
-  const urgentCount = (tickets ?? []).filter((ticket) => isUrgent(ticket.firedAt)).length;
-  const readyCount = (tickets ?? []).filter((ticket) => ticket.status === "READY").length;
+  const urgentCount = (tickets ?? []).filter((ticket) =>
+    isUrgent(ticket.firedAt),
+  ).length;
+  const readyCount = (tickets ?? []).filter(
+    (ticket) => ticket.status === "READY",
+  ).length;
 
   const columns = BOARD_COLUMNS.map((col) => ({
     ...col,
@@ -166,10 +170,22 @@ export function KitchenBoard({ onLogout }: Props) {
       </header>
 
       <div className="flex flex-wrap items-center gap-2 border-b border-border bg-surface px-4 py-2 text-xs">
-        <span className="rounded-full bg-info-surface px-2.5 py-1 font-semibold text-info">{tickets?.length ?? 0} active</span>
-        <span className={`rounded-full px-2.5 py-1 font-semibold ${urgentCount ? "bg-danger-surface text-danger" : "bg-surface-secondary text-text-secondary"}`}>{urgentCount} urgent</span>
-        <span className={`rounded-full px-2.5 py-1 font-semibold ${readyCount ? "bg-success-surface text-success" : "bg-surface-secondary text-text-secondary"}`}>{readyCount} ready</span>
-        <span className="ml-auto inline-flex items-center gap-1 text-text-secondary"><Volume2 className="h-3.5 w-3.5" /> New-ticket alerts enabled</span>
+        <span className="rounded-full bg-info-surface px-2.5 py-1 font-semibold text-info">
+          {tickets?.length ?? 0} active
+        </span>
+        <span
+          className={`rounded-full px-2.5 py-1 font-semibold ${urgentCount ? "bg-danger-surface text-danger" : "bg-surface-secondary text-text-secondary"}`}
+        >
+          {urgentCount} urgent
+        </span>
+        <span
+          className={`rounded-full px-2.5 py-1 font-semibold ${readyCount ? "bg-success-surface text-success" : "bg-surface-secondary text-text-secondary"}`}
+        >
+          {readyCount} ready
+        </span>
+        <span className="ml-auto inline-flex items-center gap-1 text-text-secondary">
+          <Volume2 className="h-3.5 w-3.5" /> New-ticket alerts enabled
+        </span>
       </div>
 
       {/* `Grid` (Phase 2) — fixes the exact bug the Phase 0 audit

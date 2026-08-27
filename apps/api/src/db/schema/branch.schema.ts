@@ -19,7 +19,9 @@ export const branches = pgTable(
       .references(() => tenants.id, { onDelete: "cascade" }),
     name: varchar("name", { length: 200 }).notNull(),
     code: varchar("code", { length: 24 }).notNull(),
-    timezone: varchar("timezone", { length: 64 }).notNull().default("Asia/Kolkata"),
+    timezone: varchar("timezone", { length: 64 })
+      .notNull()
+      .default("Asia/Kolkata"),
     currency: varchar("currency", { length: 3 }).notNull().default("INR"),
     address: text("address").notNull(),
     phone: varchar("phone", { length: 20 }),
@@ -34,7 +36,10 @@ export const branches = pgTable(
     deliveryEnabled: boolean("delivery_enabled").notNull().default(true),
     onlineEnabled: boolean("online_enabled").notNull().default(true),
     tablesEnabled: boolean("tables_enabled").notNull().default(true),
-    publicTakeawayQrToken: uuid("public_takeaway_qr_token").notNull().defaultRandom().unique(),
+    publicTakeawayQrToken: uuid("public_takeaway_qr_token")
+      .notNull()
+      .defaultRandom()
+      .unique(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },

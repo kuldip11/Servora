@@ -50,7 +50,10 @@ function remove(storageKey: string) {
   }
 }
 
-export function getCustomerStorageScope(qrToken: string | null, demoMode: boolean) {
+export function getCustomerStorageScope(
+  qrToken: string | null,
+  demoMode: boolean,
+) {
   return demoMode ? "demo" : qrToken ? `qr:${qrToken}` : null;
 }
 
@@ -82,7 +85,13 @@ export function clearPersistedOrderId(scope: string) {
 export function loadPersistedCart(scope: string): PersistedCartLine[] {
   const value = read<PersistedCartLine[]>(key(scope, "cart"));
   if (!Array.isArray(value)) return [];
-  return value.filter((line) => line && typeof line.itemId === "string" && Number.isInteger(line.quantity) && line.quantity > 0);
+  return value.filter(
+    (line) =>
+      line &&
+      typeof line.itemId === "string" &&
+      Number.isInteger(line.quantity) &&
+      line.quantity > 0,
+  );
 }
 
 export function savePersistedCart(scope: string, cart: CartLine[]) {
@@ -100,14 +109,28 @@ export function clearPersistedCart(scope: string) {
   remove(key(scope, "cart"));
 }
 
-function validOptions(item: CustomerMenuItem, selectedOptions: SelectedOption[]) {
+function validOptions(
+  item: CustomerMenuItem,
+  selectedOptions: SelectedOption[],
+) {
   return selectedOptions.filter((selection) => {
-    const option = item.modifierGroupLinks.flatMap(({ group }) => group.options).find((value) => value.id === selection.optionId);
-    return Boolean(option?.isAvailable) && Number.isInteger(selection.quantity) && selection.quantity > 0 && selection.quantity <= option!.maxQuantity;
+    const option = item.modifierGroupLinks
+      .flatMap(({ group }) => group.options)
+      .find((value) => value.id === selection.optionId);
+    return (
+      Boolean(option?.isAvailable) &&
+      Number.isInteger(selection.quantity) &&
+      selection.quantity > 0 &&
+      selection.quantity <= option!.maxQuantity
+    );
   });
 }
 
-export function restoreCart(scope: string, menu: CustomerMenuItem[], mode: "DINE_IN" | "TAKEAWAY") {
+export function restoreCart(
+  scope: string,
+  menu: CustomerMenuItem[],
+  mode: "DINE_IN" | "TAKEAWAY",
+) {
   const persisted = loadPersistedCart(scope);
   if (!persisted.length) return { cart: [] as CartLine[], droppedCount: 0 };
 
@@ -119,13 +142,25 @@ export function restoreCart(scope: string, menu: CustomerMenuItem[], mode: "DINE
       droppedCount += 1;
       return [];
     }
-    if (line.variantId && !item.variants.some((variant) => variant.id === line.variantId)) {
+    if (
+      line.variantId &&
+      !item.variants.some((variant) => variant.id === line.variantId)
+    ) {
       droppedCount += 1;
       return [];
     }
     const selectedOptions = validOptions(item, line.selectedOptions ?? []);
-    const fulfillmentType = mode === "TAKEAWAY" ? "TAKEAWAY" : line.fulfillmentType;
-    return [{ item, quantity: line.quantity, ...(line.variantId ? { variantId: line.variantId } : {}), selectedOptions, fulfillmentType }];
+    const fulfillmentType =
+      mode === "TAKEAWAY" ? "TAKEAWAY" : line.fulfillmentType;
+    return [
+      {
+        item,
+        quantity: line.quantity,
+        ...(line.variantId ? { variantId: line.variantId } : {}),
+        selectedOptions,
+        fulfillmentType,
+      },
+    ];
   });
 
   return { cart, droppedCount };

@@ -12,23 +12,41 @@ import { orders, inventoryItems, orderItems } from "../../db/schema";
 const ACTIVE_ORDER_EXCLUDED_STATUSES = ["PAID", "CLOSED", "CANCELLED"] as const;
 
 export const analyticsRepository = {
-  async countPaidOrdersSince(tenantId: string, branchId: string | null, since: Date) {
-    const [result] = await db.select({ count: count() }).from(orders).where(and(
-      eq(orders.tenantId, tenantId),
-      branchId ? eq(orders.branchId, branchId) : undefined,
-      gte(orders.createdAt, since),
-      eq(orders.status, "PAID"),
-    ));
+  async countPaidOrdersSince(
+    tenantId: string,
+    branchId: string | null,
+    since: Date,
+  ) {
+    const [result] = await db
+      .select({ count: count() })
+      .from(orders)
+      .where(
+        and(
+          eq(orders.tenantId, tenantId),
+          branchId ? eq(orders.branchId, branchId) : undefined,
+          gte(orders.createdAt, since),
+          eq(orders.status, "PAID"),
+        ),
+      );
     return result?.count ?? 0;
   },
 
-  async countCancelledOrdersSince(tenantId: string, branchId: string | null, since: Date) {
-    const [result] = await db.select({ count: count() }).from(orders).where(and(
-      eq(orders.tenantId, tenantId),
-      branchId ? eq(orders.branchId, branchId) : undefined,
-      gte(orders.createdAt, since),
-      eq(orders.status, "CANCELLED"),
-    ));
+  async countCancelledOrdersSince(
+    tenantId: string,
+    branchId: string | null,
+    since: Date,
+  ) {
+    const [result] = await db
+      .select({ count: count() })
+      .from(orders)
+      .where(
+        and(
+          eq(orders.tenantId, tenantId),
+          branchId ? eq(orders.branchId, branchId) : undefined,
+          gte(orders.createdAt, since),
+          eq(orders.status, "CANCELLED"),
+        ),
+      );
     return result?.count ?? 0;
   },
 

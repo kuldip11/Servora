@@ -25,7 +25,9 @@ export const auditRouter = new Elysia({ prefix: "/api/audit" })
           ipAddress: auditLogs.ipAddress,
           createdAt: auditLogs.createdAt,
           userId: auditLogs.userId,
-          userName: sql<string | null>`concat_ws(' ', ${users.firstName}, ${users.lastName})`,
+          userName: sql<
+            string | null
+          >`concat_ws(' ', ${users.firstName}, ${users.lastName})`,
         })
         .from(auditLogs)
         .leftJoin(users, eq(users.id, auditLogs.userId))
@@ -36,7 +38,9 @@ export const auditRouter = new Elysia({ prefix: "/api/audit" })
             query.action ? eq(auditLogs.action, query.action) : undefined,
             query.entity ? eq(auditLogs.entity, query.entity) : undefined,
             query.userId ? eq(auditLogs.userId, query.userId) : undefined,
-            before && !Number.isNaN(before.getTime()) ? lt(auditLogs.createdAt, before) : undefined,
+            before && !Number.isNaN(before.getTime())
+              ? lt(auditLogs.createdAt, before)
+              : undefined,
           ),
         )
         .orderBy(desc(auditLogs.createdAt))

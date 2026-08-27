@@ -45,9 +45,20 @@ export type RealtimeEvent =
       payload: CustomerRequest;
     };
 
-export type CustomerRequestType = "CALL_WAITER" | "WATER" | "CUTLERY" | "BILL" | "ASSISTANCE";
-export type CustomerRequestStatus = "OPEN" | "ACKNOWLEDGED" | "RESOLVED" | "CANCELLED";
+export type CustomerRequestType =
+  "CALL_WAITER" | "WATER" | "CUTLERY" | "BILL" | "ASSISTANCE";
+export type CustomerRequestStatus =
+  "OPEN" | "ACKNOWLEDGED" | "RESOLVED" | "CANCELLED";
 export interface CustomerRequest {
-  id: string; tenantId: string; branchId: string; tableId: string; customerSessionId: string; orderId: string | null;
-  type: CustomerRequestType; status: CustomerRequestStatus; note: string | null; createdAt: string; updatedAt: string;
+  id: string;
+  tenantId: string;
+  branchId: string;
+  tableId: string;
+  customerSessionId: string;
+  orderId: string | null;
+  type: CustomerRequestType;
+  status: CustomerRequestStatus;
+  note: string | null;
+  createdAt: string;
+  updatedAt: string;
 }

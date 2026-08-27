@@ -47,7 +47,6 @@ export interface UpdateBranchInput {
   tablesEnabled?: boolean | undefined;
 }
 
-
 function assertValidTimezone(timezone: string) {
   try {
     new Intl.DateTimeFormat("en-US", { timeZone: timezone }).format();
@@ -63,8 +62,14 @@ function assertCapabilityProfile(profile: {
   onlineEnabled: boolean;
   tablesEnabled: boolean;
 }) {
-  if (!profile.dineInEnabled && profile.tablesEnabled) throw tablesRequireDineIn();
-  if (!profile.dineInEnabled && !profile.takeawayEnabled && !profile.deliveryEnabled && !profile.onlineEnabled) {
+  if (!profile.dineInEnabled && profile.tablesEnabled)
+    throw tablesRequireDineIn();
+  if (
+    !profile.dineInEnabled &&
+    !profile.takeawayEnabled &&
+    !profile.deliveryEnabled &&
+    !profile.onlineEnabled
+  ) {
     throw allOrderTypesDisabled();
   }
 }
@@ -102,7 +107,10 @@ export const branchService = {
       onlineEnabled: input.onlineEnabled ?? true,
       tablesEnabled: input.tablesEnabled ?? true,
     });
-    const existingCode = await branchRepository.findByCode(auth.tenantId, normalizedCode);
+    const existingCode = await branchRepository.findByCode(
+      auth.tenantId,
+      normalizedCode,
+    );
     if (existingCode) throw branchCodeAlreadyExists(normalizedCode);
     const branch = await branchRepository.create({
       tenantId: auth.tenantId,
@@ -139,8 +147,12 @@ export const branchService = {
     }
     if (changes.code !== undefined) {
       const normalizedCode = changes.code.trim().toUpperCase();
-      const existingCode = await branchRepository.findByCode(auth.tenantId, normalizedCode);
-      if (existingCode && existingCode.id !== branchId) throw branchCodeAlreadyExists(normalizedCode);
+      const existingCode = await branchRepository.findByCode(
+        auth.tenantId,
+        normalizedCode,
+      );
+      if (existingCode && existingCode.id !== branchId)
+        throw branchCodeAlreadyExists(normalizedCode);
       changes = { ...changes, code: normalizedCode };
     }
     if (changes.timezone !== undefined) {
@@ -209,7 +221,10 @@ export const branchService = {
   // endpoint's behavior of flipping isActive rather than removing the row.
   async getTakeawayQr(auth: AuthContext, branchId: string) {
     requirePermission(auth, "branch:read");
-    if (!auth.tenantWide && !(auth.authorizedBranchIds ?? []).includes(branchId)) {
+    if (
+      !auth.tenantWide &&
+      !(auth.authorizedBranchIds ?? []).includes(branchId)
+    ) {
       throw branchNotFound(branchId);
     }
     const branch = await branchRepository.findById(auth.tenantId, branchId);
@@ -224,12 +239,18 @@ export const branchService = {
 
   async regenerateTakeawayQr(auth: AuthContext, branchId: string) {
     requirePermission(auth, "branch:update");
-    if (!auth.tenantWide && !(auth.authorizedBranchIds ?? []).includes(branchId)) {
+    if (
+      !auth.tenantWide &&
+      !(auth.authorizedBranchIds ?? []).includes(branchId)
+    ) {
       throw branchNotFound(branchId);
     }
     const branch = await branchRepository.findById(auth.tenantId, branchId);
     if (!branch) throw branchNotFound(branchId);
-    const updated = await branchRepository.regenerateTakeawayQr(auth.tenantId, branchId);
+    const updated = await branchRepository.regenerateTakeawayQr(
+      auth.tenantId,
+      branchId,
+    );
     if (!updated) throw branchNotFound(branchId);
     await writeAudit({
       tenantId: auth.tenantId,

@@ -9,7 +9,9 @@ const repository = vi.hoisted(() => ({
   update: vi.fn(),
 }));
 
-vi.mock("../organization.repository", () => ({ organizationRepository: repository }));
+vi.mock("../organization.repository", () => ({
+  organizationRepository: repository,
+}));
 
 import { organizationService } from "../organization.service";
 
@@ -46,16 +48,24 @@ describe("organizationService", () => {
       membership: { id: "membership-1" },
     });
 
-    await expect(organizationService.create(auth, { name: " Acme " })).resolves.toEqual({
+    await expect(
+      organizationService.create(auth, { name: " Acme " }),
+    ).resolves.toEqual({
       organization: { id: "org-1", name: "Acme" },
       membershipId: "membership-1",
     });
-    expect(repository.create).toHaveBeenCalledWith({ name: "Acme", createdBy: "user-1" });
+    expect(repository.create).toHaveBeenCalledWith({
+      name: "Acme",
+      createdBy: "user-1",
+    });
   });
 
   it("rejects organization creation for non-owners", async () => {
     await expect(
-      organizationService.create({ ...auth, roles: ["MANAGER"] }, { name: "Acme" }),
+      organizationService.create(
+        { ...auth, roles: ["MANAGER"] },
+        { name: "Acme" },
+      ),
     ).rejects.toBeInstanceOf(ForbiddenError);
     expect(repository.create).not.toHaveBeenCalled();
   });

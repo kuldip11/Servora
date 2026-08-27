@@ -4,7 +4,15 @@
 @tailwind utilities;
 
 @layer base {
-  html, body, #root { @apply min-h-full; }
-  body { @apply m-0 bg-background text-text-primary font-sans antialiased; }
-  :where(a, button, input, select, textarea, [tabindex]):focus-visible { @apply outline-2 outline-offset-2 outline-primary; }
+  html,
+  body,
+  #root {
+    @apply min-h-full;
+  }
+  body {
+    @apply m-0 bg-background text-text-primary font-sans antialiased;
+  }
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary;
+  }
 }

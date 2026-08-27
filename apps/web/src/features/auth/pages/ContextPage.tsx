@@ -19,13 +19,20 @@ export function ContextPage() {
 
   useEffect(() => {
     Promise.all([
-      memberships.length ? Promise.resolve(memberships) : authService.memberships(),
+      memberships.length
+        ? Promise.resolve(memberships)
+        : authService.memberships(),
       authService.organizations(),
     ])
       .then(([nextMemberships, nextOrganizations]) => {
         setItems(nextMemberships);
         setOrganizations(nextOrganizations.filter((item) => item.isActive));
-        setOrganizationId((current) => current || nextOrganizations.find((item) => item.isActive)?.id || "");
+        setOrganizationId(
+          (current) =>
+            current ||
+            nextOrganizations.find((item) => item.isActive)?.id ||
+            "",
+        );
       })
       .catch(() =>
         toast({ title: "Could not load your organizations", tone: "danger" }),
@@ -56,7 +63,10 @@ export function ContextPage() {
         toast({ title: "Select an organization first", tone: "danger" });
         return;
       }
-      const created = await authService.createTenant(businessName.trim(), organizationId);
+      const created = await authService.createTenant(
+        businessName.trim(),
+        organizationId,
+      );
       const next = await authService.memberships();
       setContext({
         membershipId: created.membershipId,
@@ -118,8 +128,15 @@ export function ContextPage() {
           </div>
         )}
         <div className="border-t border-border pt-5 space-y-3">
-          <h2 className="font-semibold text-text-primary">Create a franchise</h2>
-          <label htmlFor="context-page-organization" className="block text-sm font-medium text-text-primary">Organization</label>
+          <h2 className="font-semibold text-text-primary">
+            Create a franchise
+          </h2>
+          <label
+            htmlFor="context-page-organization"
+            className="block text-sm font-medium text-text-primary"
+          >
+            Organization
+          </label>
           <select
             id="context-page-organization"
             value={organizationId}

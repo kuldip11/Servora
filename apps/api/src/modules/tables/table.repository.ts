@@ -49,7 +49,12 @@ export const tableRepository = {
     const [updated] = await db
       .update(restaurantTables)
       .set({ publicQrToken: crypto.randomUUID(), updatedAt: new Date() })
-      .where(and(eq(restaurantTables.id, id), eq(restaurantTables.tenantId, tenantId)))
+      .where(
+        and(
+          eq(restaurantTables.id, id),
+          eq(restaurantTables.tenantId, tenantId),
+        ),
+      )
       .returning();
     return updated;
   },

@@ -1,7 +1,9 @@
 import type { CustomerMenuItem } from "../../api";
 import type { SelectedOption } from "./pricing";
 
-export function normalizeSelectedOptions(selectedOptions: SelectedOption[]): SelectedOption[] {
+export function normalizeSelectedOptions(
+  selectedOptions: SelectedOption[],
+): SelectedOption[] {
   return [...selectedOptions]
     .filter((selection) => selection.quantity > 0)
     .sort((a, b) => a.optionId.localeCompare(b.optionId));
@@ -23,8 +25,11 @@ export function validateItemConfiguration(
     );
     if (!link) return "One of the selected options is no longer available.";
 
-    const option = link.group.options.find((value) => value.id === selection.optionId);
-    if (!option?.isAvailable) return `${option?.name ?? "This option"} is no longer available.`;
+    const option = link.group.options.find(
+      (value) => value.id === selection.optionId,
+    );
+    if (!option?.isAvailable)
+      return `${option?.name ?? "This option"} is no longer available.`;
     if (selection.quantity < 1 || selection.quantity > option.maxQuantity) {
       return `${option.name} allows up to ${option.maxQuantity} selection(s).`;
     }

@@ -134,8 +134,13 @@ export const inventoryService = {
 
   async recentTransactions(auth: AuthContext, limit = 25) {
     requireInventoryPermission(auth, "inventory:read");
-    const branchId = auth.tenantWide && !auth.branchId ? null : resolveInventoryBranch(auth);
-    return inventoryRepository.findRecentTransactions(auth.tenantId, branchId, limit);
+    const branchId =
+      auth.tenantWide && !auth.branchId ? null : resolveInventoryBranch(auth);
+    return inventoryRepository.findRecentTransactions(
+      auth.tenantId,
+      branchId,
+      limit,
+    );
   },
 
   async getOrderDeductions(orderId: string) {
@@ -162,8 +167,11 @@ export const inventoryService = {
     const menuItemIds = items.map((i) => i.menuItemId);
     if (!menuItemIds.length) return { valid: true, insufficient: [] };
 
-    const recipeLines =
-      await inventoryRepository.findRequiredRecipeLines(tenantId, branchId, menuItemIds);
+    const recipeLines = await inventoryRepository.findRequiredRecipeLines(
+      tenantId,
+      branchId,
+      menuItemIds,
+    );
 
     const requiredByInventoryItem = new Map<string, number>();
     for (const item of items) {
@@ -230,8 +238,11 @@ export const inventoryService = {
     const menuItemIds = items.map((i) => i.menuItemId);
     if (!menuItemIds.length) return { deducted: 0, short: [] };
 
-    const recipeLines =
-      await inventoryRepository.findRequiredRecipeLines(tenantId, branchId, menuItemIds);
+    const recipeLines = await inventoryRepository.findRequiredRecipeLines(
+      tenantId,
+      branchId,
+      menuItemIds,
+    );
     if (!recipeLines.length) return { deducted: 0, short: [] };
 
     const lines: Array<{
