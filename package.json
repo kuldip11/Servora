@@ -23,11 +23,11 @@
     "audit:rbac:baseline": "bash scripts/audit/rbac-baseline.sh",
     "audit:rbac:e2e": "bash scripts/audit/rbac-e2e.sh",
     "audit:rbac:certify": "bash scripts/audit/rbac-certification.sh",
-    "test:coverage": "bun run test:coverage:validation && bun run test:coverage:api-client && bun run test:coverage:realtime && bun run test:coverage:api && bun run test:coverage:ui && bun run test:coverage:web && bun run test:coverage:waiter && bun run test:coverage:kitchen",
+    "test:coverage": "bun run test:coverage:validation && bun run test:coverage:api-client && bun run test:coverage:realtime && bun run test:coverage:api && bun run test:coverage:ui && bun run test:coverage:web && bun run test:coverage:waiter && bun run test:coverage:kitchen && bun run test:coverage:customer",
     "test:coverage:api": "cd apps/api && bun run test:coverage",
     "test:coverage:ui": "cd packages/ui && bun run test:coverage",
     "test:e2e": "cd apps/web && bun run test:e2e",
-    "test:e2e:ui": "cd apps/web && bun run test:watch",
+    "test:e2e:ui": "cd apps/web && bun run test:e2e:watch",
     "test:coverage:all": "bun run test:coverage",
     "test:coverage:web": "cd apps/web && bun run test:coverage",
     "test:coverage:waiter": "cd apps/waiter-app && bun run test:coverage",
@@ -36,7 +36,8 @@
     "test:coverage:api-client": "cd packages/api-client && bun run test:coverage",
     "test:coverage:realtime": "cd packages/realtime && bun run test:coverage",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test:coverage:customer": "cd apps/customer-app && bun run test:coverage"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
@@ -44,13 +45,11 @@
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "turbo": "^2.0.0",
     "typescript": "^5.4.5",
-    "prettier": "^3.6.2"
+    "prettier": "^3.6.2",
+    "@typescript-eslint/parser": "^8.66.0"
   },
   "engines": {
     "node": ">=20.0.0",
     "bun": ">=1.1.0"
-  },
-  "dependencies": {
-    "@typescript-eslint/parser": "^8.66.0"
   }
 }
