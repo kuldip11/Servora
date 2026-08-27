@@ -8,6 +8,9 @@ import type { KitchenTicket, KitchenTicketStatus } from "@pos/types";
 import type { AuthContext } from "../../core/auth";
 import type { Logger } from "../../core/logger";
 import { eventBus } from "../../lib/event-bus";
+import { db } from "../../db";
+import { orders } from "../../db/schema";
+import { eq, and } from "drizzle-orm";
 import { ticketRepository } from "./ticket.repository";
 import {
   assertValidTransition,
@@ -53,10 +56,17 @@ export const ticketService = {
       to: newStatus,
     });
 
+    const parentOrder = await db.query.orders.findFirst({
+      where: and(eq(orders.id, updated.orderId), eq(orders.tenantId, auth.tenantId)),
+      columns: { customerSessionId: true },
+    });
     await eventBus.publish(
       {
         type: "kitchen.ticket.updated",
-        payload: updated as unknown as KitchenTicket,
+        payload: {
+          ...(updated as unknown as KitchenTicket),
+          customerSessionId: parentOrder?.customerSessionId ?? undefined,
+        } as any,
       },
       auth.tenantId,
       updated.branchId,

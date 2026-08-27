@@ -27,7 +27,7 @@
     "test:coverage:api": "cd apps/api && bun run test:coverage",
     "test:coverage:ui": "cd packages/ui && bun run test:coverage",
     "test:e2e": "cd apps/web && bun run test:e2e",
-    "test:e2e:ui": "cd apps/web && bun run test:e2e:watch",
+    "test:e2e:ui": "cd apps/web && bun run test:watch",
     "test:coverage:all": "bun run test:coverage",
     "test:coverage:web": "cd apps/web && bun run test:coverage",
     "test:coverage:waiter": "cd apps/waiter-app && bun run test:coverage",
@@ -51,5 +51,6 @@
   "engines": {
     "node": ">=20.0.0",
     "bun": ">=1.1.0"
-  }
+  },
+  "dependencies": {}
 }

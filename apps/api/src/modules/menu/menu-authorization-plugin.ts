@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import type { AuthContext } from "../../core/auth";
+import { requireAuthPlugin, type AuthContext } from "../../core/auth";
 import {
   requireMenuPermission,
   type MenuPermission,
@@ -13,15 +13,21 @@ function permissionFor(pathname: string, method: string): MenuPermission {
   return "menu:update";
 }
 
-/** Central API-boundary permission gate for all menu endpoints. */
+/**
+ * Central API-boundary permission gate for all menu endpoints.
+ *
+ * Mounts its own `requireAuthPlugin()` so `auth` is guaranteed to exist here
+ * rather than depending on another router's auth derive leaking in — see the
+ * scoping note in `core/auth/auth-context.ts`.
+ */
 export const menuAuthorizationPlugin = () =>
-  new Elysia({ name: "menu-authorization" }).onBeforeHandle(
-    ({ request, auth }: any) => {
+  new Elysia({ name: "menu-authorization" })
+    .use(requireAuthPlugin())
+    .onBeforeHandle(({ request, auth }: any) => {
       const pathname = new URL(request.url).pathname;
       if (!pathname.startsWith("/api/menu/")) return;
       requireMenuPermission(
         auth as AuthContext,
         permissionFor(pathname, request.method),
       );
-    },
-  );
+    });

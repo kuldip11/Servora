@@ -51,7 +51,13 @@ export const requireAuthPlugin = () =>
   new Elysia({ name: "require-auth" })
     .use(requestContextPlugin())
     .derive(
-      { as: "global" },
+      // Scoped (not global): this must stay confined to whichever router
+      // calls `.use(requireAuthPlugin())` directly. Elysia's "global" scope
+      // hoists a derive to the top-level app, so it silently applied to
+      // every router mounted after this one in apps/api/src/index.ts
+      // (e.g. the customer-facing endpoints, which are intentionally
+      // public) and forced them to require a Bearer token they never had.
+      { as: "scoped" },
       async ({
         headers,
         requestContext,

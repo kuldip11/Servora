@@ -148,6 +148,13 @@
       "when": 1786109000020,
       "tag": "0020_missing_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1786109000021,
+      "tag": "0021_customer_self_ordering",
+      "breakpoints": true
     }
   ]
 }

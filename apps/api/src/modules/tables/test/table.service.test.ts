@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-const { findMany, findById, create, update, softDelete, hasOpenOrders } =
+const { findMany, findById, create, update, softDelete, hasOpenOrders, regenerateQrToken } =
   vi.hoisted(() => ({
     findMany: vi.fn(),
     findById: vi.fn(),
@@ -7,6 +7,7 @@ const { findMany, findById, create, update, softDelete, hasOpenOrders } =
     update: vi.fn(),
     softDelete: vi.fn(),
     hasOpenOrders: vi.fn(),
+    regenerateQrToken: vi.fn(),
   }));
 vi.mock("../table.repository", () => ({
   tableRepository: {
@@ -16,6 +17,7 @@ vi.mock("../table.repository", () => ({
     update,
     softDelete,
     hasOpenOrders,
+    regenerateQrToken,
   },
 }));
 const { findBranch } = vi.hoisted(() => ({ findBranch: vi.fn() }));
@@ -119,4 +121,15 @@ describe("table service", () => {
     ).resolves.toEqual({ id: "t1", isActive: false });
     expect(softDelete).toHaveBeenCalledWith("t1", "t1");
   });
+  it("regenerates QR only for an authorized table", async () => {
+    regenerateQrToken.mockResolvedValue({ id: "t1", publicQrToken: "new-token" });
+    await expect(
+      tableService.regenerateQr(
+        { ...auth, permissions: ["tables:update"] },
+        "t1",
+      ),
+    ).resolves.toEqual({ id: "t1", publicQrToken: "new-token" });
+    expect(regenerateQrToken).toHaveBeenCalledWith("t1", "t1");
+  });
+
 });

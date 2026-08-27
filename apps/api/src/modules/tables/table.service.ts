@@ -72,6 +72,16 @@ export const tableService = {
     });
   },
 
+  async regenerateQr(auth: AuthContext, tableId: string) {
+    requireTablesPermission(auth, "tables:update");
+    const table = await tableRepository.findById(auth.tenantId, tableId);
+    if (!table) throw tableNotFound(tableId);
+    assertTableResourceAccess(auth, table.branchId);
+    const updated = await tableRepository.regenerateQrToken(auth.tenantId, tableId);
+    if (!updated) throw tableNotFound(tableId);
+    return updated;
+  },
+
   async update(auth: AuthContext, tableId: string, changes: UpdateTableInput) {
     requireTablesPermission(auth, "tables:update");
     const table = await tableRepository.findById(auth.tenantId, tableId);

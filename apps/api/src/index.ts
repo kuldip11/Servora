@@ -25,10 +25,12 @@ import { inventoryRouter } from "./modules/inventory/inventory.route";
 import { billingRouter } from "./modules/billing/billing.route";
 import { staffRouter, rolesRouter } from "./modules/staff/staff.route";
 import { analyticsRouter } from "./modules/analytics/analytics.route";
-import { realtimeRouter } from "./modules/realtime/gateway";
+import { realtimeRouter, customerRealtimeRouter } from "./modules/realtime/gateway";
+import { customerRouter } from "./modules/customer/customer.route";
+import { customerRequestRouter } from "./modules/customer/customer-requests.route";
 
 const corsOrigins = (
-  process.env["CORS_ORIGIN"] ?? "http://localhost:5173"
+  process.env["CORS_ORIGIN"] ?? "http://localhost:5173,http://localhost:5176"
 ).split(",");
 
 const app = new Elysia()
@@ -95,7 +97,10 @@ const app = new Elysia()
   .use(staffRouter)
   .use(rolesRouter)
   .use(analyticsRouter)
+  .use(customerRouter)
+  .use(customerRequestRouter)
   .use(realtimeRouter)
+  .use(customerRealtimeRouter)
   // Global error handler
   .onError(({ code, error, set, requestContext }) => {
     // New, typed errors (AppError and subclasses) — the pattern new modules

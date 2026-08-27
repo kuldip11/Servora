@@ -45,6 +45,7 @@ import {
   orderStatusHistory,
 } from "./kitchen.schema";
 import { bills, payments, paymentRefunds } from "./billing.schema";
+import { customerSessions } from "./customer-session.schema";
 
 // ─── Relations ────────────────────────────────────────────────────────────────
 
@@ -78,11 +79,23 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
     fields: [orders.createdBy],
     references: [users.id],
   }),
+  customerSession: one(customerSessions, {
+    fields: [orders.customerSessionId],
+    references: [customerSessions.id],
+  }),
   items: many(orderItems),
   kitchenTickets: many(kitchenTickets),
   statusHistory: many(orderStatusHistory),
   bill: one(bills, { fields: [orders.id], references: [bills.orderId] }),
   payments: many(payments),
+}));
+
+
+export const customerSessionsRelations = relations(customerSessions, ({ one, many }) => ({
+  tenant: one(tenants, { fields: [customerSessions.tenantId], references: [tenants.id] }),
+  branch: one(branches, { fields: [customerSessions.branchId], references: [branches.id] }),
+  table: one(restaurantTables, { fields: [customerSessions.tableId], references: [restaurantTables.id] }),
+  orders: many(orders),
 }));
 
 export const kitchenTicketsRelations = relations(

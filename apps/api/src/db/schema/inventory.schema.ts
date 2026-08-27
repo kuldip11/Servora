@@ -86,9 +86,7 @@ export const inventoryTransactions = pgTable(
       scale: 3,
     }).notNull(),
     notes: text("notes"),
-    performedBy: uuid("performed_by")
-      .notNull()
-      .references(() => users.id),
+    performedBy: uuid("performed_by").references(() => users.id),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => ({

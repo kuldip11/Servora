@@ -12,6 +12,7 @@ import {
   Trash2,
   MapPin,
   Building2,
+  QrCode,
 } from "lucide-react";
 import {
   Button,
@@ -35,8 +36,10 @@ import { useCreateTable } from "../hooks/useCreateTable";
 import { useUpdateTable } from "../hooks/useUpdateTable";
 import { useUpdateTableStatus } from "../hooks/useUpdateTableStatus";
 import { useDeleteTable } from "../hooks/useDeleteTable";
+import { useRegenerateTableQr } from "../hooks/useRegenerateTableQr";
 import { TableFormModal } from "../components/TableFormModal";
 import type { RestaurantTable } from "../types";
+import { QRCodeSVG } from "qrcode.react";
 
 const STATUS_OPTIONS = [
   { value: "AVAILABLE", label: "Available" },
@@ -75,6 +78,7 @@ export function TablesPage() {
 
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<RestaurantTable | null>(null);
+  const [qrTable, setQrTable] = useState<RestaurantTable | null>(null);
 
   const {
     register,
@@ -95,6 +99,7 @@ export function TablesPage() {
   const updateMutation = useUpdateTable();
   const statusMutation = useUpdateTableStatus();
   const deleteMutation = useDeleteTable();
+  const regenerateQrMutation = useRegenerateTableQr();
 
   function openAdd() {
     reset(emptyForm);
@@ -191,6 +196,7 @@ export function TablesPage() {
               onStatusChange={(id, status) =>
                 statusMutation.mutate({ id, status })
               }
+              onShowQr={setQrTable}
             />
           </div>
         ))
@@ -202,6 +208,7 @@ export function TablesPage() {
             if (confirm(`Remove table "${name}"?`)) deleteMutation.mutate(id);
           }}
           onStatusChange={(id, status) => statusMutation.mutate({ id, status })}
+          onShowQr={setQrTable}
         />
       )}
 
@@ -251,6 +258,19 @@ export function TablesPage() {
           );
         }}
       />
+
+      <TableQrModal
+        table={qrTable}
+        open={!!qrTable}
+        onClose={() => setQrTable(null)}
+        onRegenerate={() => {
+          if (!qrTable) return;
+          regenerateQrMutation.mutate(qrTable.id, {
+            onSuccess: (updated) => setQrTable(updated),
+          });
+        }}
+        regenerating={regenerateQrMutation.isPending}
+      />
     </Page>
   );
 }
@@ -260,11 +280,13 @@ function TableGrid({
   onEdit,
   onDelete,
   onStatusChange,
+  onShowQr,
 }: {
   tables: RestaurantTable[];
   onEdit: (table: RestaurantTable) => void;
   onDelete: (id: string, name: string) => void;
   onStatusChange: (id: string, status: string) => void;
+  onShowQr: (table: RestaurantTable) => void;
 }) {
   return (
     <Grid columns={{ base: 2, sm: 3, lg: 4 }} gap="md">
@@ -292,6 +314,13 @@ function TableGrid({
               </div>
             </div>
             <div className="flex items-center gap-0.5">
+              <IconButton
+                icon={QrCode}
+                size="sm"
+                aria-label="Show table QR code"
+                title="Show table QR code"
+                onClick={() => onShowQr(table)}
+              />
               <IconButton
                 icon={Edit2}
                 size="sm"
@@ -339,5 +368,60 @@ function TableGrid({
         </Card>
       ))}
     </Grid>
+  );
+}
+
+
+function TableQrModal({
+  table,
+  open,
+  onClose,
+  onRegenerate,
+  regenerating,
+}: {
+  table: RestaurantTable | null;
+  open: boolean;
+  onClose: () => void;
+  onRegenerate: () => void;
+  regenerating: boolean;
+}) {
+  if (!table) return null;
+  const customerAppUrl =
+    import.meta.env["VITE_CUSTOMER_APP_URL"] ??
+    `${window.location.protocol}//${window.location.hostname}:5176`;
+  const url = `${customerAppUrl.replace(/\/$/, "")}/?qr=${encodeURIComponent(table.publicQrToken)}`;
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={`${table.name} — Customer QR`}
+      size="sm"
+      description="Scan this QR code to open the Servora customer self-ordering menu for this table."
+      footer={
+        <>
+          <Button variant="secondary" onClick={onRegenerate} disabled={regenerating}>
+            {regenerating ? "Regenerating…" : "Regenerate"}
+          </Button>
+          <Button onClick={() => window.print()}>Print QR</Button>
+        </>
+      }
+    >
+      <div className="flex flex-col items-center gap-4 text-center">
+        <div className="rounded-2xl border border-border bg-white p-5 shadow-sm print:shadow-none">
+          <QRCodeSVG value={url} size={240} level="M" includeMargin />
+        </div>
+        <div>
+          <p className="font-semibold text-text-primary">Scan to order from your table</p>
+          <p className="mt-1 text-xs text-text-secondary">
+            {table.section ? `${table.section} · ` : ""}{table.name} · {table.capacity} seats
+          </p>
+        </div>
+        <div className="w-full rounded-lg bg-surface-secondary p-3 text-left">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-text-disabled">Customer URL</p>
+          <p className="mt-1 break-all text-xs text-text-secondary">{url}</p>
+        </div>
+      </div>
+    </Modal>
   );
 }

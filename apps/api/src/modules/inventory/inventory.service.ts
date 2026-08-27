@@ -214,7 +214,7 @@ export const inventoryService = {
     branchId: string,
     orderId: string,
     items: Array<{ menuItemId: string; quantity: number }>,
-    performedBy: string,
+    performedBy: string | null,
   ): Promise<{
     deducted: number;
     short: Array<{ inventoryItemId: string; name: string }>;

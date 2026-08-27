@@ -22,6 +22,11 @@ export const tablesRouter = new Elysia()
     },
     { body: createTableBody },
   )
+  .post(
+    "/api/tables/:id/qr/regenerate",
+    ({ auth, params }) => tableController.regenerateQr(auth, params.id),
+    { params: tableIdParams },
+  )
   .patch(
     "/api/tables/:id/status",
     ({ auth, params, body }) =>

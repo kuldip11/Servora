@@ -1,14 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-const { getQueue, findById, setStatus, publish } = vi.hoisted(() => ({
+const { getQueue, findById, setStatus, publish, findOrder } = vi.hoisted(() => ({
   getQueue: vi.fn(),
   findById: vi.fn(),
   setStatus: vi.fn(),
   publish: vi.fn(),
+  findOrder: vi.fn(),
 }));
 vi.mock("../ticket.repository", () => ({
   ticketRepository: { getQueue, findById, setStatus },
 }));
 vi.mock("../../../lib/event-bus", () => ({ eventBus: { publish } }));
+vi.mock("../../../db", () => ({
+  db: { query: { orders: { findFirst: findOrder } } },
+}));
 import { ticketService } from "../ticket.service";
 const auth = (overrides: any = {}) => ({
   userId: "u1",
@@ -53,6 +57,7 @@ describe("ticket service", () => {
     const updated = { ...current, status: "READY" };
     findById.mockResolvedValue(current);
     setStatus.mockResolvedValue(updated);
+    findOrder.mockResolvedValue({ customerSessionId: null });
     publish.mockResolvedValue(undefined);
     await expect(
       ticketService.updateStatus(auth(), logger, "t1", "READY"),

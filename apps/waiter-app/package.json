@@ -10,9 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "react": "^19.0.0",

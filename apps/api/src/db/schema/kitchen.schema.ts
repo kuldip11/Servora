@@ -106,9 +106,7 @@ export const orderStatusHistory = pgTable("order_status_history", {
     .references(() => orders.id, { onDelete: "cascade" }),
   oldStatus: orderStatusEnum("old_status"),
   newStatus: orderStatusEnum("new_status").notNull(),
-  changedBy: uuid("changed_by")
-    .notNull()
-    .references(() => users.id),
+  changedBy: uuid("changed_by").references(() => users.id),
   reason: text("reason"),
   changedAt: timestamp("changed_at").notNull().defaultNow(),
 });

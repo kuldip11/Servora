@@ -21,7 +21,9 @@ export const orderRepository = {
     tenantId: string;
     branchId: string;
     tableId?: string | undefined;
-    createdBy: string;
+    createdBy?: string | null;
+    source?: "STAFF" | "CUSTOMER_QR";
+    customerSessionId?: string | null;
     type: OrderType;
     notes?: string | undefined;
     items: ResolvedOrderItem[];
@@ -37,7 +39,9 @@ export const orderRepository = {
             tenantId: data.tenantId,
             branchId: data.branchId,
             tableId: data.tableId,
-            createdBy: data.createdBy,
+            createdBy: data.createdBy ?? null,
+            source: data.source ?? "STAFF",
+            customerSessionId: data.customerSessionId ?? null,
             type: data.type,
             notes: data.notes,
             subtotal: data.subtotal.toFixed(2),
@@ -99,7 +103,7 @@ export const orderRepository = {
       await tx.insert(orderStatusHistory).values({
         orderId: order!.id,
         newStatus: "OPEN",
-        changedBy: data.createdBy,
+        changedBy: data.createdBy ?? null,
       });
 
       return order!;

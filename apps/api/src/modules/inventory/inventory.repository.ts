@@ -248,7 +248,7 @@ export const inventoryRepository = {
       unit: InventoryUnit;
       neededQuantity: number;
     }>,
-    performedBy: string,
+    performedBy: string | null,
   ): Promise<{
     deducted: number;
     touchedInventoryItemIds: string[];

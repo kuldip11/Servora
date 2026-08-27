@@ -23,6 +23,11 @@ export const tableController = {
     return createdResponse(table);
   },
 
+  async regenerateQr(auth: AuthContext, tableId: string) {
+    const updated = await tableService.regenerateQr(auth, tableId);
+    return successResponse(updated);
+  },
+
   async update(auth: AuthContext, tableId: string, changes: UpdateTableInput) {
     const updated = await tableService.update(auth, tableId, changes);
     return successResponse(updated);

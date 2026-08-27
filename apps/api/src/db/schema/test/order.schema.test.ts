@@ -16,6 +16,8 @@ describe("order.schema.ts", () => {
       "tableId",
       "customerId",
       "createdBy",
+      "source",
+      "customerSessionId",
       "status",
       "type",
       "subtotal",
