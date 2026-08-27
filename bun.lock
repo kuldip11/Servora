@@ -44,29 +44,6 @@
         "vitest": "^1.6.0",
       },
     },
-    "apps/customer-app": {
-      "name": "@pos/customer-app",
-      "version": "0.1.0",
-      "dependencies": {
-        "@pos/types": "workspace:*",
-        "@pos/ui": "workspace:*",
-        "lucide-react": "^0.395.0",
-        "react": "^19.0.0",
-        "react-dom": "^19.0.0",
-      },
-      "devDependencies": {
-        "@types/react": "^19.0.0",
-        "@types/react-dom": "^19.0.0",
-        "@vitejs/plugin-react": "^4.3.1",
-        "autoprefixer": "^10.4.19",
-        "jsdom": "^24.0.0",
-        "postcss": "^8.4.38",
-        "tailwindcss": "^3.4.4",
-        "typescript": "^5.4.5",
-        "vite": "^5.3.1",
-        "vitest": "^1.6.0",
-      },
-    },
     "apps/kitchen-display": {
       "name": "@pos/kitchen-display",
       "version": "0.1.0",
@@ -454,8 +431,6 @@
     "@pos/api": ["@pos/api@workspace:apps/api"],
 
     "@pos/api-client": ["@pos/api-client@workspace:packages/api-client"],
-
-    "@pos/customer-app": ["@pos/customer-app@workspace:apps/customer-app"],
 
     "@pos/kitchen-display": ["@pos/kitchen-display@workspace:apps/kitchen-display"],
 
