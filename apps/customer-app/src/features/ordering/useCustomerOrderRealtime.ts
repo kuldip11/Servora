@@ -8,6 +8,7 @@ export function useCustomerOrderRealtime(
   sessionToken: string | undefined,
   orderId: string | undefined,
   onOrder: (order: CustomerOrder) => void,
+  onRequestUpdate?: (status: string) => void,
 ) {
   const [live, setLive] = useState(false);
   const reconnectTimer = useRef<number | undefined>(undefined);
@@ -67,10 +68,13 @@ export function useCustomerOrderRealtime(
         try {
           const message = JSON.parse(event.data) as {
             type?: string;
-            payload?: CustomerOrder & { id?: string };
+            payload?: CustomerOrder & { id?: string; status?: string; customerSessionId?: string };
           };
           if (message.type === "order.updated" && message.payload?.id === orderId) {
             onOrder(message.payload);
+          }
+          if (message.type === "customer.request.updated" && message.payload?.status) {
+            onRequestUpdate?.(message.payload.status);
           }
         } catch {
           // Ignore malformed events. The next valid event or fallback poll remains authoritative.
@@ -99,7 +103,7 @@ export function useCustomerOrderRealtime(
       socket?.close();
       setLive(false);
     };
-  }, [sessionToken, orderId, onOrder]);
+  }, [sessionToken, orderId, onOrder, onRequestUpdate]);
 
   return live;
 }

@@ -23,7 +23,7 @@ The customer flow is deliberately separate from staff authentication. Customer r
 7. The order is stored as `source = CUSTOMER_QR`, linked to the customer session and table.
 8. The existing order/kitchen event flow receives the new order.
 9. `GET /api/customer/orders/:id` is scoped to the same customer session.
-10. The customer app polls the order endpoint every 5 seconds until realtime customer WebSocket delivery is added.
+10. The customer app polls the order endpoint every 15 seconds until realtime customer WebSocket delivery is added.
 
 ## Database changes
 
@@ -59,7 +59,7 @@ bun run dev
 Fixture mode:
 
 ```text
-http://localhost:5176/?table=T12
+http://localhost:5176/?demo=true
 ```
 
 API mode requires a real `public_qr_token` from `restaurant_tables`:

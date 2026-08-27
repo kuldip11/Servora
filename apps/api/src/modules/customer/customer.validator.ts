@@ -29,7 +29,7 @@ export const createCustomerOrderBody = t.Object({
   notes: t.Optional(t.String({ maxLength: 1000 })),
 });
 
-export const customerOrderIdParams = t.Object({ id: t.String({ minLength: 1 }) });
+export const customerOrderIdParams = t.Object({ id: t.String({ format: "uuid" }) });
 
 export const customerCheckoutBody = t.Object({
   method: t.Literal("CASH"),

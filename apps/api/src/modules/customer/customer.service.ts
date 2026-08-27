@@ -11,6 +11,7 @@ import { orderRepository } from "../orders/order.repository";
 import { resolveItems, type OrderItemInput, type PricableMenuItem } from "../orders/order-pricing";
 import { customerRepository } from "./customer.repository";
 import { customerBranchUnavailable, customerTableNotFound, invalidCustomerSession } from "./customer.errors";
+import { rootLogger } from "../../core/logger";
 
 const SESSION_TTL_MINUTES = 12 * 60;
 
@@ -117,7 +118,7 @@ export const customerService = {
         null,
       );
     } catch (err) {
-      console.error("Inventory deduction failed for customer order", order.id, err);
+      rootLogger.error("Customer order inventory deduction failed", err instanceof Error ? err : undefined, { orderId: order.id, tenantId: session.tenantId, branchId: session.branchId });
     }
 
     return fullOrder;

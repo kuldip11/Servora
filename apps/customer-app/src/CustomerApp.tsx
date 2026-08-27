@@ -31,6 +31,7 @@ function fixtureToCustomerItem(item: FixtureItem): CustomerMenuItem {
     variants: [],
     modifierGroupLinks: item.options ? [{ sortOrder: 0, group: { id: "fixture", name: "Customize", selectionType: "SINGLE", minSelections: 0, maxSelections: 1, options: item.options.map((option) => ({ id: option.id, name: option.name, additionalPrice: String(option.price), isAvailable: true, maxQuantity: 1 })) } }] : [],
     tagLinks: item.popular ? [{ tag: { name: "popular" } }] : [],
+    allergenLinks: [],
     images: [],
   };
 }
@@ -46,6 +47,7 @@ export function CustomerApp() {
   const [category, setCategory] = useState("Popular");
   const [search, setSearch] = useState("");
   const [cart, setCart] = useState<CartLine[]>([]);
+  const [orderNotes, setOrderNotes] = useState("");
   const [selected, setSelected] = useState<CustomerMenuItem | null>(null);
   const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>();
   const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
@@ -72,17 +74,60 @@ export function CustomerApp() {
     }
 
     const token = qrToken;
+    const storageKey = `servora:customer:${token}`;
     let cancelled = false;
+
     async function bootstrap() {
       try {
         setLoading(true);
         setError(null);
-        const created = await createCustomerSession(token);
+
+        const saved = sessionStorage.getItem(storageKey);
+        let sessionToken: string | undefined;
+        let savedOrderId: string | undefined;
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved) as { sessionToken?: string; placedOrderId?: string };
+            sessionToken = parsed.sessionToken;
+            savedOrderId = parsed.placedOrderId;
+          } catch {
+            sessionStorage.removeItem(storageKey);
+          }
+        }
+
+        let created: Awaited<ReturnType<typeof createCustomerSession>>;
+        if (sessionToken) {
+          try {
+            const menuResponse = await getCustomerMenu(sessionToken);
+            if (cancelled) return;
+            setSession({ token: sessionToken, table: menuResponse.table.name, area: menuResponse.table.section ?? "Dining", restaurant: menuResponse.restaurant.name, estimatedTime: "15–25 min" });
+            setMenu(menuResponse.items);
+            setCategories([{ id: "popular", name: "Popular" }, ...menuResponse.categories.map((c) => ({ id: c.id, name: c.name }))]);
+            if (savedOrderId) {
+              try {
+                const savedOrder = await getCustomerOrder(sessionToken, savedOrderId);
+                if (!cancelled) {
+                  setPlacedOrder(savedOrder);
+                  setPaymentPending(!savedOrder.payments.some((payment) => payment.status === "SUCCESS"));
+                  setView("order");
+                }
+              } catch {
+                sessionStorage.removeItem(storageKey);
+              }
+            }
+            return;
+          } catch {
+            sessionStorage.removeItem(storageKey);
+          }
+        }
+
+        created = await createCustomerSession(token);
         const menuResponse = await getCustomerMenu(created.sessionToken);
         if (cancelled) return;
         setSession({ token: created.sessionToken, table: created.table.name, area: created.table.section ?? "Dining", restaurant: created.restaurant.name, estimatedTime: "15–25 min" });
         setMenu(menuResponse.items);
         setCategories([{ id: "popular", name: "Popular" }, ...menuResponse.categories.map((c) => ({ id: c.id, name: c.name }))]);
+        sessionStorage.setItem(storageKey, JSON.stringify({ sessionToken: created.sessionToken }));
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : "Unable to load this table");
       } finally {
@@ -97,7 +142,10 @@ export function CustomerApp() {
     setPlacedOrder(order);
     setPaymentPending(!order.payments.some((payment) => payment.status === "SUCCESS"));
   }, []);
-  const live = useCustomerOrderRealtime(session?.token, placedOrder?.id, handleRealtimeOrder);
+  const handleRequestUpdate = useCallback((status: string) => {
+    setRequestMessage(status === "ACKNOWLEDGED" ? "Your request has been acknowledged." : "Your request has been resolved.");
+  }, []);
+  const live = useCustomerOrderRealtime(session?.token, placedOrder?.id, handleRealtimeOrder, handleRequestUpdate);
 
   useEffect(() => {
     if (!placedOrder || !session || session.token === "fixture" || live) return;
@@ -112,6 +160,15 @@ export function CustomerApp() {
     }, 15000);
     return () => { cancelled = true; window.clearInterval(interval); };
   }, [placedOrder?.id, session, live, handleRealtimeOrder]);
+
+  useEffect(() => {
+    if (!qrToken || !session || session.token === "fixture") return;
+    const storageKey = `servora:customer:${qrToken}`;
+    sessionStorage.setItem(storageKey, JSON.stringify({
+      sessionToken: session.token,
+      ...(placedOrder ? { placedOrderId: placedOrder.id } : {}),
+    }));
+  }, [qrToken, session, placedOrder?.id]);
 
   const requestHelp = useCallback(async (type: CustomerRequestType) => {
     if (!session || session.token === "fixture") {
@@ -193,6 +250,20 @@ export function CustomerApp() {
     ? canAddItemConfiguration(selected, selectedVariantId, selectedOptions)
     : false), [selected, selectedVariantId, selectedOptions]);
 
+  const addReadyItem = useCallback((item: CustomerMenuItem) => {
+    if (item.variants.length || item.modifierGroupLinks.length) {
+      openItem(item);
+      return;
+    }
+    const newLine: CartLine = { item, quantity: 1, selectedOptions: [] };
+    const key = getCartLineKey(newLine);
+    setCart((current) => {
+      const index = current.findIndex((line) => getCartLineKey(line) === key);
+      if (index === -1) return [...current, newLine];
+      return current.map((line, i) => i === index ? { ...line, quantity: line.quantity + 1 } : line);
+    });
+  }, [openItem]);
+
   const addItem = useCallback((item: CustomerMenuItem) => {
     if (!canAddSelectedItem) return;
     const newLine: CartLine = {
@@ -215,6 +286,13 @@ export function CustomerApp() {
   }, []);
 
   const handleMenu = useCallback(() => setView("menu"), []);
+  const handleOrderMore = useCallback(() => {
+    setPlacedOrder(null);
+    setPaymentPending(false);
+    setError(null);
+    setOrderNotes("");
+    setView("menu");
+  }, []);
   const handleCart = useCallback(() => setView("cart"), []);
 
   const sessionToken = session?.token;
@@ -236,7 +314,7 @@ export function CustomerApp() {
   }, [handleRealtimeOrder, sessionToken]);
 
   const placeOrder = useCallback(async () => {
-    if (!session || cart.length === 0 || loading || placedOrder) return;
+    if (!session || cart.length === 0 || loading) return;
     try {
       setLoading(true);
       setError(null);
@@ -250,7 +328,7 @@ export function CustomerApp() {
 
       // Create the order once. If checkout fails, retain the created order so
       // retrying payment never creates a second customer order.
-      const order = await createCustomerOrder(session.token, createOrderPayload(cart));
+      const order = await createCustomerOrder(session.token, createOrderPayload(cart, orderNotes));
       setPlacedOrder(order);
       setPaymentPending(!order.payments.some((payment) => payment.status === "SUCCESS"));
       setCart([]);
@@ -268,7 +346,7 @@ export function CustomerApp() {
     } finally {
       setLoading(false);
     }
-  }, [cart, handleRealtimeOrder, loading, placedOrder, session, subtotal, tax, total]);
+  }, [cart, handleRealtimeOrder, loading, orderNotes, session, subtotal, tax, total]);
 
   const handleAddSelectedItem = useCallback(() => {
     if (selected) addItem(selected);
@@ -310,7 +388,7 @@ export function CustomerApp() {
   if (error && !session) return <StatusScreen title="This table is unavailable" message={error} actionLabel="Try again" onAction={() => { setError(null); setBootstrapAttempt((value) => value + 1); }} />;
   if (!session) return null;
 
-  if (view === "order" && placedOrder) return <OrderPlaced order={placedOrder} table={session.table} estimatedTime={session.estimatedTime} onMenu={handleMenu} live={live} onRequest={requestHelp} requestBusy={requestBusy} requestMessage={requestMessage} paymentPending={paymentPending} checkoutError={error} checkoutBusy={loading} onRetryCheckout={handleRetryCheckout} />;
+  if (view === "order" && placedOrder) return <OrderPlaced order={placedOrder} table={session.table} estimatedTime={session.estimatedTime} onMenu={handleOrderMore} live={live} onRequest={requestHelp} requestBusy={requestBusy} requestMessage={requestMessage} paymentPending={paymentPending} checkoutError={error} checkoutBusy={loading} onRetryCheckout={handleRetryCheckout} />;
 
   return (
     <div className="min-h-screen bg-background text-text-primary selection:bg-primary-surface">
@@ -330,14 +408,14 @@ export function CustomerApp() {
         <main className="mx-auto max-w-2xl scroll-pb-32 px-4 pb-36 pt-5 sm:px-6 sm:pb-32">
           {category === "Popular" && !search && <Card className="mb-5 border-primary bg-primary p-5 text-primary-foreground shadow-md"><div className="flex items-start justify-between gap-4"><div><div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.14em] opacity-75"><Sparkles className="h-3.5 w-3.5" /> Recommended</div><h2 className="mt-2 text-2xl font-semibold">Good choice for the table.</h2><p className="mt-1 text-sm leading-6 opacity-80">Order directly from your table. Your order goes straight to the kitchen.</p></div><Utensils className="mt-1 h-6 w-6 opacity-75" /></div></Card>}
           <div className="mb-4 flex items-end justify-between"><div><p className="text-xs font-medium uppercase tracking-[0.14em] text-text-secondary">Menu</p><h2 className="mt-1 text-2xl font-semibold tracking-tight">{category}</h2></div><span className="text-sm text-text-secondary">{visibleItems.length} items</span></div>
-          <div className="space-y-3">{visibleItems.map((item) => <MenuCard key={item.id} item={item} onSelect={openItem} />)}{visibleItems.length === 0 && <EmptyState icon={Search} title="No dishes found" description="Try another category or search term." size="sm" />}</div>
+          <div className="space-y-3">{visibleItems.map((item) => <MenuCard key={item.id} item={item} onSelect={openItem} onQuickAdd={addReadyItem} />)}{visibleItems.length === 0 && <EmptyState icon={Search} title="No dishes found" description="Try another category or search term." size="sm" />}</div>
         </main>
 
         {error && <div role="alert" className="fixed inset-x-4 bottom-20 z-50 mx-auto max-w-2xl rounded-lg border border-danger bg-danger-surface p-4 text-sm font-medium text-danger shadow-md"><div className="flex items-start justify-between gap-4"><span>{error}</span><Button variant="ghost" size="sm" onClick={() => setError(null)}>Dismiss</Button></div></div>}
         {itemCount > 0 && view === "menu" && <div className="safe-bottom fixed inset-x-0 bottom-0 z-30 px-4 pt-3 sm:px-6"><Button onClick={handleCart} size="lg" className="mx-auto flex h-14 w-full max-w-2xl items-center justify-between px-5"><span className="flex items-center gap-2 text-sm"><ShoppingBag className="h-4 w-4" /> {itemCount} {itemCount === 1 ? "item" : "items"}</span><span className="flex items-center gap-2 text-sm">View order · {formatMoney(total)} <ChevronRight className="h-4 w-4" /></span></Button></div>}
 
         {selected && <ItemCustomization item={selected} selectedOptions={selectedOptions} {...(selectedVariantId ? { variantId: selectedVariantId } : {})} onVariantChange={setSelectedVariantId} onToggle={toggleOption} onOptionQuantity={changeOptionQuantity} onClose={closeItem} onAdd={handleAddSelectedItem} />}
-        {view === "cart" && <CartView cart={cart} subtotal={subtotal} tax={tax} total={total} table={session.table} onBack={handleMenu} onChange={changeQuantity} onPlace={placeOrder} loading={loading} />}
+        {view === "cart" && <CartView cart={cart} subtotal={subtotal} tax={tax} total={total} table={session.table} onBack={handleMenu} onChange={changeQuantity} onPlace={placeOrder} loading={loading} orderNotes={orderNotes} onNotesChange={setOrderNotes} />}
     </div>
   );
 }

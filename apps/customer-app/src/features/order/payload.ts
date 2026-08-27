@@ -2,8 +2,9 @@ import type { CreateCustomerOrderInput } from "../order/api";
 import type { CartLine } from "../cart/pricing";
 import { normalizeSelectedOptions } from "../cart/configuration";
 
-export function createOrderPayload(cart: CartLine[]): CreateCustomerOrderInput {
+export function createOrderPayload(cart: CartLine[], notes?: string): CreateCustomerOrderInput {
   return {
+    ...(notes?.trim() ? { notes: notes.trim() } : {}),
     items: cart.map((line) => ({
       menuItemId: line.item.id,
       quantity: line.quantity,
