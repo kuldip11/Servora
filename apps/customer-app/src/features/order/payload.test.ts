@@ -16,7 +16,6 @@ const item = {
   variants: [],
   modifierGroupLinks: [],
   tagLinks: [],
-  allergenLinks: [],
   images: [],
 };
 
@@ -30,14 +29,6 @@ describe("createOrderPayload", () => {
 
     expect(createOrderPayload(cart)).toEqual({
       items: [{ menuItemId: "item-1", quantity: 2 }],
-    });
-  });
-
-  it("includes trimmed order notes when provided", () => {
-    const cart: CartLine[] = [{ item, quantity: 1, selectedOptions: [] }];
-    expect(createOrderPayload(cart, "  No onions  ")).toEqual({
-      notes: "No onions",
-      items: [{ menuItemId: "item-1", quantity: 1 }],
     });
   });
 

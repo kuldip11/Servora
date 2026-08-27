@@ -17,6 +17,7 @@ import { menuItems, menuItemVariants, modifierOptions } from "./menu.schema";
 
 // One row per "fire to kitchen" action (a KOT/ticket). A tab can have many.
 export const kitchenTicketStatusEnum = pgEnum("kitchen_ticket_status", [
+  "PENDING_PAYMENT",
   "FIRED",
   "PREPARING",
   "READY",
@@ -63,6 +64,8 @@ export const kitchenTickets = pgTable(
   }),
 );
 
+export const orderItemFulfillmentTypeEnum = pgEnum("order_item_fulfillment_type", ["DINE_IN", "TAKEAWAY"]);
+
 export const orderItems = pgTable("order_items", {
   id: uuid("id").primaryKey().defaultRandom(),
   orderId: uuid("order_id")
@@ -84,6 +87,7 @@ export const orderItems = pgTable("order_items", {
   unitPrice: numeric("unit_price", { precision: 10, scale: 2 }).notNull(),
   subtotal: numeric("subtotal", { precision: 10, scale: 2 }).notNull(),
   chefNotes: text("chef_notes"),
+  fulfillmentType: orderItemFulfillmentTypeEnum("fulfillment_type").notNull().default("DINE_IN"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

@@ -1,8 +1,14 @@
-import { and, eq, isNull, or } from "drizzle-orm";
+import { and, eq, isNull, or, notInArray } from "drizzle-orm";
 import { db } from "../../db";
-import { branches, customerSessions, menuCategories, menuItems, restaurantTables } from "../../db/schema";
+import { branches, customerSessions, menuCategories, menuItems, restaurantTables, orders } from "../../db/schema";
 
 export const customerRepository = {
+  async findBranchByTakeawayQrToken(token: string) {
+    return db.query.branches.findFirst({
+      where: and(eq(branches.publicTakeawayQrToken, token), eq(branches.isActive, true)),
+    });
+  },
+
   async findTableByQrToken(token: string) {
     return db.query.restaurantTables.findFirst({
       where: and(eq(restaurantTables.publicQrToken, token), eq(restaurantTables.isActive, true)),
@@ -10,7 +16,19 @@ export const customerRepository = {
     });
   },
 
-  async createSession(data: { tenantId: string; branchId: string; tableId: string; expiresAt: Date }) {
+  async findOpenOrderBySession(tenantId: string, branchId: string, sessionId: string) {
+    return db.query.orders.findFirst({
+      where: and(
+        eq(orders.tenantId, tenantId),
+        eq(orders.branchId, branchId),
+        eq(orders.customerSessionId, sessionId),
+        notInArray(orders.status, ["PAID", "CLOSED", "CANCELLED"]),
+      ),
+      columns: { id: true, status: true },
+    });
+  },
+
+  async createSession(data: { tenantId: string; branchId: string; tableId?: string | null; mode: "DINE_IN" | "TAKEAWAY"; expiresAt: Date }) {
     const [session] = await db.insert(customerSessions).values(data).returning();
     return session!;
   },

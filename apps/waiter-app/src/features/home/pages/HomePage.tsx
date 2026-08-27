@@ -29,12 +29,12 @@ export function HomePage({
   onSelectOrder,
 }: Props) {
   const { data: orders } = useOrders();
-  const [requests, setRequests] = useState<Array<{ id: string; tableId: string; tableName?: string; type: string; status: string }>>([]);
+  const [requests, setRequests] = useState<Array<{ id: string; tableId: string; type: string; status: string }>>([]);
   useEffect(() => {
     void apiClient.get("/customer/requests").then((response) => setRequests(response.data.data ?? [])).catch(() => undefined);
   }, []);
   useRealtimeEvent("customer.request.created", (event) => {
-    setRequests((current) => current.some((r) => r.id === event.payload.id) ? current : [{ id: event.payload.id, tableId: event.payload.tableId, tableName: event.payload.tableName, type: event.payload.type, status: event.payload.status }, ...current]);
+    setRequests((current) => current.some((r) => r.id === event.payload.id) ? current : [{ id: event.payload.id, tableId: event.payload.tableId, type: event.payload.type, status: event.payload.status }, ...current]);
   });
   useRealtimeEvent("customer.request.updated", (event) => {
     if (["RESOLVED", "CANCELLED"].includes(event.payload.status)) setRequests((current) => current.filter((r) => r.id !== event.payload.id));
@@ -79,10 +79,10 @@ export function HomePage({
               <span className="ml-auto rounded-full bg-warning/10 px-2 py-0.5 text-xs font-semibold">{requests.length}</span>
             </div>
             <div className="mt-3 space-y-2">
-              {requests.map((request) => (
+              {requests.slice(0, 3).map((request) => (
                 <div key={request.id} className="flex items-center gap-3 rounded-xl bg-background px-3 py-2">
                   <span className="text-primary">{request.type === "WATER" ? <Droplets className="w-4 h-4" /> : request.type === "BILL" ? <ReceiptText className="w-4 h-4" /> : <Utensils className="w-4 h-4" />}</span>
-                  <span className="flex-1 text-sm font-medium">Table {request.tableName ?? request.tableId.slice(0, 8)} · {request.type.replace("_", " ").toLowerCase()}</span>
+                  <span className="flex-1 text-sm font-medium">Table request · {request.type.replace("_", " ").toLowerCase()}</span>
                   <button onClick={() => void resolveRequest(request.id)} className="text-xs font-semibold text-primary">Done</button>
                 </div>
               ))}

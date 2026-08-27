@@ -24,7 +24,6 @@ export type CustomerMenuItem = {
     };
   }>;
   tagLinks: Array<{ tag: { name: string } }>;
-  allergenLinks: Array<{ allergen: { id: string; name: string } }>;
   images: Array<{ url: string; sortOrder: number }>;
 };
 

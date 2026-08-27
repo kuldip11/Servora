@@ -1,6 +1,6 @@
 # Servora — Free Deployment Guide
 
-Six deployable pieces, all free-tier friendly:
+Five services, all free, no card required anywhere:
 
 | # | Piece | Service | What it does |
 |---|---|---|---|
@@ -9,7 +9,6 @@ Six deployable pieces, all free-tier friendly:
 | 3 | API (`apps/api`) | **Render** | Backend server (Docker) |
 | 4 | `apps/web` | **Vercel** | Main admin frontend |
 | 5 | `apps/kitchen-display` + `apps/waiter-app` | **Vercel** | Two more frontends |
-| 6 | `apps/customer-app` | **Vercel** | Customer QR ordering frontend |
 
 Do them in this exact order — each step needs values from the one before it.
 
@@ -135,7 +134,7 @@ If you'd rather not install Bun locally, alternative: add a **free Render Cron J
 
 ## STEP 4 — Frontends on Vercel
 
-You'll deploy four frontends — `web`, `kitchen-display`, `waiter-app`, and `customer-app`. The steps are identical except for the **Root Directory** and **project name**.
+You'll repeat this three times — once per app (`web`, `kitchen-display`, `waiter-app`). The steps are identical except for the **Root Directory** and **project name**.
 
 ### 4a. One-time Vercel setup
 
@@ -182,35 +181,16 @@ Repeat again:
 - Same env vars
 - Save the resulting URL, e.g. `https://servora-waiter-app.vercel.app`
 
-You now have 4 live frontend URLs and 1 live backend URL.
-
-### 4e. Deploy `apps/customer-app`
-
-1. Create another Vercel project from the same repository.
-2. Set **Project Name** to `servora-customer-app`.
-3. Set **Root Directory** to `apps/customer-app`.
-4. Use **Build Command** `bun run build` and **Output Directory** `dist`.
-5. Add:
-
-| Key | Value |
-|---|---|
-| `VITE_API_URL` | `https://servora-api.onrender.com` |
-| `VITE_WS_URL` | `wss://servora-api.onrender.com/ws/events` |
-
-6. Deploy and save the customer app URL, e.g. `https://servora-customer-app.vercel.app`.
-
-The admin app's table QR generator uses `VITE_CUSTOMER_APP_URL`. Set that variable on the `servora-web` Vercel project to the customer app URL and redeploy the admin app.
-
-
+You now have 3 live frontend URLs and 1 live backend URL.
 
 ---
 
 ## STEP 5 — Connect them: set CORS on Render
 
-Go back to **Render** → your `servora-api` service → **Environment** tab (left sidebar) → find `CORS_ORIGIN` → click to edit → set it to all four Vercel URLs, **comma-separated, no spaces**:
+Go back to **Render** → your `servora-api` service → **Environment** tab (left sidebar) → find `CORS_ORIGIN` → click to edit → set it to all three Vercel URLs, **comma-separated, no spaces**:
 
 ```
-https://servora-web.vercel.app,https://servora-kitchen-display.vercel.app,https://servora-waiter-app.vercel.app,https://servora-customer-app.vercel.app
+https://servora-web.vercel.app,https://servora-kitchen-display.vercel.app,https://servora-waiter-app.vercel.app
 ```
 
 Click **Save Changes**. Render will automatically redeploy the API with the new value (takes ~1 min, no rebuild needed since it's just an env var).

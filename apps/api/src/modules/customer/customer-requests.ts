@@ -4,10 +4,10 @@ import { ValidationError, ForbiddenError } from "../../core/errors";
 import { db } from "../../db";
 import { customerRequests } from "../../db/schema/customer-request.schema";
 import { orders } from "../../db/schema/order.schema";
-import { restaurantTables } from "../../db/schema/restaurant-table.schema";
 import type { CustomerRequestStatus, CustomerRequestType } from "@pos/types";
 import { customerService } from "./customer.service";
 import { eventBus } from "../../lib/event-bus";
+import { ticketRepository } from "../kitchen-tickets/ticket.repository";
 
 const activeStatuses = ["OPEN", "ACKNOWLEDGED"] as const;
 
@@ -23,7 +23,35 @@ export const customerRequestService = {
       customerSessionId: session.id, orderId: input.orderId ?? null, type: input.type, note: input.note ?? null,
     }).returning();
     if (!request) throw new ValidationError("Unable to create customer request");
-    await eventBus.publish({ type: "customer.request.created", payload: { ...request, tableName: session.table.name } as any }, session.tenantId, session.branchId);
+
+    // A BILL request is a billing-state transition, not a payment. Keep the
+    // table occupied and only allow payment after the kitchen has served all
+    // outstanding tickets. If food is still being prepared, the request is
+    // still visible to staff but the tab remains OPEN until it is eligible.
+    if (input.type === "BILL" && input.orderId) {
+      const order = await db.query.orders.findFirst({
+        where: and(
+          eq(orders.id, input.orderId),
+          eq(orders.tenantId, session.tenantId),
+          eq(orders.branchId, session.branchId),
+          eq(orders.customerSessionId, session.id),
+        ),
+      });
+      if (order && order.status === "OPEN") {
+        const allServed = await ticketRepository.allServed(session.tenantId, order.id);
+        if (allServed) {
+          const [updated] = await db.update(orders)
+            .set({ status: "BILL_REQUESTED", updatedAt: new Date() })
+            .where(and(eq(orders.id, order.id), eq(orders.status, "OPEN")))
+            .returning();
+          if (updated) {
+            await eventBus.publish({ type: "order.updated", payload: updated as any }, session.tenantId, session.branchId);
+          }
+        }
+      }
+    }
+
+    await eventBus.publish({ type: "customer.request.created", payload: request as any }, session.tenantId, session.branchId);
     return request;
   },
 
@@ -32,21 +60,7 @@ export const customerRequestService = {
     const where = auth.tenantWide && !auth.branchId
       ? and(eq(customerRequests.tenantId, auth.tenantId), inArray(customerRequests.status, activeStatuses as any))
       : and(eq(customerRequests.tenantId, auth.tenantId), eq(customerRequests.branchId, auth.branchId!), inArray(customerRequests.status, activeStatuses as any));
-    return db
-      .select({
-        id: customerRequests.id,
-        tableId: customerRequests.tableId,
-        tableName: restaurantTables.name,
-        type: customerRequests.type,
-        status: customerRequests.status,
-        note: customerRequests.note,
-        orderId: customerRequests.orderId,
-        createdAt: customerRequests.createdAt,
-      })
-      .from(customerRequests)
-      .innerJoin(restaurantTables, eq(customerRequests.tableId, restaurantTables.id))
-      .where(where)
-      .orderBy(customerRequests.createdAt);
+    return db.select().from(customerRequests).where(where).orderBy(customerRequests.createdAt);
   },
 
   async updateForStaff(auth: AuthContext, id: string, status: CustomerRequestStatus) {
@@ -56,8 +70,7 @@ export const customerRequestService = {
     if (auth.branchId && current.branchId !== auth.branchId) throw new ForbiddenError("Customer request branch access denied");
     if (status === "OPEN") throw new ValidationError("A request cannot be reopened");
     const [updated] = await db.update(customerRequests).set({ status, resolvedBy: auth.userId, updatedAt: new Date() }).where(eq(customerRequests.id, id)).returning();
-    const [table] = await db.select({ name: restaurantTables.name }).from(restaurantTables).where(eq(restaurantTables.id, current.tableId)).limit(1);
-    await eventBus.publish({ type: "customer.request.updated", payload: { ...updated, tableName: table?.name } as any }, current.tenantId, current.branchId);
+    await eventBus.publish({ type: "customer.request.updated", payload: updated as any }, current.tenantId, current.branchId);
     return updated;
   },
 };

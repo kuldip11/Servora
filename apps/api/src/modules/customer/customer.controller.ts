@@ -11,6 +11,9 @@ export const customerController = {
   async createOrder(sessionToken: string, input: CreateCustomerOrderInput) {
     return createdResponse(await customerService.createOrder(sessionToken, input));
   },
+  async verifyTakeawayPayment(sessionToken: string, input: Parameters<typeof customerService.verifyTakeawayPayment>[1]) {
+    return createdResponse(await customerService.verifyTakeawayPayment(sessionToken, input));
+  },
   async checkout(sessionToken: string, input: CustomerCheckoutInput) {
     return createdResponse(await customerService.checkout(sessionToken, input));
   },

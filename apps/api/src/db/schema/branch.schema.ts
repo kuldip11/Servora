@@ -31,6 +31,7 @@ export const branches = pgTable(
     deliveryEnabled: boolean("delivery_enabled").notNull().default(true),
     onlineEnabled: boolean("online_enabled").notNull().default(true),
     tablesEnabled: boolean("tables_enabled").notNull().default(true),
+    publicTakeawayQrToken: uuid("public_takeaway_qr_token").notNull().defaultRandom().unique(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },

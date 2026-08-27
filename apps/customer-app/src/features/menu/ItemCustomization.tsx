@@ -16,9 +16,12 @@ type Props = {
   onOptionQuantity: (optionId: string, delta: number) => void;
   onClose: () => void;
   onAdd: () => void;
+  fulfillmentType: "DINE_IN" | "TAKEAWAY";
+  onFulfillmentTypeChange: (value: "DINE_IN" | "TAKEAWAY") => void;
+  allowMixedFulfillment: boolean;
 };
 
-export const ItemCustomization = memo(function ItemCustomization({ item, selectedOptions, variantId, onVariantChange, onToggle, onOptionQuantity, onClose, onAdd }: Props) {
+export const ItemCustomization = memo(function ItemCustomization({ item, selectedOptions, variantId, onVariantChange, onToggle, onOptionQuantity, onClose, onAdd, fulfillmentType, onFulfillmentTypeChange, allowMixedFulfillment }: Props) {
   const validationError = validateItemConfiguration(item, variantId, selectedOptions);
   const valid = validationError === null;
 
@@ -87,6 +90,20 @@ export const ItemCustomization = memo(function ItemCustomization({ item, selecte
             </div>
           </fieldset>
         ))}
+
+        {allowMixedFulfillment ? (
+          <fieldset>
+            <legend className="mb-3 font-semibold text-text-primary">Fulfilment</legend>
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button" className={`rounded-lg border p-3 text-left ${fulfillmentType === "DINE_IN" ? "border-primary bg-primary-surface" : "border-border"}`} onClick={() => onFulfillmentTypeChange("DINE_IN")}>
+                <span className="block font-medium text-text-primary">Eat here</span><span className="text-xs text-text-secondary">Serve at the table</span>
+              </button>
+              <button type="button" className={`rounded-lg border p-3 text-left ${fulfillmentType === "TAKEAWAY" ? "border-primary bg-primary-surface" : "border-border"}`} onClick={() => onFulfillmentTypeChange("TAKEAWAY")}>
+                <span className="block font-medium text-text-primary">Takeaway</span><span className="text-xs text-text-secondary">Pack for takeaway</span>
+              </button>
+            </div>
+          </fieldset>
+        ) : null}
         {validationError && <p role="alert" className="text-sm text-danger">{validationError}</p>}
       </div>
     </BottomSheet>

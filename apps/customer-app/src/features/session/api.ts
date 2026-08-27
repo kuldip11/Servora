@@ -4,7 +4,8 @@ export type CustomerSession = {
   sessionToken: string;
   expiresAt: string;
   restaurant: { id: string; name: string };
-  table: { id: string; name: string; section: string | null };
+  mode: "DINE_IN" | "TAKEAWAY";
+  table: { id: string; name: string; section: string | null } | null;
 };
 
 export function createCustomerSession(qrToken: string) {

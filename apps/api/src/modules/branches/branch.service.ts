@@ -148,6 +148,45 @@ export const branchService = {
 
   // Soft-delete (deactivate) — not a hard delete, mirrors the original
   // endpoint's behavior of flipping isActive rather than removing the row.
+  async getTakeawayQr(auth: AuthContext, branchId: string) {
+    requirePermission(auth, "branch:read");
+    if (!auth.tenantWide && !(auth.authorizedBranchIds ?? []).includes(branchId)) {
+      throw branchNotFound(branchId);
+    }
+    const branch = await branchRepository.findById(auth.tenantId, branchId);
+    if (!branch) throw branchNotFound(branchId);
+    return {
+      branchId: branch.id,
+      branchName: branch.name,
+      enabled: branch.takeawayEnabled,
+      token: branch.publicTakeawayQrToken,
+    };
+  },
+
+  async regenerateTakeawayQr(auth: AuthContext, branchId: string) {
+    requirePermission(auth, "branch:update");
+    if (!auth.tenantWide && !(auth.authorizedBranchIds ?? []).includes(branchId)) {
+      throw branchNotFound(branchId);
+    }
+    const branch = await branchRepository.findById(auth.tenantId, branchId);
+    if (!branch) throw branchNotFound(branchId);
+    const updated = await branchRepository.regenerateTakeawayQr(auth.tenantId, branchId);
+    if (!updated) throw branchNotFound(branchId);
+    await writeAudit({
+      tenantId: auth.tenantId,
+      userId: auth.userId,
+      action: "BRANCH_TAKEAWAY_QR_REGENERATED",
+      entity: "branch",
+      entityId: branchId,
+    });
+    return {
+      branchId: updated.id,
+      branchName: updated.name,
+      enabled: updated.takeawayEnabled,
+      token: updated.publicTakeawayQrToken,
+    };
+  },
+
   async deactivate(auth: AuthContext, branchId: string) {
     requirePermission(auth, "branch:archive");
     if (

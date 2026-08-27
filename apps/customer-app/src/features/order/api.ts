@@ -7,7 +7,8 @@ export type CustomerOrder = {
   taxAmount: string;
   totalAmount: string;
   createdAt: string;
-  kitchenTickets: Array<{ id: string; ticketNumber: number; status: "FIRED" | "PREPARING" | "READY" | "SERVED" }>;
+  items: Array<{ id: string; menuItemId: string; menuItemName: string; variantId: string | null; variantName: string | null; quantity: number; unitPrice: string | number; subtotal: string | number; chefNotes: string | null; fulfillmentType: "DINE_IN" | "TAKEAWAY"; modifiers: Array<{ modifierId: string; modifierGroupName: string | null; name: string; price: string | number; quantity: number }> }>;
+  kitchenTickets: Array<{ id: string; ticketNumber: number; status: "PENDING_PAYMENT" | "FIRED" | "PREPARING" | "READY" | "SERVED" }>;
   payments: Array<{ id: string; method: "CASH" | "CARD" | "UPI" | "RAZORPAY" | "STRIPE"; status: "PENDING" | "SUCCESS" | "FAILED" | "REFUNDED"; amount: string; reference: string | null }>;
 };
 
@@ -17,6 +18,7 @@ export type CreateCustomerOrderInput = {
     variantId?: string;
     quantity: number;
     chefNotes?: string;
+    fulfillmentType?: "DINE_IN" | "TAKEAWAY";
     selectedOptions?: Array<{ optionId: string; quantity?: number }>;
   }>;
   notes?: string;
@@ -42,4 +44,15 @@ export function checkoutCustomerOrder(sessionToken: string, orderId: string) {
     method: "POST",
     body: JSON.stringify({ method: "CASH" }),
   }, sessionToken);
+}
+
+export type TakeawayPaymentVerification = {
+  orderId: string;
+  razorpayOrderId: string;
+  razorpayPaymentId: string;
+  razorpaySignature: string;
+};
+
+export function verifyTakeawayPayment(sessionToken: string, input: TakeawayPaymentVerification) {
+  return request<CustomerOrder>("/api/customer/orders/${input.orderId}/payment/verify", { method: "POST", body: JSON.stringify(input) }, sessionToken);
 }

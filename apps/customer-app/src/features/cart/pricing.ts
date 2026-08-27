@@ -6,6 +6,7 @@ export type CartLine = {
   quantity: number;
   variantId?: string;
   selectedOptions: SelectedOption[];
+  fulfillmentType: "DINE_IN" | "TAKEAWAY";
 };
 
 function findOption(item: CustomerMenuItem, optionId: string) {
@@ -70,5 +71,6 @@ export function getCartLineKey(line: Pick<CartLine, "item" | "variantId" | "sele
     itemId: line.item.id,
     variantId: line.variantId ?? null,
     selectedOptions: [...line.selectedOptions].sort((a, b) => a.optionId.localeCompare(b.optionId)),
+    fulfillmentType: line.fulfillmentType,
   });
 }

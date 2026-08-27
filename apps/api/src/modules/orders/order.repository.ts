@@ -30,6 +30,7 @@ export const orderRepository = {
     subtotal: number;
     taxAmount: number;
     totalAmount: number;
+    initialTicketStatus?: "PENDING_PAYMENT" | "FIRED";
   }) {
     return db.transaction(async (tx) => {
       const [order] = await tx
@@ -61,6 +62,7 @@ export const orderRepository = {
             orderId: order!.id,
             ticketNumber: 1,
             notes: data.notes,
+            status: data.initialTicketStatus ?? "FIRED",
           }) as typeof kitchenTickets.$inferInsert,
         )
         .returning();
@@ -80,6 +82,7 @@ export const orderRepository = {
               unitPrice: item.unitPrice.toFixed(2),
               subtotal: item.subtotal.toFixed(2),
               chefNotes: item.chefNotes,
+              fulfillmentType: item.fulfillmentType,
             }),
           ) as (typeof orderItems.$inferInsert)[],
         )
@@ -243,6 +246,7 @@ export const orderRepository = {
               unitPrice: item.unitPrice.toFixed(2),
               subtotal: item.subtotal.toFixed(2),
               chefNotes: item.chefNotes,
+              fulfillmentType: item.fulfillmentType,
             }),
           ) as (typeof orderItems.$inferInsert)[],
         )
