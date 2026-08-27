@@ -10,7 +10,9 @@ import { verifyTakeawayPayment } from "./api";
 const mockedRequest = vi.mocked(request);
 
 describe("customer order API contract", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it("uses the concrete order id in takeaway payment verification", async () => {
     mockedRequest.mockResolvedValue({} as never);

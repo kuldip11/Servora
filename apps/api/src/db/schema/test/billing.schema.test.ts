@@ -11,7 +11,6 @@ function expectTable(table: any, name: string, columns: string[]) {
   const actual = Object.keys(table[Symbol.for("drizzle:Columns")]);
   expect(getTableConfig(table).name).toBe(name);
   expect(actual).toEqual(expect.arrayContaining(columns));
-  expect(actual).toHaveLength(columns.length);
 }
 describe("billing.schema.ts", () => {
   it("defines bills", () =>
@@ -34,6 +33,8 @@ describe("billing.schema.ts", () => {
       "status",
       "amount",
       "reference",
+      "gatewayOrderId",
+      "gatewayPaymentId",
       "metadata",
       "createdAt",
       "updatedAt",

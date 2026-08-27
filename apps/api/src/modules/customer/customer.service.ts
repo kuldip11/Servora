@@ -56,6 +56,17 @@ const verifyRazorpaySignature = (orderId: string, paymentId: string, signature: 
   return a.length === b.length && timingSafeEqual(a, b);
 };
 
+const fetchRazorpayPayment = async (paymentId: string) => {
+  const { keyId, keySecret } = razorpayConfig();
+  if (!keyId || !keySecret) throw new ValidationError("Online takeaway payments are not configured for this restaurant");
+  const auth = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
+  const response = await fetch(`https://api.razorpay.com/v1/payments/${encodeURIComponent(paymentId)}`, {
+    headers: { Authorization: `Basic ${auth}` },
+  });
+  if (!response.ok) throw new ValidationError("Unable to verify payment with Razorpay");
+  return (await response.json()) as { id: string; order_id: string; status: string; amount: number; currency: string };
+};
+
 export const customerService = {
   async createSession(qrToken: string) {
     const table = await customerRepository.findTableByQrToken(qrToken);
@@ -126,7 +137,7 @@ export const customerService = {
     };
   },
 
-  async createOrder(token: string, input: CreateCustomerOrderInput) {
+  async createOrder(token: string, input: CreateCustomerOrderInput, customerRequestId?: string) {
     const session = await this.getSession(token);
     const normalizedInput: CreateCustomerOrderInput = {
       ...input,
@@ -147,6 +158,14 @@ export const customerService = {
         throw new ValidationError(`${effective.name} is not available right now`);
       }
     }
+    const stockCheck = await inventoryService.validateStock(
+      session.tenantId,
+      normalizedInput.items.map((item) => ({ menuItemId: item.menuItemId, quantity: item.quantity })),
+    );
+    if (!stockCheck.valid) {
+      throw new ValidationError(`Some requested items are out of stock: ${stockCheck.insufficient.map((item) => item.name).join(", ")}`);
+    }
+
     const { resolved, subtotal, taxAmount } = resolveItems(normalizedInput.items, itemMap);
     const existing = await customerRepository.findOpenOrderBySession(
       session.tenantId,
@@ -156,27 +175,35 @@ export const customerService = {
 
     let orderId: string;
     let createdNewOrder = false;
+    let roundCreated = false;
     if (existing) {
       if (existing.status === "BILL_REQUESTED") {
         throw new ValidationError("This order is already being settled. Payment must be completed before ordering more.");
       }
       if (session.mode === "TAKEAWAY") throw new ValidationError("This takeaway order has already been submitted");
-      await orderRepository.fireNewTicket(
-        session.tenantId,
-        session.branchId,
-        existing.id,
-        resolved,
-        subtotal,
-        taxAmount,
-        normalizedInput.notes,
-      );
+      let duplicateSubmission = false;
+      if (customerRequestId) {
+        duplicateSubmission = !!(await customerRepository.findCustomerRequestTicket(existing.id, customerRequestId));
+      }
+      if (!duplicateSubmission) {
+        try {
+          await orderRepository.fireNewTicket(
+            session.tenantId, session.branchId, existing.id, resolved, subtotal, taxAmount, normalizedInput.notes, customerRequestId,
+          );
+          roundCreated = true;
+        } catch (error) {
+          if ((error as { code?: string })?.code !== "23505") throw error;
+          duplicateSubmission = true;
+        }
+      }
       orderId = existing.id;
+      if (duplicateSubmission) createdNewOrder = false;
     } else {
       try {
         const order = await orderRepository.create({
           tenantId: session.tenantId,
           branchId: session.branchId,
-          tableId: session.tableId,
+          ...(session.tableId ? { tableId: session.tableId } : {}),
           createdBy: null,
           source: "CUSTOMER_QR",
           customerSessionId: session.id,
@@ -187,9 +214,11 @@ export const customerService = {
           taxAmount,
           totalAmount: subtotal + taxAmount,
           initialTicketStatus: session.mode === "TAKEAWAY" ? "PENDING_PAYMENT" : "FIRED",
+          customerRequestId: customerRequestId ?? null,
         });
         orderId = order.id;
         createdNewOrder = true;
+        roundCreated = true;
       } catch (error) {
         // The database's active-tab unique index closes the race between two
         // rapid submissions that both observed no existing order. If another
@@ -201,15 +230,18 @@ export const customerService = {
           session.id,
         );
         if (!concurrentOrder) throw error;
-        await orderRepository.fireNewTicket(
-          session.tenantId,
-          session.branchId,
-          concurrentOrder.id,
-          resolved,
-          subtotal,
-          taxAmount,
-          input.notes,
-        );
+        let duplicateSubmission = false;
+        if (customerRequestId) {
+          duplicateSubmission = !!(await customerRepository.findCustomerRequestTicket(concurrentOrder.id, customerRequestId));
+        }
+        if (!duplicateSubmission) {
+          try {
+            await orderRepository.fireNewTicket(session.tenantId, session.branchId, concurrentOrder.id, resolved, subtotal, taxAmount, input.notes, customerRequestId);
+            roundCreated = true;
+          } catch (nestedError) {
+            if ((nestedError as { code?: string })?.code !== "23505") throw nestedError;
+          }
+        }
         orderId = concurrentOrder.id;
       }
 
@@ -229,22 +261,20 @@ export const customerService = {
     }
 
     if (session.mode === "TAKEAWAY" && createdNewOrder) {
-      const gatewayOrder = await createRazorpayOrder((subtotal + taxAmount).toFixed(2), orderId);
-      await db.transaction(async (tx) => {
-        const currentBill = await tx.query.bills.findFirst({ where: eq(bills.orderId, orderId) });
-        const bill = currentBill ?? (await tx.insert(bills).values({
-          orderId, subtotal: subtotal.toFixed(2), taxAmount: taxAmount.toFixed(2), discountAmount: "0", totalAmount: (subtotal + taxAmount).toFixed(2),
-        }).returning())[0];
-        await tx.insert(payments).values({ orderId, billId: bill!.id, method: "RAZORPAY", amount: (subtotal + taxAmount).toFixed(2), status: "PENDING", reference: gatewayOrder.id, metadata: JSON.stringify({ gateway: "RAZORPAY", gatewayOrderId: gatewayOrder.id }) });
-      });
+      await this.initiateTakeawayPayment(session.tenantId, session.branchId, orderId);
     }
 
     const fullOrder = await orderRepository.findById(session.tenantId, orderId);
     await eventBus.publish({ type: createdNewOrder ? "order.created" : "order.updated", payload: fullOrder as unknown as Order }, session.tenantId, session.branchId);
-    await eventBus.publish({ type: "kitchen.ticket.created", payload: { orderId } }, session.tenantId, session.branchId);
+    // A public takeaway order is intentionally invisible to the kitchen until
+    // a verified payment releases its PENDING_PAYMENT ticket. Dine-in orders
+    // can fire immediately.
+    if (session.mode !== "TAKEAWAY") {
+      await eventBus.publish({ type: "kitchen.ticket.created", payload: { orderId } }, session.tenantId, session.branchId);
+    }
 
     try {
-      if (session.mode !== "TAKEAWAY" || !createdNewOrder) await inventoryService.deductForOrderItems(
+      if (roundCreated && (session.mode !== "TAKEAWAY" || !createdNewOrder)) await inventoryService.deductForOrderItems(
         session.tenantId,
         session.branchId,
         orderId,
@@ -258,27 +288,73 @@ export const customerService = {
     return fullOrder;
   },
 
+  async initiateTakeawayPayment(tenantId: string, branchId: string, orderId: string) {
+    return db.transaction(async (tx) => {
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${orderId}))`);
+      const order = await tx.query.orders.findFirst({
+        where: and(eq(orders.id, orderId), eq(orders.tenantId, tenantId), eq(orders.branchId, branchId), eq(orders.type, "TAKEAWAY")),
+        with: { payments: true },
+      });
+      if (!order) throw new ValidationError("Takeaway order was not found");
+      if (["PAID", "CLOSED", "CANCELLED"].includes(order.status)) throw new ValidationError("This order can no longer accept payment");
+      const pending = order.payments.find((payment) => payment.method === "RAZORPAY" && payment.status === "PENDING" && payment.gatewayOrderId);
+      if (pending) return pending;
+
+      const bill = await tx.query.bills.findFirst({ where: eq(bills.orderId, orderId) }) ?? (await tx.insert(bills).values({
+        orderId, subtotal: order.subtotal, taxAmount: order.taxAmount, discountAmount: order.discountAmount, totalAmount: order.totalAmount,
+      }).returning())[0];
+      if (!bill) throw new ValidationError("Unable to initialize order bill");
+
+      // Gateway I/O is deliberately outside the DB transaction in the normal
+      // service path, but the order-scoped lock prevents two API callers from
+      // creating competing payment rows. This method is only called after the
+      // order exists and the amount has been server-calculated.
+      const gatewayOrder = await createRazorpayOrder(order.totalAmount, orderId);
+      const [payment] = await tx.insert(payments).values({
+        orderId, billId: bill.id, method: "RAZORPAY", amount: order.totalAmount, status: "PENDING",
+        reference: gatewayOrder.id, gatewayOrderId: gatewayOrder.id,
+        metadata: JSON.stringify({ gateway: "RAZORPAY", gatewayOrderId: gatewayOrder.id }),
+      }).returning();
+      return payment!;
+    });
+  },
+
   async verifyTakeawayPayment(token: string, input: { orderId: string; razorpayOrderId: string; razorpayPaymentId: string; razorpaySignature: string }) {
     const session = await this.getSession(token);
     if (session.mode !== "TAKEAWAY") throw new ValidationError("Online payment is only required for takeaway orders");
     const order = await db.query.orders.findFirst({ where: and(eq(orders.id, input.orderId), eq(orders.tenantId, session.tenantId), eq(orders.branchId, session.branchId), eq(orders.customerSessionId, session.id)), with: { payments: true, kitchenTickets: true, items: true } });
     if (!order) throw new ValidationError("Order does not belong to this customer session");
-    const payment = order.payments.find((value) => value.reference === input.razorpayOrderId && value.status === "PENDING");
-    if (!payment) throw new ValidationError("Payment attempt was not found or has already been completed");
+    const payment = order.payments.find((value) => value.gatewayOrderId === input.razorpayOrderId || value.reference === input.razorpayOrderId || value.metadata?.includes(`\"gatewayOrderId\":\"${input.razorpayOrderId}\"`));
+    if (!payment) throw new ValidationError("Payment attempt was not found");
+    if (payment.status === "SUCCESS") return orderRepository.findById(session.tenantId, order.id);
+    if (payment.status !== "PENDING") throw new ValidationError("Payment attempt is no longer payable");
     if (!verifyRazorpaySignature(input.razorpayOrderId, input.razorpayPaymentId, input.razorpaySignature)) throw new ValidationError("Payment verification failed");
 
-    await db.transaction(async (tx) => {
-      await tx.update(payments).set({ status: "SUCCESS", reference: input.razorpayPaymentId, metadata: JSON.stringify({ gateway: "RAZORPAY", gatewayOrderId: input.razorpayOrderId }), updatedAt: new Date() }).where(eq(payments.id, payment.id));
+    const gatewayPayment = await fetchRazorpayPayment(input.razorpayPaymentId);
+    if (gatewayPayment.order_id !== input.razorpayOrderId || gatewayPayment.status !== "captured" || gatewayPayment.currency !== "INR" || gatewayPayment.amount !== Math.round(Number(payment.amount) * 100)) {
+      throw new ValidationError("Razorpay payment is not captured for this order");
+    }
+
+    const shouldRelease = await db.transaction(async (tx) => {
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${order.id}))`);
+      const current = await tx.query.payments.findFirst({ where: eq(payments.id, payment.id) });
+      if (!current) throw new ValidationError("Payment attempt was not found");
+      if (current.status === "SUCCESS") return false;
+      await tx.update(payments).set({ status: "SUCCESS", reference: input.razorpayPaymentId, gatewayOrderId: input.razorpayOrderId, gatewayPaymentId: input.razorpayPaymentId, metadata: JSON.stringify({ gateway: "RAZORPAY", gatewayOrderId: input.razorpayOrderId, gatewayPaymentId: input.razorpayPaymentId }), updatedAt: new Date() }).where(eq(payments.id, payment.id));
       await tx.update(kitchenTickets).set({ status: "FIRED", updatedAt: new Date() }).where(and(eq(kitchenTickets.orderId, order.id), eq(kitchenTickets.status, "PENDING_PAYMENT")));
+      return true;
     });
 
-    try {
-      await inventoryService.deductForOrderItems(session.tenantId, session.branchId, order.id, order.items.map((item) => ({ menuItemId: item.menuItemId, quantity: item.quantity })), null);
-    } catch (err) { console.error("Inventory deduction failed after takeaway payment", order.id, err); }
-    const updated = await orderRepository.findById(session.tenantId, order.id);
-    await eventBus.publish({ type: "order.updated", payload: updated as unknown as Order }, session.tenantId, session.branchId);
-    await eventBus.publish({ type: "kitchen.ticket.created", payload: { orderId: order.id } }, session.tenantId, session.branchId);
-    return updated;
+    if (shouldRelease) {
+      try {
+        await inventoryService.deductForOrderItems(session.tenantId, session.branchId, order.id, order.items.map((item) => ({ menuItemId: item.menuItemId, quantity: item.quantity })), null);
+      } catch (err) { console.error("Inventory deduction failed after takeaway payment", order.id, err); }
+      const updated = await orderRepository.findById(session.tenantId, order.id);
+      await eventBus.publish({ type: "order.updated", payload: updated as unknown as Order }, session.tenantId, session.branchId);
+      await eventBus.publish({ type: "kitchen.ticket.created", payload: { orderId: order.id } }, session.tenantId, session.branchId);
+      return updated;
+    }
+    return orderRepository.findById(session.tenantId, order.id);
   },
 
   async checkout(token: string, input: CustomerCheckoutInput) {

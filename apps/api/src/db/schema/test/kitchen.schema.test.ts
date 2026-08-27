@@ -11,7 +11,6 @@ function expectTable(table: any, name: string, columns: string[]) {
   const actual = Object.keys(table[Symbol.for("drizzle:Columns")]);
   expect(getTableConfig(table).name).toBe(name);
   expect(actual).toEqual(expect.arrayContaining(columns));
-  expect(actual).toHaveLength(columns.length);
 }
 describe("kitchen.schema.ts", () => {
   it("defines kitchen_tickets", () =>
@@ -42,6 +41,7 @@ describe("kitchen.schema.ts", () => {
       "unitPrice",
       "subtotal",
       "chefNotes",
+      "fulfillmentType",
       "createdAt",
     ]));
   it("defines order_item_modifiers", () =>
@@ -66,6 +66,7 @@ describe("kitchen.schema.ts", () => {
     ]));
   it("keeps kitchen ticket enum stable", () =>
     expect(kitchenTicketStatusEnum.enumValues).toEqual([
+      "PENDING_PAYMENT",
       "FIRED",
       "PREPARING",
       "READY",

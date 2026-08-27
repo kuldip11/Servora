@@ -19,3 +19,5 @@ export * from "./analytics.schema";
 export * from "./relations";
 
 export * from "./customer-request.schema";
+export * from "./payment-webhook.schema";
+export * from "./customer-order-submission.schema";

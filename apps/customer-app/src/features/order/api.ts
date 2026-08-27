@@ -25,7 +25,8 @@ export type CreateCustomerOrderInput = {
 };
 
 export function createCustomerOrder(sessionToken: string, input: CreateCustomerOrderInput) {
-  return request<CustomerOrder>("/api/customer/orders", { method: "POST", body: JSON.stringify(input) }, sessionToken);
+  const requestId = crypto.randomUUID();
+  return request<CustomerOrder>("/api/customer/orders", { method: "POST", headers: { "X-Customer-Request-ID": requestId }, body: JSON.stringify(input) }, sessionToken);
 }
 
 export function getCustomerOrder(sessionToken: string, orderId: string) {
@@ -54,5 +55,9 @@ export type TakeawayPaymentVerification = {
 };
 
 export function verifyTakeawayPayment(sessionToken: string, input: TakeawayPaymentVerification) {
-  return request<CustomerOrder>(`/api/customer/orders/${input.orderId}/payment/verify`, { method: "POST", body: JSON.stringify(input) }, sessionToken);
+  return request<CustomerOrder>(`/api/customer/orders/${input.orderId}/payment/verify`, { method: "POST", body: JSON.stringify({ razorpayOrderId: input.razorpayOrderId, razorpayPaymentId: input.razorpayPaymentId, razorpaySignature: input.razorpaySignature }) }, sessionToken);
+}
+
+export function initiateTakeawayPayment(sessionToken: string, orderId: string) {
+  return request<{ id: string; amount: string; reference: string | null; gatewayOrderId: string | null }>(`/api/customer/orders/${orderId}/payment/initiate`, { method: "POST" }, sessionToken);
 }

@@ -12,7 +12,7 @@ export const CartView = memo(function CartView({ cart, subtotal, tax, total, tab
       <div className="mx-auto min-h-screen max-w-2xl px-4 pb-8 pt-[env(safe-area-inset-top)] sm:px-6">
         <header className="flex items-center justify-between py-5">
           <Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft className="h-4 w-4" /> Menu</Button>
-          <span className="font-semibold text-text-primary">Checkout</span><span className="w-16" />
+          <span className="font-semibold text-text-primary">Your order</span><span className="w-16" />
         </header>
         <Card padding="md" className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground"><Utensils className="h-4 w-4" /></div>

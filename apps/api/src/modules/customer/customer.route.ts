@@ -30,16 +30,22 @@ export const customerRouter = new Elysia({ prefix: "/api/customer" })
         return { success: false, code: "CUSTOMER_SESSION_REQUIRED", message: "Customer session is required" };
       }
       set.status = 201;
-      return customerController.createOrder(token, body);
+      return customerController.createOrder(token, body, headers["x-customer-request-id"]);
     },
     { body: createCustomerOrderBody },
   )
-  .post("/orders/:id/payment/verify", ({ headers, body, set }) => {
+  .post("/orders/:id/payment/initiate", ({ headers, params, set }) => {
     const token = sessionToken(headers);
     if (!token) { set.status = 401; return { success: false, code: "CUSTOMER_SESSION_REQUIRED", message: "Customer session is required" }; }
     set.status = 201;
-    return customerController.verifyTakeawayPayment(token, body);
-  }, { body: takeawayPaymentVerificationBody })
+    return customerController.initiateTakeawayPayment(token, params.id);
+  }, { params: customerOrderIdParams })
+  .post("/orders/:id/payment/verify", ({ headers, params, body, set }) => {
+    const token = sessionToken(headers);
+    if (!token) { set.status = 401; return { success: false, code: "CUSTOMER_SESSION_REQUIRED", message: "Customer session is required" }; }
+    set.status = 201;
+    return customerController.verifyTakeawayPayment(token, params.id, body);
+  }, { params: customerOrderIdParams, body: takeawayPaymentVerificationBody })
   .post("/orders/:id/checkout", ({ headers, params, body, set }) => {
     const token = sessionToken(headers);
     if (!token) {

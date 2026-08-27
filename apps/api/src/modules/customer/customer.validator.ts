@@ -37,7 +37,6 @@ export const customerCheckoutBody = t.Object({
 });
 
 export const takeawayPaymentVerificationBody = t.Object({
-  orderId: t.String({ minLength: 1 }),
   razorpayOrderId: t.String({ minLength: 1 }),
   razorpayPaymentId: t.String({ minLength: 1 }),
   razorpaySignature: t.String({ minLength: 1 }),

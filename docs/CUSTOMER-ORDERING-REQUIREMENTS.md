@@ -1418,3 +1418,65 @@ This specification was prepared from the current Servora codebase and the custom
 ## Phase 6 implementation note — mixed fulfilment
 
 A table customer may classify each cart line as `DINE_IN` or `TAKEAWAY`. Both fulfilment types remain under the same parent dine-in order/tab and therefore settle on one final bill. Public takeaway sessions are forced to `TAKEAWAY`. The database stores the fulfilment choice on each order item, while the kitchen ticket remains the round-level unit.
+
+## Payment Verification & Razorpay Production Hardening
+
+### Implemented
+- Takeaway payment creation stores a dedicated Razorpay order ID.
+- Customer-side payment callback is not trusted by itself.
+- Server verifies the Razorpay Checkout signature.
+- Server fetches the Razorpay payment and requires:
+  - matching Razorpay order ID
+  - `captured` payment status
+  - INR currency
+  - exact amount match with the pending payment
+- Payment release is serialized with an order-scoped PostgreSQL advisory lock.
+- A successful payment transitions the pending takeaway kitchen ticket to `FIRED` exactly once.
+- Inventory deduction is attempted only on the successful payment transition.
+- Razorpay webhook signatures are verified against the raw request body using `X-Razorpay-Signature` and a dedicated `RAZORPAY_WEBHOOK_SECRET`.
+- `X-Razorpay-Event-Id` is persisted in `payment_webhook_events` and duplicate events are ignored.
+- `payment.captured`, `order.paid`, and `payment.failed` are handled.
+- Gateway payment IDs are stored uniquely to prevent the same gateway payment from being attached twice.
+
+### Razorpay Test-Mode Verification Checklist
+
+1. Generate separate Test Mode API keys and configure:
+   - `RAZORPAY_KEY_ID`
+   - `RAZORPAY_KEY_SECRET`
+   - `RAZORPAY_WEBHOOK_SECRET`
+2. Configure a public HTTPS Test Mode webhook endpoint:
+   - `POST /api/webhooks/razorpay`
+3. Subscribe to at least:
+   - `payment.captured`
+   - `payment.failed`
+   - `order.paid`
+4. Scan the public takeaway QR.
+5. Create a takeaway cart.
+6. Continue to payment.
+7. Complete a Razorpay Test Mode payment.
+8. Verify the customer order remains blocked from kitchen release until the server verifies capture.
+9. Verify the payment row changes from `PENDING` to `SUCCESS`.
+10. Verify the kitchen ticket changes from `PENDING_PAYMENT` to `FIRED` exactly once.
+11. Verify inventory is deducted exactly once.
+12. Replay the same webhook event ID and verify no second payment transition, ticket release, or inventory deduction occurs.
+13. Send an invalid signature and verify HTTP 400 and no database mutation.
+14. Send a valid captured event with the wrong amount/order ID and verify it does not release the order.
+15. Cancel/fail payment and verify the customer can retry the same pending takeaway order.
+
+### Production Gate
+
+The integration should not be considered production-ready until the Test Mode transaction and webhook replay/duplicate tests above pass. Razorpay documents that webhook delivery is at-least-once, events can arrive out of order, and signatures must be calculated from the raw body. Razorpay also recommends asynchronous webhook processing for production workloads; the current implementation performs processing synchronously and should be moved behind the existing Redis infrastructure/worker before a high-volume production launch.
+
+## Critical production hardening implementation
+
+The critical production blockers are implemented in the current codebase:
+
+- Razorpay webhook events are durably persisted, signed, idempotent, queued through Redis, and recovered after worker interruption.
+- Razorpay payment callbacks validate gateway order id, captured status, INR currency, and exact server-calculated amount.
+- Customer order/payment reads are tenant + branch + session scoped; payment verification uses the route order id rather than trusting a body order id.
+- Customer submissions carry a request id to prevent duplicate kitchen rounds for the same submission.
+- One active customer tab per session is enforced by a partial unique database index.
+- Customer ordering resolves current server pricing, tax, modifiers and availability and performs a last-second inventory check.
+- Public takeaway orders do not emit a kitchen-created event until payment is verified.
+- Failed takeaway payment can be retried through a server-created Razorpay payment attempt without creating another order.
+- Migration chain is sequential through migration 0030 and webhook retry metadata is included in the database.

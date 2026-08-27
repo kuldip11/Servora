@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronRight, ReceiptText, Search, ShoppingBag, Sparkles, Utensils } from "lucide-react";
 import { Button, Card, EmptyState, IconButton, SearchInput, Skeleton, ThemeSwitcher } from "@pos/ui";
-import { createCustomerOrder, createCustomerRequest, createCustomerSession, getCustomerMenu, getCustomerOrder, verifyTakeawayPayment, type CustomerMenu, type CustomerMenuItem, type CustomerOrder, type CustomerRequestType } from "./api";
+import { createCustomerOrder, createCustomerRequest, createCustomerSession, getCustomerMenu, getCustomerOrder, verifyTakeawayPayment, initiateTakeawayPayment, type CustomerMenu, type CustomerMenuItem, type CustomerOrder, type CustomerRequestType } from "./api";
 import { menu as fixtureMenu, restaurant as fixtureRestaurant, categories as fixtureCategories, type CustomerMenuItem as FixtureItem } from "./dev/fixtures/data";
 import { CartView } from "./features/cart/CartView";
 import { getCartLineKey, getCartSummary, type CartLine, type SelectedOption } from "./features/cart/pricing";
@@ -293,7 +293,8 @@ export function CustomerApp() {
     const key = import.meta.env.VITE_RAZORPAY_KEY_ID;
     if (!key) throw new Error("Online takeaway payment is not configured");
     const pending = order.payments.find((payment) => payment.method === "RAZORPAY" && payment.status === "PENDING");
-    if (!pending || !pending.reference) throw new Error("Unable to initialize takeaway payment");
+    const payment = pending?.reference ? pending : await initiateTakeawayPayment(session!.token, order.id);
+    if (!payment.reference) throw new Error("Unable to initialize takeaway payment");
     const scriptId = "razorpay-checkout";
     if (!document.getElementById(scriptId)) {
       await new Promise<void>((resolve, reject) => { const script = document.createElement("script"); script.id = scriptId; script.src = "https://checkout.razorpay.com/v1/checkout.js"; script.onload = () => resolve(); script.onerror = () => reject(new Error("Unable to load payment checkout")); document.head.appendChild(script); });
@@ -301,7 +302,7 @@ export function CustomerApp() {
     const Razorpay = (window as unknown as { Razorpay?: new (options: Record<string, unknown>) => { open: () => void } }).Razorpay;
     if (!Razorpay) throw new Error("Payment checkout is unavailable");
     await new Promise<void>((resolve, reject) => {
-      const checkout = new Razorpay({ key, amount: Number(pending.amount) * 100, currency: "INR", name: session?.restaurant ?? "Restaurant", description: `Takeaway order ${order.id.slice(0, 8)}`, order_id: pending.reference, handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
+      const checkout = new Razorpay({ key, amount: Number(payment.amount) * 100, currency: "INR", name: session?.restaurant ?? "Restaurant", description: `Takeaway order ${order.id.slice(0, 8)}`, order_id: payment.reference, handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
         try { const verified = await verifyTakeawayPayment(session!.token, { orderId: order.id, razorpayOrderId: response.razorpay_order_id, razorpayPaymentId: response.razorpay_payment_id, razorpaySignature: response.razorpay_signature }); setPlacedOrder(verified); resolve(); } catch (error) { reject(error); }
       }, modal: { ondismiss: () => reject(new Error("Payment was cancelled")) }, theme: { color: "#111827" }, });
       checkout.open();

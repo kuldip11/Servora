@@ -31,6 +31,7 @@ export const orderRepository = {
     taxAmount: number;
     totalAmount: number;
     initialTicketStatus?: "PENDING_PAYMENT" | "FIRED";
+    customerRequestId?: string | null;
   }) {
     return db.transaction(async (tx) => {
       const [order] = await tx
@@ -63,6 +64,7 @@ export const orderRepository = {
             ticketNumber: 1,
             notes: data.notes,
             status: data.initialTicketStatus ?? "FIRED",
+            customerRequestId: data.customerRequestId ?? null,
           }) as typeof kitchenTickets.$inferInsert,
         )
         .returning();
@@ -209,8 +211,15 @@ export const orderRepository = {
     extraSubtotal: number,
     extraTax: number,
     notes?: string | undefined,
+    customerRequestId?: string | null,
   ) {
     return db.transaction(async (tx) => {
+      if (customerRequestId) {
+        const existingTicket = await tx.query.kitchenTickets.findFirst({
+          where: and(eq(kitchenTickets.orderId, orderId), eq(kitchenTickets.customerRequestId, customerRequestId)),
+        });
+        if (existingTicket) return existingTicket;
+      }
       const [{ maxTicket } = { maxTicket: 0 }] = await tx
         .select({
           maxTicket: sql<number>`coalesce(max(${kitchenTickets.ticketNumber}), 0)`,
@@ -227,6 +236,7 @@ export const orderRepository = {
             orderId,
             ticketNumber: (maxTicket ?? 0) + 1,
             notes,
+            customerRequestId: customerRequestId ?? null,
           }) as typeof kitchenTickets.$inferInsert,
         )
         .returning();

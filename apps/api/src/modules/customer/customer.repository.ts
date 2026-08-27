@@ -1,6 +1,6 @@
 import { and, eq, isNull, or, notInArray } from "drizzle-orm";
 import { db } from "../../db";
-import { branches, customerSessions, menuCategories, menuItems, restaurantTables, orders } from "../../db/schema";
+import { branches, customerSessions, menuCategories, menuItems, restaurantTables, orders, kitchenTickets } from "../../db/schema";
 
 export const customerRepository = {
   async findBranchByTakeawayQrToken(token: string) {
@@ -13,6 +13,13 @@ export const customerRepository = {
     return db.query.restaurantTables.findFirst({
       where: and(eq(restaurantTables.publicQrToken, token), eq(restaurantTables.isActive, true)),
       with: { branch: true },
+    });
+  },
+
+  async findCustomerRequestTicket(orderId: string, customerRequestId: string) {
+    return db.query.kitchenTickets.findFirst({
+      where: and(eq(kitchenTickets.orderId, orderId), eq(kitchenTickets.customerRequestId, customerRequestId)),
+      columns: { id: true },
     });
   },
 

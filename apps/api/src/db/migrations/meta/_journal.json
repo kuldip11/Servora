@@ -190,6 +190,34 @@
       "when": 1786109000026,
       "tag": "0026_order_item_fulfillment",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1786109000027,
+      "tag": "0027_payment_webhook_hardening",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1786109000028,
+      "tag": "0028_customer_order_idempotency",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1786109000029,
+      "tag": "0029_payment_webhook_retry_metadata",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1786109000030,
+      "tag": "0030_customer_order_request_idempotency",
+      "breakpoints": true
     }
   ]
 }

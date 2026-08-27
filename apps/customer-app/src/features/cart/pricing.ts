@@ -66,7 +66,7 @@ export function getItemCount(cart: CartLine[]) {
   return getCartSummary(cart).itemCount;
 }
 
-export function getCartLineKey(line: Pick<CartLine, "item" | "variantId" | "selectedOptions">) {
+export function getCartLineKey(line: Pick<CartLine, "item" | "variantId" | "selectedOptions" | "fulfillmentType">) {
   return JSON.stringify({
     itemId: line.item.id,
     variantId: line.variantId ?? null,

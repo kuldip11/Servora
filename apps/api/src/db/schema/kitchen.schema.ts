@@ -8,6 +8,7 @@ import {
   timestamp,
   pgEnum,
   index,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { tenants } from "./tenant.schema";
 import { branches } from "./branch.schema";
@@ -48,6 +49,7 @@ export const kitchenTickets = pgTable(
     // Notes scoped to just this round (e.g. "no onions on this batch"),
     // instead of one note blob shared across every round on the order.
     notes: text("notes"),
+    customerRequestId: varchar("customer_request_id", { length: 128 }),
     firedAt: timestamp("fired_at").notNull().defaultNow(),
     readyAt: timestamp("ready_at"),
     servedAt: timestamp("served_at"),
@@ -61,6 +63,7 @@ export const kitchenTickets = pgTable(
     ),
     statusIdx: index("kitchen_tickets_status_idx").on(t.status),
     orderIdx: index("kitchen_tickets_order_idx").on(t.orderId),
+    customerRequestUnique: uniqueIndex("kitchen_tickets_customer_request_unique").on(t.orderId, t.customerRequestId),
   }),
 );
 

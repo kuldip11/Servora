@@ -14,6 +14,7 @@ const activeStatuses = ["OPEN", "ACKNOWLEDGED"] as const;
 export const customerRequestService = {
   async create(token: string, input: { type: CustomerRequestType; note?: string; orderId?: string }) {
     const session = await customerService.getSession(token);
+    if (!session.tableId) throw new ValidationError("Customer requests are only available for dine-in sessions");
     if (input.orderId) {
       const order = await db.query.orders.findFirst({
         where: and(

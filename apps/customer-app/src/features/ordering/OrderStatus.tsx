@@ -17,6 +17,7 @@ function orderStatusLabel(status: string) {
   if (status === "PAID") return "Paid";
   if (status === "CLOSED") return "Completed";
   if (status === "CANCELLED") return "Cancelled";
+  if (status === "PENDING_PAYMENT") return "Payment required";
   return "Open";
 }
 
@@ -47,7 +48,8 @@ export function OrderStatus({
 }) {
   const latestTicket = order.kitchenTickets.at(-1);
   const latestStatus = latestTicket?.status ?? "FIRED";
-  const activeStep = Math.max(0, ticketSteps.indexOf(latestStatus));
+  const displayStatus = latestStatus === "PENDING_PAYMENT" ? "FIRED" : latestStatus;
+  const activeStep = Math.max(0, ticketSteps.indexOf(displayStatus));
   const terminal = order.status === "PAID" || order.status === "CLOSED" || order.status === "CANCELLED";
 
   return (
@@ -94,8 +96,18 @@ export function OrderStatus({
             <h2 className="font-semibold">Items</h2>
             <span className="text-sm text-text-secondary">{formatMoney(Number(order.totalAmount))}</span>
           </div>
-          <div className="mt-4 divide-y divide-border">
-            {order.items?.map((item) => (
+          <div className="mt-4 space-y-4">
+            {(["DINE_IN", "TAKEAWAY"] as const).map((fulfillmentType) => {
+              const items = order.items?.filter((item) => item.fulfillmentType === fulfillmentType) ?? [];
+              if (!items.length) return null;
+              return (
+                <div key={fulfillmentType}>
+                  <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-text-secondary">
+                    <span>{fulfillmentType === "DINE_IN" ? "Eat here" : "Takeaway"}</span>
+                    <span className="h-px flex-1 bg-border" />
+                  </div>
+                  <div className="divide-y divide-border">
+            {items.map((item) => (
               <div key={item.id} className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0">
                 <div className="min-w-0">
                   <p className="font-medium">{item.quantity} × {item.menuItemName}</p>
@@ -106,6 +118,10 @@ export function OrderStatus({
                 <span className="shrink-0 text-sm font-medium">{formatMoney(Number(item.subtotal))}</span>
               </div>
             ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
           <div className="mt-4 border-t border-border pt-4 text-sm">
             <div className="flex justify-between"><span className="text-text-secondary">Subtotal</span><span>{formatMoney(Number(order.subtotal))}</span></div>

@@ -1,3 +1,5 @@
+// @vitest-environment jsdom
+
 import { beforeEach, describe, expect, it } from "vitest";
 import { clearPersistedCart, getCustomerStorageScope, loadPersistedCart, restoreCart, savePersistedCart } from "./persistence";
 import type { CartLine } from "./pricing";

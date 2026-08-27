@@ -28,6 +28,8 @@ import { analyticsRouter } from "./modules/analytics/analytics.route";
 import { realtimeRouter, customerRealtimeRouter } from "./modules/realtime/gateway";
 import { customerRouter } from "./modules/customer/customer.route";
 import { customerRequestRouter } from "./modules/customer/customer-requests.route";
+import { razorpayWebhookRouter } from "./modules/billing/razorpay-webhook.route";
+import { startRazorpayWebhookWorker } from "./modules/billing/razorpay-webhook.worker";
 
 const corsOrigins = (
   process.env["CORS_ORIGIN"] ?? "http://localhost:5173,http://localhost:5176"
@@ -99,6 +101,7 @@ const app = new Elysia()
   .use(analyticsRouter)
   .use(customerRouter)
   .use(customerRequestRouter)
+  .use(razorpayWebhookRouter)
   .use(realtimeRouter)
   .use(customerRealtimeRouter)
   // Global error handler
@@ -163,9 +166,14 @@ const app = new Elysia()
 
 const port = parseInt(process.env["PORT"] ?? "3000");
 
+const stopRazorpayWebhookWorker = startRazorpayWebhookWorker();
+
 app.listen(port, () => {
   console.log(`🚀 API running at http://localhost:${port}`);
   console.log(`📖 Swagger docs at http://localhost:${port}/swagger`);
 });
+
+process.on("SIGINT", stopRazorpayWebhookWorker);
+process.on("SIGTERM", stopRazorpayWebhookWorker);
 
 export type App = typeof app;

@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "payment:test:verify": "bun run --env-file=.env scripts/verify-razorpay-test.ts"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.0.2",
