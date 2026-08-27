@@ -41,3 +41,7 @@ export const REDIS_CHANNELS = {
   INVENTORY_EVENTS: "pos:inventory_events",
   TABLE_EVENTS: "pos:table_events",
 } as const;
+
+export const REDIS_QUEUES = {
+  RAZORPAY_WEBHOOKS: "pos:queue:razorpay_webhooks",
+} as const;

@@ -54,6 +54,8 @@ export const payments = pgTable(
     status: paymentStatusEnum("status").notNull().default("PENDING"),
     amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
     reference: varchar("reference", { length: 255 }),
+    gatewayOrderId: varchar("gateway_order_id", { length: 255 }),
+    gatewayPaymentId: varchar("gateway_payment_id", { length: 255 }),
     metadata: text("metadata").default("{}"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),

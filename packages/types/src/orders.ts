@@ -3,9 +3,10 @@ import { RestaurantTable } from "./common";
 export type OrderStatus =
   "OPEN" | "BILL_REQUESTED" | "PAID" | "CLOSED" | "CANCELLED";
 
-export type KitchenTicketStatus = "FIRED" | "PREPARING" | "READY" | "SERVED";
+export type KitchenTicketStatus = "PENDING_PAYMENT" | "FIRED" | "PREPARING" | "READY" | "SERVED";
 
 export type OrderType = "DINE_IN" | "TAKEAWAY" | "DELIVERY" | "ONLINE";
+export type OrderItemFulfillmentType = "DINE_IN" | "TAKEAWAY";
 
 export interface Order {
   id: string;
@@ -56,6 +57,7 @@ export interface OrderItem {
   unitPrice: number;
   subtotal: number;
   chefNotes: string | null;
+  fulfillmentType: OrderItemFulfillmentType;
   modifiers: OrderItemModifier[];
   createdAt?: string;
 }

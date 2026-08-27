@@ -12,6 +12,7 @@ import {
   Trash2,
   MapPin,
   Building2,
+  QrCode,
 } from "lucide-react";
 import {
   Button,
@@ -29,14 +30,17 @@ import {
 } from "@pos/ui";
 import { useAuthStore } from "../../../store/auth";
 import { useBranches } from "../../branches/hooks/useBranches";
+import { apiClient } from "../../../shared/lib/api-client";
 import { useTables } from "../hooks/useTables";
 import { useTablesRealtimeSync } from "../hooks/useTablesRealtimeSync";
 import { useCreateTable } from "../hooks/useCreateTable";
 import { useUpdateTable } from "../hooks/useUpdateTable";
 import { useUpdateTableStatus } from "../hooks/useUpdateTableStatus";
 import { useDeleteTable } from "../hooks/useDeleteTable";
+import { useRegenerateTableQr } from "../hooks/useRegenerateTableQr";
 import { TableFormModal } from "../components/TableFormModal";
 import type { RestaurantTable } from "../types";
+import { QRCodeSVG } from "qrcode.react";
 
 const STATUS_OPTIONS = [
   { value: "AVAILABLE", label: "Available" },
@@ -75,6 +79,10 @@ export function TablesPage() {
 
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<RestaurantTable | null>(null);
+  const [qrTable, setQrTable] = useState<RestaurantTable | null>(null);
+  const [takeawayQrOpen, setTakeawayQrOpen] = useState(false);
+  const [takeawayQr, setTakeawayQr] = useState<{ branchId: string; branchName: string; enabled: boolean; token: string } | null>(null);
+  const [takeawayQrBusy, setTakeawayQrBusy] = useState(false);
 
   const {
     register,
@@ -95,6 +103,34 @@ export function TablesPage() {
   const updateMutation = useUpdateTable();
   const statusMutation = useUpdateTableStatus();
   const deleteMutation = useDeleteTable();
+  const regenerateQrMutation = useRegenerateTableQr();
+
+  async function openTakeawayQr() {
+    if (!branchId || branchId === "all") return;
+    try {
+      setTakeawayQrBusy(true);
+      const res = await apiClient.get(`/branches/${branchId}/takeaway-qr`);
+      setTakeawayQr(res.data.data);
+      setTakeawayQrOpen(true);
+    } catch (error) {
+      console.error("Unable to load takeaway QR", error);
+    } finally {
+      setTakeawayQrBusy(false);
+    }
+  }
+
+  async function regenerateTakeawayQr() {
+    if (!branchId || branchId === "all") return;
+    try {
+      setTakeawayQrBusy(true);
+      const res = await apiClient.post(`/branches/${branchId}/takeaway-qr/regenerate`);
+      setTakeawayQr(res.data.data);
+    } catch (error) {
+      console.error("Unable to regenerate takeaway QR", error);
+    } finally {
+      setTakeawayQrBusy(false);
+    }
+  }
 
   function openAdd() {
     reset(emptyForm);
@@ -136,12 +172,20 @@ export function TablesPage() {
         title="Tables"
         description={`${tables?.length ?? 0} tables`}
         actions={
-          has("tables:create") && (
-            <Button onClick={openAdd}>
-              <Plus className="w-4 h-4" />
-              Add Table
-            </Button>
-          )
+          <>
+            {!isAggregate && (
+              <Button variant="secondary" onClick={() => void openTakeawayQr()} disabled={takeawayQrBusy}>
+                <QrCode className="w-4 h-4" />
+                Takeaway QR
+              </Button>
+            )}
+            {has("tables:create") && (
+              <Button onClick={openAdd}>
+                <Plus className="w-4 h-4" />
+                Add Table
+              </Button>
+            )}
+          </>
         }
       />
 
@@ -191,6 +235,7 @@ export function TablesPage() {
               onStatusChange={(id, status) =>
                 statusMutation.mutate({ id, status })
               }
+              onShowQr={setQrTable}
             />
           </div>
         ))
@@ -202,6 +247,7 @@ export function TablesPage() {
             if (confirm(`Remove table "${name}"?`)) deleteMutation.mutate(id);
           }}
           onStatusChange={(id, status) => statusMutation.mutate({ id, status })}
+          onShowQr={setQrTable}
         />
       )}
 
@@ -251,6 +297,21 @@ export function TablesPage() {
           );
         }}
       />
+
+      <TakeawayQrModal data={takeawayQr} open={takeawayQrOpen} onClose={() => setTakeawayQrOpen(false)} onRegenerate={() => void regenerateTakeawayQr()} busy={takeawayQrBusy} />
+
+      <TableQrModal
+        table={qrTable}
+        open={!!qrTable}
+        onClose={() => setQrTable(null)}
+        onRegenerate={() => {
+          if (!qrTable) return;
+          regenerateQrMutation.mutate(qrTable.id, {
+            onSuccess: (updated) => setQrTable(updated),
+          });
+        }}
+        regenerating={regenerateQrMutation.isPending}
+      />
     </Page>
   );
 }
@@ -260,11 +321,13 @@ function TableGrid({
   onEdit,
   onDelete,
   onStatusChange,
+  onShowQr,
 }: {
   tables: RestaurantTable[];
   onEdit: (table: RestaurantTable) => void;
   onDelete: (id: string, name: string) => void;
   onStatusChange: (id: string, status: string) => void;
+  onShowQr: (table: RestaurantTable) => void;
 }) {
   return (
     <Grid columns={{ base: 2, sm: 3, lg: 4 }} gap="md">
@@ -292,6 +355,13 @@ function TableGrid({
               </div>
             </div>
             <div className="flex items-center gap-0.5">
+              <IconButton
+                icon={QrCode}
+                size="sm"
+                aria-label="Show table QR code"
+                title="Show table QR code"
+                onClick={() => onShowQr(table)}
+              />
               <IconButton
                 icon={Edit2}
                 size="sm"
@@ -339,5 +409,105 @@ function TableGrid({
         </Card>
       ))}
     </Grid>
+  );
+}
+
+
+function TakeawayQrModal({
+  data,
+  open,
+  onClose,
+  onRegenerate,
+  busy,
+}: {
+  data: { branchId: string; branchName: string; enabled: boolean; token: string } | null;
+  open: boolean;
+  onClose: () => void;
+  onRegenerate: () => void;
+  busy: boolean;
+}) {
+  if (!data) return null;
+  const customerAppUrl = import.meta.env["VITE_CUSTOMER_APP_URL"] ?? `${window.location.protocol}//${window.location.hostname}:5176`;
+  const url = `${customerAppUrl.replace(/\/$/, "")}/?qr=${encodeURIComponent(data.token)}`;
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={`${data.branchName} — Takeaway QR`}
+      size="sm"
+      description="A public ordering QR for takeaway customers. It is not linked to a physical table."
+      footer={
+        <>
+          <Button variant="secondary" onClick={onRegenerate} disabled={busy}>
+            {busy ? "Updating…" : "Regenerate"}
+          </Button>
+          <Button onClick={() => window.print()} disabled={!data.enabled}>Print QR</Button>
+        </>
+      }
+    >
+      {!data.enabled ? (
+        <div className="rounded-lg border border-warning bg-warning-surface p-4 text-sm text-warning">Takeaway ordering is disabled for this branch. Enable Takeaway in branch settings before publishing this QR.</div>
+      ) : (
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="rounded-2xl border border-border bg-white p-5 shadow-sm print:shadow-none"><QRCodeSVG value={url} size={240} level="M" includeMargin /></div>
+          <div><p className="font-semibold text-text-primary">Scan to order takeaway</p><p className="mt-1 text-xs text-text-secondary">Customers can order without selecting a table.</p></div>
+          <div className="w-full rounded-lg bg-surface-secondary p-3 text-left"><p className="text-[11px] font-medium uppercase tracking-wide text-text-disabled">Customer URL</p><p className="mt-1 break-all text-xs text-text-secondary">{url}</p></div>
+        </div>
+      )}
+    </Modal>
+  );
+}
+
+function TableQrModal({
+  table,
+  open,
+  onClose,
+  onRegenerate,
+  regenerating,
+}: {
+  table: RestaurantTable | null;
+  open: boolean;
+  onClose: () => void;
+  onRegenerate: () => void;
+  regenerating: boolean;
+}) {
+  if (!table) return null;
+  const customerAppUrl =
+    import.meta.env["VITE_CUSTOMER_APP_URL"] ??
+    `${window.location.protocol}//${window.location.hostname}:5176`;
+  const url = `${customerAppUrl.replace(/\/$/, "")}/?qr=${encodeURIComponent(table.publicQrToken)}`;
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={`${table.name} — Customer QR`}
+      size="sm"
+      description="Scan this QR code to open the Servora customer self-ordering menu for this table."
+      footer={
+        <>
+          <Button variant="secondary" onClick={onRegenerate} disabled={regenerating}>
+            {regenerating ? "Regenerating…" : "Regenerate"}
+          </Button>
+          <Button onClick={() => window.print()}>Print QR</Button>
+        </>
+      }
+    >
+      <div className="flex flex-col items-center gap-4 text-center">
+        <div className="rounded-2xl border border-border bg-white p-5 shadow-sm print:shadow-none">
+          <QRCodeSVG value={url} size={240} level="M" includeMargin />
+        </div>
+        <div>
+          <p className="font-semibold text-text-primary">Scan to order from your table</p>
+          <p className="mt-1 text-xs text-text-secondary">
+            {table.section ? `${table.section} · ` : ""}{table.name} · {table.capacity} seats
+          </p>
+        </div>
+        <div className="w-full rounded-lg bg-surface-secondary p-3 text-left">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-text-disabled">Customer URL</p>
+          <p className="mt-1 break-all text-xs text-text-secondary">{url}</p>
+        </div>
+      </div>
+    </Modal>
   );
 }

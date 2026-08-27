@@ -19,6 +19,7 @@ export const ticket: KitchenTicket = {
       unitPrice: 100,
       subtotal: 200,
       chefNotes: "Extra hot",
+      fulfillmentType: "DINE_IN",
       modifiers: [
         {
           modifierId: "mod1",

@@ -7,6 +7,7 @@ export interface RestaurantTable {
   section: string | null;
   status: TableStatus;
   isActive: boolean;
+  publicQrToken: string;
   branch?: { id: string; name: string };
 }
 

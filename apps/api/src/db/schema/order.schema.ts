@@ -11,6 +11,7 @@ import { tenants } from "./tenant.schema";
 import { branches } from "./branch.schema";
 import { users } from "./auth.schema";
 import { restaurantTables } from "./restaurant-table.schema";
+import { customerSessions } from "./customer-session.schema";
 
 // A tab's lifecycle — billing state only. Kitchen prep state now lives on
 // kitchen_tickets (see below), not here.
@@ -20,6 +21,11 @@ export const orderStatusEnum = pgEnum("order_status", [
   "PAID",
   "CLOSED",
   "CANCELLED",
+]);
+
+export const orderSourceEnum = pgEnum("order_source", [
+  "STAFF",
+  "CUSTOMER_QR",
 ]);
 
 export const orderTypeEnum = pgEnum("order_type", [
@@ -43,9 +49,9 @@ export const orders = pgTable(
       .references(() => branches.id, { onDelete: "cascade" }),
     tableId: uuid("table_id").references(() => restaurantTables.id),
     customerId: uuid("customer_id"),
-    createdBy: uuid("created_by")
-      .notNull()
-      .references(() => users.id),
+    createdBy: uuid("created_by").references(() => users.id),
+    source: orderSourceEnum("source").notNull().default("STAFF"),
+    customerSessionId: uuid("customer_session_id").references(() => customerSessions.id),
     status: orderStatusEnum("status").notNull().default("OPEN"),
     type: orderTypeEnum("type").notNull(),
     subtotal: numeric("subtotal", { precision: 10, scale: 2 })

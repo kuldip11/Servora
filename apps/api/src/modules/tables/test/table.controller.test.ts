@@ -1,13 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-const { list, create, update, updateStatus, remove } = vi.hoisted(() => ({
+const { list, create, update, updateStatus, remove, regenerateQr } = vi.hoisted(() => ({
   list: vi.fn(),
   create: vi.fn(),
   update: vi.fn(),
   updateStatus: vi.fn(),
   remove: vi.fn(),
+  regenerateQr: vi.fn(),
 }));
 vi.mock("../table.service", () => ({
-  tableService: { list, create, update, updateStatus, remove },
+  tableService: { list, create, update, updateStatus, remove, regenerateQr },
 }));
 import { tableController } from "../table.controller";
 const auth: any = { tenantId: "t1", branchId: "b1" };
@@ -35,6 +36,15 @@ describe("table controller", () => {
     expect(create).toHaveBeenCalledWith(auth, { name: "A" });
     expect(update).toHaveBeenCalledWith(auth, "t1", { name: "A" });
   });
+  it("regenerates a table QR token", async () => {
+    regenerateQr.mockResolvedValue({ id: "t1", publicQrToken: "new-token" });
+    expect(await tableController.regenerateQr(auth, "t1")).toEqual({
+      success: true,
+      data: { id: "t1", publicQrToken: "new-token" },
+    });
+    expect(regenerateQr).toHaveBeenCalledWith(auth, "t1");
+  });
+
   it("delegates status changes and removal", async () => {
     updateStatus.mockResolvedValue({ id: "t1", status: "OCCUPIED" });
     remove.mockResolvedValue(undefined);

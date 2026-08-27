@@ -2,7 +2,7 @@
  * Branch repository — data access only. No business rules (see
  * `branch.service.ts` for capability/open-order/last-branch checks).
  */
-import { eq, and, notInArray, inArray } from "drizzle-orm";
+import { eq, and, notInArray, inArray, sql } from "drizzle-orm";
 import type { OrderType } from "@pos/types";
 import { db } from "../../db";
 import { branches, orders } from "../../db/schema";
@@ -82,6 +82,15 @@ export const branchRepository = {
       )
       .returning();
     return branch!;
+  },
+
+  async regenerateTakeawayQr(tenantId: string, id: string) {
+    const [regenerated] = await db
+      .update(branches)
+      .set({ publicTakeawayQrToken: sql`gen_random_uuid()`, updatedAt: new Date() })
+      .where(and(eq(branches.id, id), eq(branches.tenantId, tenantId)))
+      .returning();
+    return regenerated;
   },
 
   async update(

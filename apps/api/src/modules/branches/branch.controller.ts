@@ -31,6 +31,14 @@ export const branchController = {
     return successResponse(updated);
   },
 
+  async getTakeawayQr(auth: AuthContext, branchId: string) {
+    return successResponse(await branchService.getTakeawayQr(auth, branchId));
+  },
+
+  async regenerateTakeawayQr(auth: AuthContext, branchId: string) {
+    return successResponse(await branchService.regenerateTakeawayQr(auth, branchId));
+  },
+
   async deactivate(auth: AuthContext, branchId: string) {
     await branchService.deactivate(auth, branchId);
     return successResponse(null);

@@ -20,7 +20,7 @@ export type RealtimeEvent =
     }
   | {
       type: "kitchen.ticket.updated";
-      payload: KitchenTicket;
+      payload: KitchenTicket & { customerSessionId?: string };
     }
   | {
       type: "inventory.low_stock";
@@ -29,4 +29,19 @@ export type RealtimeEvent =
   | {
       type: "table.updated";
       payload: RestaurantTable;
+    }
+  | {
+      type: "customer.request.created";
+      payload: CustomerRequest;
+    }
+  | {
+      type: "customer.request.updated";
+      payload: CustomerRequest;
     };
+
+export type CustomerRequestType = "CALL_WAITER" | "WATER" | "CUTLERY" | "BILL" | "ASSISTANCE";
+export type CustomerRequestStatus = "OPEN" | "ACKNOWLEDGED" | "RESOLVED" | "CANCELLED";
+export interface CustomerRequest {
+  id: string; tenantId: string; branchId: string; tableId: string; customerSessionId: string; orderId: string | null;
+  type: CustomerRequestType; status: CustomerRequestStatus; note: string | null; createdAt: string; updatedAt: string;
+}

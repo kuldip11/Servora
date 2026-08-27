@@ -53,6 +53,8 @@ describe("branch routes", () => {
     expect(routes).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ method: "GET", path: "/api/branches/" }),
+        expect.objectContaining({ method: "GET", path: "/api/branches/:id/takeaway-qr" }),
+        expect.objectContaining({ method: "POST", path: "/api/branches/:id/takeaway-qr/regenerate" }),
         expect.objectContaining({ method: "POST", path: "/api/branches/" }),
         expect.objectContaining({ method: "PATCH", path: "/api/branches/:id" }),
         expect.objectContaining({

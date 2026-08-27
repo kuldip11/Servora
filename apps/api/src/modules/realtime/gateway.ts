@@ -7,6 +7,27 @@ import {
   resolveMembership,
 } from "../../lib/authorization/authorization";
 import { shouldDeliverRealtimeEvent } from "./delivery-scope";
+import { customerService } from "../customer/customer.service";
+
+
+const customerClients = new Map<string, Set<any>>();
+
+function addCustomerClient(sessionId: string, ws: any) {
+  if (!customerClients.has(sessionId)) customerClients.set(sessionId, new Set());
+  customerClients.get(sessionId)!.add(ws);
+}
+function removeCustomerClient(sessionId: string, ws: any) {
+  const set = customerClients.get(sessionId);
+  if (!set) return;
+  set.delete(ws);
+  if (set.size === 0) customerClients.delete(sessionId);
+}
+
+function customerSessionIdFromEvent(event: any): string | undefined {
+  if (event.type === "customer.request.created" || event.type === "customer.request.updated") return event.payload?.customerSessionId;
+  if (event.type === "order.created" || event.type === "order.updated") return event.payload?.customerSessionId ?? event.payload?.customerSession?.id;
+  return undefined;
+}
 
 // Connected clients are grouped by tenant. Each socket also carries its
 // authorized branch scope so tenant-wide events never leak into a branch-only
@@ -89,6 +110,15 @@ async function startRedisSubscription() {
         tenantId: string;
         branchId?: string | null;
       };
+      const sessionId = customerSessionIdFromEvent(event);
+      if (sessionId) {
+        const sessionClients = customerClients.get(sessionId);
+        if (sessionClients) {
+          for (const ws of sessionClients) {
+            try { ws.send(message); } catch { removeCustomerClient(sessionId, ws); }
+          }
+        }
+      }
       const tenantClients = clients.get(event.tenantId);
       if (!tenantClients) return;
       for (const ws of tenantClients) {
@@ -148,4 +178,23 @@ export const realtimeRouter = new Elysia({ prefix: "/ws" }).ws("/events", {
     const tenantId = (ws as any).__tenantId as string | undefined;
     if (tenantId) removeClient(tenantId, ws);
   },
+});
+
+
+export const customerRealtimeRouter = new Elysia({ prefix: "/ws/customer" }).ws("/events", {
+  async open(ws) {
+    const token = String(ws.data.query["session"] ?? "");
+    if (!token) { ws.send(JSON.stringify({ type: "error", code: "CUSTOMER_SESSION_REQUIRED" })); ws.close(); return; }
+    try {
+      const session = await customerService.getSession(token);
+      (ws as any).__customerSessionId = session.id;
+      addCustomerClient(session.id, ws);
+      ws.send(JSON.stringify({ type: "connected", sessionId: session.id }));
+    } catch {
+      ws.send(JSON.stringify({ type: "error", code: "CUSTOMER_SESSION_INVALID" }));
+      ws.close();
+    }
+  },
+  message(ws, message) { if (message === "ping") ws.send("pong"); },
+  close(ws) { const id = (ws as any).__customerSessionId as string | undefined; if (id) removeCustomerClient(id, ws); },
 });

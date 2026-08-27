@@ -21,13 +21,17 @@ export const orderRepository = {
     tenantId: string;
     branchId: string;
     tableId?: string | undefined;
-    createdBy: string;
+    createdBy?: string | null;
+    source?: "STAFF" | "CUSTOMER_QR";
+    customerSessionId?: string | null;
     type: OrderType;
     notes?: string | undefined;
     items: ResolvedOrderItem[];
     subtotal: number;
     taxAmount: number;
     totalAmount: number;
+    initialTicketStatus?: "PENDING_PAYMENT" | "FIRED";
+    customerRequestId?: string | null;
   }) {
     return db.transaction(async (tx) => {
       const [order] = await tx
@@ -37,7 +41,9 @@ export const orderRepository = {
             tenantId: data.tenantId,
             branchId: data.branchId,
             tableId: data.tableId,
-            createdBy: data.createdBy,
+            createdBy: data.createdBy ?? null,
+            source: data.source ?? "STAFF",
+            customerSessionId: data.customerSessionId ?? null,
             type: data.type,
             notes: data.notes,
             subtotal: data.subtotal.toFixed(2),
@@ -57,6 +63,8 @@ export const orderRepository = {
             orderId: order!.id,
             ticketNumber: 1,
             notes: data.notes,
+            status: data.initialTicketStatus ?? "FIRED",
+            customerRequestId: data.customerRequestId ?? null,
           }) as typeof kitchenTickets.$inferInsert,
         )
         .returning();
@@ -76,6 +84,7 @@ export const orderRepository = {
               unitPrice: item.unitPrice.toFixed(2),
               subtotal: item.subtotal.toFixed(2),
               chefNotes: item.chefNotes,
+              fulfillmentType: item.fulfillmentType,
             }),
           ) as (typeof orderItems.$inferInsert)[],
         )
@@ -99,7 +108,7 @@ export const orderRepository = {
       await tx.insert(orderStatusHistory).values({
         orderId: order!.id,
         newStatus: "OPEN",
-        changedBy: data.createdBy,
+        changedBy: data.createdBy ?? null,
       });
 
       return order!;
@@ -202,8 +211,15 @@ export const orderRepository = {
     extraSubtotal: number,
     extraTax: number,
     notes?: string | undefined,
+    customerRequestId?: string | null,
   ) {
     return db.transaction(async (tx) => {
+      if (customerRequestId) {
+        const existingTicket = await tx.query.kitchenTickets.findFirst({
+          where: and(eq(kitchenTickets.orderId, orderId), eq(kitchenTickets.customerRequestId, customerRequestId)),
+        });
+        if (existingTicket) return existingTicket;
+      }
       const [{ maxTicket } = { maxTicket: 0 }] = await tx
         .select({
           maxTicket: sql<number>`coalesce(max(${kitchenTickets.ticketNumber}), 0)`,
@@ -220,6 +236,7 @@ export const orderRepository = {
             orderId,
             ticketNumber: (maxTicket ?? 0) + 1,
             notes,
+            customerRequestId: customerRequestId ?? null,
           }) as typeof kitchenTickets.$inferInsert,
         )
         .returning();
@@ -239,6 +256,7 @@ export const orderRepository = {
               unitPrice: item.unitPrice.toFixed(2),
               subtotal: item.subtotal.toFixed(2),
               chefNotes: item.chefNotes,
+              fulfillmentType: item.fulfillmentType,
             }),
           ) as (typeof orderItems.$inferInsert)[],
         )

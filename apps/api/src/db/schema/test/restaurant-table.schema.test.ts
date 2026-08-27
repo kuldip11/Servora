@@ -14,6 +14,7 @@ describe("restaurant-table.schema.ts", () => {
       "tenantId",
       "branchId",
       "name",
+      "publicQrToken",
       "capacity",
       "status",
       "section",

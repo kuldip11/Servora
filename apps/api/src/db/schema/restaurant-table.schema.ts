@@ -7,6 +7,7 @@ import {
   timestamp,
   pgEnum,
   index,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { tenants } from "./tenant.schema";
 import { branches } from "./branch.schema";
@@ -31,6 +32,7 @@ export const restaurantTables = pgTable(
       .notNull()
       .references(() => branches.id, { onDelete: "cascade" }),
     name: varchar("name", { length: 50 }).notNull(),
+    publicQrToken: uuid("public_qr_token").notNull().defaultRandom(),
     capacity: integer("capacity").notNull().default(4),
     status: tableStatusEnum("status").notNull().default("AVAILABLE"),
     section: varchar("section", { length: 50 }),
@@ -42,6 +44,9 @@ export const restaurantTables = pgTable(
     tenantBranchIdx: index("tables_tenant_branch_idx").on(
       t.tenantId,
       t.branchId,
+    ),
+    publicQrTokenUniq: uniqueIndex("tables_public_qr_token_uniq").on(
+      t.publicQrToken,
     ),
   }),
 );

@@ -49,6 +49,7 @@ export interface OrderItemInput {
   variantId?: string | undefined;
   quantity: number;
   chefNotes?: string | undefined;
+  fulfillmentType?: "DINE_IN" | "TAKEAWAY" | undefined;
   selectedOptions?:
     Array<{ optionId: string; quantity?: number | undefined }> | undefined;
 }
@@ -62,6 +63,7 @@ export interface ResolvedOrderItem {
   unitPrice: number;
   subtotal: number;
   chefNotes?: string | undefined;
+  fulfillmentType: "DINE_IN" | "TAKEAWAY";
   modifiers: Array<{
     modifierId: string;
     modifierGroupName: string;
@@ -201,6 +203,7 @@ export function resolveItems(
       unitPrice,
       subtotal: itemSubtotal,
       chefNotes: item.chefNotes,
+      fulfillmentType: item.fulfillmentType ?? "DINE_IN",
       modifiers,
     };
   });

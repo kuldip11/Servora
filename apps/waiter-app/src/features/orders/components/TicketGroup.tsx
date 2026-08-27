@@ -1,4 +1,4 @@
-import type { KitchenTicket } from "@pos/types";
+import type { KitchenTicket, OrderItemFulfillmentType } from "@pos/types";
 import { CheckCircle2 } from "lucide-react";
 import {
   Card,
@@ -53,38 +53,49 @@ export function TicketGroup({ ticket, onMarkServed, isUpdating }: Props) {
           📝 {ticket.notes}
         </p>
       )}
-      {ticket.items.map((item, idx) => (
-        <div
-          key={item.id}
-          className={`px-4 py-3 flex items-start gap-3 ${idx < ticket.items.length - 1 ? "border-b border-divider" : ""}`}
-        >
-          <span className="w-6 h-6 bg-primary-surface text-primary rounded-full text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
-            {item.quantity}
-          </span>
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-text-primary">
-              {item.menuItemName}
-              {item.variantName && (
-                <span className="text-text-disabled font-normal">
-                  {" "}
-                  · {item.variantName}
+      {(["DINE_IN", "TAKEAWAY"] as OrderItemFulfillmentType[]).map((fulfillmentType) => {
+        const group = ticket.items.filter(
+          (item) => (item.fulfillmentType ?? "DINE_IN") === fulfillmentType,
+        );
+        if (!group.length) return null;
+        return (
+          <div key={fulfillmentType}>
+            <div className="px-4 py-2 bg-surface-secondary border-b border-divider flex items-center gap-2">
+              <span className="text-[11px] font-bold uppercase tracking-wide text-text-secondary">
+                {fulfillmentType === "DINE_IN" ? "Dine-in" : "Takeaway"}
+              </span>
+              <span className="h-px flex-1 bg-divider" />
+            </div>
+            {group.map((item, idx) => (
+              <div
+                key={item.id}
+                className={`px-4 py-3 flex items-start gap-3 ${idx < group.length - 1 ? "border-b border-divider" : ""}`}
+              >
+                <span className="w-6 h-6 bg-primary-surface text-primary rounded-full text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
+                  {item.quantity}
                 </span>
-              )}
-            </p>
-            {item.modifiers?.map((m, i) => (
-              <p key={i} className="text-xs text-text-disabled">
-                + {m.name}
-              </p>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-text-primary">
+                    {item.menuItemName}
+                    {item.variantName && (
+                      <span className="text-text-disabled font-normal"> · {item.variantName}</span>
+                    )}
+                  </p>
+                  {item.modifiers?.map((m, i) => (
+                    <p key={i} className="text-xs text-text-disabled">+ {m.name}</p>
+                  ))}
+                  {item.chefNotes && (
+                    <p className="text-xs text-warning mt-0.5">📝 {item.chefNotes}</p>
+                  )}
+                </div>
+                <span className="text-sm font-semibold text-text-secondary">
+                  {formatCurrency(item.subtotal)}
+                </span>
+              </div>
             ))}
-            {item.chefNotes && (
-              <p className="text-xs text-warning mt-0.5">📝 {item.chefNotes}</p>
-            )}
           </div>
-          <span className="text-sm font-semibold text-text-secondary">
-            {formatCurrency(item.subtotal)}
-          </span>
-        </div>
-      ))}
+        );
+      })}
       {ticket.status === "READY" && (
         <div className="px-4 py-3 border-t border-divider">
           {/* `Button` (Phase 3), `variant="success"` — a genuine

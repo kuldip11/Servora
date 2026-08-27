@@ -8,6 +8,7 @@ import {
   timestamp,
   pgEnum,
   index,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { tenants } from "./tenant.schema";
 import { branches } from "./branch.schema";
@@ -17,6 +18,7 @@ import { menuItems, menuItemVariants, modifierOptions } from "./menu.schema";
 
 // One row per "fire to kitchen" action (a KOT/ticket). A tab can have many.
 export const kitchenTicketStatusEnum = pgEnum("kitchen_ticket_status", [
+  "PENDING_PAYMENT",
   "FIRED",
   "PREPARING",
   "READY",
@@ -47,6 +49,7 @@ export const kitchenTickets = pgTable(
     // Notes scoped to just this round (e.g. "no onions on this batch"),
     // instead of one note blob shared across every round on the order.
     notes: text("notes"),
+    customerRequestId: varchar("customer_request_id", { length: 128 }),
     firedAt: timestamp("fired_at").notNull().defaultNow(),
     readyAt: timestamp("ready_at"),
     servedAt: timestamp("served_at"),
@@ -60,8 +63,11 @@ export const kitchenTickets = pgTable(
     ),
     statusIdx: index("kitchen_tickets_status_idx").on(t.status),
     orderIdx: index("kitchen_tickets_order_idx").on(t.orderId),
+    customerRequestUnique: uniqueIndex("kitchen_tickets_customer_request_unique").on(t.orderId, t.customerRequestId),
   }),
 );
+
+export const orderItemFulfillmentTypeEnum = pgEnum("order_item_fulfillment_type", ["DINE_IN", "TAKEAWAY"]);
 
 export const orderItems = pgTable("order_items", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -84,6 +90,7 @@ export const orderItems = pgTable("order_items", {
   unitPrice: numeric("unit_price", { precision: 10, scale: 2 }).notNull(),
   subtotal: numeric("subtotal", { precision: 10, scale: 2 }).notNull(),
   chefNotes: text("chef_notes"),
+  fulfillmentType: orderItemFulfillmentTypeEnum("fulfillment_type").notNull().default("DINE_IN"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -106,9 +113,7 @@ export const orderStatusHistory = pgTable("order_status_history", {
     .references(() => orders.id, { onDelete: "cascade" }),
   oldStatus: orderStatusEnum("old_status"),
   newStatus: orderStatusEnum("new_status").notNull(),
-  changedBy: uuid("changed_by")
-    .notNull()
-    .references(() => users.id),
+  changedBy: uuid("changed_by").references(() => users.id),
   reason: text("reason"),
   changedAt: timestamp("changed_at").notNull().defaultNow(),
 });

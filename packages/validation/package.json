@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "zod": "^3.23.8",
-    "@pos/types": "*"
+    "@pos/types": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.4.5",

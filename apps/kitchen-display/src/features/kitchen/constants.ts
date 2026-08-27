@@ -35,6 +35,15 @@ import type { StatusTone } from "@pos/ui";
 // no `--info-hover`/`--warning-hover` token to reach for (only
 // `--primary-hover` exists).
 export const STATUS_CONFIG = {
+  PENDING_PAYMENT: {
+    label: "Awaiting Payment",
+    next: null,
+    nextLabel: null,
+    border: "border-warning/40",
+    badgeTone: "warning" as StatusTone,
+    badgeTextClass: "text-amber-400",
+    btn: "",
+  },
   FIRED: {
     label: "Waiting",
     next: "PREPARING",

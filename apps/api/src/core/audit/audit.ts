@@ -13,7 +13,8 @@ export type AuditAction =
   | "STAFF_REACTIVATED"
   | "STAFF_ROLE_ASSIGNED"
   | "STAFF_BRANCHES_ASSIGNED"
-  | "REFUND_CREATED";
+  | "REFUND_CREATED"
+  | "BRANCH_TAKEAWAY_QR_REGENERATED";
 
 export interface AuditInput {
   tenantId: string;

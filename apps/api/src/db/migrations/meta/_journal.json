@@ -148,6 +148,76 @@
       "when": 1786109000020,
       "tag": "0020_missing_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1786109000021,
+      "tag": "0021_customer_self_ordering",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1786109000022,
+      "tag": "0022_customer_requests",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1786109000023,
+      "tag": "0023_customer_single_tab",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1786109000024,
+      "tag": "0024_public_takeaway_qr",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1786109000025,
+      "tag": "0025_takeaway_payment_gate",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1786109000026,
+      "tag": "0026_order_item_fulfillment",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1786109000027,
+      "tag": "0027_payment_webhook_hardening",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1786109000028,
+      "tag": "0028_customer_order_idempotency",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1786109000029,
+      "tag": "0029_payment_webhook_retry_metadata",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1786109000030,
+      "tag": "0030_customer_order_request_idempotency",
+      "breakpoints": true
     }
   ]
 }

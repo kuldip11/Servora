@@ -5,6 +5,15 @@ vi.mock("elysia", () => {
     constructor(options: any = {}) {
       this.name = options.name ?? "";
     }
+    use() {
+      return this;
+    }
+    derive() {
+      return this;
+    }
+    onAfterHandle() {
+      return this;
+    }
     onBeforeHandle() {
       return this;
     }

@@ -25,10 +25,14 @@ import { inventoryRouter } from "./modules/inventory/inventory.route";
 import { billingRouter } from "./modules/billing/billing.route";
 import { staffRouter, rolesRouter } from "./modules/staff/staff.route";
 import { analyticsRouter } from "./modules/analytics/analytics.route";
-import { realtimeRouter } from "./modules/realtime/gateway";
+import { realtimeRouter, customerRealtimeRouter } from "./modules/realtime/gateway";
+import { customerRouter } from "./modules/customer/customer.route";
+import { customerRequestRouter } from "./modules/customer/customer-requests.route";
+import { razorpayWebhookRouter } from "./modules/billing/razorpay-webhook.route";
+import { startRazorpayWebhookWorker } from "./modules/billing/razorpay-webhook.worker";
 
 const corsOrigins = (
-  process.env["CORS_ORIGIN"] ?? "http://localhost:5173"
+  process.env["CORS_ORIGIN"] ?? "http://localhost:5173,http://localhost:5176"
 ).split(",");
 
 const app = new Elysia()
@@ -95,7 +99,11 @@ const app = new Elysia()
   .use(staffRouter)
   .use(rolesRouter)
   .use(analyticsRouter)
+  .use(customerRouter)
+  .use(customerRequestRouter)
+  .use(razorpayWebhookRouter)
   .use(realtimeRouter)
+  .use(customerRealtimeRouter)
   // Global error handler
   .onError(({ code, error, set, requestContext }) => {
     // New, typed errors (AppError and subclasses) — the pattern new modules
@@ -158,9 +166,14 @@ const app = new Elysia()
 
 const port = parseInt(process.env["PORT"] ?? "3000");
 
+const stopRazorpayWebhookWorker = startRazorpayWebhookWorker();
+
 app.listen(port, () => {
   console.log(`🚀 API running at http://localhost:${port}`);
   console.log(`📖 Swagger docs at http://localhost:${port}/swagger`);
 });
+
+process.on("SIGINT", stopRazorpayWebhookWorker);
+process.on("SIGTERM", stopRazorpayWebhookWorker);
 
 export type App = typeof app;
