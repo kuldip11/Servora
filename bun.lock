@@ -455,8 +455,6 @@
 
     "@pos/api-client": ["@pos/api-client@workspace:packages/api-client"],
 
-    "@pos/customer-app": ["@pos/customer-app@workspace:apps/customer-app"],
-
     "@pos/kitchen-display": ["@pos/kitchen-display@workspace:apps/kitchen-display"],
 
     "@pos/realtime": ["@pos/realtime@workspace:packages/realtime"],
