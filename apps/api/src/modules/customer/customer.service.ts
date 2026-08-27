@@ -157,6 +157,9 @@ export const customerService = {
     let orderId: string;
     let createdNewOrder = false;
     if (existing) {
+      if (existing.status === "BILL_REQUESTED") {
+        throw new ValidationError("This order is already being settled. Payment must be completed before ordering more.");
+      }
       if (session.mode === "TAKEAWAY") throw new ValidationError("This takeaway order has already been submitted");
       await orderRepository.fireNewTicket(
         session.tenantId,

@@ -22,12 +22,13 @@ export function TicketHeader({
   const order = ticket.order;
   const tableName = order?.table?.name;
   const orderTypeLabel = order?.type?.replace("_", " ").toLowerCase();
+  const isTakeaway = order?.type === "TAKEAWAY";
 
   return (
     <div className="flex items-start justify-between">
       <div>
         <p className="text-text-primary font-bold text-sm">
-          {tableName ? `Table ${tableName}` : orderTypeLabel}
+          {tableName ? `Table ${tableName}` : isTakeaway ? "Takeaway" : orderTypeLabel}
           {ticket.ticketNumber > 1 && (
             <span className="ml-2 text-xs font-semibold text-text-secondary">
               Round {ticket.ticketNumber}
@@ -35,7 +36,7 @@ export function TicketHeader({
           )}
         </p>
         <p className="text-xs text-text-secondary mt-0.5">
-          {tableName ? orderTypeLabel : null}
+          {tableName ? orderTypeLabel : isTakeaway ? "Pickup order" : null}
         </p>
       </div>
       <div className="text-right">

@@ -29,7 +29,8 @@ export type CustomerMenuItem = {
 
 export type CustomerMenu = {
   restaurant: { id: string; name: string; address: string };
-  table: { id: string; name: string; section: string | null };
+  mode: "DINE_IN" | "TAKEAWAY";
+  table: { id: string; name: string; section: string | null } | null;
   categories: Array<{ id: string; name: string; sortOrder: number }>;
   items: CustomerMenuItem[];
 };

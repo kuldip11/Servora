@@ -13,6 +13,7 @@ export const KITCHEN_TICKET_TRANSITIONS: Record<
   KitchenTicketStatus,
   KitchenTicketStatus[]
 > = {
+  PENDING_PAYMENT: ["FIRED"],
   FIRED: ["PREPARING"],
   PREPARING: ["READY"],
   // Chef's job ends at READY — SERVED is the waiter's action. Not restricted

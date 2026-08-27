@@ -15,7 +15,15 @@ export const customerRequestService = {
   async create(token: string, input: { type: CustomerRequestType; note?: string; orderId?: string }) {
     const session = await customerService.getSession(token);
     if (input.orderId) {
-      const order = await db.query.orders.findFirst({ where: and(eq(orders.tableId, session.tableId), eq(orders.id, input.orderId), eq(orders.customerSessionId, session.id)) });
+      const order = await db.query.orders.findFirst({
+        where: and(
+          eq(orders.id, input.orderId),
+          eq(orders.tenantId, session.tenantId),
+          eq(orders.branchId, session.branchId),
+          eq(orders.customerSessionId, session.id),
+          session.tableId ? eq(orders.tableId, session.tableId) : undefined,
+        ),
+      });
       if (!order) throw new ValidationError("Order does not belong to this customer session");
     }
     const [request] = await db.insert(customerRequests).values({

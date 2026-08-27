@@ -160,28 +160,35 @@
       "idx": 22,
       "version": "7",
       "when": 1786109000022,
-      "tag": "0022_customer_single_tab",
+      "tag": "0022_customer_requests",
       "breakpoints": true
     },
     {
       "idx": 23,
       "version": "7",
       "when": 1786109000023,
-      "tag": "0023_public_takeaway_qr",
+      "tag": "0023_customer_single_tab",
       "breakpoints": true
     },
     {
       "idx": 24,
       "version": "7",
       "when": 1786109000024,
-      "tag": "0024_takeaway_payment_gate",
+      "tag": "0024_public_takeaway_qr",
       "breakpoints": true
     },
     {
       "idx": 25,
       "version": "7",
       "when": 1786109000025,
-      "tag": "0025_order_item_fulfillment",
+      "tag": "0025_takeaway_payment_gate",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1786109000026,
+      "tag": "0026_order_item_fulfillment",
       "breakpoints": true
     }
   ]

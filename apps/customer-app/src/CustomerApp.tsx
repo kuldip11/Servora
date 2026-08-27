@@ -13,6 +13,7 @@ import { OrderStatus } from "./features/ordering/OrderStatus";
 import { useCustomerOrderRealtime } from "./features/ordering/useCustomerOrderRealtime";
 import { StatusScreen } from "./features/session/StatusScreen";
 import { formatMoney } from "./shared/utils/money";
+import { clearPersistedCart, clearPersistedOrderId, clearPersistedSession, getCustomerStorageScope, loadPersistedOrderId, loadPersistedSession, restoreCart, savePersistedCart, savePersistedOrderId, savePersistedSession } from "./features/cart/persistence";
 
 export type View = "menu" | "cart" | "order";
 
@@ -56,6 +57,8 @@ export function CustomerApp() {
   const [requestBusy, setRequestBusy] = useState(false);
   const [requestMessage, setRequestMessage] = useState<string | null>(null);
   const [bootstrapAttempt, setBootstrapAttempt] = useState(0);
+  const storageScope = useMemo(() => getCustomerStorageScope(qrToken, demoMode), [qrToken, demoMode]);
+  const [cartHydrated, setCartHydrated] = useState(false);
 
   useEffect(() => {
     if (demoMode && !qrToken) {
@@ -63,6 +66,12 @@ export function CustomerApp() {
       setMenu(fixtureMenu.map(fixtureToCustomerItem));
       setCategories(fixtureCategories.map((name) => ({ id: name, name })));
       setLoading(false);
+      setCartHydrated(true);
+      if (storageScope) {
+        savePersistedSession(storageScope, { token: "fixture", mode: "DINE_IN", table: fixtureRestaurant.table, area: fixtureRestaurant.area, restaurant: fixtureRestaurant.name, estimatedTime: fixtureRestaurant.estimatedTime, expiresAt: new Date(Date.now() + 12 * 60 * 60_000).toISOString() });
+        const restored = restoreCart(storageScope, fixtureMenu.map(fixtureToCustomerItem), "DINE_IN");
+        setCart(restored.cart);
+      }
       return;
     }
     if (!qrToken) {
@@ -76,15 +85,63 @@ export function CustomerApp() {
     async function bootstrap() {
       try {
         setLoading(true);
+        setCartHydrated(false);
         setError(null);
-        const created = await createCustomerSession(token);
-        const menuResponse = await getCustomerMenu(created.sessionToken);
-        if (cancelled) return;
-        setSession({ token: created.sessionToken, mode: created.mode, table: created.table?.name ?? null, area: created.table?.section ?? (created.mode === "TAKEAWAY" ? "Takeaway" : "Dining"), restaurant: created.restaurant.name, estimatedTime: "15–25 min" });
+        const persisted = storageScope ? loadPersistedSession(storageScope) : null;
+        let sessionToken = persisted?.token;
+        let created: Awaited<ReturnType<typeof createCustomerSession>> | null = null;
+        let menuResponse;
+
+        if (sessionToken) {
+          try {
+            menuResponse = await getCustomerMenu(sessionToken);
+          } catch {
+            if (storageScope) clearPersistedSession(storageScope);
+            sessionToken = undefined;
+          }
+        }
+        if (!menuResponse) {
+          created = await createCustomerSession(token);
+          sessionToken = created.sessionToken;
+          menuResponse = await getCustomerMenu(sessionToken);
+        }
+        if (cancelled || !sessionToken) return;
+
+        const resolvedSession = {
+          token: sessionToken,
+          mode: menuResponse.mode,
+          table: menuResponse.table?.name ?? null,
+          area: menuResponse.table?.section ?? (menuResponse.mode === "TAKEAWAY" ? "Takeaway" : "Dining"),
+          restaurant: menuResponse.restaurant.name,
+          estimatedTime: "15–25 min",
+          expiresAt: created?.expiresAt ?? persisted?.expiresAt ?? new Date(Date.now() + 12 * 60 * 60_000).toISOString(),
+        };
+        setSession(resolvedSession);
         setMenu(menuResponse.items);
         setCategories([{ id: "popular", name: "Popular" }, ...menuResponse.categories.map((c) => ({ id: c.id, name: c.name }))]);
+
+        if (storageScope) {
+          savePersistedSession(storageScope, resolvedSession);
+          const persistedOrderId = loadPersistedOrderId(storageScope);
+          if (persistedOrderId) {
+            try {
+              const existingOrder = await getCustomerOrder(sessionToken, persistedOrderId);
+              if (!cancelled) setPlacedOrder(existingOrder);
+            } catch {
+              clearPersistedOrderId(storageScope);
+            }
+          }
+          const restored = restoreCart(storageScope, menuResponse.items, menuResponse.mode);
+          if (!cancelled) {
+            setCart(restored.cart);
+            setCartHydrated(true);
+            if (restored.droppedCount > 0) setError("Some saved cart items are no longer available and were removed.");
+          }
+        } else {
+          setCartHydrated(true);
+        }
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Unable to load this table");
+        if (!cancelled) setError(err instanceof Error ? err.message : "Unable to load this ordering session");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -92,6 +149,16 @@ export function CustomerApp() {
     void bootstrap();
     return () => { cancelled = true; };
   }, [demoMode, qrToken, bootstrapAttempt]);
+
+  useEffect(() => {
+    if (!storageScope || !cartHydrated) return;
+    savePersistedCart(storageScope, cart);
+  }, [storageScope, cart, cartHydrated]);
+
+  useEffect(() => {
+    if (!storageScope || !placedOrder) return;
+    savePersistedOrderId(storageScope, placedOrder.id);
+  }, [storageScope, placedOrder]);
 
   const handleRealtimeOrder = useCallback((order: CustomerOrder) => {
     setPlacedOrder(order);
@@ -241,6 +308,21 @@ export function CustomerApp() {
     });
   }, [session]);
 
+  const retryTakeawayPayment = useCallback(async () => {
+    if (!placedOrder || session?.mode !== "TAKEAWAY" || loading) return;
+    try {
+      setLoading(true);
+      setError(null);
+      await startTakeawayPayment(placedOrder);
+      if (storageScope) clearPersistedCart(storageScope);
+      setCart([]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Payment was not completed");
+    } finally {
+      setLoading(false);
+    }
+  }, [placedOrder, session?.mode, loading, startTakeawayPayment, storageScope]);
+
   const placeOrder = useCallback(async () => {
     if (!session || cart.length === 0 || loading) return;
     try {
@@ -248,6 +330,10 @@ export function CustomerApp() {
       setError(null);
       if (session.token === "fixture") {
         setPlacedOrder({ id: `fixture-${Date.now()}`, status: "OPEN", subtotal: subtotal.toFixed(2), taxAmount: tax.toFixed(2), totalAmount: total.toFixed(2), items: [], createdAt: new Date().toISOString(), kitchenTickets: [{ id: "fixture-ticket", ticketNumber: 1, status: "PREPARING" }], payments: [] });
+        if (storageScope) {
+          savePersistedOrderId(storageScope, `fixture-${Date.now()}`);
+          clearPersistedCart(storageScope);
+        }
         setCart([]);
         setView("order");
         return;
@@ -258,11 +344,16 @@ export function CustomerApp() {
       // same order. Dine-in ordering does not start payment here; the bill is
       // settled once the customer is finished.
       const order = await createCustomerOrder(session.token, createOrderPayload(cart));
+      setPlacedOrder(order);
+      if (storageScope) savePersistedOrderId(storageScope, order.id);
+
       if (session.mode === "TAKEAWAY") {
+        // Keep the cart until payment is verified. A cancelled/failed checkout
+        // must be retryable without creating another takeaway order.
         await startTakeawayPayment(order);
-      } else {
-        setPlacedOrder(order);
       }
+
+      if (storageScope) clearPersistedCart(storageScope);
       setCart([]);
       setView("order");
     } catch (err) {
@@ -308,7 +399,7 @@ export function CustomerApp() {
   if (error && !session) return <StatusScreen title="This ordering link is unavailable" message={error} actionLabel="Try again" onAction={() => { setError(null); setBootstrapAttempt((value) => value + 1); }} />;
   if (!session) return null;
 
-  if (view === "order" && placedOrder) return <OrderStatus order={placedOrder} table={session.table ?? "Takeaway"} estimatedTime={session.estimatedTime} onMenu={handleMenu} live={live} onRequest={requestHelp} requestBusy={requestBusy} requestMessage={requestMessage} />;
+  if (view === "order" && placedOrder) return <OrderStatus order={placedOrder} mode={session.mode} table={session.table ?? "Takeaway"} estimatedTime={session.estimatedTime} onMenu={handleMenu} live={live} onRequest={requestHelp} requestBusy={requestBusy} requestMessage={requestMessage} onPay={retryTakeawayPayment} payBusy={loading} />;
 
   return (
     <div className="min-h-screen bg-background text-text-primary selection:bg-primary-surface">

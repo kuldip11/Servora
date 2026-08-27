@@ -22,6 +22,7 @@ function orderStatusLabel(status: string) {
 
 export function OrderStatus({
   order,
+  mode,
   table,
   estimatedTime,
   onMenu,
@@ -29,8 +30,11 @@ export function OrderStatus({
   onRequest,
   requestBusy,
   requestMessage,
+  onPay,
+  payBusy = false,
 }: {
   order: CustomerOrder;
+  mode: "DINE_IN" | "TAKEAWAY";
   table: string;
   estimatedTime: string;
   onMenu: () => void;
@@ -38,6 +42,8 @@ export function OrderStatus({
   onRequest: (type: CustomerRequestType) => void;
   requestBusy: boolean;
   requestMessage: string | null;
+  onPay?: () => void;
+  payBusy?: boolean;
 }) {
   const latestTicket = order.kitchenTickets.at(-1);
   const latestStatus = latestTicket?.status ?? "FIRED";
@@ -121,17 +127,29 @@ export function OrderStatus({
           </Card>
         )}
 
+        {order.payments?.some((payment) => payment.method === "RAZORPAY" && payment.status === "PENDING") && onPay && (
+          <Card padding="md" className="mt-4 border-primary bg-primary-surface">
+            <div>
+              <p className="font-semibold">Payment required</p>
+              <p className="mt-1 text-sm text-text-secondary">Complete payment to release this takeaway order to the kitchen.</p>
+            </div>
+            <Button variant="primary" size="lg" className="mt-3 w-full" onClick={onPay} disabled={payBusy}>
+              {payBusy ? "Opening payment…" : `Pay ${formatMoney(Number(order.totalAmount))}`}
+            </Button>
+          </Card>
+        )}
+
         <Card padding="md" className="mt-4">
           <h2 className="font-semibold">Need anything?</h2>
           <div className="mt-3 grid grid-cols-2 gap-2">
-            {(["CALL_WAITER", "WATER", "CUTLERY", "BILL"] as CustomerRequestType[]).map((type) => (
+            {(["CALL_WAITER", "WATER", "CUTLERY", "BILL"] as CustomerRequestType[]).filter((type) => mode === "DINE_IN" || type !== "BILL").map((type) => (
               <Button key={type} variant="secondary" disabled={requestBusy} onClick={() => onRequest(type)}>{type === "CALL_WAITER" ? "Call waiter" : type === "BILL" ? "Request bill" : type[0] + type.slice(1).toLowerCase()}</Button>
             ))}
           </div>
           {requestMessage && <p role="status" className="mt-3 text-sm text-text-secondary">{requestMessage}</p>}
         </Card>
 
-        {!terminal && <Button variant="primary" size="lg" onClick={onMenu} className="mt-4 w-full">Order more</Button>}
+        {!terminal && mode === "DINE_IN" && <Button variant="primary" size="lg" onClick={onMenu} className="mt-4 w-full">Order more</Button>}
         <Button variant="outline" size="lg" onClick={onMenu} className="mt-2 w-full">Back to menu</Button>
       </div>
     </main>

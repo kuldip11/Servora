@@ -54,5 +54,5 @@ export type TakeawayPaymentVerification = {
 };
 
 export function verifyTakeawayPayment(sessionToken: string, input: TakeawayPaymentVerification) {
-  return request<CustomerOrder>("/api/customer/orders/${input.orderId}/payment/verify", { method: "POST", body: JSON.stringify(input) }, sessionToken);
+  return request<CustomerOrder>(`/api/customer/orders/${input.orderId}/payment/verify`, { method: "POST", body: JSON.stringify(input) }, sessionToken);
 }
