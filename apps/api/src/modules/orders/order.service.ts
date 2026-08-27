@@ -231,21 +231,25 @@ export const orderService = {
       branchId,
     );
 
-    // The first kitchen ticket fires as part of order creation — let the
-    // kitchen display know a new ticket is waiting.
-    await eventBus.publish(
-      { type: "kitchen.ticket.created", payload: { orderId: order.id } },
-      auth.tenantId,
-      branchId,
-    );
+    // Publish the full ticket so KDS can update its cache immediately without
+    // waiting for a follow-up HTTP fetch. Polling remains the recovery path.
+    const createdTicket = fullOrder?.kitchenTickets?.[0];
+    if (createdTicket) {
+      await eventBus.publish(
+        { type: "kitchen.ticket.created", payload: createdTicket as any },
+        auth.tenantId,
+        branchId,
+      );
+    }
 
     // Best-effort: a recipe-deduction hiccup shouldn't roll back an order
     // that's already been placed and sent to the kitchen.
     try {
-      await inventoryService.deductForOrderItems(
+      if (createdTicket) await inventoryService.deductForOrderItems(
         auth.tenantId,
         branchId,
         order.id,
+        createdTicket.id,
         resolved.map((r) => ({
           menuItemId: r.menuItemId,
           quantity: r.quantity,
@@ -386,20 +390,21 @@ export const orderService = {
       auth.tenantId,
       order.branchId,
     );
-    await eventBus.publish(
-      {
-        type: "kitchen.ticket.created",
-        payload: { orderId, ticketId: ticket.id },
-      },
-      auth.tenantId,
-      order.branchId,
-    );
+    const createdTicket = fullOrder?.kitchenTickets?.find((candidate: any) => candidate.id === ticket.id);
+    if (createdTicket) {
+      await eventBus.publish(
+        { type: "kitchen.ticket.created", payload: createdTicket as any },
+        auth.tenantId,
+        order.branchId,
+      );
+    }
 
     try {
       await inventoryService.deductForOrderItems(
         auth.tenantId,
         order.branchId,
         orderId,
+        ticket.id,
         resolved.map((r) => ({
           menuItemId: r.menuItemId,
           quantity: r.quantity,

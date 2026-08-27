@@ -13,10 +13,7 @@ export type RealtimeEvent =
     }
   | {
       type: "kitchen.ticket.created";
-      payload: {
-        orderId: string;
-        ticketId?: string;
-      };
+      payload: KitchenTicket & { customerSessionId?: string };
     }
   | {
       type: "kitchen.ticket.updated";
@@ -25,6 +22,15 @@ export type RealtimeEvent =
   | {
       type: "inventory.low_stock";
       payload: InventoryItem;
+    }
+  | {
+      type: "payment.updated";
+      payload: {
+        paymentId: string;
+        orderId: string;
+        status: "PENDING" | "SUCCESS" | "FAILED" | "REFUNDED";
+        amount: number;
+      };
     }
   | {
       type: "table.updated";

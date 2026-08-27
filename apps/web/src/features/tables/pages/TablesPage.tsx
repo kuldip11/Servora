@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { tableFormSchema } from "@pos/validation";
+import { appUrls } from "../../../config/app-urls";
 import type { z } from "zod";
 import {
   Plus,
@@ -427,7 +428,7 @@ function TakeawayQrModal({
   busy: boolean;
 }) {
   if (!data) return null;
-  const customerAppUrl = import.meta.env["VITE_CUSTOMER_APP_URL"] ?? `${window.location.protocol}//${window.location.hostname}:5176`;
+  const customerAppUrl = appUrls.customer;
   const url = `${customerAppUrl.replace(/\/$/, "")}/?qr=${encodeURIComponent(data.token)}`;
   return (
     <Modal
@@ -473,8 +474,7 @@ function TableQrModal({
 }) {
   if (!table) return null;
   const customerAppUrl =
-    import.meta.env["VITE_CUSTOMER_APP_URL"] ??
-    `${window.location.protocol}//${window.location.hostname}:5176`;
+    appUrls.customer;
   const url = `${customerAppUrl.replace(/\/$/, "")}/?qr=${encodeURIComponent(table.publicQrToken)}`;
 
   return (

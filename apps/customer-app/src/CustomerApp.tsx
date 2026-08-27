@@ -417,7 +417,7 @@ export function CustomerApp() {
               </div>
             </div>
             <div className="mt-4"><SearchInput value={search} onChange={(event) => setSearch(event.target.value)} onClear={() => setSearch("")} placeholder="Search the menu" aria-label="Search the menu" /></div>
-            <nav aria-label="Menu categories" className="no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6">{categories.map((option) => <Button key={option.id} variant={category === option.name ? "primary" : "secondary"} size="sm" onClick={() => setCategory(option.name)} className="shrink-0 rounded-full">{option.name}</Button>)}</nav>
+            <nav aria-label="Menu categories" className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6">{categories.map((option) => <Button key={option.id} variant={category === option.name ? "primary" : "secondary"} size="sm" onClick={() => setCategory(option.name)} className="shrink-0 rounded-full">{option.name}</Button>)}</nav>
           </div>
         </header>
 
@@ -428,7 +428,7 @@ export function CustomerApp() {
         </main>
 
         {error && <div role="alert" className="fixed inset-x-4 bottom-20 z-50 mx-auto max-w-2xl rounded-lg border border-danger bg-danger-surface p-4 text-sm font-medium text-danger shadow-md"><div className="flex items-start justify-between gap-4"><span>{error}</span><Button variant="ghost" size="sm" onClick={() => setError(null)}>Dismiss</Button></div></div>}
-        {itemCount > 0 && view === "menu" && <div className="safe-bottom fixed inset-x-0 bottom-0 z-30 px-4 pt-3 sm:px-6"><Button onClick={handleCart} size="lg" className="mx-auto flex h-14 w-full max-w-2xl items-center justify-between px-5"><span className="flex items-center gap-2 text-sm"><ShoppingBag className="h-4 w-4" /> {itemCount} {itemCount === 1 ? "item" : "items"}</span><span className="flex items-center gap-2 text-sm">View order · {formatMoney(total)} <ChevronRight className="h-4 w-4" /></span></Button></div>}
+        {itemCount > 0 && view === "menu" && <div className="[padding-bottom:max(1rem,env(safe-area-inset-bottom))] fixed inset-x-0 bottom-0 z-30 px-4 pt-3 sm:px-6"><Button onClick={handleCart} size="lg" className="mx-auto flex h-14 w-full max-w-2xl items-center justify-between px-5"><span className="flex items-center gap-2 text-sm"><ShoppingBag className="h-4 w-4" /> {itemCount} {itemCount === 1 ? "item" : "items"}</span><span className="flex items-center gap-2 text-sm">View order · {formatMoney(total)} <ChevronRight className="h-4 w-4" /></span></Button></div>}
 
         {selected && <ItemCustomization allowMixedFulfillment={session?.mode === "DINE_IN"} fulfillmentType={selectedFulfillmentType} onFulfillmentTypeChange={setSelectedFulfillmentType} item={selected} selectedOptions={selectedOptions} {...(selectedVariantId ? { variantId: selectedVariantId } : {})} onVariantChange={setSelectedVariantId} onToggle={toggleOption} onOptionQuantity={changeOptionQuantity} onClose={closeItem} onAdd={handleAddSelectedItem} />}
         {view === "cart" && <CartView cart={cart} subtotal={subtotal} tax={tax} total={total} table={session.table ?? "Takeaway"} mode={session.mode} onBack={handleMenu} onChange={changeQuantity} onFulfillmentChange={changeFulfillment} onPlace={placeOrder} loading={loading} />}

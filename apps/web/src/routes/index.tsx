@@ -34,13 +34,7 @@ function lazyPage(
     return (
       <Suspense
         fallback={
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              padding: "4rem",
-            }}
-          >
+          <div className="flex justify-center p-16">
             <Spinner className="h-8 w-8" />
           </div>
         }
@@ -290,6 +284,17 @@ const billingRoute = createRoute({
   ),
 });
 
+const auditRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/audit",
+  beforeLoad: requirePermission("audit:read"),
+  component: lazyPage(() =>
+    import("../features/audit/pages/AuditLogPage").then((m) => ({
+      default: m.AuditLogPage,
+    })),
+  ),
+});
+
 const settingsRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: "/settings",
@@ -344,6 +349,7 @@ const routeTree = rootRoute.addChildren([
     inventoryRoute,
     staffRoute,
     billingRoute,
+    auditRoute,
     settingsRoute,
     branchesRoute,
   ]),

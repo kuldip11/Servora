@@ -15,7 +15,7 @@ async function runMigrations() {
       "   OR run `bun run db:push` to push the schema directly (dev only).",
     );
     await migrationClient.end();
-    process.exit(0);
+    process.exit(1);
     return;
   }
 

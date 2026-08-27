@@ -29,6 +29,8 @@ describe("auth.schema.ts", () => {
       "email",
       "passwordHash",
       "status",
+      "failedLoginAttempts",
+      "lockedUntil",
       "deletedAt",
       "createdAt",
       "updatedAt",
@@ -36,10 +38,14 @@ describe("auth.schema.ts", () => {
   it("defines roles", () =>
     expectTable(roles, "roles", [
       "id",
+      "tenantId",
       "name",
       "scope",
       "description",
+      "isSystem",
+      "isActive",
       "createdAt",
+      "updatedAt",
     ]));
   it("defines permissions", () =>
     expectTable(permissions, "permissions", [
@@ -86,6 +92,7 @@ describe("auth.schema.ts", () => {
       "id",
       "userId",
       "membershipId",
+      "sessionId",
       "tokenHash",
       "expiresAt",
       "revokedAt",

@@ -25,6 +25,7 @@ export interface Order {
   items: OrderItem[];
   kitchenTickets?: KitchenTicket[];
   statusHistory: OrderStatusHistory[];
+  payments?: import("./billing").Payment[];
   createdAt: string;
   updatedAt: string;
 }

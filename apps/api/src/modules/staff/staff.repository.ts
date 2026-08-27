@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull, or } from "drizzle-orm";
 import { db } from "../../db";
 import {
   branches,
@@ -73,8 +73,14 @@ export const staffRepository = {
     });
   },
 
-  async findRoleById(roleId: string) {
-    return db.query.roles.findFirst({ where: eq(roles.id, roleId) });
+  async findRoleById(roleId: string, tenantId?: string) {
+    return db.query.roles.findFirst({
+      where: and(
+        eq(roles.id, roleId),
+        eq(roles.isActive, true),
+        tenantId ? or(isNull(roles.tenantId), eq(roles.tenantId, tenantId)) : undefined,
+      ),
+    });
   },
 
   async findBranchesByIds(tenantId: string, branchIds: string[]) {
@@ -221,7 +227,9 @@ export const staffRepository = {
     return this.updateMembershipStatus(tenantId, id, "INACTIVE");
   },
 
-  async findAllRoles() {
-    return db.query.roles.findMany();
+  async findAllRoles(tenantId: string) {
+    return db.query.roles.findMany({
+      where: and(eq(roles.isActive, true), or(isNull(roles.tenantId), eq(roles.tenantId, tenantId))),
+    });
   },
 };

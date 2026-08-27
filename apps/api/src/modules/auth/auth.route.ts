@@ -1,7 +1,7 @@
 import { Elysia } from "elysia";
 import { requireAuthPlugin } from "../../core/auth";
 import { authController } from "./auth.controller";
-import { signupBody, loginBody, refreshBody, profileBody } from "./auth.validator";
+import { signupBody, loginBody, refreshBody, profileBody, sessionIdParams } from "./auth.validator";
 
 // Public endpoints — no bearer token to check yet, so this instance
 // deliberately does not mount `requireAuthPlugin()`.
@@ -15,9 +15,12 @@ export const authRouter = new Elysia()
   .post(
     "/api/auth/refresh",
     ({ body }) => authController.refresh(body.refreshToken),
-    {
-      body: refreshBody,
-    },
+    { body: refreshBody },
+  )
+  .post(
+    "/api/auth/logout",
+    ({ body }) => authController.logout(body.refreshToken),
+    { body: refreshBody },
   );
 
 // `/api/auth/me` needs a resolved `auth` context, so it's a separate
@@ -31,4 +34,6 @@ export const authMeRouter = new Elysia()
     ({ auth, body }) => authController.updateProfile(auth, body),
     { body: profileBody },
   )
-  .get("/api/auth/memberships", ({ auth }) => authController.memberships(auth));
+  .get("/api/auth/memberships", ({ auth }) => authController.memberships(auth))
+  .get("/api/auth/sessions", ({ auth }) => authController.sessions(auth))
+  .delete("/api/auth/sessions/:id", ({ auth, params }) => authController.revokeSession(auth, params.id), { params: sessionIdParams });

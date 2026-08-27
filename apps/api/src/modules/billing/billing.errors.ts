@@ -38,3 +38,9 @@ export function refundExceedsPaymentAmount(): DomainRuleError {
     reason: "REFUND_AMOUNT_EXCEEDS_PAYMENT",
   });
 }
+
+export function paymentExceedsDueAmount(): DomainRuleError {
+  return new DomainRuleError("Payment amount exceeds the outstanding balance", {
+    reason: "PAYMENT_AMOUNT_EXCEEDS_DUE",
+  });
+}

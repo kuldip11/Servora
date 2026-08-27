@@ -1,4 +1,4 @@
-import { Check, Clock3, ReceiptText, WifiOff } from "lucide-react";
+import { Check, Clock3, ReceiptText, WifiOff, BellRing } from "lucide-react";
 import { Badge, Button, Card } from "@pos/ui";
 import type { CustomerOrder, CustomerRequestType } from "../../api";
 import { formatMoney } from "../../shared/utils/money";
@@ -51,6 +51,7 @@ export function OrderStatus({
   const displayStatus = latestStatus === "PENDING_PAYMENT" ? "FIRED" : latestStatus;
   const activeStep = Math.max(0, ticketSteps.indexOf(displayStatus));
   const terminal = order.status === "PAID" || order.status === "CLOSED" || order.status === "CANCELLED";
+  const ready = latestStatus === "READY";
 
   return (
     <main className="min-h-screen bg-background px-4 py-6 text-text-primary sm:px-6">
@@ -65,6 +66,15 @@ export function OrderStatus({
             {live ? "Live updates" : <span className="flex items-center gap-1"><WifiOff className="h-3 w-3" /> Reconnecting</span>}
           </Badge>
         </header>
+
+        {ready && !terminal && (
+          <Card padding="md" className="mt-5 border-success/30 bg-success-surface">
+            <div className="flex items-center gap-3">
+              <BellRing className="h-5 w-5 text-success" />
+              <div><p className="font-semibold text-success">Your food is ready</p><p className="mt-0.5 text-sm text-text-secondary">{mode === "DINE_IN" ? "Your waiter has been notified." : "Your takeaway order is ready for pickup."}</p></div>
+            </div>
+          </Card>
+        )}
 
         <Card padding="md" className="mt-5">
           <div className="flex items-center justify-between gap-4">

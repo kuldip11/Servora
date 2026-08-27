@@ -246,3 +246,24 @@ Click **Save Changes**. Render will automatically redeploy the API with the new 
 - **Neon**: free project scales compute to zero when idle too, but wakes up fast (usually under 1s) — not a practical issue.
 - **Upstash free tier**: 500,000 commands/month, 256MB storage. Fine unless you get real production traffic.
 - If you outgrow any of this, the cheapest next step is usually Render's $7/mo Starter instance (no sleep) — everything else can often stay free even at moderate usage.
+
+
+---
+
+## Phase 6 production-ready path
+
+The earlier sections document a low-cost/manual hosting path. For a reproducible release, Phase 6 adds a stricter production workflow:
+
+```bash
+cp .env.production.example .env.production
+# replace every placeholder with secret-manager / production values
+set -a
+. ./.env.production
+set +a
+
+bun run validate:production-env
+docker compose --env-file .env.production -f docker-compose.production.yml build
+docker compose --env-file .env.production -f docker-compose.production.yml up -d
+```
+
+Before promotion, run the GitHub **Release verification** workflow or the equivalent commands documented in `docs/PHASE_6_8_RELEASE_CERTIFICATION.md`. Database backups should be taken before migration/deployment changes, and restore should be tested in a non-production recovery environment.

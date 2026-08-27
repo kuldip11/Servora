@@ -49,11 +49,11 @@ async function loadMigrate(options: {
 }
 
 describe("db migrate entrypoint", () => {
-  it("exits cleanly when no migrations folder exists", async () => {
+  it("exits with an error when no migrations folder exists", async () => {
     const exit = vi.spyOn(process, "exit").mockImplementation(((
       code?: number,
     ) => {
-      expect(code).toBe(0);
+      expect(code).toBe(1);
       return undefined as never;
     }) as never);
 
@@ -63,7 +63,7 @@ describe("db migrate entrypoint", () => {
 
     expect(migrationClient.end).toHaveBeenCalled();
     expect(migrate).not.toHaveBeenCalled();
-    expect(exit).toHaveBeenCalledWith(0);
+    expect(exit).toHaveBeenCalledWith(1);
   });
 
   it("runs drizzle migrations after confirming schema history is consistent", async () => {

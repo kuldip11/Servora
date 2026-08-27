@@ -14,21 +14,14 @@ export function LoginPage({ onLogin }: Props) {
       <div className="flex-1 flex items-center justify-center pt-12 pb-4">
         <div className="text-center">
           <div
-            className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4"
-            style={{
-              background:
-                "color-mix(in srgb, var(--primary-foreground) 20%, transparent)",
-            }}
+            className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4 bg-primary-foreground/20"
           >
             <ChefHat className="w-10 h-10 text-primary-foreground" />
           </div>
           <h1 className="text-3xl font-bold text-primary-foreground">
             Waiter App
           </h1>
-          <p
-            className="text-primary-foreground mt-1 text-sm"
-            style={{ opacity: 0.75 }}
-          >
+          <p className="text-primary-foreground/75 mt-1 text-sm">
             {auth.step === "credentials"
               ? "Sign in to start taking orders"
               : auth.step === "membership"

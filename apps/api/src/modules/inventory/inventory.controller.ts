@@ -35,4 +35,9 @@ export const inventoryController = {
     const items = await inventoryService.lowStockAlerts(auth);
     return successResponse(items);
   },
+
+  async recentTransactions(auth: AuthContext) {
+    const transactions = await inventoryService.recentTransactions(auth);
+    return successResponse(transactions);
+  },
 };

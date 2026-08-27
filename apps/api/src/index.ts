@@ -3,12 +3,15 @@ import { cors } from "@elysiajs/cors";
 import { swagger } from "@elysiajs/swagger";
 
 import { requestContextPlugin } from "./core/context";
+import { securityHeadersPlugin, rateLimitPlugin } from "./core/security";
+import { requestLoggingPlugin } from "./core/observability";
 import { AppError } from "./core/errors";
 import { rootLogger } from "./core/logger";
 
 import { authRouter, authMeRouter } from "./modules/auth/auth.route";
 import { branchesRouter } from "./modules/branches/branch.route";
 import { tenantsRouter } from "./modules/tenants/tenant.route";
+import { organizationsRouter } from "./modules/organizations/organization.route";
 import { tablesRouter } from "./modules/tables/table.route";
 import { ordersRouter } from "./modules/orders/order.route";
 import { kitchenTicketsRouter } from "./modules/kitchen-tickets/ticket.route";
@@ -23,19 +26,38 @@ import { menuImportExportRouter } from "./modules/menu/import-export/import-expo
 import { menuTemplatesRouter } from "./modules/menu/templates/templates.route";
 import { inventoryRouter } from "./modules/inventory/inventory.route";
 import { billingRouter } from "./modules/billing/billing.route";
-import { staffRouter, rolesRouter } from "./modules/staff/staff.route";
+import { staffRouter } from "./modules/staff/staff.route";
+import { rolesRouter } from "./modules/roles/role.route";
+import { permissionsRouter } from "./modules/permissions/permission.route";
 import { analyticsRouter } from "./modules/analytics/analytics.route";
+import { auditRouter } from "./modules/audit/audit.route";
 import { realtimeRouter, customerRealtimeRouter } from "./modules/realtime/gateway";
 import { customerRouter } from "./modules/customer/customer.route";
 import { customerRequestRouter } from "./modules/customer/customer-requests.route";
 import { razorpayWebhookRouter } from "./modules/billing/razorpay-webhook.route";
 import { startRazorpayWebhookWorker } from "./modules/billing/razorpay-webhook.worker";
+import { db, closeDatabaseConnections } from "./db";
+import { sql } from "drizzle-orm";
+import { env } from "./config/env";
+import { redis, closeRedisConnections } from "./lib/redis";
 
 const corsOrigins = (
-  process.env["CORS_ORIGIN"] ?? "http://localhost:5173,http://localhost:5176"
+  env.CORS_ORIGIN
 ).split(",");
 
-const app = new Elysia()
+// The route-mounting chain below is long (20+ `.use()` calls across every
+// module router). Elysia's context type accumulates through each `.use()`,
+// and TypeScript's checker hits its recursion limit trying to compute the
+// fully-merged type by the time `app.listen(...)` is evaluated (TS2589,
+// "Type instantiation is excessively deep and possibly infinite"). None of
+// the mounted routers depend on `app`'s own accumulated type — they're
+// already fully-typed standalone Elysia instances — so it's safe to widen
+// the working type to `any` at each checkpoint below purely to keep the
+// compiler's bookkeeping bounded; this has no effect on runtime behavior,
+// which is unchanged.
+type AnyElysia = Elysia<any, any, any, any, any, any, any>;
+
+let app = new Elysia()
   .use(
     cors({
       origin: corsOrigins,
@@ -55,7 +77,7 @@ const app = new Elysia()
       documentation: {
         info: {
           title: "Restaurant POS SaaS API",
-          version: "1.0.0",
+          version: env.APP_VERSION,
           description: "Multi-tenant Restaurant POS Platform API",
         },
         tags: [
@@ -71,17 +93,43 @@ const app = new Elysia()
     }),
   )
   .use(requestContextPlugin())
+  .use(securityHeadersPlugin())
+  .use(rateLimitPlugin())
+  .use(requestLoggingPlugin())
   // Health check
   .get("/health", () => ({
     status: "ok",
     timestamp: new Date().toISOString(),
-    version: "1.0.0",
+    version: env.APP_VERSION,
   }))
-  // Routers
+  .get("/health/live", () => ({
+    status: "ok",
+    timestamp: new Date().toISOString(),
+  }))
+  .get("/health/ready", async ({ set }) => {
+    const checks = { database: false, redis: false };
+    try {
+      await db.execute(sql`select 1`);
+      checks.database = true;
+    } catch {}
+    try {
+      checks.redis = (await redis.ping()) === "PONG";
+    } catch {}
+
+    if (!checks.database || !checks.redis) {
+      set.status = 503;
+      return { status: "not_ready", checks, timestamp: new Date().toISOString() };
+    }
+    return { status: "ready", checks, timestamp: new Date().toISOString() };
+  }) as AnyElysia;
+
+// Routers
+app = app
   .use(authRouter)
   .use(authMeRouter)
   .use(branchesRouter)
   .use(tenantsRouter)
+  .use(organizationsRouter)
   .use(tablesRouter)
   .use(ordersRouter)
   .use(kitchenTicketsRouter)
@@ -98,14 +146,17 @@ const app = new Elysia()
   .use(billingRouter)
   .use(staffRouter)
   .use(rolesRouter)
+  .use(permissionsRouter)
   .use(analyticsRouter)
+  .use(auditRouter)
   .use(customerRouter)
   .use(customerRequestRouter)
   .use(razorpayWebhookRouter)
   .use(realtimeRouter)
-  .use(customerRealtimeRouter)
-  // Global error handler
-  .onError(({ code, error, set, requestContext }) => {
+  .use(customerRealtimeRouter) as AnyElysia;
+
+// Global error handler
+app = app.onError(({ code, error, set, requestContext }) => {
     // New, typed errors (AppError and subclasses) — the pattern new modules
     // are being migrated to. Checked first; everything below is unchanged
     // legacy behavior for modules that haven't migrated yet.
@@ -120,7 +171,9 @@ const app = new Elysia()
       return error.toJSON();
     }
 
-    console.error(`[API Error] ${code}:`, error);
+    rootLogger.error(`Unhandled API error: ${code}`, error instanceof Error ? error : undefined, {
+      requestId: requestContext?.requestId,
+    });
 
     if (code === "VALIDATION") {
       set.status = 400;
@@ -164,7 +217,7 @@ const app = new Elysia()
     };
   });
 
-const port = parseInt(process.env["PORT"] ?? "3000");
+const port = env.PORT;
 
 const stopRazorpayWebhookWorker = startRazorpayWebhookWorker();
 
@@ -173,7 +226,28 @@ app.listen(port, () => {
   console.log(`📖 Swagger docs at http://localhost:${port}/swagger`);
 });
 
-process.on("SIGINT", stopRazorpayWebhookWorker);
-process.on("SIGTERM", stopRazorpayWebhookWorker);
+let shuttingDown = false;
+
+async function shutdown(signal: string) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  rootLogger.info("shutdown.started", { signal });
+  stopRazorpayWebhookWorker();
+  try {
+    await Promise.resolve(app.stop());
+  } catch (error) {
+    rootLogger.warn("shutdown.http_stop_failed", {
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+  await Promise.allSettled([
+    closeRedisConnections(),
+    closeDatabaseConnections(),
+  ]);
+  rootLogger.info("shutdown.complete", { signal });
+}
+
+process.once("SIGINT", () => void shutdown("SIGINT"));
+process.once("SIGTERM", () => void shutdown("SIGTERM"));
 
 export type App = typeof app;

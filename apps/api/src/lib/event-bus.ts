@@ -23,6 +23,8 @@ export const eventBus = {
       channel = REDIS_CHANNELS.KITCHEN_EVENTS;
     } else if (event.type.startsWith("inventory.")) {
       channel = REDIS_CHANNELS.INVENTORY_EVENTS;
+    } else if (event.type.startsWith("payment.")) {
+      channel = REDIS_CHANNELS.ORDER_EVENTS;
     } else if (event.type.startsWith("table.")) {
       channel = REDIS_CHANNELS.TABLE_EVENTS;
     } else {

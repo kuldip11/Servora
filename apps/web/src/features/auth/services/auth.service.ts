@@ -1,5 +1,5 @@
 import { apiClient } from "../../../shared/lib/api-client";
-import type { AvailableMembership, User } from "@pos/types";
+import type { AvailableMembership, OrganizationSummary, User } from "@pos/types";
 
 export interface AuthResponse {
   accessToken: string;
@@ -40,8 +40,18 @@ export const authService = {
     return res.data.data;
   },
 
-  async createTenant(name: string) {
-    const res = await apiClient.post("/tenants", { name });
+  async organizations(): Promise<OrganizationSummary[]> {
+    const res = await apiClient.get("/organizations");
+    return res.data.data;
+  },
+
+  async createOrganization(name: string) {
+    const res = await apiClient.post("/organizations", { name });
+    return res.data.data as { organization: OrganizationSummary; membershipId: string };
+  },
+
+  async createTenant(name: string, organizationId: string) {
+    const res = await apiClient.post("/tenants", { name, organizationId });
     return res.data.data as {
       tenant: { id: string; name: string };
       membershipId: string;

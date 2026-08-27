@@ -154,6 +154,7 @@ export const orderRepository = {
         },
         table: true,
         createdByUser: true,
+        payments: true,
       },
       orderBy: desc(orders.createdAt),
     });

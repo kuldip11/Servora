@@ -27,9 +27,13 @@ export interface InventoryTransaction {
   inventoryItemId: string;
   transactionType: InventoryTransactionType;
   quantity: number;
+  balanceBefore?: number;
+  balanceAfter?: number;
   notes: string | null;
-  performedBy: string;
+  performedBy: string | null;
   createdAt: string;
+  inventoryItem?: InventoryItem;
+  performedByUser?: { id: string; firstName?: string | null; lastName?: string | null } | null;
 }
 
 export interface Recipe {

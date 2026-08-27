@@ -1,16 +1,20 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sum } from "drizzle-orm";
 import type { PaymentMethod } from "@pos/types";
 import { db } from "../../db";
-import { bills, payments, paymentRefunds, orders } from "../../db/schema";
+import { bills, payments, paymentRefunds, orders, orderStatusHistory, restaurantTables } from "../../db/schema";
 import { resolveRefundEligibility } from "./billing-refund";
 
 export type RecordPaymentResult =
   | { status: "order_not_found" }
+  | { status: "payment_exceeds_due"; dueAmount: number }
   | {
       status: "ok";
       orderBranchId: string;
       bill: typeof bills.$inferSelect;
       payment: typeof payments.$inferSelect;
+      order: typeof orders.$inferSelect;
+      orderPaid: boolean;
+      releasedTable?: typeof restaurantTables.$inferSelect;
     };
 
 export type RecordRefundResult =
@@ -31,6 +35,7 @@ export const billingRepository = {
     reference?: string | undefined;
     tenantId: string;
     branchId: string | null;
+    changedBy: string;
   }): Promise<RecordPaymentResult> {
     return db.transaction(async (tx) => {
       const order = await tx.query.orders.findFirst({
@@ -59,6 +64,21 @@ export const billingRepository = {
         bill = newBill!;
       }
 
+      const existingSuccessfulPayments = await tx
+        .select({ total: sum(payments.amount) })
+        .from(payments)
+        .where(
+          and(
+            eq(payments.orderId, data.orderId),
+            eq(payments.status, "SUCCESS"),
+          ),
+        );
+      const alreadyPaid = parseFloat(existingSuccessfulPayments[0]?.total ?? "0");
+      const dueAmount = Math.max(0, parseFloat(bill.totalAmount) - alreadyPaid);
+      if (data.amount > dueAmount + 0.01) {
+        return { status: "payment_exceeds_due", dueAmount };
+      }
+
       const [payment] = await tx
         .insert(payments)
         .values({
@@ -71,11 +91,64 @@ export const billingRepository = {
         })
         .returning();
 
+      const successfulPayments = await tx
+        .select({ total: sum(payments.amount) })
+        .from(payments)
+        .where(
+          and(
+            eq(payments.orderId, data.orderId),
+            eq(payments.status, "SUCCESS"),
+          ),
+        );
+      const paidAmount = parseFloat(successfulPayments[0]?.total ?? "0");
+      const orderPaid = paidAmount >= parseFloat(bill.totalAmount) - 0.01;
+
+      let updatedOrder = order;
+      let releasedTable: typeof restaurantTables.$inferSelect | undefined;
+      if (orderPaid && order.status === "BILL_REQUESTED") {
+        const [paid] = await tx
+          .update(orders)
+          .set({ status: "PAID", updatedAt: new Date() })
+          .where(
+            and(
+              eq(orders.id, data.orderId),
+              eq(orders.tenantId, data.tenantId),
+              eq(orders.status, "BILL_REQUESTED"),
+            ),
+          )
+          .returning();
+        if (paid) {
+          updatedOrder = paid;
+          await tx.insert(orderStatusHistory).values({
+            orderId: data.orderId,
+            oldStatus: "BILL_REQUESTED",
+            newStatus: "PAID",
+            changedBy: data.changedBy,
+            reason: "Payment completed",
+          });
+          if (paid.tableId) {
+            const [table] = await tx
+              .update(restaurantTables)
+              .set({ status: "AVAILABLE", updatedAt: new Date() })
+              .where(and(
+                eq(restaurantTables.id, paid.tableId),
+                eq(restaurantTables.tenantId, data.tenantId),
+                eq(restaurantTables.branchId, paid.branchId),
+              ))
+              .returning();
+            releasedTable = table;
+          }
+        }
+      }
+
       return {
         status: "ok",
         orderBranchId: order.branchId,
         bill,
         payment: payment!,
+        order: updatedOrder,
+        orderPaid,
+        ...(releasedTable ? { releasedTable } : {}),
       };
     });
   },

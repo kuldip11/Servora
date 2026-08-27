@@ -32,4 +32,7 @@ export const inventoryRouter = new Elysia()
   )
   .get("/api/inventory/alerts/low-stock", ({ auth }) =>
     inventoryController.lowStockAlerts(auth),
+  )
+  .get("/api/inventory/transactions", ({ auth }) =>
+    inventoryController.recentTransactions(auth),
   );

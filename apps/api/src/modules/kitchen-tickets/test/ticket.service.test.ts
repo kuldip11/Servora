@@ -1,13 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-const { getQueue, findById, setStatus, publish, findOrder } = vi.hoisted(() => ({
+const { getQueue, findById, findDetailedById, setStatus, publish, findOrder } = vi.hoisted(() => ({
   getQueue: vi.fn(),
   findById: vi.fn(),
+  findDetailedById: vi.fn(),
   setStatus: vi.fn(),
   publish: vi.fn(),
   findOrder: vi.fn(),
 }));
 vi.mock("../ticket.repository", () => ({
-  ticketRepository: { getQueue, findById, setStatus },
+  ticketRepository: { getQueue, findById, findDetailedById, setStatus },
 }));
 vi.mock("../../../lib/event-bus", () => ({ eventBus: { publish } }));
 vi.mock("../../../db", () => ({
@@ -54,14 +55,20 @@ describe("ticket service", () => {
   });
   it("updates status, logs, and publishes the domain event", async () => {
     const current = { id: "t1", branchId: "b1", status: "PREPARING" };
-    const updated = { ...current, status: "READY" };
+    const updated = { ...current, status: "READY", orderId: "o1" };
+    const detailed = {
+      ...updated,
+      items: [{ id: "i1", modifiers: [] }],
+      order: { id: "o1", table: null },
+    };
     findById.mockResolvedValue(current);
     setStatus.mockResolvedValue(updated);
-    findOrder.mockResolvedValue({ customerSessionId: null });
+    findOrder.mockResolvedValue({ customerSessionId: "cs1" });
+    findDetailedById.mockResolvedValue(detailed);
     publish.mockResolvedValue(undefined);
     await expect(
       ticketService.updateStatus(auth(), logger, "t1", "READY"),
-    ).resolves.toEqual(updated);
+    ).resolves.toEqual(detailed);
     expect(logger.info).toHaveBeenCalledWith(
       "Kitchen ticket status updated",
       expect.objectContaining({
@@ -73,7 +80,10 @@ describe("ticket service", () => {
     expect(publish).toHaveBeenCalledWith(
       expect.objectContaining({
         type: "kitchen.ticket.updated",
-        payload: updated,
+        payload: expect.objectContaining({
+          ...detailed,
+          customerSessionId: "cs1",
+        }),
       }),
       "t1",
       "b1",

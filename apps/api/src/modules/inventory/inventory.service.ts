@@ -132,6 +132,12 @@ export const inventoryService = {
     return inventoryRepository.findLowStock(auth.tenantId, branchId);
   },
 
+  async recentTransactions(auth: AuthContext, limit = 25) {
+    requireInventoryPermission(auth, "inventory:read");
+    const branchId = auth.tenantWide && !auth.branchId ? null : resolveInventoryBranch(auth);
+    return inventoryRepository.findRecentTransactions(auth.tenantId, branchId, limit);
+  },
+
   async getOrderDeductions(orderId: string) {
     return inventoryRepository.findOrderDeductions(orderId);
   },
@@ -142,7 +148,8 @@ export const inventoryService = {
   // (status can lag a few seconds behind concurrent orders racing for the
   // same stock; this catches that window).
   async validateStock(
-    _tenantId: string,
+    tenantId: string,
+    branchId: string,
     items: Array<{ menuItemId: string; quantity: number }>,
   ): Promise<{
     valid: boolean;
@@ -156,7 +163,7 @@ export const inventoryService = {
     if (!menuItemIds.length) return { valid: true, insufficient: [] };
 
     const recipeLines =
-      await inventoryRepository.findRequiredRecipeLines(menuItemIds);
+      await inventoryRepository.findRequiredRecipeLines(tenantId, branchId, menuItemIds);
 
     const requiredByInventoryItem = new Map<string, number>();
     for (const item of items) {
@@ -213,6 +220,7 @@ export const inventoryService = {
     tenantId: string,
     branchId: string,
     orderId: string,
+    kitchenTicketId: string,
     items: Array<{ menuItemId: string; quantity: number }>,
     performedBy: string | null,
   ): Promise<{
@@ -223,7 +231,7 @@ export const inventoryService = {
     if (!menuItemIds.length) return { deducted: 0, short: [] };
 
     const recipeLines =
-      await inventoryRepository.findRequiredRecipeLines(menuItemIds);
+      await inventoryRepository.findRequiredRecipeLines(tenantId, branchId, menuItemIds);
     if (!recipeLines.length) return { deducted: 0, short: [] };
 
     const lines: Array<{
@@ -248,12 +256,21 @@ export const inventoryService = {
     }
     if (!lines.length) return { deducted: 0, short: [] };
 
+    const aggregated = new Map<string, (typeof lines)[number]>();
+    for (const line of lines) {
+      const key = `${line.menuItemId}:${line.inventoryItemId}`;
+      const existing = aggregated.get(key);
+      if (existing) existing.neededQuantity += line.neededQuantity;
+      else aggregated.set(key, { ...line });
+    }
+
     const { deducted, touchedInventoryItemIds, short } =
       await inventoryRepository.deductRecipeLines(
         tenantId,
         branchId,
         orderId,
-        lines,
+        kitchenTicketId,
+        Array.from(aggregated.values()),
         performedBy,
       );
 

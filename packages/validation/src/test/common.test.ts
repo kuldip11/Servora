@@ -3,6 +3,9 @@ import { branchFormSchema, paginationSchema } from "../common";
 
 const branch = {
   name: " Downtown ",
+  code: " dt-01 ",
+  timezone: "Asia/Kolkata",
+  currency: "inr",
   address: "",
   phone: "",
   dineInEnabled: true,
@@ -33,7 +36,10 @@ describe("paginationSchema", () => {
 
 describe("branchFormSchema", () => {
   it("trims the branch name and accepts a valid configuration", () => {
-    expect(branchFormSchema.parse(branch).name).toBe("Downtown");
+    const parsed = branchFormSchema.parse(branch);
+    expect(parsed.name).toBe("Downtown");
+    expect(parsed.code).toBe("DT-01");
+    expect(parsed.currency).toBe("INR");
   });
   it("requires at least one order type when dine-in is disabled", () => {
     expect(
@@ -64,6 +70,11 @@ describe("branchFormSchema", () => {
       expect(
         result.error.issues.some((i) => i.path[0] === "tablesEnabled"),
       ).toBe(true);
+  });
+  it("validates branch identity fields", () => {
+    expect(branchFormSchema.safeParse({ ...branch, code: "bad code" }).success).toBe(false);
+    expect(branchFormSchema.safeParse({ ...branch, currency: "RUPEE" }).success).toBe(false);
+    expect(branchFormSchema.safeParse({ ...branch, timezone: "" }).success).toBe(false);
   });
   it("enforces name, address, and phone lengths", () => {
     expect(

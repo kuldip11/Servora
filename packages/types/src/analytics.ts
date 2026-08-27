@@ -3,6 +3,9 @@ export interface DashboardStats {
   revenueToday: number;
   activeOrders: number;
   lowStockAlerts: number;
+  paidOrdersToday: number;
+  cancelledOrdersToday: number;
+  averageOrderValue: number;
   topItems: {
     name: string;
     count: number;

@@ -8,6 +8,8 @@ vi.mock("../billing.repository", () => ({
   billingRepository: { recordPayment, recordRefund, findBillById },
 }));
 vi.mock("../../../core/audit", () => ({ writeAudit }));
+vi.mock("../../../lib/event-bus", () => ({ eventBus: { publish: vi.fn() } }));
+vi.mock("../../orders/order.repository", () => ({ orderRepository: { findById: vi.fn() } }));
 
 import { billingService } from "../billing.service";
 
@@ -48,7 +50,9 @@ describe("billing service", () => {
     const auth = { ...baseAuth, permissions: ["billing:create"] };
     const result = {
       bill: { id: "b1" },
-      payment: { id: "p1" },
+      payment: { id: "p1", status: "SUCCESS", amount: "10" },
+      order: { id: "o1", status: "BILL_REQUESTED" },
+      orderPaid: false,
       orderBranchId: "b1",
     };
     recordPayment.mockResolvedValue({ status: "ok", ...result });
@@ -58,7 +62,7 @@ describe("billing service", () => {
         method: "CARD",
         amount: 10,
       }),
-    ).resolves.toEqual({ bill: result.bill, payment: result.payment });
+    ).resolves.toEqual({ bill: result.bill, payment: result.payment, paymentState: "PARTIALLY_PAID" });
     recordPayment.mockResolvedValue({
       status: "ok",
       ...result,

@@ -38,6 +38,8 @@ export interface AuthContext {
   permissions: string[];
   tenantWide?: boolean;
   authorizedBranchIds?: string[];
+  requestId?: string | undefined;
+  ipAddress?: string | undefined;
 }
 
 function parseBearerToken(authHeader: string | undefined): string {
@@ -106,6 +108,8 @@ export const requireAuthPlugin = () =>
             permissions: payload.permissions ?? [],
             tenantWide: true,
             authorizedBranchIds: [],
+            requestId: requestContext.requestId,
+            ipAddress: requestContext.ip,
           };
 
           const logger = createLogger(
@@ -176,6 +180,8 @@ export const requireAuthPlugin = () =>
           permissions: decision.permissionKeys,
           tenantWide: decision.tenantWide,
           authorizedBranchIds: decision.branchIds,
+          requestId: requestContext.requestId,
+          ipAddress: requestContext.ip,
         };
 
         const logger = createLogger(

@@ -43,9 +43,13 @@ export function BillingPage() {
   function openPayModal(order: Order) {
     setPayModal(order);
     setValidationError("");
+    const paid = (order.payments ?? [])
+      .filter((payment) => payment.status === "SUCCESS")
+      .reduce((sum, payment) => sum + Number(payment.amount), 0);
+    const due = Math.max(0, Number(order.totalAmount) - paid);
     setPayForm({
       method: "CASH",
-      amount: String(parseFloat(String(order.totalAmount))),
+      amount: due.toFixed(2),
       reference: "",
     });
   }
@@ -186,8 +190,17 @@ export function BillingPage() {
                 Order #{payModal.id.slice(-8).toUpperCase()}
               </p>
               <p className="text-2xl font-bold text-text-primary">
-                {formatCurrency(parseFloat(String(payModal.totalAmount)))}
+                {formatCurrency(
+                  Math.max(
+                    0,
+                    Number(payModal.totalAmount) -
+                      (payModal.payments ?? [])
+                        .filter((payment) => payment.status === "SUCCESS")
+                        .reduce((sum, payment) => sum + Number(payment.amount), 0),
+                  ),
+                )}
               </p>
+              <p className="mt-1 text-xs text-text-secondary">Outstanding balance</p>
             </div>
 
             <Select

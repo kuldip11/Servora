@@ -8,17 +8,22 @@ import { requirePermission } from "../../core/auth";
 import type { AuthContext } from "../../core/auth";
 import { branchRepository } from "./branch.repository";
 import { writeAudit } from "../../core/audit";
-import { NotFoundError } from "../../core/errors";
+import { NotFoundError, ValidationError } from "../../core/errors";
 import {
   branchNotFound,
   allOrderTypesDisabled,
   branchHasOpenDineInOrders,
   lastActiveBranch,
   branchHasOpenOrders,
+  branchCodeAlreadyExists,
+  tablesRequireDineIn,
 } from "./branch.errors";
 
 export interface CreateBranchInput {
   name: string;
+  code: string;
+  timezone: string;
+  currency: string;
   address?: string | undefined;
   phone?: string | undefined;
   dineInEnabled?: boolean | undefined;
@@ -30,6 +35,9 @@ export interface CreateBranchInput {
 
 export interface UpdateBranchInput {
   name?: string | undefined;
+  code?: string | undefined;
+  timezone?: string | undefined;
+  currency?: string | undefined;
   address?: string | undefined;
   phone?: string | undefined;
   dineInEnabled?: boolean | undefined;
@@ -37,6 +45,28 @@ export interface UpdateBranchInput {
   deliveryEnabled?: boolean | undefined;
   onlineEnabled?: boolean | undefined;
   tablesEnabled?: boolean | undefined;
+}
+
+
+function assertValidTimezone(timezone: string) {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: timezone }).format();
+  } catch {
+    throw new ValidationError(`Invalid IANA timezone: ${timezone}`);
+  }
+}
+
+function assertCapabilityProfile(profile: {
+  dineInEnabled: boolean;
+  takeawayEnabled: boolean;
+  deliveryEnabled: boolean;
+  onlineEnabled: boolean;
+  tablesEnabled: boolean;
+}) {
+  if (!profile.dineInEnabled && profile.tablesEnabled) throw tablesRequireDineIn();
+  if (!profile.dineInEnabled && !profile.takeawayEnabled && !profile.deliveryEnabled && !profile.onlineEnabled) {
+    throw allOrderTypesDisabled();
+  }
 }
 
 const CAPABILITY_FIELDS = [
@@ -62,13 +92,31 @@ export const branchService = {
 
   async create(auth: AuthContext, input: CreateBranchInput) {
     requirePermission(auth, "branch:create");
+    const normalizedCode = input.code.trim().toUpperCase();
+    const normalizedTimezone = input.timezone.trim();
+    assertValidTimezone(normalizedTimezone);
+    assertCapabilityProfile({
+      dineInEnabled: input.dineInEnabled ?? true,
+      takeawayEnabled: input.takeawayEnabled ?? true,
+      deliveryEnabled: input.deliveryEnabled ?? true,
+      onlineEnabled: input.onlineEnabled ?? true,
+      tablesEnabled: input.tablesEnabled ?? true,
+    });
+    const existingCode = await branchRepository.findByCode(auth.tenantId, normalizedCode);
+    if (existingCode) throw branchCodeAlreadyExists(normalizedCode);
     const branch = await branchRepository.create({
       tenantId: auth.tenantId,
       ...input,
+      code: normalizedCode,
+      timezone: normalizedTimezone,
+      currency: input.currency.trim().toUpperCase(),
     });
     await writeAudit({
       tenantId: auth.tenantId,
       userId: auth.userId,
+      branchId: auth.branchId,
+      requestId: auth.requestId,
+      ipAddress: auth.ipAddress,
       action: "BRANCH_CREATED",
       entity: "branch",
       entityId: branch.id,
@@ -89,6 +137,21 @@ export const branchService = {
     ) {
       throw new NotFoundError("Branch", branchId, { id: branchId });
     }
+    if (changes.code !== undefined) {
+      const normalizedCode = changes.code.trim().toUpperCase();
+      const existingCode = await branchRepository.findByCode(auth.tenantId, normalizedCode);
+      if (existingCode && existingCode.id !== branchId) throw branchCodeAlreadyExists(normalizedCode);
+      changes = { ...changes, code: normalizedCode };
+    }
+    if (changes.timezone !== undefined) {
+      const timezone = changes.timezone.trim();
+      assertValidTimezone(timezone);
+      changes = { ...changes, timezone };
+    }
+    if (changes.currency !== undefined) {
+      changes = { ...changes, currency: changes.currency.trim().toUpperCase() };
+    }
+
     const touchesCapabilities = CAPABILITY_FIELDS.some(
       (field) => changes[field] !== undefined,
     );
@@ -104,17 +167,10 @@ export const branchService = {
         takeawayEnabled: changes.takeawayEnabled ?? existing.takeawayEnabled,
         deliveryEnabled: changes.deliveryEnabled ?? existing.deliveryEnabled,
         onlineEnabled: changes.onlineEnabled ?? existing.onlineEnabled,
+        tablesEnabled: changes.tablesEnabled ?? existing.tablesEnabled,
       };
 
-      // A branch needs at least one order type enabled, always.
-      if (
-        !merged.dineInEnabled &&
-        !merged.takeawayEnabled &&
-        !merged.deliveryEnabled &&
-        !merged.onlineEnabled
-      ) {
-        throw allOrderTypesDisabled();
-      }
+      assertCapabilityProfile(merged);
 
       // Don't let dine-in get switched off while there are open dine-in
       // orders still running on this branch — same reasoning as the
@@ -138,6 +194,9 @@ export const branchService = {
     await writeAudit({
       tenantId: auth.tenantId,
       userId: auth.userId,
+      branchId: auth.branchId,
+      requestId: auth.requestId,
+      ipAddress: auth.ipAddress,
       action: "BRANCH_UPDATED",
       entity: "branch",
       entityId: branchId,
@@ -175,6 +234,9 @@ export const branchService = {
     await writeAudit({
       tenantId: auth.tenantId,
       userId: auth.userId,
+      branchId: auth.branchId,
+      requestId: auth.requestId,
+      ipAddress: auth.ipAddress,
       action: "BRANCH_TAKEAWAY_QR_REGENERATED",
       entity: "branch",
       entityId: branchId,
@@ -211,6 +273,9 @@ export const branchService = {
     await writeAudit({
       tenantId: auth.tenantId,
       userId: auth.userId,
+      branchId: auth.branchId,
+      requestId: auth.requestId,
+      ipAddress: auth.ipAddress,
       action: "BRANCH_ARCHIVED",
       entity: "branch",
       entityId: branchId,

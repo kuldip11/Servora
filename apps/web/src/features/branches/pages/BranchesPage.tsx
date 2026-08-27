@@ -15,6 +15,9 @@ import { BranchFormModal } from "../components/BranchFormModal";
 
 const emptyForm: BranchFormValues = {
   name: "",
+  code: "",
+  timezone: "Asia/Kolkata",
+  currency: "INR",
   address: "",
   phone: "",
   dineInEnabled: true,
@@ -50,6 +53,9 @@ export function BranchesPage() {
     setEditing(branch);
     reset({
       name: branch.name,
+      code: branch.code,
+      timezone: branch.timezone,
+      currency: branch.currency,
       address: branch.address ?? "",
       phone: branch.phone ?? "",
       dineInEnabled: branch.dineInEnabled,

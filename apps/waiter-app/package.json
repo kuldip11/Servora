@@ -8,6 +8,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview --port 5175",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
     "test:coverage": "vitest run --coverage"
@@ -29,7 +30,8 @@
     "@pos/api-client": "workspace:*",
     "@pos/realtime": "workspace:*",
     "@pos/validation": "workspace:*",
-    "@tanstack/react-router": "^1.40.0"
+    "@tanstack/react-router": "^1.40.0",
+    "@pos/config": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

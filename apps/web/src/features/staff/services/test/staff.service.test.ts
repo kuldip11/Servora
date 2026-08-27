@@ -48,6 +48,17 @@ describe("rolesService", () => {
     await expect(rolesService.list()).resolves.toEqual(["r"]);
     expect(api.get).toHaveBeenCalledWith("/roles");
   });
+
+  it("creates, updates and archives custom roles", async () => {
+    api.post.mockResolvedValueOnce({ data: { data: { id: "r1" } } });
+    api.patch.mockResolvedValueOnce({ data: { data: { id: "r1", name: "Lead" } } });
+    await rolesService.create({ name: "Lead", scope: "BRANCH" });
+    await rolesService.update("r1", { name: "Lead", description: "Shift lead" });
+    await rolesService.archive("r1");
+    expect(api.post).toHaveBeenCalledWith("/roles", { name: "Lead", scope: "BRANCH" });
+    expect(api.patch).toHaveBeenCalledWith("/roles/r1", { name: "Lead", description: "Shift lead" });
+    expect(api.delete).toHaveBeenCalledWith("/roles/r1");
+  });
 });
 
 

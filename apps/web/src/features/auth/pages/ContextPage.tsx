@@ -3,7 +3,7 @@ import { useRouter } from "@tanstack/react-router";
 import { Building2, ChevronRight, Plus } from "lucide-react";
 import { Button, Input, toast } from "@pos/ui";
 import { extractApiError } from "../../../shared/lib/api-client";
-import type { AvailableMembership } from "@pos/types";
+import type { AvailableMembership, OrganizationSummary } from "@pos/types";
 import { authService } from "../services/auth.service";
 import { useAuthStore } from "../../../store/auth";
 
@@ -13,18 +13,25 @@ export function ContextPage() {
   const [items, setItems] = useState<AvailableMembership[]>(memberships);
   const [loading, setLoading] = useState(!memberships.length);
   const [businessName, setBusinessName] = useState("");
+  const [organizations, setOrganizations] = useState<OrganizationSummary[]>([]);
+  const [organizationId, setOrganizationId] = useState("");
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    if (memberships.length) return;
-    authService
-      .memberships()
-      .then(setItems)
+    Promise.all([
+      memberships.length ? Promise.resolve(memberships) : authService.memberships(),
+      authService.organizations(),
+    ])
+      .then(([nextMemberships, nextOrganizations]) => {
+        setItems(nextMemberships);
+        setOrganizations(nextOrganizations.filter((item) => item.isActive));
+        setOrganizationId((current) => current || nextOrganizations.find((item) => item.isActive)?.id || "");
+      })
       .catch(() =>
-        toast({ title: "Could not load businesses", tone: "danger" }),
+        toast({ title: "Could not load your organizations", tone: "danger" }),
       )
       .finally(() => setLoading(false));
-  }, [memberships.length]);
+  }, [memberships]);
 
   function activate(membership: AvailableMembership) {
     const branchId =
@@ -45,10 +52,15 @@ export function ContextPage() {
     if (!businessName.trim()) return;
     setCreating(true);
     try {
-      const created = await authService.createTenant(businessName.trim());
+      if (!organizationId) {
+        toast({ title: "Select an organization first", tone: "danger" });
+        return;
+      }
+      const created = await authService.createTenant(businessName.trim(), organizationId);
       const next = await authService.memberships();
       setContext({
         membershipId: created.membershipId,
+        organizationId,
         franchiseId: created.tenant.id,
         memberships: next,
         branchId: null,
@@ -106,7 +118,22 @@ export function ContextPage() {
           </div>
         )}
         <div className="border-t border-border pt-5 space-y-3">
-          <h2 className="font-semibold text-text-primary">Create a business</h2>
+          <h2 className="font-semibold text-text-primary">Create a franchise</h2>
+          <label htmlFor="context-page-organization" className="block text-sm font-medium text-text-primary">Organization</label>
+          <select
+            id="context-page-organization"
+            value={organizationId}
+            onChange={(e) => setOrganizationId(e.target.value)}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-text-primary"
+            disabled={!organizations.length}
+          >
+            <option value="">Select organization</option>
+            {organizations.map((organization) => (
+              <option key={organization.id} value={organization.id}>
+                {organization.name}
+              </option>
+            ))}
+          </select>
           <Input
             label="Business name"
             value={businessName}
@@ -116,7 +143,7 @@ export function ContextPage() {
           <Button
             loading={creating}
             onClick={createBusiness}
-            disabled={!businessName.trim()}
+            disabled={!businessName.trim() || !organizationId}
             className="w-full"
           >
             <Plus className="w-4 h-4 mr-2" />

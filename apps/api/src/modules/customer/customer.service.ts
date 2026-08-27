@@ -160,6 +160,7 @@ export const customerService = {
     }
     const stockCheck = await inventoryService.validateStock(
       session.tenantId,
+      session.branchId,
       normalizedInput.items.map((item) => ({ menuItemId: item.menuItemId, quantity: item.quantity })),
     );
     if (!stockCheck.valid) {
@@ -269,15 +270,20 @@ export const customerService = {
     // A public takeaway order is intentionally invisible to the kitchen until
     // a verified payment releases its PENDING_PAYMENT ticket. Dine-in orders
     // can fire immediately.
+    const firedTickets = (fullOrder?.kitchenTickets ?? []).filter((ticket: any) => ticket.status === "FIRED");
+    const newestTicket = firedTickets.at(-1);
     if (session.mode !== "TAKEAWAY") {
-      await eventBus.publish({ type: "kitchen.ticket.created", payload: { orderId } }, session.tenantId, session.branchId);
+      if (newestTicket) {
+        await eventBus.publish({ type: "kitchen.ticket.created", payload: newestTicket as any }, session.tenantId, session.branchId);
+      }
     }
 
     try {
-      if (roundCreated && (session.mode !== "TAKEAWAY" || !createdNewOrder)) await inventoryService.deductForOrderItems(
+      if (roundCreated && newestTicket && (session.mode !== "TAKEAWAY" || !createdNewOrder)) await inventoryService.deductForOrderItems(
         session.tenantId,
         session.branchId,
         orderId,
+        newestTicket.id,
         resolved.map((r) => ({ menuItemId: r.menuItemId, quantity: r.quantity })),
         null,
       );
@@ -347,11 +353,21 @@ export const customerService = {
 
     if (shouldRelease) {
       try {
-        await inventoryService.deductForOrderItems(session.tenantId, session.branchId, order.id, order.items.map((item) => ({ menuItemId: item.menuItemId, quantity: item.quantity })), null);
+        const releasedIds = new Set(order.kitchenTickets.filter((ticket) => ticket.status === "PENDING_PAYMENT").map((ticket) => ticket.id));
+        for (const ticketId of releasedIds) {
+          const ticketItems = order.items.filter((item: any) => item.kitchenTicketId === ticketId);
+          await inventoryService.deductForOrderItems(
+            session.tenantId, session.branchId, order.id, ticketId,
+            ticketItems.map((item) => ({ menuItemId: item.menuItemId, quantity: item.quantity })), null,
+          );
+        }
       } catch (err) { console.error("Inventory deduction failed after takeaway payment", order.id, err); }
       const updated = await orderRepository.findById(session.tenantId, order.id);
       await eventBus.publish({ type: "order.updated", payload: updated as unknown as Order }, session.tenantId, session.branchId);
-      await eventBus.publish({ type: "kitchen.ticket.created", payload: { orderId: order.id } }, session.tenantId, session.branchId);
+      const releasedTickets = (updated?.kitchenTickets ?? []).filter((ticket: any) => ticket.status === "FIRED");
+      for (const releasedTicket of releasedTickets) {
+        await eventBus.publish({ type: "kitchen.ticket.created", payload: releasedTicket as any }, session.tenantId, session.branchId);
+      }
       return updated;
     }
     return orderRepository.findById(session.tenantId, order.id);

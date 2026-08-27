@@ -40,6 +40,7 @@ describe("billing repository", () => {
         amount: 10,
         tenantId: "t1",
         branchId: "b1",
+        changedBy: "u1",
       }),
     ).resolves.toEqual({ status: "order_not_found" });
     tx.query.orders.findFirst.mockResolvedValue({ id: "o1", branchId: "b2" });
@@ -50,6 +51,7 @@ describe("billing repository", () => {
         amount: 10,
         tenantId: "t1",
         branchId: "b1",
+        changedBy: "u1",
       }),
     ).resolves.toEqual({ status: "order_not_found" });
   });
@@ -74,6 +76,12 @@ describe("billing repository", () => {
       .mockReturnValueOnce({
         values: vi.fn().mockReturnValue({ returning: returning([payment]) }),
       });
+    const selectResult = (rows: any[]) => ({
+      from: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(rows) }),
+    });
+    tx.select
+      .mockReturnValueOnce(selectResult([{ total: "0" }]))
+      .mockReturnValueOnce(selectResult([{ total: "10.00" }]));
     await expect(
       billingRepository.recordPayment({
         orderId: "o1",
@@ -82,8 +90,16 @@ describe("billing repository", () => {
         reference: "ref",
         tenantId: "t1",
         branchId: "b1",
+        changedBy: "u1",
       }),
-    ).resolves.toEqual({ status: "ok", orderBranchId: "b1", bill, payment });
+    ).resolves.toEqual({
+      status: "ok",
+      orderBranchId: "b1",
+      bill,
+      payment,
+      order,
+      orderPaid: false,
+    });
   });
 
   it("returns refund status outcomes before mutating the payment", async () => {

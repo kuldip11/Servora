@@ -27,7 +27,7 @@ export function CategoryTabs({
 }: Props) {
   return (
     <>
-      <div className="flex gap-2 px-4 pb-3 overflow-x-auto no-scrollbar">
+      <div className="flex gap-2 px-4 pb-3 overflow-x-auto">
         {FOOD_TYPE_FILTERS.map((f) => (
           <button
             key={f.value}
@@ -43,7 +43,7 @@ export function CategoryTabs({
         ))}
       </div>
       {!menuSearch && (
-        <div className="flex gap-2 px-4 pb-3 overflow-x-auto no-scrollbar">
+        <div className="flex gap-2 px-4 pb-3 overflow-x-auto">
           {categories?.map((cat: any) => (
             <button
               key={cat.id}

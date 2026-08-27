@@ -26,6 +26,7 @@ import { staffService } from "../services/staff.service";
 import { staffKeys } from "../query-keys";
 import { AddStaffForm } from "../components/forms/AddStaffForm";
 import { EditStaffForm } from "../components/forms/EditStaffForm";
+import { RoleManager } from "../components/roles/RoleManager";
 
 // The staff service returns `any[]` (see `staff.service.ts` — never
 // typed, not something this render-only migration changes). This local
@@ -219,6 +220,8 @@ export function StaffPage() {
           }
         />
       </Card>
+
+      <RoleManager roles={rolesData ?? []} canManage={has("roles:create")} canManagePermissions={has("roles:assign_permissions")} />
 
       <Modal open={showAdd} onClose={() => setShowAdd(false)} title="Add Staff Member">
         <AddStaffForm

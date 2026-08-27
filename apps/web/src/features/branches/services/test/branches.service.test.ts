@@ -9,6 +9,9 @@ vi.mock("../../../../shared/lib/api-client", () => ({ apiClient: api }));
 import { branchesService } from "../branches.service";
 const input = {
   name: "Main",
+  code: "MAIN-01",
+  timezone: "Asia/Kolkata",
+  currency: "INR",
   dineInEnabled: true,
   takeawayEnabled: true,
   deliveryEnabled: false,

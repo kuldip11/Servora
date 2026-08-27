@@ -28,6 +28,14 @@ subscriber.on("error", (err) =>
 
 redis.on("connect", () => console.log("[Redis] Connected"));
 
+export async function closeRedisConnections(): Promise<void> {
+  await Promise.allSettled([
+    redis.quit(),
+    publisher.quit(),
+    subscriber.quit(),
+  ]);
+}
+
 export const CACHE_TTL = {
   SHORT: 60,
   MEDIUM: 300,

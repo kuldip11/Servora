@@ -98,10 +98,14 @@ export const razorpayWebhookService = {
           with: { order: true },
         });
         if (payment && payment.status !== "SUCCESS" && paymentEntity?.status === "captured" && paymentEntity.currency === "INR" && paymentEntity.amount === Math.round(Number(payment.amount) * 100)) {
-          const shouldRelease = await db.transaction(async (tx) => {
+          const releasedTicketIds = await db.transaction(async (tx) => {
             await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${payment.orderId}))`);
             const current = await tx.query.payments.findFirst({ where: eq(payments.id, payment.id) });
-            if (!current || current.status === "SUCCESS") return false;
+            if (!current || current.status === "SUCCESS") return [] as string[];
+            const pending = await tx.query.kitchenTickets.findMany({
+              where: and(eq(kitchenTickets.orderId, current.orderId), eq(kitchenTickets.status, "PENDING_PAYMENT")),
+              columns: { id: true },
+            });
             await tx.update(payments).set({
               status: "SUCCESS",
               reference: gatewayPaymentId,
@@ -109,54 +113,28 @@ export const razorpayWebhookService = {
               gatewayOrderId,
               updatedAt: new Date(),
             }).where(eq(payments.id, payment.id));
-            await tx.update(kitchenTickets).set({ status: "FIRED", updatedAt: new Date() }).where(and(eq(kitchenTickets.orderId, current.orderId), eq(kitchenTickets.status, "PENDING_PAYMENT")));
-            return true;
+            if (pending.length) {
+              await tx.update(kitchenTickets).set({ status: "FIRED", updatedAt: new Date() }).where(and(eq(kitchenTickets.orderId, current.orderId), eq(kitchenTickets.status, "PENDING_PAYMENT")));
+            }
+            return pending.map((ticket) => ticket.id);
           });
 
-          if (shouldRelease) {
+          if (releasedTicketIds.length) {
             const order = await orderRepository.findById(payment.order.tenantId, payment.orderId);
             if (order) {
-              const result = await inventoryService.deductForOrderItems(
-                payment.order.tenantId,
-                payment.order.branchId,
-                payment.orderId,
-                order.items.map((item) => ({ menuItemId: item.menuItemId, quantity: item.quantity })),
-                null,
-              );
-              if (result.short.length) {
-                console.error("Inventory was short when releasing paid takeaway order", payment.orderId, result.short);
+              for (const ticketId of releasedTicketIds) {
+                const ticketItems = order.items.filter((item: any) => item.kitchenTicketId === ticketId);
+                const result = await inventoryService.deductForOrderItems(
+                  payment.order.tenantId, payment.order.branchId, payment.orderId, ticketId,
+                  ticketItems.map((item) => ({ menuItemId: item.menuItemId, quantity: item.quantity })), null,
+                );
+                if (result.short.length) console.error("Inventory was short when releasing paid takeaway order", payment.orderId, result.short);
               }
               const updated = await orderRepository.findById(payment.order.tenantId, payment.orderId);
               if (updated) {
                 await eventBus.publish({ type: "order.updated", payload: updated as unknown as Order }, payment.order.tenantId, payment.order.branchId);
-                await eventBus.publish({ type: "kitchen.ticket.created", payload: { orderId: payment.orderId } }, payment.order.tenantId, payment.order.branchId);
-              }
-            }
-          }
-
-          // Recovery path: payment may already be SUCCESS if a previous worker
-          // crashed after committing the payment transition but before releasing
-          // inventory/kitchen. A retry must finish that side effect exactly once.
-          if (shouldRelease) {
-            const pendingTicket = await db.query.kitchenTickets.findFirst({
-              where: and(eq(kitchenTickets.orderId, payment.orderId), eq(kitchenTickets.status, "PENDING_PAYMENT")),
-            });
-            if (pendingTicket) {
-              const order = await orderRepository.findById(payment.order.tenantId, payment.orderId);
-              if (order) {
-                const result = await inventoryService.deductForOrderItems(
-                  payment.order.tenantId,
-                  payment.order.branchId,
-                  payment.orderId,
-                  order.items.map((item) => ({ menuItemId: item.menuItemId, quantity: item.quantity })),
-                  null,
-                );
-                if (result.short.length) console.error("Inventory was short when releasing paid takeaway order", payment.orderId, result.short);
-                await db.update(kitchenTickets).set({ status: "FIRED", updatedAt: new Date() }).where(and(eq(kitchenTickets.id, pendingTicket.id), eq(kitchenTickets.status, "PENDING_PAYMENT")));
-                const updated = await orderRepository.findById(payment.order.tenantId, payment.orderId);
-                if (updated) {
-                  await eventBus.publish({ type: "order.updated", payload: updated as unknown as Order }, payment.order.tenantId, payment.order.branchId);
-                  await eventBus.publish({ type: "kitchen.ticket.created", payload: { orderId: payment.orderId } }, payment.order.tenantId, payment.order.branchId);
+                for (const ticket of updated.kitchenTickets.filter((candidate: any) => releasedTicketIds.includes(candidate.id))) {
+                  await eventBus.publish({ type: "kitchen.ticket.created", payload: ticket as any }, payment.order.tenantId, payment.order.branchId);
                 }
               }
             }

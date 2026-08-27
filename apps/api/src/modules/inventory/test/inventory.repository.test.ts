@@ -7,6 +7,7 @@ const {
   orderInventoryDeductions,
   branches,
   orders,
+  kitchenTickets,
 } = vi.hoisted(() => ({
   inventoryItems: {
     id: "id",
@@ -36,6 +37,7 @@ const {
   orderInventoryDeductions: { orderId: "orderId" },
   branches: { id: "id", tenantId: "tenantId", isActive: "isActive" },
   orders: { id: "id", tenantId: "tenantId", branchId: "branchId" },
+  kitchenTickets: { id: "id", orderId: "orderId", tenantId: "tenantId", branchId: "branchId" },
 }));
 vi.mock("../../../db/schema", () => ({
   inventoryItems,
@@ -45,6 +47,7 @@ vi.mock("../../../db/schema", () => ({
   orderInventoryDeductions,
   branches,
   orders,
+  kitchenTickets,
 }));
 const { inventoryFindFirst, branchFindFirst, findMany } = vi.hoisted(() => ({
   inventoryFindFirst: vi.fn(),
@@ -54,6 +57,7 @@ const { inventoryFindFirst, branchFindFirst, findMany } = vi.hoisted(() => ({
 const { query, db } = vi.hoisted(() => {
   const query = {
     inventoryItems: { findFirst: inventoryFindFirst, findMany },
+    inventoryTransactions: { findMany },
     branches: { findFirst: branchFindFirst },
     orderInventoryDeductions: { findMany },
     recipes: { findMany },
@@ -84,7 +88,7 @@ describe("inventory repository", () => {
   it("returns empty collections without constructing unnecessary DB queries", async () => {
     await expect(inventoryRepository.findByIds("t1", [])).resolves.toEqual([]);
     await expect(
-      inventoryRepository.findRequiredRecipeLines([]),
+      inventoryRepository.findRequiredRecipeLines("t1", "b1", []),
     ).resolves.toEqual([]);
     await expect(
       inventoryRepository.findAffectedMenuItemIds([], "b1"),

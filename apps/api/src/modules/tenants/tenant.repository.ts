@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { db } from "../../db";
 import {
   branches,
@@ -6,6 +6,7 @@ import {
   roles,
   tenantMemberships,
   tenants,
+  organizationMemberships,
 } from "../../db/schema";
 
 export const tenantRepository = {
@@ -21,11 +22,23 @@ export const tenantRepository = {
     });
   },
 
+
+  async findOrganizationMembership(userId: string, organizationId: string) {
+    return db.query.organizationMemberships.findFirst({
+      where: and(
+        eq(organizationMemberships.userId, userId),
+        eq(organizationMemberships.organizationId, organizationId),
+        eq(organizationMemberships.status, "ACTIVE"),
+      ),
+      with: { organization: true },
+    });
+  },
+
   async findById(id: string) {
     return db.query.tenants.findFirst({ where: eq(tenants.id, id) });
   },
 
-  async create(data: { name: string; createdBy: string }) {
+  async create(data: { name: string; createdBy: string; organizationId: string }) {
     const [tenant] = await db.insert(tenants).values(data).returning();
     return tenant!;
   },
@@ -59,7 +72,9 @@ export const tenantRepository = {
   },
 
   async findRoleByName(name: string) {
-    return db.query.roles.findFirst({ where: eq(roles.name, name as any) });
+    return db.query.roles.findFirst({
+      where: and(eq(roles.name, name as any), isNull(roles.tenantId), eq(roles.isSystem, true)),
+    });
   },
 
   async branchBelongsToTenant(tenantId: string, branchId: string) {

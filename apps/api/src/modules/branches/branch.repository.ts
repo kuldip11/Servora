@@ -37,6 +37,12 @@ export const branchRepository = {
     });
   },
 
+  async findByCode(tenantId: string, code: string) {
+    return db.query.branches.findFirst({
+      where: and(eq(branches.tenantId, tenantId), eq(branches.code, code)),
+    });
+  },
+
   async findById(tenantId: string, id: string) {
     return db.query.branches.findFirst({
       where: and(eq(branches.id, id), eq(branches.tenantId, tenantId)),
@@ -54,6 +60,9 @@ export const branchRepository = {
   async create(data: {
     tenantId: string;
     name: string;
+    code: string;
+    timezone: string;
+    currency: string;
     address?: string | undefined;
     phone?: string | undefined;
     dineInEnabled?: boolean | undefined;
@@ -71,6 +80,9 @@ export const branchRepository = {
         compact({
           tenantId: data.tenantId,
           name: data.name,
+          code: data.code,
+          timezone: data.timezone,
+          currency: data.currency,
           address: data.address ?? "",
           phone: data.phone,
           dineInEnabled: data.dineInEnabled ?? true,
@@ -98,6 +110,9 @@ export const branchRepository = {
     id: string,
     data: {
       name?: string | undefined;
+      code?: string | undefined;
+      timezone?: string | undefined;
+      currency?: string | undefined;
       address?: string | undefined;
       phone?: string | undefined;
       isActive?: boolean | undefined;

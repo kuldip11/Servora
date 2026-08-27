@@ -51,6 +51,26 @@ export function BranchFormModal({
           error={errors.name?.message}
           {...register("name")}
         />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Input
+            label="Branch code"
+            placeholder="MALL-01"
+            error={errors.code?.message}
+            {...register("code")}
+          />
+          <Input
+            label="Currency"
+            placeholder="INR"
+            error={errors.currency?.message}
+            {...register("currency")}
+          />
+        </div>
+        <Input
+          label="Timezone"
+          placeholder="Asia/Kolkata"
+          error={errors.timezone?.message}
+          {...register("timezone")}
+        />
         <Input
           label={`Address${mode === "add" ? " (optional)" : ""}`}
           placeholder="123 Mall Road, Sector 5"

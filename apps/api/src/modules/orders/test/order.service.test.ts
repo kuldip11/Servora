@@ -139,7 +139,11 @@ describe("order service", () => {
   });
   it("creates an order, publishes events, and treats inventory deduction as best-effort", async () => {
     create.mockResolvedValue({ id: "o1" });
-    findById.mockResolvedValue({ ...order, id: "o1" });
+    findById.mockResolvedValue({
+      ...order,
+      id: "o1",
+      kitchenTickets: [{ id: "kt1", branchId: "b1", status: "FIRED" }],
+    });
     deduct.mockRejectedValue(new Error("inventory unavailable"));
     await expect(
       orderService.create(auth(), {

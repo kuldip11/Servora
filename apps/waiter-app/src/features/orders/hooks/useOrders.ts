@@ -1,31 +1,43 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import type { Order } from "@pos/types";
 import { useRealtimeEvent } from "../../../shared/lib/realtime";
 import { fetchOrders } from "../api/orders";
 import { orderKeys, ORDERS_POLL_INTERVAL_MS } from "../constants";
 
 export function useOrders() {
   const qc = useQueryClient();
-
   const query = useQuery({
     queryKey: orderKeys.all,
     queryFn: fetchOrders,
-    // Push updates from @pos/realtime invalidate this on order/ticket
-    // changes below; the interval stays as a fallback for the (now rarer)
-    // gap while the socket is reconnecting — same belt-and-suspenders
-    // pattern kitchen-display already used before this app had a socket.
     refetchInterval: ORDERS_POLL_INTERVAL_MS,
   });
 
-  useRealtimeEvent("order.created", () => {
-    qc.invalidateQueries({ queryKey: orderKeys.all });
-  });
-  useRealtimeEvent("order.updated", () => {
-    qc.invalidateQueries({ queryKey: orderKeys.all });
-    qc.invalidateQueries({ queryKey: ["order"] });
-  });
-  useRealtimeEvent("kitchen.ticket.updated", () => {
-    qc.invalidateQueries({ queryKey: orderKeys.all });
-    qc.invalidateQueries({ queryKey: ["order"] });
+  const upsert = (order: Order) => {
+    qc.setQueryData<Order[]>(orderKeys.all, (current) => {
+      if (!current) return [order];
+      const index = current.findIndex((item) => item.id === order.id);
+      if (index < 0) return [order, ...current];
+      const next = [...current];
+      next[index] = order;
+      return next;
+    });
+    qc.setQueryData(orderKeys.detail(order.id), order);
+  };
+
+  useRealtimeEvent("order.created", (event) => upsert(event.payload));
+  useRealtimeEvent("order.updated", (event) => upsert(event.payload));
+  useRealtimeEvent("kitchen.ticket.updated", (event) => {
+    qc.setQueryData<Order[]>(orderKeys.all, (current) => current?.map((order) =>
+      order.id !== event.payload.orderId ? order : {
+        ...order,
+        kitchenTickets: (order.kitchenTickets ?? []).map((ticket) =>
+          ticket.id === event.payload.id ? event.payload : ticket,
+        ),
+      },
+    ));
+    qc.setQueryData<Order>(orderKeys.detail(event.payload.orderId), (current) =>
+      current ? { ...current, kitchenTickets: (current.kitchenTickets ?? []).map((ticket) => ticket.id === event.payload.id ? event.payload : ticket) } : current,
+    );
   });
 
   return query;

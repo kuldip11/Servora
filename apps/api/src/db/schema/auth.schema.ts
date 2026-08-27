@@ -4,9 +4,11 @@ import {
   varchar,
   text,
   timestamp,
+  integer,
   pgEnum,
   index,
   uniqueIndex,
+  boolean,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { tenants } from "./tenant.schema";
@@ -39,6 +41,8 @@ export const users = pgTable(
     email: varchar("email", { length: 255 }).notNull(),
     passwordHash: varchar("password_hash", { length: 255 }).notNull(),
     status: userStatusEnum("status").notNull().default("ACTIVE"),
+    failedLoginAttempts: integer("failed_login_attempts").notNull().default(0),
+    lockedUntil: timestamp("locked_until"),
     deletedAt: timestamp("deleted_at"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -50,13 +54,23 @@ export const users = pgTable(
   }),
 );
 
-export const roles = pgTable("roles", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: varchar("name", { length: 50 }).notNull().unique(),
-  scope: roleScopeEnum("scope").notNull().default("BRANCH"),
-  description: text("description"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+export const roles = pgTable(
+  "roles",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
+    name: varchar("name", { length: 80 }).notNull(),
+    scope: roleScopeEnum("scope").notNull().default("BRANCH"),
+    description: text("description"),
+    isSystem: boolean("is_system").notNull().default(false),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    tenantActiveIdx: index("roles_tenant_active_idx").on(t.tenantId, t.isActive),
+  }),
+);
 
 export const permissions = pgTable("permissions", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -184,6 +198,21 @@ export const membershipBranches = pgTable(
   }),
 );
 
+export const userSessions = pgTable(
+  "user_sessions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    lastSeenAt: timestamp("last_seen_at").notNull().defaultNow(),
+    expiresAt: timestamp("expires_at").notNull(),
+    revokedAt: timestamp("revoked_at"),
+    userAgent: varchar("user_agent", { length: 500 }),
+    ipAddress: varchar("ip_address", { length: 64 }),
+  },
+  (t) => ({ userActiveIdx: index("user_sessions_user_active_idx").on(t.userId, t.revokedAt, t.expiresAt) }),
+);
+
 export const refreshTokens = pgTable(
   "refresh_tokens",
   {
@@ -194,6 +223,7 @@ export const refreshTokens = pgTable(
     membershipId: uuid("membership_id").references(() => tenantMemberships.id, {
       onDelete: "cascade",
     }),
+    sessionId: uuid("session_id").references(() => userSessions.id, { onDelete: "cascade" }),
     tokenHash: varchar("token_hash", { length: 255 }).notNull(),
     expiresAt: timestamp("expires_at").notNull(),
     revokedAt: timestamp("revoked_at"),
@@ -201,6 +231,7 @@ export const refreshTokens = pgTable(
   },
   (t) => ({
     userIdx: index("refresh_tokens_user_idx").on(t.userId),
+    sessionIdx: index("refresh_tokens_session_idx").on(t.sessionId),
     tokenHashUnique: uniqueIndex("refresh_tokens_token_hash_unique").on(
       t.tokenHash,
     ),

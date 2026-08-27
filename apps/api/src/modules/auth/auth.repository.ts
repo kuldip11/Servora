@@ -2,7 +2,7 @@
  * Auth repository — data access only. Password hashing, token issuing,
  * and business rules live in `auth.service.ts`.
  */
-import { eq, and, isNull, gt } from "drizzle-orm";
+import { eq, and, isNull, gt, lt } from "drizzle-orm";
 import { db } from "../../db";
 import {
   users,
@@ -11,22 +11,13 @@ import {
   refreshTokens,
   permissions,
   rolePermissions,
-  branches,
   tenantMemberships,
+  userSessions,
 } from "../../db/schema";
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
 export const authRepository = {
-  async createBranch(data: {
-    tenantId: string;
-    name: string;
-    address: string;
-  }) {
-    const [branch] = await db.insert(branches).values(data).returning();
-    return branch!;
-  },
-
   async createUser(data: {
     firstName: string;
     lastName: string;
@@ -68,6 +59,22 @@ export const authRepository = {
         },
       },
     });
+  },
+
+  async recordFailedLogin(userId: string, attempts: number, lockedUntil: Date | null) {
+    const [updated] = await db
+      .update(users)
+      .set({ failedLoginAttempts: attempts, lockedUntil, updatedAt: new Date() })
+      .where(and(eq(users.id, userId), isNull(users.deletedAt)))
+      .returning({ failedLoginAttempts: users.failedLoginAttempts, lockedUntil: users.lockedUntil });
+    return updated;
+  },
+
+  async resetLoginFailures(userId: string) {
+    await db
+      .update(users)
+      .set({ failedLoginAttempts: 0, lockedUntil: null, updatedAt: new Date() })
+      .where(and(eq(users.id, userId), isNull(users.deletedAt)));
   },
 
   async findUsersByEmail(email: string) {
@@ -175,18 +182,21 @@ export const authRepository = {
         .returning();
       if (!user) throw new Error("User creation failed");
 
-      const [role] = await tx
-        .insert(roles)
-        .values({
-          name: "OWNER",
-          scope: "GLOBAL",
-          description: "Global owner access",
-        })
-        .onConflictDoUpdate({
-          target: roles.name,
-          set: { scope: "GLOBAL", description: "Global owner access" },
-        })
-        .returning();
+      let role = await tx.query.roles.findFirst({
+        where: and(eq(roles.name, "OWNER"), eq(roles.scope, "GLOBAL"), isNull(roles.tenantId)),
+      });
+      if (!role) {
+        const [createdRole] = await tx
+          .insert(roles)
+          .values({
+            name: "OWNER",
+            scope: "GLOBAL",
+            description: "Global owner access",
+            isSystem: true,
+          })
+          .returning();
+        role = createdRole;
+      }
       if (!role) throw new Error("Unable to provision GLOBAL OWNER role");
 
       const allPermissions = await tx
@@ -219,18 +229,21 @@ export const authRepository = {
 
   async ensureGlobalOwnerRole() {
     return db.transaction(async (tx) => {
-      const [role] = await tx
-        .insert(roles)
-        .values({
-          name: "OWNER",
-          scope: "GLOBAL",
-          description: "Global owner access",
-        })
-        .onConflictDoUpdate({
-          target: roles.name,
-          set: { scope: "GLOBAL", description: "Global owner access" },
-        })
-        .returning();
+      let role = await tx.query.roles.findFirst({
+        where: and(eq(roles.name, "OWNER"), eq(roles.scope, "GLOBAL"), isNull(roles.tenantId)),
+      });
+      if (!role) {
+        const [createdRole] = await tx
+          .insert(roles)
+          .values({
+            name: "OWNER",
+            scope: "GLOBAL",
+            description: "Global owner access",
+            isSystem: true,
+          })
+          .returning();
+        role = createdRole;
+      }
       if (!role) throw new Error("Unable to provision GLOBAL OWNER role");
 
       const allPermissions = await tx
@@ -255,7 +268,9 @@ export const authRepository = {
   },
 
   async findRoleByName(name: string) {
-    return db.query.roles.findFirst({ where: eq(roles.name, name as any) });
+    return db.query.roles.findFirst({
+      where: and(eq(roles.name, name as any), isNull(roles.tenantId), eq(roles.isSystem, true)),
+    });
   },
 
   async assignRole(userId: string, roleId: string) {
@@ -268,11 +283,21 @@ export const authRepository = {
   async saveRefreshToken(data: {
     userId: string;
     membershipId?: string;
+    sessionId: string;
     tokenHash: string;
     expiresAt: Date;
   }) {
     const [token] = await db.insert(refreshTokens).values(data).returning();
     return token!;
+  },
+
+  async revokeRefreshToken(tokenHash: string) {
+    const [token] = await db
+      .update(refreshTokens)
+      .set({ revokedAt: new Date() })
+      .where(and(eq(refreshTokens.tokenHash, tokenHash), isNull(refreshTokens.revokedAt)))
+      .returning({ id: refreshTokens.id, sessionId: refreshTokens.sessionId, userId: refreshTokens.userId });
+    return token;
   },
 
   async consumeRefreshToken(tokenHash: string) {
@@ -289,4 +314,32 @@ export const authRepository = {
       .returning();
     return token;
   },
+  async createSession(data: { userId: string; expiresAt: Date; userAgent?: string; ipAddress?: string }) {
+    const [session] = await db.insert(userSessions).values(data).returning();
+    return session!;
+  },
+
+  async findSession(userId: string, sessionId: string) {
+    return db.query.userSessions.findFirst({
+      where: and(eq(userSessions.id, sessionId), eq(userSessions.userId, userId)),
+    });
+  },
+
+  async listActiveSessions(userId: string) {
+    return db.query.userSessions.findMany({
+      where: and(eq(userSessions.userId, userId), isNull(userSessions.revokedAt), gt(userSessions.expiresAt, new Date())),
+      orderBy: (s, { desc }) => [desc(s.lastSeenAt)],
+    });
+  },
+
+  async touchSession(sessionId: string, expiresAt: Date) {
+    await db.update(userSessions).set({ lastSeenAt: new Date(), expiresAt }).where(and(eq(userSessions.id, sessionId), isNull(userSessions.revokedAt)));
+  },
+
+  async revokeSession(userId: string, sessionId: string) {
+    const [session] = await db.update(userSessions).set({ revokedAt: new Date() }).where(and(eq(userSessions.id, sessionId), eq(userSessions.userId, userId), isNull(userSessions.revokedAt))).returning();
+    if (session) await db.update(refreshTokens).set({ revokedAt: new Date() }).where(and(eq(refreshTokens.sessionId, sessionId), isNull(refreshTokens.revokedAt)));
+    return session;
+  },
+
 };

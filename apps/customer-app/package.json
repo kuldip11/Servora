@@ -17,7 +17,8 @@
     "@pos/ui": "workspace:*",
     "lucide-react": "^0.395.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "@pos/config": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

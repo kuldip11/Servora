@@ -1,12 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
-const { list, create, updateStock, lowStockAlerts } = vi.hoisted(() => ({
+const { list, create, updateStock, lowStockAlerts, recentTransactions } = vi.hoisted(() => ({
   list: vi.fn(),
   create: vi.fn(),
   updateStock: vi.fn(),
   lowStockAlerts: vi.fn(),
+  recentTransactions: vi.fn(),
 }));
 vi.mock("../inventory.service", () => ({
-  inventoryService: { list, create, updateStock, lowStockAlerts },
+  inventoryService: { list, create, updateStock, lowStockAlerts, recentTransactions },
 }));
 import { inventoryController } from "../inventory.controller";
 const auth = {

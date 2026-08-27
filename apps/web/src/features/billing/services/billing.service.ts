@@ -7,22 +7,18 @@ export interface CollectPaymentInput {
 }
 
 export const billingService = {
-  /**
-   * Records the payment, then moves the tab to PAID so it drops off the
-   * billing queue and (for dine-in) the table frees up. Two calls, but
-   * one user-facing action — kept together here so callers can't record
-   * a payment without also advancing order status.
-   */
   async collectPayment(
     orderId: string,
     input: CollectPaymentInput,
   ): Promise<void> {
+    // The API records the payment and atomically advances BILL_REQUESTED -> PAID
+    // once cumulative successful payments cover the bill. Keeping this as one
+    // API operation prevents double transitions and stale UI races.
     await apiClient.post("/payments", {
       orderId,
       method: input.method,
       amount: input.amount,
       reference: input.reference || undefined,
     });
-    await apiClient.patch(`/orders/${orderId}/status`, { status: "PAID" });
   },
 };

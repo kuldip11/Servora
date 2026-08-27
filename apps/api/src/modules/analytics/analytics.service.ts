@@ -1,10 +1,4 @@
-/**
- * Analytics service — assembles the dashboard snapshot. `topItems` and
- * `revenueByHour` are preserved as hardcoded empty arrays, exactly as in
- * the pre-refactor code — they read as "not implemented yet" rather than
- * a real business rule, and filling them in would be a product decision
- * outside this migration's scope (see docs/NEXT_STEPS.md).
- */
+/** Analytics service — tenant/branch scoped operational dashboard snapshot. */
 import type { AuthContext } from "../../core/auth";
 import { analyticsRepository } from "./analytics.repository";
 import {
@@ -26,12 +20,24 @@ export const analyticsService = {
     const since = startOfToday();
     const branchId = auth.branchId;
 
-    const [totalOrdersToday, revenueToday, activeOrders, inventoryItems] =
-      await Promise.all([
+    const [
+      totalOrdersToday,
+      revenueToday,
+      activeOrders,
+      inventoryItems,
+      topItems,
+      revenueByHour,
+      paidOrdersToday,
+      cancelledOrdersToday,
+    ] = await Promise.all([
         analyticsRepository.countOrdersSince(auth.tenantId, branchId, since),
         analyticsRepository.sumPaidRevenueSince(auth.tenantId, branchId, since),
         analyticsRepository.countActiveOrders(auth.tenantId, branchId),
         analyticsRepository.findActiveInventoryItems(auth.tenantId, branchId),
+        analyticsRepository.findTopItems(auth.tenantId, branchId, since),
+        analyticsRepository.revenueByHour(auth.tenantId, branchId, since),
+        analyticsRepository.countPaidOrdersSince(auth.tenantId, branchId, since),
+        analyticsRepository.countCancelledOrdersSince(auth.tenantId, branchId, since),
       ]);
 
     const lowStockAlerts = inventoryItems.filter(
@@ -43,8 +49,11 @@ export const analyticsService = {
       revenueToday,
       activeOrders,
       lowStockAlerts,
-      topItems: [] as unknown[],
-      revenueByHour: [] as unknown[],
+      topItems,
+      revenueByHour,
+      paidOrdersToday,
+      cancelledOrdersToday,
+      averageOrderValue: paidOrdersToday > 0 ? revenueToday / paidOrdersToday : 0,
     };
   },
 };
