@@ -4,11 +4,9 @@
   "workspaces": {
     "": {
       "name": "restaurant-pos-saas",
-      "dependencies": {
-        "@typescript-eslint/parser": "^8.66.0",
-      },
       "devDependencies": {
         "@types/node": "^20.14.0",
+        "@typescript-eslint/parser": "^8.66.0",
         "eslint": "^9.39.5",
         "eslint-plugin-jsx-a11y": "^6.10.2",
         "prettier": "^3.6.2",
@@ -43,6 +41,30 @@
         "bun-types": "^1.1.0",
         "drizzle-kit": "^0.22.8",
         "typescript": "^5.4.5",
+        "vitest": "^1.6.0",
+      },
+    },
+    "apps/customer-app": {
+      "name": "@pos/customer-app",
+      "version": "0.1.0",
+      "dependencies": {
+        "@pos/types": "workspace:*",
+        "@pos/ui": "workspace:*",
+        "lucide-react": "^0.395.0",
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0",
+      },
+      "devDependencies": {
+        "@types/react": "^19.0.0",
+        "@types/react-dom": "^19.0.0",
+        "@vitejs/plugin-react": "^4.3.1",
+        "@vitest/coverage-v8": "^1.6.0",
+        "autoprefixer": "^10.4.19",
+        "jsdom": "^24.0.0",
+        "postcss": "^8.4.38",
+        "tailwindcss": "^3.4.4",
+        "typescript": "^5.4.5",
+        "vite": "^5.3.1",
         "vitest": "^1.6.0",
       },
     },
@@ -123,11 +145,11 @@
       "version": "0.1.0",
       "dependencies": {
         "@hookform/resolvers": "^3.6.0",
-        "@pos/api-client": "*",
-        "@pos/realtime": "*",
-        "@pos/types": "*",
-        "@pos/ui": "*",
-        "@pos/validation": "*",
+        "@pos/api-client": "workspace:*",
+        "@pos/realtime": "workspace:*",
+        "@pos/types": "workspace:*",
+        "@pos/ui": "workspace:*",
+        "@pos/validation": "workspace:*",
         "@tanstack/react-query": "^5.45.0",
         "@tanstack/react-query-devtools": "^5.45.0",
         "@tanstack/react-router": "^1.40.0",
@@ -135,6 +157,7 @@
         "clsx": "^2.1.1",
         "date-fns": "^3.6.0",
         "lucide-react": "^0.395.0",
+        "qrcode.react": "^4.2.0",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
         "react-hook-form": "^7.52.0",
@@ -230,6 +253,7 @@
       "peerDependencies": {
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
+        "tailwindcss": "^3.4.4",
       },
     },
     "packages/validation": {
@@ -432,6 +456,8 @@
     "@pos/api": ["@pos/api@workspace:apps/api"],
 
     "@pos/api-client": ["@pos/api-client@workspace:packages/api-client"],
+
+    "@pos/customer-app": ["@pos/customer-app@workspace:apps/customer-app"],
 
     "@pos/kitchen-display": ["@pos/kitchen-display@workspace:apps/kitchen-display"],
 
@@ -1306,6 +1332,8 @@
     "psl": ["psl@1.15.0", "", { "dependencies": { "punycode": "^2.3.1" } }, "sha512-JZd3gMVBAVQkSs6HdNZo9Sdo0LNcQeMNP3CozBJb3JYC/QUYZTnKxP+f8oWRX4rHP5EurWxqAHTSwUCjlNKa1w=="],
 
     "punycode": ["punycode@2.3.1", "", {}, "sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg=="],
+
+    "qrcode.react": ["qrcode.react@4.2.0", "", { "peerDependencies": { "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-QpgqWi8rD9DsS9EP3z7BT+5lY5SFhsqGjpgW5DY/i3mK4M9DTBNz3ErMi8BWYEfI3L0d8GIbGmcdFAS1uIRGjA=="],
 
     "querystringify": ["querystringify@2.2.0", "", {}, "sha512-FIqgj2EUvTa7R50u0rGsyTftzjYmv/a3hO345bZNrqabNqjtgiDMgmo4mkUjd+nzU5oF3dClKqFIPUKybUyqoQ=="],
 

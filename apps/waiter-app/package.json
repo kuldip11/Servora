@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "react": "^19.0.0",
@@ -24,11 +26,11 @@
     "react-hook-form": "^7.52.0",
     "@hookform/resolvers": "^3.6.0",
     "zod": "^3.23.8",
-    "@pos/types": "*",
-    "@pos/ui": "*",
-    "@pos/api-client": "*",
-    "@pos/realtime": "*",
-    "@pos/validation": "*",
+    "@pos/types": "workspace:*",
+    "@pos/ui": "workspace:*",
+    "@pos/api-client": "workspace:*",
+    "@pos/realtime": "workspace:*",
+    "@pos/validation": "workspace:*",
     "@tanstack/react-router": "^1.40.0"
   },
   "devDependencies": {
