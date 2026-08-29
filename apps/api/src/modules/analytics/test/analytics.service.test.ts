@@ -4,11 +4,19 @@ const {
   sumPaidRevenueSince,
   countActiveOrders,
   findActiveInventoryItems,
+  findTopItems,
+  revenueByHour,
+  countPaidOrdersSince,
+  countCancelledOrdersSince,
 } = vi.hoisted(() => ({
   countOrdersSince: vi.fn(),
   sumPaidRevenueSince: vi.fn(),
   countActiveOrders: vi.fn(),
   findActiveInventoryItems: vi.fn(),
+  findTopItems: vi.fn(),
+  revenueByHour: vi.fn(),
+  countPaidOrdersSince: vi.fn(),
+  countCancelledOrdersSince: vi.fn(),
 }));
 vi.mock("../analytics.repository", () => ({
   analyticsRepository: {
@@ -16,6 +24,10 @@ vi.mock("../analytics.repository", () => ({
     sumPaidRevenueSince,
     countActiveOrders,
     findActiveInventoryItems,
+    findTopItems,
+    revenueByHour,
+    countPaidOrdersSince,
+    countCancelledOrdersSince,
   },
 }));
 import { analyticsService } from "../analytics.service";
@@ -33,6 +45,10 @@ beforeEach(() => {
   countOrdersSince.mockResolvedValue(5);
   sumPaidRevenueSince.mockResolvedValue(125.5);
   countActiveOrders.mockResolvedValue(2);
+  findTopItems.mockResolvedValue([]);
+  revenueByHour.mockResolvedValue([]);
+  countPaidOrdersSince.mockResolvedValue(4);
+  countCancelledOrdersSince.mockResolvedValue(1);
   findActiveInventoryItems.mockResolvedValue([
     { currentStock: "2", minimumStock: "5", isActive: true },
     { currentStock: "10", minimumStock: "5", isActive: true },
@@ -61,6 +77,9 @@ describe("analytics service", () => {
       lowStockAlerts: 2,
       topItems: [],
       revenueByHour: [],
+      paidOrdersToday: 4,
+      cancelledOrdersToday: 1,
+      averageOrderValue: 31.375,
     });
     expect(countOrdersSince).toHaveBeenCalledWith("t1", "b1", expect.any(Date));
     expect(sumPaidRevenueSince).toHaveBeenCalledWith(

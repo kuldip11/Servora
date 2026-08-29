@@ -123,6 +123,8 @@ export default {
       boxShadow: {
         sm: "var(--shadow-sm)",
         md: "var(--shadow-md)",
+        elevated: "var(--shadow-md)",
+        card: "var(--shadow-sm)",
         dropdown: "var(--shadow-dropdown)",
       },
       spacing: {

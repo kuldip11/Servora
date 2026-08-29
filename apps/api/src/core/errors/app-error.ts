@@ -14,9 +14,11 @@
 export enum ErrorCode {
   // Authentication / authorization
   UNAUTHORIZED = "UNAUTHORIZED",
+  RATE_LIMITED = "RATE_LIMITED",
   FORBIDDEN = "FORBIDDEN",
   INVALID_CREDENTIALS = "INVALID_CREDENTIALS",
   TOKEN_EXPIRED = "TOKEN_EXPIRED",
+  CUSTOMER_SESSION_REQUIRED = "CUSTOMER_SESSION_REQUIRED",
 
   // Validation
   VALIDATION_FAILED = "VALIDATION_FAILED",
@@ -99,6 +101,23 @@ export class UnauthorizedError extends AppError {
   ) {
     super({ code: ErrorCode.UNAUTHORIZED, message, details }, 401);
     this.name = "UnauthorizedError";
+  }
+}
+
+export class TooManyRequestsError extends AppError {
+  constructor(
+    message = "Too many requests",
+    details?: Record<string, unknown> | undefined,
+  ) {
+    super({ code: ErrorCode.RATE_LIMITED, message, details }, 429);
+    this.name = "TooManyRequestsError";
+  }
+}
+
+export class CustomerSessionRequiredError extends AppError {
+  constructor(message = "Customer session is required") {
+    super({ code: ErrorCode.CUSTOMER_SESSION_REQUIRED, message }, 401);
+    this.name = "CustomerSessionRequiredError";
   }
 }
 

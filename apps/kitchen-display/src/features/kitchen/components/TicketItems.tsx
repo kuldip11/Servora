@@ -29,7 +29,10 @@ export function TicketItems({ notes, items }: Props) {
           if (!groupItems.length) return null;
 
           return (
-            <section key={fulfillmentType} aria-label={FULFILLMENT_LABEL[fulfillmentType]}>
+            <section
+              key={fulfillmentType}
+              aria-label={FULFILLMENT_LABEL[fulfillmentType]}
+            >
               <div className="flex items-center gap-2 mb-1.5">
                 <span className="text-[11px] font-bold uppercase tracking-wide text-text-secondary">
                   {FULFILLMENT_LABEL[fulfillmentType]}
@@ -46,19 +49,25 @@ export function TicketItems({ notes, items }: Props) {
                       <p className="text-text-primary text-sm font-medium">
                         {item.menuItemName}
                         {item.variantName && (
-                          <span className="text-warning"> · {item.variantName}</span>
+                          <span className="text-warning">
+                            {" "}
+                            · {item.variantName}
+                          </span>
                         )}
                       </p>
                       {item.chefNotes && (
-                        <p className="text-xs text-warning mt-0.5">📝 {item.chefNotes}</p>
+                        <p className="text-xs text-warning mt-0.5">
+                          📝 {item.chefNotes}
+                        </p>
                       )}
                       {item.modifiers?.map((m, i) => (
                         <p key={i} className="text-xs text-text-secondary">
                           + {m.name}
                           {m.quantity > 1 ? ` ×${m.quantity}` : ""}
                           {m.modifierGroupName ? (
-                            <span className="text-text-disabled"> (
-                              {m.modifierGroupName})
+                            <span className="text-text-disabled">
+                              {" "}
+                              ({m.modifierGroupName})
                             </span>
                           ) : null}
                         </p>

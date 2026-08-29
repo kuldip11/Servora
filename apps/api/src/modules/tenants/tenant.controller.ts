@@ -9,7 +9,10 @@ export const tenantController = {
   async list(auth: AuthContext) {
     return successResponse(await tenantService.list(auth));
   },
-  async create(auth: AuthContext, input: { name: string }) {
+  async create(
+    auth: AuthContext,
+    input: { name: string; organizationId: string },
+  ) {
     return createdResponse(await tenantService.create(auth, input));
   },
   async update(

@@ -9,6 +9,8 @@ import {
   Bike,
   Globe,
   Table2,
+  Clock3,
+  CircleDollarSign,
 } from "lucide-react";
 import { Card, IconButton } from "@pos/ui";
 import type { Branch } from "@pos/types";
@@ -36,7 +38,12 @@ export function BranchCard({
           <div className="w-9 h-9 rounded-lg bg-primary-surface flex items-center justify-center">
             <Building2 className="w-4.5 h-4.5 text-primary" />
           </div>
-          <p className="font-semibold text-text-primary">{branch.name}</p>
+          <div>
+            <p className="font-semibold text-text-primary">{branch.name}</p>
+            <p className="text-[11px] font-medium uppercase tracking-wide text-text-disabled">
+              {branch.code}
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-0.5">
           <IconButton
@@ -66,6 +73,16 @@ export function BranchCard({
           <Phone className="w-3.5 h-3.5 flex-shrink-0" /> {branch.phone}
         </p>
       )}
+      <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-text-secondary">
+        <span className="flex items-center gap-1.5">
+          <Clock3 className="h-3.5 w-3.5" />
+          {branch.timezone}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <CircleDollarSign className="h-3.5 w-3.5" />
+          {branch.currency}
+        </span>
+      </div>
       <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-divider">
         {CAPABILITY_BADGES.map(({ key, label, icon: Icon }) => (
           <span

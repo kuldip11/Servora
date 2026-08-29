@@ -1,6 +1,6 @@
 export type UserStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED";
 
-export type RoleName =
+export type SystemRoleName =
   | "OWNER"
   | "FRANCHISE_ADMIN"
   | "MANAGER"
@@ -10,6 +10,9 @@ export type RoleName =
   | "INVENTORY_MANAGER"
   | "RECEPTIONIST"
   | "ACCOUNTANT";
+
+/** System role names plus tenant-defined custom role names. */
+export type RoleName = SystemRoleName | (string & {});
 
 export interface User {
   id: string;
@@ -48,6 +51,9 @@ export interface Branch {
   id: string;
   tenantId: string;
   name: string;
+  code: string;
+  timezone: string;
+  currency: string;
   address: string;
   phone: string;
   isActive: boolean;
@@ -63,6 +69,12 @@ export interface AuthTokens {
   refreshToken: string;
   expiresIn: number;
 }
+export interface OrganizationSummary {
+  id: string;
+  name: string;
+  isActive: boolean;
+}
+
 export interface AvailableMembership {
   membershipId: string;
   /** True when the authenticated user has a GLOBAL OWNER role. */

@@ -218,6 +218,83 @@
       "when": 1786109000030,
       "tag": "0030_customer_order_request_idempotency",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1786109000031,
+      "tag": "0031_audit_read_permission",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1786109000032,
+      "tag": "0032_auth_hardening",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1786109000033,
+      "tag": "0033_organizations",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1786109000034,
+      "tag": "0034_franchise_organization_required",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1786109000035,
+      "tag": "0035_branch_identity",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1786109000036,
+      "tag": "0036_tenant_roles",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1786109000037,
+      "tag": "0037_role_management_permissions",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1786109000038,
+      "tag": "0038_user_sessions",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1786109000039,
+      "tag": "0039_tenant_isolation_guards",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1786109000040,
+      "tag": "0040_audit_log_hardening",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1786109000041,
+      "tag": "0041_ticket_inventory_idempotency",
+      "breakpoints": true
     }
   ]
 }

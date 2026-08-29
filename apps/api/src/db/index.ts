@@ -88,3 +88,13 @@ export const db: PostgresJsDatabase<typeof schema> = new Proxy(
 ) as PostgresJsDatabase<typeof schema>;
 
 export type Database = typeof db;
+
+export async function closeDatabaseConnections(): Promise<void> {
+  const clients: ReturnType<typeof postgres>[] = [];
+  if (queryClient) clients.push(queryClient);
+  if (migrationClientInstance) clients.push(migrationClientInstance);
+  await Promise.allSettled(clients.map((client) => client.end({ timeout: 5 })));
+  queryClient = undefined;
+  migrationClientInstance = undefined;
+  dbInstance = undefined;
+}

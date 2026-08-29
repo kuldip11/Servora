@@ -5,15 +5,172 @@ import type { CustomerOrder, CustomerRequestType } from "../../api";
 
 import { formatMoney } from "../../shared/utils/money";
 
-export const OrderPlaced = memo(function OrderPlaced({ order, table, estimatedTime, onMenu, live, onRequest, requestBusy, requestMessage, paymentPending, checkoutError, checkoutBusy, onRetryCheckout }: { order: CustomerOrder; table: string; estimatedTime: string; onMenu: () => void; live: boolean; onRequest: (type: CustomerRequestType) => void; requestBusy: boolean; requestMessage: string | null; paymentPending: boolean; checkoutError: string | null; checkoutBusy: boolean; onRetryCheckout: () => void }) {
+export const OrderPlaced = memo(function OrderPlaced({
+  order,
+  table,
+  estimatedTime,
+  onMenu,
+  live,
+  onRequest,
+  requestBusy,
+  requestMessage,
+  paymentPending,
+  checkoutError,
+  checkoutBusy,
+  onRetryCheckout,
+}: {
+  order: CustomerOrder;
+  table: string;
+  estimatedTime: string;
+  onMenu: () => void;
+  live: boolean;
+  onRequest: (type: CustomerRequestType) => void;
+  requestBusy: boolean;
+  requestMessage: string | null;
+  paymentPending: boolean;
+  checkoutError: string | null;
+  checkoutBusy: boolean;
+  onRetryCheckout: () => void;
+}) {
   const ticketStatus = order.kitchenTickets.at(-1)?.status ?? "FIRED";
-  const label = ticketStatus === "READY" ? "Ready for you" : ticketStatus === "SERVED" ? "Served" : ticketStatus === "PREPARING" ? "Preparing your food" : "Order received";
-  const progress = ticketStatus === "READY" || ticketStatus === "SERVED" ? "w-full" : ticketStatus === "PREPARING" ? "w-2/3" : "w-1/3";
-  return <main className="safe-bottom flex min-h-screen items-center justify-center bg-background px-5 py-8"><div className="w-full max-w-md text-center"><div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success text-success-foreground"><Check className="h-7 w-7" strokeWidth={2.5} /></div><p className="mt-5 text-xs font-medium uppercase tracking-[0.16em] text-text-secondary">Order confirmed</p><h1 className="mt-2 text-3xl font-semibold tracking-tight text-text-primary">You're all set.</h1><p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-text-secondary">Your order has been sent to the kitchen for table {table}.</p>
-    <Card padding="md" className="mt-7 text-left"><div className="flex justify-between text-sm text-text-secondary"><span>Order total</span><span>{formatMoney(Number(order.totalAmount))}</span></div><div className="mt-5 flex items-center gap-3"><div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground"><Clock3 className="h-4 w-4" /></div><div><p className="font-semibold text-text-primary">{label}</p><p className="text-sm text-text-secondary">Estimated {estimatedTime}</p></div></div><div className="mt-5 h-1.5 overflow-hidden rounded-full bg-surface-secondary" role="progressbar" aria-label="Order preparation progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={ticketStatus === "READY" || ticketStatus === "SERVED" ? 100 : ticketStatus === "PREPARING" ? 66 : 33}><div className={`h-full ${progress} rounded-full bg-primary transition-all`} /></div></Card>
-    <Card padding="md" className="mt-4 text-left"><p className="font-semibold text-text-primary">Payment</p><p className="mt-2 text-sm leading-6 text-text-secondary">{paymentPending ? "Pay at the counter when you are ready. The restaurant will mark the payment as received." : "Payment received."}</p>{checkoutError && paymentPending && <div role="alert" className="mt-3 rounded-lg border border-danger bg-danger-surface p-3 text-sm text-danger"><p>{checkoutError}</p><Button className="mt-3 w-full sm:w-auto" size="sm" disabled={checkoutBusy} loading={checkoutBusy} onClick={onRetryCheckout}>Retry payment setup</Button></div>}</Card>
-    <Card padding="md" className="mt-4 text-left"><div className="flex items-center justify-between"><p className="font-semibold text-text-primary">Need anything?</p><Badge variant={live ? "success" : "default"} aria-label={live ? "Live order updates connected" : "Order status connection checking"}>{live ? "Live updates" : "Checking status"}</Badge></div><div className="mt-3 grid grid-cols-2 gap-2">{([["CALL_WAITER", "Call waiter"], ["WATER", "Water"], ["CUTLERY", "Cutlery"], ["BILL", "Request bill"]] as const).map(([type, label]) => <Button key={type} variant="secondary" disabled={requestBusy} onClick={() => onRequest(type)} className="w-full">{label}</Button>)}</div>{requestMessage && <p role="status" className="mt-3 text-sm text-text-secondary">{requestMessage}</p>}</Card>
-    <Button variant="outline" size="lg" onClick={onMenu} className="mt-4 w-full">Order more <Plus className="h-4 w-4" /></Button>
-  </div></main>;
+  const label =
+    ticketStatus === "READY"
+      ? "Ready for you"
+      : ticketStatus === "SERVED"
+        ? "Served"
+        : ticketStatus === "PREPARING"
+          ? "Preparing your food"
+          : "Order received";
+  const progress =
+    ticketStatus === "READY" || ticketStatus === "SERVED"
+      ? "w-full"
+      : ticketStatus === "PREPARING"
+        ? "w-2/3"
+        : "w-1/3";
+  return (
+    <main className="[padding-bottom:max(1rem,env(safe-area-inset-bottom))] flex min-h-screen items-center justify-center bg-background px-5 py-8">
+      <div className="w-full max-w-md text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success text-success-foreground">
+          <Check className="h-7 w-7" strokeWidth={2.5} />
+        </div>
+        <p className="mt-5 text-xs font-medium uppercase tracking-[0.16em] text-text-secondary">
+          Order confirmed
+        </p>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-text-primary">
+          You're all set.
+        </h1>
+        <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-text-secondary">
+          Your order has been sent to the kitchen for table {table}.
+        </p>
+        <Card padding="md" className="mt-7 text-left">
+          <div className="flex justify-between text-sm text-text-secondary">
+            <span>Order total</span>
+            <span>{formatMoney(Number(order.totalAmount))}</span>
+          </div>
+          <div className="mt-5 flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <Clock3 className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="font-semibold text-text-primary">{label}</p>
+              <p className="text-sm text-text-secondary">
+                Estimated {estimatedTime}
+              </p>
+            </div>
+          </div>
+          <div
+            className="mt-5 h-1.5 overflow-hidden rounded-full bg-surface-secondary"
+            role="progressbar"
+            aria-label="Order preparation progress"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={
+              ticketStatus === "READY" || ticketStatus === "SERVED"
+                ? 100
+                : ticketStatus === "PREPARING"
+                  ? 66
+                  : 33
+            }
+          >
+            <div
+              className={`h-full ${progress} rounded-full bg-primary transition-all`}
+            />
+          </div>
+        </Card>
+        <Card padding="md" className="mt-4 text-left">
+          <p className="font-semibold text-text-primary">Payment</p>
+          <p className="mt-2 text-sm leading-6 text-text-secondary">
+            {paymentPending
+              ? "Pay at the counter when you are ready. The restaurant will mark the payment as received."
+              : "Payment received."}
+          </p>
+          {checkoutError && paymentPending && (
+            <div
+              role="alert"
+              className="mt-3 rounded-lg border border-danger bg-danger-surface p-3 text-sm text-danger"
+            >
+              <p>{checkoutError}</p>
+              <Button
+                className="mt-3 w-full sm:w-auto"
+                size="sm"
+                disabled={checkoutBusy}
+                loading={checkoutBusy}
+                onClick={onRetryCheckout}
+              >
+                Retry payment setup
+              </Button>
+            </div>
+          )}
+        </Card>
+        <Card padding="md" className="mt-4 text-left">
+          <div className="flex items-center justify-between">
+            <p className="font-semibold text-text-primary">Need anything?</p>
+            <Badge
+              variant={live ? "success" : "default"}
+              aria-label={
+                live
+                  ? "Live order updates connected"
+                  : "Order status connection checking"
+              }
+            >
+              {live ? "Live updates" : "Checking status"}
+            </Badge>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {(
+              [
+                ["CALL_WAITER", "Call waiter"],
+                ["WATER", "Water"],
+                ["CUTLERY", "Cutlery"],
+                ["BILL", "Request bill"],
+              ] as const
+            ).map(([type, label]) => (
+              <Button
+                key={type}
+                variant="secondary"
+                disabled={requestBusy}
+                onClick={() => onRequest(type)}
+                className="w-full"
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
+          {requestMessage && (
+            <p role="status" className="mt-3 text-sm text-text-secondary">
+              {requestMessage}
+            </p>
+          )}
+        </Card>
+        <Button
+          variant="outline"
+          size="lg"
+          onClick={onMenu}
+          className="mt-4 w-full"
+        >
+          Order more <Plus className="h-4 w-4" />
+        </Button>
+      </div>
+    </main>
+  );
 });
-

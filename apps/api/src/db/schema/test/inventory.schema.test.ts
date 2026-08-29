@@ -46,6 +46,7 @@ describe("inventory.schema.ts", () => {
     expectTable(orderInventoryDeductions, "order_inventory_deductions", [
       "id",
       "orderId",
+      "kitchenTicketId",
       "menuItemId",
       "inventoryItemId",
       "quantityDeducted",

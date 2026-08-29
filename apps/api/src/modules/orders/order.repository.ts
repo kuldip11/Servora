@@ -154,6 +154,7 @@ export const orderRepository = {
         },
         table: true,
         createdByUser: true,
+        payments: true,
       },
       orderBy: desc(orders.createdAt),
     });
@@ -216,7 +217,10 @@ export const orderRepository = {
     return db.transaction(async (tx) => {
       if (customerRequestId) {
         const existingTicket = await tx.query.kitchenTickets.findFirst({
-          where: and(eq(kitchenTickets.orderId, orderId), eq(kitchenTickets.customerRequestId, customerRequestId)),
+          where: and(
+            eq(kitchenTickets.orderId, orderId),
+            eq(kitchenTickets.customerRequestId, customerRequestId),
+          ),
         });
         if (existingTicket) return existingTicket;
       }

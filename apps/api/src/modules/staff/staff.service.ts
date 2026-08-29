@@ -37,7 +37,7 @@ function canManageTarget(auth: AuthContext, membership: any) {
 }
 
 async function validateRole(auth: AuthContext, roleId: string) {
-  const role = await staffRepository.findRoleById(roleId);
+  const role = await staffRepository.findRoleById(roleId, auth.tenantId);
   if (!role) throw new ValidationError("Invalid role");
   if (role.name === "OWNER" && !auth.roles.includes("OWNER")) {
     throw new ForbiddenError("Only an Owner can assign the Owner role");
@@ -121,6 +121,9 @@ export const staffService = {
     await writeAudit({
       tenantId: auth.tenantId,
       userId: auth.userId,
+      branchId: auth.branchId,
+      requestId: auth.requestId,
+      ipAddress: auth.ipAddress,
       action: "STAFF_CREATED",
       entity: "tenant_membership",
       entityId: membership.id,
@@ -158,6 +161,9 @@ export const staffService = {
       await writeAudit({
         tenantId: auth.tenantId,
         userId: auth.userId,
+        branchId: auth.branchId,
+        requestId: auth.requestId,
+        ipAddress: auth.ipAddress,
         action:
           input.status === "ACTIVE" ? "STAFF_REACTIVATED" : "STAFF_DEACTIVATED",
         entity: "tenant_membership",
@@ -183,6 +189,9 @@ export const staffService = {
       await writeAudit({
         tenantId: auth.tenantId,
         userId: auth.userId,
+        branchId: auth.branchId,
+        requestId: auth.requestId,
+        ipAddress: auth.ipAddress,
         action: "STAFF_ROLE_ASSIGNED",
         entity: "tenant_membership",
         entityId: membership.id,
@@ -194,7 +203,7 @@ export const staffService = {
       requirePermission(auth, "staff:assign_branch");
       const branchIds = await validateBranches(auth, input.branchIds);
       const currentRole = input.roleId
-        ? await staffRepository.findRoleById(input.roleId)
+        ? await staffRepository.findRoleById(input.roleId, auth.tenantId)
         : membership.roles[0]?.role;
       if (
         (currentRole?.scope === "GLOBAL" || currentRole?.scope === "TENANT") &&
@@ -209,6 +218,9 @@ export const staffService = {
       await writeAudit({
         tenantId: auth.tenantId,
         userId: auth.userId,
+        branchId: auth.branchId,
+        requestId: auth.requestId,
+        ipAddress: auth.ipAddress,
         action: "STAFF_BRANCHES_ASSIGNED",
         entity: "tenant_membership",
         entityId: membership.id,
@@ -229,6 +241,9 @@ export const staffService = {
     await writeAudit({
       tenantId: auth.tenantId,
       userId: auth.userId,
+      branchId: auth.branchId,
+      requestId: auth.requestId,
+      ipAddress: auth.ipAddress,
       action: "STAFF_DEACTIVATED",
       entity: "tenant_membership",
       entityId: membership.id,
@@ -238,7 +253,7 @@ export const staffService = {
 
   async listRoles(auth: AuthContext) {
     requirePermission(auth, "staff:read");
-    const roles = await staffRepository.findAllRoles();
+    const roles = await staffRepository.findAllRoles(auth.tenantId);
     return roles.filter(
       (role: any) =>
         auth.roles.includes("OWNER") ||

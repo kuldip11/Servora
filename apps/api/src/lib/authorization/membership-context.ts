@@ -49,7 +49,8 @@ export async function listUserMemberships(
   return Promise.all(
     memberships.map(async (membership: any) => {
       const tenantWide = membership.roles.some(
-        (item: any) => item.role?.scope === "GLOBAL" || item.role?.scope === "TENANT",
+        (item: any) =>
+          item.role?.scope === "GLOBAL" || item.role?.scope === "TENANT",
       );
       const branchRecords = tenantWide
         ? await db.query.branches.findMany({

@@ -38,15 +38,31 @@ export const tenantService = {
     );
   },
 
-  async create(auth: AuthContext, input: { name: string }) {
+  async create(
+    auth: AuthContext,
+    input: { name: string; organizationId: string },
+  ) {
     // Creating a new franchise is an ownership operation, not a generic
     // tenant permission. Only the global OWNER can create another franchise.
     if (!auth.roles.includes("OWNER")) {
       throw new ForbiddenError("Only the global Owner can create tenants");
     }
+    const organizationMembership =
+      await tenantRepository.findOrganizationMembership(
+        auth.userId,
+        input.organizationId,
+      );
+    if (
+      !organizationMembership ||
+      !organizationMembership.organization.isActive
+    ) {
+      throw new ForbiddenError("Organization access denied");
+    }
+
     const tenant = await tenantRepository.create({
-      name: input.name,
+      name: input.name.trim(),
       createdBy: auth.userId,
+      organizationId: input.organizationId,
     });
     const tenantRole = await tenantRepository.findRoleByName("FRANCHISE_ADMIN");
     if (!tenantRole || tenantRole.scope !== "TENANT")
@@ -61,6 +77,9 @@ export const tenantService = {
     await writeAudit({
       tenantId: tenant.id,
       userId: auth.userId,
+      branchId: auth.branchId,
+      requestId: auth.requestId,
+      ipAddress: auth.ipAddress,
       action: "TENANT_CREATED",
       entity: "tenant",
       entityId: tenant.id,
@@ -75,13 +94,27 @@ export const tenantService = {
     changes: { name?: string },
   ) {
     requirePermission(auth, "tenant:update");
+    const tenant = await tenantRepository.findById(tenantId);
+    if (!tenant) throw tenantNotFound(tenantId);
+    const organizationMembership =
+      await tenantRepository.findOrganizationMembership(
+        auth.userId,
+        tenant.organizationId,
+      );
+    if (!organizationMembership) throw tenantNotFound(tenantId);
     if (!auth.roles.includes("OWNER") && tenantId !== auth.tenantId)
       throw tenantNotFound(tenantId);
-    const updated = await tenantRepository.update(tenantId, changes);
+    const updated = await tenantRepository.update(tenantId, {
+      ...changes,
+      ...(changes.name !== undefined ? { name: changes.name.trim() } : {}),
+    });
     if (!updated) throw tenantNotFound(tenantId);
     await writeAudit({
       tenantId,
       userId: auth.userId,
+      branchId: auth.branchId,
+      requestId: auth.requestId,
+      ipAddress: auth.ipAddress,
       action: "TENANT_UPDATED",
       entity: "tenant",
       entityId: tenantId,
@@ -92,6 +125,14 @@ export const tenantService = {
 
   async archive(auth: AuthContext, tenantId: string) {
     requirePermission(auth, "tenant:archive");
+    const tenant = await tenantRepository.findById(tenantId);
+    if (!tenant) throw tenantNotFound(tenantId);
+    const organizationMembership =
+      await tenantRepository.findOrganizationMembership(
+        auth.userId,
+        tenant.organizationId,
+      );
+    if (!organizationMembership) throw tenantNotFound(tenantId);
     if (!auth.roles.includes("OWNER") && tenantId !== auth.tenantId)
       throw tenantNotFound(tenantId);
     const updated = await tenantRepository.update(tenantId, {
@@ -101,6 +142,9 @@ export const tenantService = {
     await writeAudit({
       tenantId,
       userId: auth.userId,
+      branchId: auth.branchId,
+      requestId: auth.requestId,
+      ipAddress: auth.ipAddress,
       action: "TENANT_ARCHIVED",
       entity: "tenant",
       entityId: tenantId,

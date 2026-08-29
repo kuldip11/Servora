@@ -3,6 +3,9 @@ import type { Branch } from "@pos/types";
 
 export interface BranchFormInput {
   name: string;
+  code: string;
+  timezone: string;
+  currency: string;
   address?: string;
   phone?: string;
   dineInEnabled: boolean;

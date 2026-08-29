@@ -1,4 +1,12 @@
-import { ShoppingBag, Bell, ChevronRight, CheckCircle2, Droplets, ReceiptText, Utensils } from "lucide-react";
+import {
+  ShoppingBag,
+  Bell,
+  ChevronRight,
+  CheckCircle2,
+  Droplets,
+  ReceiptText,
+  Utensils,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRealtimeEvent } from "../../../shared/lib/realtime";
 import { apiClient } from "../../../shared/lib/api-client";
@@ -29,15 +37,35 @@ export function HomePage({
   onSelectOrder,
 }: Props) {
   const { data: orders } = useOrders();
-  const [requests, setRequests] = useState<Array<{ id: string; tableId: string; type: string; status: string }>>([]);
+  const [requests, setRequests] = useState<
+    Array<{ id: string; tableId: string; type: string; status: string }>
+  >([]);
   useEffect(() => {
-    void apiClient.get("/customer/requests").then((response) => setRequests(response.data.data ?? [])).catch(() => undefined);
+    void apiClient
+      .get("/customer/requests")
+      .then((response) => setRequests(response.data.data ?? []))
+      .catch(() => undefined);
   }, []);
   useRealtimeEvent("customer.request.created", (event) => {
-    setRequests((current) => current.some((r) => r.id === event.payload.id) ? current : [{ id: event.payload.id, tableId: event.payload.tableId, type: event.payload.type, status: event.payload.status }, ...current]);
+    setRequests((current) =>
+      current.some((r) => r.id === event.payload.id)
+        ? current
+        : [
+            {
+              id: event.payload.id,
+              tableId: event.payload.tableId,
+              type: event.payload.type,
+              status: event.payload.status,
+            },
+            ...current,
+          ],
+    );
   });
   useRealtimeEvent("customer.request.updated", (event) => {
-    if (["RESOLVED", "CANCELLED"].includes(event.payload.status)) setRequests((current) => current.filter((r) => r.id !== event.payload.id));
+    if (["RESOLVED", "CANCELLED"].includes(event.payload.status))
+      setRequests((current) =>
+        current.filter((r) => r.id !== event.payload.id),
+      );
   });
   async function resolveRequest(id: string) {
     await apiClient.patch(`/customer/requests/${id}`, { status: "RESOLVED" });
@@ -76,14 +104,35 @@ export function HomePage({
             <div className="flex items-center gap-2">
               <Bell className="w-4 h-4 text-warning" />
               <p className="font-bold text-sm">Customer requests</p>
-              <span className="ml-auto rounded-full bg-warning/10 px-2 py-0.5 text-xs font-semibold">{requests.length}</span>
+              <span className="ml-auto rounded-full bg-warning/10 px-2 py-0.5 text-xs font-semibold">
+                {requests.length}
+              </span>
             </div>
             <div className="mt-3 space-y-2">
               {requests.slice(0, 3).map((request) => (
-                <div key={request.id} className="flex items-center gap-3 rounded-xl bg-background px-3 py-2">
-                  <span className="text-primary">{request.type === "WATER" ? <Droplets className="w-4 h-4" /> : request.type === "BILL" ? <ReceiptText className="w-4 h-4" /> : <Utensils className="w-4 h-4" />}</span>
-                  <span className="flex-1 text-sm font-medium">Table request · {request.type.replace("_", " ").toLowerCase()}</span>
-                  <button onClick={() => void resolveRequest(request.id)} className="text-xs font-semibold text-primary">Done</button>
+                <div
+                  key={request.id}
+                  className="flex items-center gap-3 rounded-xl bg-background px-3 py-2"
+                >
+                  <span className="text-primary">
+                    {request.type === "WATER" ? (
+                      <Droplets className="w-4 h-4" />
+                    ) : request.type === "BILL" ? (
+                      <ReceiptText className="w-4 h-4" />
+                    ) : (
+                      <Utensils className="w-4 h-4" />
+                    )}
+                  </span>
+                  <span className="flex-1 text-sm font-medium">
+                    Table request ·{" "}
+                    {request.type.replace("_", " ").toLowerCase()}
+                  </span>
+                  <button
+                    onClick={() => void resolveRequest(request.id)}
+                    className="text-xs font-semibold text-primary"
+                  >
+                    Done
+                  </button>
                 </div>
               ))}
             </div>

@@ -53,17 +53,45 @@ export function SettingsPage() {
               <div className="w-9 h-9 bg-violet-50 rounded-lg flex items-center justify-center">
                 <User className="w-5 h-5 text-violet-600" />
               </div>
-              <h2 className="text-base font-semibold text-text-primary">Account</h2>
+              <h2 className="text-base font-semibold text-text-primary">
+                Account
+              </h2>
             </div>
-            <Button size="sm" variant="secondary" onClick={() => {
-              profileForm.reset({ firstName: user?.firstName ?? "", lastName: user?.lastName ?? "" });
-              setShowProfileEdit(true);
-            }}>Edit</Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                profileForm.reset({
+                  firstName: user?.firstName ?? "",
+                  lastName: user?.lastName ?? "",
+                });
+                setShowProfileEdit(true);
+              }}
+            >
+              Edit
+            </Button>
           </div>
           <div className="space-y-3 text-sm">
-            <div className="flex justify-between py-2 border-b border-border"><span className="text-text-secondary">Name</span><span className="font-medium text-text-primary">{user?.firstName} {user?.lastName}</span></div>
-            <div className="flex justify-between py-2 border-b border-border"><span className="text-text-secondary">Email</span><span className="font-medium text-text-primary">{user?.email}</span></div>
-            <div className="flex justify-between py-2"><span className="text-text-secondary">Role</span><StatusBadge tone="info" dot={false} label={user?.roles[0]?.name ?? "—"} /></div>
+            <div className="flex justify-between py-2 border-b border-border">
+              <span className="text-text-secondary">Name</span>
+              <span className="font-medium text-text-primary">
+                {user?.firstName} {user?.lastName}
+              </span>
+            </div>
+            <div className="flex justify-between py-2 border-b border-border">
+              <span className="text-text-secondary">Email</span>
+              <span className="font-medium text-text-primary">
+                {user?.email}
+              </span>
+            </div>
+            <div className="flex justify-between py-2">
+              <span className="text-text-secondary">Role</span>
+              <StatusBadge
+                tone="info"
+                dot={false}
+                label={user?.roles[0]?.name ?? "—"}
+              />
+            </div>
           </div>
         </Card>
 
@@ -172,19 +200,39 @@ export function SettingsPage() {
         </Card>
       </Grid>
 
-      <Modal open={showProfileEdit} onClose={() => setShowProfileEdit(false)} title="Edit Profile">
+      <Modal
+        open={showProfileEdit}
+        onClose={() => setShowProfileEdit(false)}
+        title="Edit Profile"
+      >
         <form
           className="space-y-4"
-          onSubmit={profileForm.handleSubmit((values) => profileMutation.mutate(values))}
+          onSubmit={profileForm.handleSubmit((values) =>
+            profileMutation.mutate(values),
+          )}
         >
           <div className="grid grid-cols-2 gap-3">
-            <Input label="First name" {...profileForm.register("firstName", { required: true })} />
-            <Input label="Last name" {...profileForm.register("lastName", { required: true })} />
+            <Input
+              label="First name"
+              {...profileForm.register("firstName", { required: true })}
+            />
+            <Input
+              label="Last name"
+              {...profileForm.register("lastName", { required: true })}
+            />
           </div>
           <Input label="Email" value={user?.email ?? ""} disabled />
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="secondary" onClick={() => setShowProfileEdit(false)}>Cancel</Button>
-            <Button type="submit" loading={profileMutation.isPending}>Save changes</Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setShowProfileEdit(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" loading={profileMutation.isPending}>
+              Save changes
+            </Button>
           </div>
         </form>
       </Modal>

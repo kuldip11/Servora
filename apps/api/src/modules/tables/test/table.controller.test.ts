@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-const { list, create, update, updateStatus, remove, regenerateQr } = vi.hoisted(() => ({
-  list: vi.fn(),
-  create: vi.fn(),
-  update: vi.fn(),
-  updateStatus: vi.fn(),
-  remove: vi.fn(),
-  regenerateQr: vi.fn(),
-}));
+const { list, create, update, updateStatus, remove, regenerateQr } = vi.hoisted(
+  () => ({
+    list: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    updateStatus: vi.fn(),
+    remove: vi.fn(),
+    regenerateQr: vi.fn(),
+  }),
+);
 vi.mock("../table.service", () => ({
   tableService: { list, create, update, updateStatus, remove, regenerateQr },
 }));

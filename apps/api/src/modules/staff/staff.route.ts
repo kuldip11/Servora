@@ -30,8 +30,3 @@ export const staffRouter = new Elysia()
       params: staffIdParams,
     },
   );
-
-// Roles list – used by the frontend for role-selection dropdowns.
-export const rolesRouter = new Elysia()
-  .use(requireAuthPlugin())
-  .get("/api/roles/", ({ auth }) => staffController.listRoles(auth));

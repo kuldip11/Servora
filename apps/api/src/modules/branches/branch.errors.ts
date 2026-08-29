@@ -44,3 +44,22 @@ export function branchHasOpenOrders(): ConflictError {
     },
   );
 }
+
+export function branchCodeAlreadyExists(code: string): ConflictError {
+  return new ConflictError(
+    `Branch code "${code}" is already in use in this franchise.`,
+    {
+      reason: "BRANCH_CODE_EXISTS",
+      code,
+    },
+  );
+}
+
+export function tablesRequireDineIn(): ConflictError {
+  return new ConflictError(
+    "Tables cannot be enabled when dine-in is disabled.",
+    {
+      reason: "TABLES_REQUIRE_DINE_IN",
+    },
+  );
+}

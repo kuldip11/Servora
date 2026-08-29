@@ -1,4 +1,5 @@
-export type FoodCategory = "Popular" | "Starters" | "Mains" | "Breads" | "Drinks" | "Desserts";
+export type FoodCategory =
+  "Popular" | "Starters" | "Mains" | "Breads" | "Drinks" | "Desserts";
 
 export interface CustomerMenuItem {
   id: string;
@@ -21,7 +22,14 @@ export const restaurant = {
   estimatedTime: "20–25 min",
 };
 
-export const categories: FoodCategory[] = ["Popular", "Starters", "Mains", "Breads", "Drinks", "Desserts"];
+export const categories: FoodCategory[] = [
+  "Popular",
+  "Starters",
+  "Mains",
+  "Breads",
+  "Drinks",
+  "Desserts",
+];
 
 export const menu: CustomerMenuItem[] = [
   {
@@ -30,7 +38,8 @@ export const menu: CustomerMenuItem[] = [
     name: "Paneer Tikka",
     description: "Charred cottage cheese, peppers and house tandoori marinade.",
     price: 280,
-    image: "https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?auto=format&fit=crop&w=900&q=80",
+    image:
+      "https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?auto=format&fit=crop&w=900&q=80",
     foodType: "VEG",
     spice: "MILD",
     popular: true,
@@ -39,9 +48,11 @@ export const menu: CustomerMenuItem[] = [
     id: "chicken-biryani",
     category: "Mains",
     name: "Chicken Biryani",
-    description: "Fragrant basmati, slow-cooked chicken, saffron and fried onions.",
+    description:
+      "Fragrant basmati, slow-cooked chicken, saffron and fried onions.",
     price: 350,
-    image: "https://images.unsplash.com/photo-1563379091339-03246963d51a?auto=format&fit=crop&w=900&q=80",
+    image:
+      "https://images.unsplash.com/photo-1563379091339-03246963d51a?auto=format&fit=crop&w=900&q=80",
     foodType: "NON_VEG",
     spice: "MEDIUM",
     popular: true,
@@ -54,9 +65,11 @@ export const menu: CustomerMenuItem[] = [
     id: "butter-chicken",
     category: "Mains",
     name: "Butter Chicken",
-    description: "Tandoori chicken in a silky tomato, butter and fenugreek sauce.",
+    description:
+      "Tandoori chicken in a silky tomato, butter and fenugreek sauce.",
     price: 390,
-    image: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?auto=format&fit=crop&w=900&q=80",
+    image:
+      "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?auto=format&fit=crop&w=900&q=80",
     foodType: "NON_VEG",
     spice: "MILD",
     popular: true,
@@ -67,7 +80,8 @@ export const menu: CustomerMenuItem[] = [
     name: "Garlic Naan",
     description: "Clay-oven naan finished with garlic, coriander and butter.",
     price: 70,
-    image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=900&q=80",
+    image:
+      "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=900&q=80",
     foodType: "VEG",
     options: [{ id: "cheese", name: "Add Cheese", price: 40 }],
   },
@@ -77,7 +91,8 @@ export const menu: CustomerMenuItem[] = [
     name: "Masala Chai",
     description: "Freshly brewed tea with ginger, cardamom and warming spices.",
     price: 90,
-    image: "https://images.unsplash.com/photo-1571934811356-5cc061b6821f?auto=format&fit=crop&w=900&q=80",
+    image:
+      "https://images.unsplash.com/photo-1571934811356-5cc061b6821f?auto=format&fit=crop&w=900&q=80",
     foodType: "VEG",
   },
   {
@@ -86,7 +101,8 @@ export const menu: CustomerMenuItem[] = [
     name: "Gulab Jamun",
     description: "Warm milk dumplings, rose syrup and vanilla ice cream.",
     price: 160,
-    image: "https://images.unsplash.com/photo-1666190094762-1b6c5b6c9c0a?auto=format&fit=crop&w=900&q=80",
+    image:
+      "https://images.unsplash.com/photo-1666190094762-1b6c5b6c9c0a?auto=format&fit=crop&w=900&q=80",
     foodType: "VEG",
   },
 ];

@@ -1,5 +1,5 @@
 import { apiClient } from "../../../shared/lib/api-client";
-import type { InventoryItem } from "@pos/types";
+import type { InventoryItem, InventoryTransaction } from "@pos/types";
 
 export interface InventoryItemFormInput {
   name: string;
@@ -32,6 +32,11 @@ export const inventoryService = {
       reorderPoint: parseFloat(input.reorderPoint),
       costPerUnit: parseFloat(input.costPerUnit),
     });
+  },
+
+  async transactions(): Promise<InventoryTransaction[]> {
+    const res = await apiClient.get("/inventory/transactions");
+    return res.data.data;
   },
 
   async updateStock(itemId: string, input: StockUpdateInput): Promise<void> {

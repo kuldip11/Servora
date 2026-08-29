@@ -12,8 +12,17 @@ export const branchesRouter = new Elysia()
   // Owner/manager → return all branches, or one specific branch from the server-issued active context.
   .use(requireAuthPlugin())
   .get("/api/branches/", ({ auth }) => branchController.list(auth))
-  .get("/api/branches/:id/takeaway-qr", ({ auth, params }) => branchController.getTakeawayQr(auth, params.id), { params: branchIdParams })
-  .post("/api/branches/:id/takeaway-qr/regenerate", ({ auth, params }) => branchController.regenerateTakeawayQr(auth, params.id), { params: branchIdParams })
+  .get(
+    "/api/branches/:id/takeaway-qr",
+    ({ auth, params }) => branchController.getTakeawayQr(auth, params.id),
+    { params: branchIdParams },
+  )
+  .post(
+    "/api/branches/:id/takeaway-qr/regenerate",
+    ({ auth, params }) =>
+      branchController.regenerateTakeawayQr(auth, params.id),
+    { params: branchIdParams },
+  )
   .post(
     "/api/branches/",
     ({ auth, body, set }) => {

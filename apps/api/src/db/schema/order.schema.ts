@@ -23,10 +23,7 @@ export const orderStatusEnum = pgEnum("order_status", [
   "CANCELLED",
 ]);
 
-export const orderSourceEnum = pgEnum("order_source", [
-  "STAFF",
-  "CUSTOMER_QR",
-]);
+export const orderSourceEnum = pgEnum("order_source", ["STAFF", "CUSTOMER_QR"]);
 
 export const orderTypeEnum = pgEnum("order_type", [
   "DINE_IN",
@@ -51,7 +48,9 @@ export const orders = pgTable(
     customerId: uuid("customer_id"),
     createdBy: uuid("created_by").references(() => users.id),
     source: orderSourceEnum("source").notNull().default("STAFF"),
-    customerSessionId: uuid("customer_session_id").references(() => customerSessions.id),
+    customerSessionId: uuid("customer_session_id").references(
+      () => customerSessions.id,
+    ),
     status: orderStatusEnum("status").notNull().default("OPEN"),
     type: orderTypeEnum("type").notNull(),
     subtotal: numeric("subtotal", { precision: 10, scale: 2 })

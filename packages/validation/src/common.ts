@@ -12,6 +12,19 @@ export const branchFormSchema = z
       .trim()
       .min(1, "Branch name is required")
       .max(150, "Branch name must be 150 characters or fewer"),
+    code: z
+      .string()
+      .trim()
+      .min(2, "Branch code must be at least 2 characters")
+      .max(24, "Branch code must be 24 characters or fewer")
+      .regex(/^[A-Za-z0-9-]+$/, "Use only letters, numbers, and hyphens")
+      .transform((value) => value.toUpperCase()),
+    timezone: z.string().trim().min(1, "Timezone is required").max(64),
+    currency: z
+      .string()
+      .trim()
+      .regex(/^[A-Za-z]{3}$/, "Use a 3-letter currency code")
+      .transform((value) => value.toUpperCase()),
     address: z.string().max(500, "Address must be 500 characters or fewer"),
     phone: z.string().max(30, "Phone must be 30 characters or fewer"),
     dineInEnabled: z.boolean(),

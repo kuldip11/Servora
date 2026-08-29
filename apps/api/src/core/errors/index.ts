@@ -3,6 +3,8 @@ export {
   ErrorCode,
   ValidationError,
   UnauthorizedError,
+  TooManyRequestsError,
+  CustomerSessionRequiredError,
   ForbiddenError,
   NotFoundError,
   ConflictError,

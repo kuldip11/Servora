@@ -7,6 +7,7 @@ import {
   LogOut,
   CheckCircle2,
   Palette,
+  Volume2,
 } from "lucide-react";
 import type { KitchenTicketStatus } from "@pos/types";
 import {
@@ -20,9 +21,10 @@ import {
 import { useKitchenTickets } from "../hooks/useKitchenTickets";
 import { useUpdateTicketStatus } from "../hooks/useUpdateTicketStatus";
 import { useKitchenRealtime } from "../hooks/useKitchenRealtime";
-import { groupTicketsByStatus } from "../utils/ticket";
+import { groupTicketsByStatus, isUrgent } from "../utils/ticket";
 import { BOARD_COLUMNS } from "../constants";
 import { TicketCard } from "../components/TicketCard";
+import { useKitchenAttention } from "../hooks/useKitchenAttention";
 
 interface Props {
   onLogout: () => void;
@@ -45,6 +47,7 @@ export function KitchenBoard({ onLogout }: Props) {
   const { data: tickets, isLoading, refetch, isFetching } = useKitchenTickets();
   const updateMutation = useUpdateTicketStatus();
   const { connected } = useKitchenRealtime();
+  useKitchenAttention();
 
   // Phase 14 memoization-audit finding, not just a perf nit: a single
   // `useUpdateTicketStatus()` instance backs the whole board, so
@@ -78,6 +81,13 @@ export function KitchenBoard({ onLogout }: Props) {
       updateMutation.mutate({ id, status }),
     [updateMutation],
   );
+
+  const urgentCount = (tickets ?? []).filter((ticket) =>
+    isUrgent(ticket.firedAt),
+  ).length;
+  const readyCount = (tickets ?? []).filter(
+    (ticket) => ticket.status === "READY",
+  ).length;
 
   const columns = BOARD_COLUMNS.map((col) => ({
     ...col,
@@ -158,6 +168,25 @@ export function KitchenBoard({ onLogout }: Props) {
           />
         </div>
       </header>
+
+      <div className="flex flex-wrap items-center gap-2 border-b border-border bg-surface px-4 py-2 text-xs">
+        <span className="rounded-full bg-info-surface px-2.5 py-1 font-semibold text-info">
+          {tickets?.length ?? 0} active
+        </span>
+        <span
+          className={`rounded-full px-2.5 py-1 font-semibold ${urgentCount ? "bg-danger-surface text-danger" : "bg-surface-secondary text-text-secondary"}`}
+        >
+          {urgentCount} urgent
+        </span>
+        <span
+          className={`rounded-full px-2.5 py-1 font-semibold ${readyCount ? "bg-success-surface text-success" : "bg-surface-secondary text-text-secondary"}`}
+        >
+          {readyCount} ready
+        </span>
+        <span className="ml-auto inline-flex items-center gap-1 text-text-secondary">
+          <Volume2 className="h-3.5 w-3.5" /> New-ticket alerts enabled
+        </span>
+      </div>
 
       {/* `Grid` (Phase 2) — fixes the exact bug the Phase 0 audit
           flagged and `Grid`'s own doc comment calls out by name: this

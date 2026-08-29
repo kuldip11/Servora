@@ -14,6 +14,7 @@ import { branches } from "./branch.schema";
 import { users } from "./auth.schema";
 import { menuItems } from "./menu.schema";
 import { orders } from "./order.schema";
+import { kitchenTickets } from "./kitchen.schema";
 
 export const inventoryUnitEnum = pgEnum("inventory_unit", [
   "KG",
@@ -104,6 +105,10 @@ export const orderInventoryDeductions = pgTable(
     orderId: uuid("order_id")
       .notNull()
       .references(() => orders.id, { onDelete: "cascade" }),
+    kitchenTicketId: uuid("kitchen_ticket_id").references(
+      () => kitchenTickets.id,
+      { onDelete: "cascade" },
+    ),
     menuItemId: uuid("menu_item_id")
       .notNull()
       .references(() => menuItems.id, { onDelete: "cascade" }),
@@ -125,6 +130,9 @@ export const orderInventoryDeductions = pgTable(
     orderIdx: index("order_inventory_deductions_order_idx").on(t.orderId),
     menuItemIdx: index("order_inventory_deductions_menu_item_idx").on(
       t.menuItemId,
+    ),
+    ticketIdx: index("order_inventory_deductions_ticket_idx").on(
+      t.kitchenTicketId,
     ),
   }),
 );

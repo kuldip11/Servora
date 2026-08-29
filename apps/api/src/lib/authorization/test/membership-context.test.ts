@@ -37,7 +37,11 @@ describe("membership context", () => {
           }),
         },
         branches: {
-          findMany: vi.fn().mockResolvedValue(activeMembership.branches.map((item) => item.branch)),
+          findMany: vi
+            .fn()
+            .mockResolvedValue(
+              activeMembership.branches.map((item) => item.branch),
+            ),
         },
       },
     };

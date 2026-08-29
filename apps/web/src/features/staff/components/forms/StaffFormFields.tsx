@@ -23,7 +23,15 @@ interface CreateFieldsProps {
   setValue: UseFormSetValue<any>;
 }
 
-export function StaffFormFields({ register, errors, roleId, branchId, roles, branches, setValue }: CreateFieldsProps) {
+export function StaffFormFields({
+  register,
+  errors,
+  roleId,
+  branchId,
+  roles,
+  branches,
+  setValue,
+}: CreateFieldsProps) {
   const role = roles.find((item) => item.id === roleId);
   const branchRequired = role?.scope === "BRANCH";
 
@@ -37,24 +45,58 @@ export function StaffFormFields({ register, errors, roleId, branchId, roles, bra
   return (
     <>
       <div className="grid grid-cols-2 gap-3">
-        <Input label="First name" placeholder="John" error={errors.firstName?.message} {...register("firstName")} />
-        <Input label="Last name" placeholder="Doe" error={errors.lastName?.message} {...register("lastName")} />
+        <Input
+          label="First name"
+          placeholder="John"
+          error={errors.firstName?.message}
+          {...register("firstName")}
+        />
+        <Input
+          label="Last name"
+          placeholder="Doe"
+          error={errors.lastName?.message}
+          {...register("lastName")}
+        />
       </div>
-      <Input label="Email" type="email" placeholder="staff@restaurant.com" error={errors.email?.message} {...register("email")} />
-      <Input label="Password" type="password" placeholder="Min. 8 characters" error={errors.password?.message} {...register("password")} />
+      <Input
+        label="Email"
+        type="email"
+        placeholder="staff@restaurant.com"
+        error={errors.email?.message}
+        {...register("email")}
+      />
+      <Input
+        label="Password"
+        type="password"
+        placeholder="Min. 8 characters"
+        error={errors.password?.message}
+        {...register("password")}
+      />
       <Select
         label="Role"
-        options={[{ value: "", label: "Select role" }, ...roles.filter((item) => item.name !== "OWNER").map((item) => ({ value: item.id, label: item.name }))]}
+        options={[
+          { value: "", label: "Select role" },
+          ...roles
+            .filter((item) => item.name !== "OWNER")
+            .map((item) => ({ value: item.id, label: item.name })),
+        ]}
         error={errors.roleId?.message}
         {...register("roleId")}
       />
       {branchRequired && (
         <Select
           label="Branch"
-          options={[{ value: "", label: "Select branch" }, ...branches.map((item) => ({ value: item.id, label: item.name }))]}
+          options={[
+            { value: "", label: "Select branch" },
+            ...branches.map((item) => ({ value: item.id, label: item.name })),
+          ]}
           error={errors.branchId?.message}
           value={branchId ?? ""}
-          onChange={(event) => setValue("branchId", event.target.value || undefined, { shouldValidate: true })}
+          onChange={(event) =>
+            setValue("branchId", event.target.value || undefined, {
+              shouldValidate: true,
+            })
+          }
         />
       )}
     </>

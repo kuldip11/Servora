@@ -1,0 +1,128 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-servora}
+      POSTGRES_USER: ${POSTGRES_USER:-servora}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-servora} -d ${POSTGRES_DB:-servora}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--requirepass",
+        "${REDIS_PASSWORD:?REDIS_PASSWORD is required}",
+      ]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", 'redis-cli -a "$${REDIS_PASSWORD}" ping | grep PONG']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      APP_VERSION: ${APP_VERSION:-local-production}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-servora}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-servora}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:?REFRESH_TOKEN_SECRET is required}
+      CORS_ORIGIN: ${CORS_ORIGIN:?CORS_ORIGIN is required}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-600}
+      RATE_LIMIT_WINDOW_SECONDS: ${RATE_LIMIT_WINDOW_SECONDS:-60}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-}
+      RAZORPAY_WEBHOOK_SECRET: ${RAZORPAY_WEBHOOK_SECRET:-}
+    ports:
+      - "${API_PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args: &vite_args
+        VITE_API_URL: ${PUBLIC_API_URL:?PUBLIC_API_URL is required}
+        VITE_WS_URL: ${PUBLIC_WS_URL:?PUBLIC_WS_URL is required}
+        VITE_WEB_APP_URL: ${PUBLIC_WEB_URL:?PUBLIC_WEB_URL is required}
+        VITE_KITCHEN_APP_URL: ${PUBLIC_KITCHEN_URL:?PUBLIC_KITCHEN_URL is required}
+        VITE_WAITER_APP_URL: ${PUBLIC_WAITER_URL:?PUBLIC_WAITER_URL is required}
+        VITE_CUSTOMER_APP_URL: ${PUBLIC_CUSTOMER_URL:?PUBLIC_CUSTOMER_URL is required}
+    restart: unless-stopped
+    ports: ["${WEB_PORT:-5173}:80"]
+
+  kitchen:
+    build:
+      context: .
+      dockerfile: apps/kitchen-display/Dockerfile
+      args: *vite_args
+    restart: unless-stopped
+    ports: ["${KITCHEN_PORT:-5174}:80"]
+
+  waiter:
+    build:
+      context: .
+      dockerfile: apps/waiter-app/Dockerfile
+      args: *vite_args
+    restart: unless-stopped
+    ports: ["${WAITER_PORT:-5175}:80"]
+
+  customer:
+    build:
+      context: .
+      dockerfile: apps/customer-app/Dockerfile
+      args:
+        <<: *vite_args
+        VITE_RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
+    restart: unless-stopped
+    ports: ["${CUSTOMER_PORT:-5176}:80"]
+
+  website:
+    build:
+      context: .
+      dockerfile: apps/website/Dockerfile
+      args:
+        NEXT_PUBLIC_SITE_URL: ${PUBLIC_WEBSITE_URL:?PUBLIC_WEBSITE_URL is required}
+        NEXT_PUBLIC_APP_SIGNIN_URL: ${PUBLIC_WEB_URL:?PUBLIC_WEB_URL is required}/login
+        NEXT_PUBLIC_WEB_APP_URL: ${PUBLIC_WEB_URL:?PUBLIC_WEB_URL is required}
+        NEXT_PUBLIC_KITCHEN_APP_URL: ${PUBLIC_KITCHEN_URL:?PUBLIC_KITCHEN_URL is required}
+        NEXT_PUBLIC_WAITER_APP_URL: ${PUBLIC_WAITER_URL:?PUBLIC_WAITER_URL is required}
+        NEXT_PUBLIC_CUSTOMER_APP_URL: ${PUBLIC_CUSTOMER_URL:?PUBLIC_CUSTOMER_URL is required}
+        NEXT_PUBLIC_GA_ID: ${NEXT_PUBLIC_GA_ID:-}
+    restart: unless-stopped
+    environment:
+      LEAD_WEBHOOK_URL: ${LEAD_WEBHOOK_URL:?LEAD_WEBHOOK_URL is required}
+    ports: ["${WEBSITE_PORT:-3001}:3000"]
+
+volumes:
+  postgres_data:
+  redis_data:

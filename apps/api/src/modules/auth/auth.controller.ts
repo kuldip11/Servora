@@ -25,8 +25,23 @@ export const authController = {
     return successResponse(result);
   },
 
+  async logout(refreshToken: string) {
+    const result = await authService.logout(refreshToken);
+    return successResponse(result);
+  },
+
   async memberships(auth: AuthContext) {
     return successResponse(await authService.memberships(auth.userId));
+  },
+
+  async sessions(auth: AuthContext) {
+    return successResponse(await authService.sessions(auth.userId));
+  },
+
+  async revokeSession(auth: AuthContext, sessionId: string) {
+    return successResponse(
+      await authService.revokeSession(auth.userId, sessionId),
+    );
   },
 
   async updateProfile(

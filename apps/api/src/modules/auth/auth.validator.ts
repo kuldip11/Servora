@@ -22,3 +22,5 @@ export const profileBody = t.Object({
   firstName: t.Optional(t.String({ minLength: 1, maxLength: 50 })),
   lastName: t.Optional(t.String({ minLength: 1, maxLength: 50 })),
 });
+
+export const sessionIdParams = t.Object({ id: t.String({ format: "uuid" }) });

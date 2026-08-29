@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const handlers = vi.hoisted(() => new Map<string, (event: any) => void>());
+const queryCache = vi.hoisted(() => ({ findAll: vi.fn() }));
 const queryClient = vi.hoisted(() => ({
   invalidateQueries: vi.fn(),
   setQueryData: vi.fn(),
+  getQueryCache: vi.fn(),
 }));
 
 vi.mock("../../../../shared/lib/realtime", () => ({
@@ -25,30 +27,39 @@ describe("order realtime synchronization", () => {
   beforeEach(() => {
     handlers.clear();
     vi.clearAllMocks();
+    queryClient.getQueryCache.mockReturnValue(queryCache);
+    queryCache.findAll.mockReturnValue([]);
     useOrdersRealtimeSync();
   });
 
   it("updates list and detail caches for created and updated orders", () => {
     const created = { id: "o1", status: "OPEN" };
     const updated = { id: "o1", status: "READY" };
+    const listQueryKey = ["orders", "list", { status: "OPEN" }];
+    queryCache.findAll.mockReturnValue([{ queryKey: listQueryKey }]);
 
     handlers.get("order.created")?.({
       type: "order.created",
       payload: created,
-    });
-    handlers.get("order.updated")?.({
-      type: "order.updated",
-      payload: updated,
     });
 
     expect(queryClient.setQueryData).toHaveBeenCalledWith(
       ["orders", "o1"],
       created,
     );
-    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-      queryKey: ["orders", "list"],
-      refetchType: "active",
+    const listUpdater = queryClient.setQueryData.mock.calls.find(
+      (call) => call[0] === listQueryKey,
+    )?.[1] as (current: (typeof created)[] | undefined) => unknown;
+    expect(listUpdater([])).toEqual([created]);
+
+    handlers.get("order.updated")?.({
+      type: "order.updated",
+      payload: updated,
     });
+    expect(queryClient.setQueryData).toHaveBeenCalledWith(
+      ["orders", "o1"],
+      updated,
+    );
   });
 
   it("updates an existing kitchen ticket while preserving unrelated tickets", () => {
@@ -80,10 +91,6 @@ describe("order realtime synchronization", () => {
       existing.kitchenTickets[1],
     ]);
     expect(result.updatedAt).toBe(ticket.updatedAt);
-    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-      queryKey: ["orders", "list"],
-      refetchType: "active",
-    });
   });
 
   it("returns an order unchanged when no kitchen tickets are cached", () => {

@@ -57,14 +57,22 @@ export const ticketService = {
     });
 
     const parentOrder = await db.query.orders.findFirst({
-      where: and(eq(orders.id, updated.orderId), eq(orders.tenantId, auth.tenantId)),
+      where: and(
+        eq(orders.id, updated.orderId),
+        eq(orders.tenantId, auth.tenantId),
+      ),
       columns: { customerSessionId: true },
     });
+    const detailed = await ticketRepository.findDetailedById(
+      auth.tenantId,
+      ticketId,
+    );
+    if (!detailed) throw ticketNotFound(ticketId);
     await eventBus.publish(
       {
         type: "kitchen.ticket.updated",
         payload: {
-          ...(updated as unknown as KitchenTicket),
+          ...(detailed as unknown as KitchenTicket),
           customerSessionId: parentOrder?.customerSessionId ?? undefined,
         } as any,
       },
@@ -72,7 +80,7 @@ export const ticketService = {
       updated.branchId,
     );
 
-    return updated;
+    return detailed;
   },
 };
 

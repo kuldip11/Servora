@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { canTransitionOrder } from "../../orders/order-status.machine";
-import { canTransition, KITCHEN_TICKET_TRANSITIONS } from "../../kitchen-tickets/ticket-status.machine";
+import {
+  canTransition,
+  KITCHEN_TICKET_TRANSITIONS,
+} from "../../kitchen-tickets/ticket-status.machine";
 
 describe("customer ordering end-to-end contract", () => {
   it("keeps a dine-in tab open while rounds are added", () => {

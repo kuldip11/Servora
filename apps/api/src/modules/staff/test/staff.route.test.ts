@@ -47,7 +47,8 @@ vi.mock("../staff.controller", () => ({
     listRoles: vi.fn(),
   },
 }));
-import { staffRouter, rolesRouter } from "../staff.route";
+import { staffRouter } from "../staff.route";
+import { rolesRouter } from "../../roles/role.route";
 describe("staff routes", () => {
   it("registers authenticated staff CRUD routes", () => {
     const routes = (staffRouter as any).routes;

@@ -18,6 +18,11 @@ export const branches = pgTable(
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
     name: varchar("name", { length: 200 }).notNull(),
+    code: varchar("code", { length: 24 }).notNull(),
+    timezone: varchar("timezone", { length: 64 })
+      .notNull()
+      .default("Asia/Kolkata"),
+    currency: varchar("currency", { length: 3 }).notNull().default("INR"),
     address: text("address").notNull(),
     phone: varchar("phone", { length: 20 }),
     isActive: boolean("is_active").notNull().default(true),
@@ -31,7 +36,10 @@ export const branches = pgTable(
     deliveryEnabled: boolean("delivery_enabled").notNull().default(true),
     onlineEnabled: boolean("online_enabled").notNull().default(true),
     tablesEnabled: boolean("tables_enabled").notNull().default(true),
-    publicTakeawayQrToken: uuid("public_takeaway_qr_token").notNull().defaultRandom().unique(),
+    publicTakeawayQrToken: uuid("public_takeaway_qr_token")
+      .notNull()
+      .defaultRandom()
+      .unique(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
@@ -40,6 +48,10 @@ export const branches = pgTable(
     tenantNameUniq: uniqueIndex("branches_tenant_name_uniq").on(
       t.tenantId,
       t.name,
+    ),
+    tenantCodeUniq: uniqueIndex("branches_tenant_code_uniq").on(
+      t.tenantId,
+      t.code,
     ),
     idTenantFkTarget: uniqueIndex("branches_id_tenant_unique_fk_target").on(
       t.id,

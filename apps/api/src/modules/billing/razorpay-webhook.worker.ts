@@ -12,18 +12,30 @@ async function recoverDurableEvents() {
   const events = await db.query.paymentWebhookEvents.findMany({
     where: and(
       inArray(paymentWebhookEvents.status, ["RECEIVED", "FAILED"]),
-      or(isNull(paymentWebhookEvents.nextAttemptAt), lte(paymentWebhookEvents.nextAttemptAt, now)),
+      or(
+        isNull(paymentWebhookEvents.nextAttemptAt),
+        lte(paymentWebhookEvents.nextAttemptAt, now),
+      ),
     ),
     columns: { eventId: true },
     limit: 100,
   });
   if (!events.length) return;
-  const redis = new Redis(queueUrl!, { maxRetriesPerRequest: 3, enableReadyCheck: true });
+  const redis = new Redis(queueUrl!, {
+    maxRetriesPerRequest: 3,
+    enableReadyCheck: true,
+  });
   try {
     for (const event of events) await redis.lpush(QUEUE, event.eventId);
-    await db.update(paymentWebhookEvents)
+    await db
+      .update(paymentWebhookEvents)
       .set({ nextAttemptAt: new Date(Date.now() + 30_000) })
-      .where(inArray(paymentWebhookEvents.eventId, events.map((event) => event.eventId)));
+      .where(
+        inArray(
+          paymentWebhookEvents.eventId,
+          events.map((event) => event.eventId),
+        ),
+      );
   } finally {
     await redis.quit();
   }
@@ -31,11 +43,16 @@ async function recoverDurableEvents() {
 
 export function startRazorpayWebhookWorker() {
   if (!queueUrl) {
-    console.warn("[Razorpay Worker] REDIS_URL is not configured; webhook worker is disabled");
+    console.warn(
+      "[Razorpay Worker] REDIS_URL is not configured; webhook worker is disabled",
+    );
     return () => undefined;
   }
 
-  const workerRedis = new Redis(queueUrl, { maxRetriesPerRequest: null, enableReadyCheck: true });
+  const workerRedis = new Redis(queueUrl, {
+    maxRetriesPerRequest: null,
+    enableReadyCheck: true,
+  });
   let stopped = false;
   let recoveryTimer: ReturnType<typeof setInterval> | undefined;
 
@@ -60,9 +77,13 @@ export function startRazorpayWebhookWorker() {
   };
 
   recoveryTimer = setInterval(() => {
-    void recoverDurableEvents().catch((error) => console.error("[Razorpay Worker] Recovery scan failed", error));
+    void recoverDurableEvents().catch((error) =>
+      console.error("[Razorpay Worker] Recovery scan failed", error),
+    );
   }, 30_000);
-  void recoverDurableEvents().catch((error) => console.error("[Razorpay Worker] Initial recovery scan failed", error));
+  void recoverDurableEvents().catch((error) =>
+    console.error("[Razorpay Worker] Initial recovery scan failed", error),
+  );
   void run();
 
   return () => {

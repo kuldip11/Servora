@@ -13,6 +13,7 @@ import {
   Users,
   Receipt,
   Settings,
+  ShieldCheck,
   LogOut,
   ChefHat,
   Bell,
@@ -28,6 +29,7 @@ import { BranchSwitcher } from "./BranchSwitcher";
 import { TenantSwitcher } from "./TenantSwitcher";
 import { useBranches } from "../../../features/branches/hooks/useBranches";
 import { usePermissions } from "../../auth/permissions";
+import { RealtimeNotifications } from "./RealtimeNotifications";
 
 const navItems = [
   {
@@ -73,6 +75,12 @@ const navItems = [
     label: "Branches",
     icon: Building2,
     permission: "branch:read",
+  },
+  {
+    to: "/audit",
+    label: "Audit Log",
+    icon: ShieldCheck,
+    permission: "audit:read",
   },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
@@ -122,6 +130,7 @@ export function DashboardLayout() {
   return (
     <div className="flex h-screen min-w-0 bg-background overflow-hidden">
       <SkipLink />
+      <RealtimeNotifications />
 
       {/* Sidebar */}
       <aside className="hidden md:flex w-64 flex-shrink-0 bg-surface border-r border-divider flex-col shadow-sm">
@@ -249,7 +258,7 @@ export function DashboardLayout() {
               aria-expanded={mobileNavOpen}
               onClick={() => setMobileNavOpen(true)}
               ref={mobileNavTriggerRef}
-              className="mobile-nav-trigger md:hidden shrink-0 w-9 h-9 flex items-center justify-center rounded-md text-text-secondary hover:bg-surface-secondary hover:text-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="md:hidden shrink-0 w-9 h-9 flex items-center justify-center rounded-md text-text-secondary hover:bg-surface-secondary hover:text-text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <MenuIcon aria-hidden="true" className="w-5 h-5" />
             </button>

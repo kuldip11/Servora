@@ -38,14 +38,22 @@ vi.mock("elysia", async (importOriginal) => {
 });
 vi.mock("../../../core/auth", () => ({ requireAuthPlugin: () => ({}) }));
 import { describe, expect, it, vi } from "vitest";
-const { list, create, updateStock, lowStockAlerts } = vi.hoisted(() => ({
-  list: vi.fn(),
-  create: vi.fn(),
-  updateStock: vi.fn(),
-  lowStockAlerts: vi.fn(),
-}));
+const { list, create, updateStock, lowStockAlerts, recentTransactions } =
+  vi.hoisted(() => ({
+    list: vi.fn(),
+    create: vi.fn(),
+    updateStock: vi.fn(),
+    lowStockAlerts: vi.fn(),
+    recentTransactions: vi.fn(),
+  }));
 vi.mock("../inventory.controller", () => ({
-  inventoryController: { list, create, updateStock, lowStockAlerts },
+  inventoryController: {
+    list,
+    create,
+    updateStock,
+    lowStockAlerts,
+    recentTransactions,
+  },
 }));
 import { inventoryRouter } from "../inventory.route";
 describe("inventory routes", () => {
@@ -67,6 +75,10 @@ describe("inventory routes", () => {
         expect.objectContaining({
           method: "GET",
           path: "/api/inventory/alerts/low-stock",
+        }),
+        expect.objectContaining({
+          method: "GET",
+          path: "/api/inventory/transactions",
         }),
       ]),
     );

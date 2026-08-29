@@ -36,7 +36,8 @@
     "@pos/realtime": "workspace:*",
     "@hookform/resolvers": "^3.6.0",
     "react-hook-form": "^7.52.0",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "@pos/config": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

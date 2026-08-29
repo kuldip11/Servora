@@ -160,7 +160,7 @@ describe("inventory service", () => {
       },
     ]);
     await expect(
-      inventoryService.validateStock("t1", [
+      inventoryService.validateStock("t1", "b1", [
         { menuItemId: "m1", quantity: 2 },
         { menuItemId: "m2", quantity: 1 },
       ]),
@@ -191,6 +191,7 @@ describe("inventory service", () => {
         "t1",
         "b1",
         "o1",
+        "kt1",
         [{ menuItemId: "m1", quantity: 3 }],
         "u1",
       ),
@@ -199,6 +200,7 @@ describe("inventory service", () => {
       "t1",
       "b1",
       "o1",
+      "kt1",
       [expect.objectContaining({ neededQuantity: 6 })],
       "u1",
     );

@@ -17,7 +17,13 @@ describe("StatCard", () => {
       <StatCard title="Sales" value={120} icon={BarChart3} />,
     );
     const card = container.firstElementChild as HTMLElement;
-    expect(card).toHaveClass("bg-surface", "border", "border-border", "rounded-lg", "shadow-sm");
+    expect(card).toHaveClass(
+      "bg-surface",
+      "border",
+      "border-border",
+      "rounded-lg",
+      "shadow-sm",
+    );
   });
   it("renders positive and negative trends", () => {
     const { rerender } = render(

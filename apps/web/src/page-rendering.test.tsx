@@ -108,6 +108,9 @@ vi.mock("./features/inventory/hooks/useUpdateInventoryStock", () => ({
 vi.mock("./features/inventory/hooks/useInventoryRealtimeSync", () => ({
   useInventoryRealtimeSync: () => undefined,
 }));
+vi.mock("./features/inventory/hooks/useInventoryTransactions", () => ({
+  useInventoryTransactions: () => ({ data: [], isLoading: false }),
+}));
 
 vi.mock("./features/tables/hooks/useTables", () => ({
   useTables: () => ({ data: [], isLoading: false }),

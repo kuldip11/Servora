@@ -24,6 +24,8 @@ describe("writeAudit", () => {
       expect.objectContaining({
         tenantId: "t1",
         userId: null,
+        branchId: null,
+        requestId: null,
         action: "TENANT_CREATED",
         entity: "tenant",
         entityId: null,

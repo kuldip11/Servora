@@ -27,6 +27,7 @@ interface AuthState {
   refreshToken: string | null;
   /** Internal server access record for the active franchise. Not persisted. */
   membershipId: string | null;
+  organizationId: string | null;
   memberships: AvailableMembership[];
   franchiseId: string | null;
   branchId: string | null;
@@ -42,6 +43,7 @@ interface AuthState {
   setTokens: (accessToken: string, refreshToken: string) => void;
   setContext: (data: {
     membershipId: string | null;
+    organizationId?: string | null;
     franchiseId: string | null;
     memberships?: AvailableMembership[];
     branchId?: string | null;
@@ -56,6 +58,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   accessToken: null,
   refreshToken: readRefreshToken(),
   membershipId: null,
+  organizationId: null,
   memberships: [],
   franchiseId: null,
   branchId: null,
@@ -74,6 +77,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       accessToken,
       refreshToken,
       membershipId,
+      organizationId: null,
       memberships,
       franchiseId: user.tenantId ?? null,
       branchId: user.branchId ?? null,
@@ -81,9 +85,17 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
   },
 
-  setContext: ({ membershipId, franchiseId, memberships, branchId, user }) =>
+  setContext: ({
+    membershipId,
+    organizationId,
+    franchiseId,
+    memberships,
+    branchId,
+    user,
+  }) =>
     set((state) => ({
       membershipId,
+      ...(organizationId !== undefined ? { organizationId } : {}),
       franchiseId,
       ...(memberships !== undefined ? { memberships } : {}),
       branchId: branchId ?? null,
@@ -105,6 +117,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       accessToken: null,
       refreshToken: null,
       membershipId: null,
+      organizationId: null,
       memberships: [],
       franchiseId: null,
       branchId: null,

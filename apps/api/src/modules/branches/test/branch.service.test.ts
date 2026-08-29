@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const {
   findMany,
   findById,
+  findByCode,
   countActive,
   create,
   update,
@@ -10,6 +11,7 @@ const {
 } = vi.hoisted(() => ({
   findMany: vi.fn(),
   findById: vi.fn(),
+  findByCode: vi.fn(),
   countActive: vi.fn(),
   create: vi.fn(),
   update: vi.fn(),
@@ -20,6 +22,7 @@ vi.mock("../branch.repository", () => ({
   branchRepository: {
     findMany,
     findById,
+    findByCode,
     countActive,
     create,
     update,
@@ -48,6 +51,7 @@ const baseAuth: any = {
 };
 beforeEach(() => {
   vi.clearAllMocks();
+  findByCode.mockResolvedValue(undefined);
 });
 describe("branch service", () => {
   it("lists tenant-wide and branch-locked results with the correct repository scope", async () => {
@@ -70,13 +74,67 @@ describe("branch service", () => {
     await expect(
       branchService.create(
         { ...baseAuth, permissions: ["branch:create"] },
-        { name: "Main" },
+        {
+          name: "Main",
+          code: " main-01 ",
+          timezone: "Asia/Kolkata",
+          currency: "inr",
+        },
       ),
     ).resolves.toMatchObject({ id: "b1" });
-    expect(create).toHaveBeenCalledWith({ tenantId: "t1", name: "Main" });
+    expect(create).toHaveBeenCalledWith({
+      tenantId: "t1",
+      name: "Main",
+      code: "MAIN-01",
+      timezone: "Asia/Kolkata",
+      currency: "INR",
+    });
     expect(writeAudit).toHaveBeenCalledWith(
       expect.objectContaining({ action: "BRANCH_CREATED", entityId: "b1" }),
     );
+  });
+  it("validates branch timezone and capability invariants on create", async () => {
+    await expect(
+      branchService.create(
+        { ...baseAuth, permissions: ["branch:create"] },
+        {
+          name: "Bad TZ",
+          code: "BAD-TZ",
+          timezone: "Mars/Olympus",
+          currency: "INR",
+        },
+      ),
+    ).rejects.toMatchObject({ code: "VALIDATION_FAILED" });
+
+    await expect(
+      branchService.create(
+        { ...baseAuth, permissions: ["branch:create"] },
+        {
+          name: "No dine-in",
+          code: "NO-DINE",
+          timezone: "Asia/Kolkata",
+          currency: "INR",
+          dineInEnabled: false,
+          tablesEnabled: true,
+          takeawayEnabled: true,
+        },
+      ),
+    ).rejects.toMatchObject({ details: { reason: "TABLES_REQUIRE_DINE_IN" } });
+  });
+  it("rejects duplicate branch codes within the franchise", async () => {
+    findByCode.mockResolvedValue({ id: "existing" });
+    await expect(
+      branchService.create(
+        { ...baseAuth, permissions: ["branch:create"] },
+        {
+          name: "Second",
+          code: "MAIN-01",
+          timezone: "Asia/Kolkata",
+          currency: "INR",
+        },
+      ),
+    ).rejects.toMatchObject({ details: { reason: "BRANCH_CODE_EXISTS" } });
+    expect(create).not.toHaveBeenCalled();
   });
   it("rejects capability updates that disable every order type", async () => {
     findById.mockResolvedValue({
@@ -157,10 +215,16 @@ describe("branch service", () => {
   });
 });
 
-
 it("lists every branch for tenant-wide users even when an active branch is selected", async () => {
   const { branchService } = await import("../branch.service");
-  const auth = { tenantId: "t1", branchId: "b1", tenantWide: true, authorizedBranchIds: ["b1"], permissions: ["branch:read"], userId: "u1" } as any;
+  const auth = {
+    tenantId: "t1",
+    branchId: "b1",
+    tenantWide: true,
+    authorizedBranchIds: ["b1"],
+    permissions: ["branch:read"],
+    userId: "u1",
+  } as any;
   await branchService.list(auth);
   expect(findMany).toHaveBeenCalledWith("t1", null, undefined);
 });

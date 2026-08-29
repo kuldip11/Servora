@@ -2,17 +2,18 @@
 
 Five services, all free, no card required anywhere:
 
-| # | Piece | Service | What it does |
-|---|---|---|---|
-| 1 | Postgres | **Neon** | Database |
-| 2 | Redis | **Upstash** | Cache / sessions |
-| 3 | API (`apps/api`) | **Render** | Backend server (Docker) |
-| 4 | `apps/web` | **Vercel** | Main admin frontend |
-| 5 | `apps/kitchen-display` + `apps/waiter-app` | **Vercel** | Two more frontends |
+| #   | Piece                                      | Service     | What it does            |
+| --- | ------------------------------------------ | ----------- | ----------------------- |
+| 1   | Postgres                                   | **Neon**    | Database                |
+| 2   | Redis                                      | **Upstash** | Cache / sessions        |
+| 3   | API (`apps/api`)                           | **Render**  | Backend server (Docker) |
+| 4   | `apps/web`                                 | **Vercel**  | Main admin frontend     |
+| 5   | `apps/kitchen-display` + `apps/waiter-app` | **Vercel**  | Two more frontends      |
 
 Do them in this exact order — each step needs values from the one before it.
 
 Push this repo (with the fixes already applied) to a **GitHub repo** first — Render and Vercel both deploy by connecting to GitHub. If it's not on GitHub yet: create a new repo on github.com, then from the project root:
+
 ```
 git init
 git add .
@@ -84,23 +85,25 @@ That's it for Neon. Nothing to run yet — Render will run the migrations after 
    - **Instance Type**: **Free**
 5. Scroll down to **Environment Variables**. Click **Add Environment Variable** for each of these:
 
-| Key | Value |
-|---|---|
-| `NODE_ENV` | `production` |
-| `PORT` | `3000` |
-| `DATABASE_URL` | *(the Neon pooled connection string from Step 1)* |
-| `REDIS_URL` | *(the Upstash `rediss://...` string from Step 2)* |
-| `JWT_SECRET` | *(any long random string — see below)* |
-| `JWT_EXPIRES_IN` | `15m` |
-| `REFRESH_TOKEN_SECRET` | *(a different long random string)* |
-| `REFRESH_TOKEN_EXPIRES_IN` | `7d` |
-| `CORS_ORIGIN` | leave this blank for now — you'll come back and fill it in Step 5, after you have your Vercel URLs |
+| Key                        | Value                                                                                              |
+| -------------------------- | -------------------------------------------------------------------------------------------------- |
+| `NODE_ENV`                 | `production`                                                                                       |
+| `PORT`                     | `3000`                                                                                             |
+| `DATABASE_URL`             | _(the Neon pooled connection string from Step 1)_                                                  |
+| `REDIS_URL`                | _(the Upstash `rediss://...` string from Step 2)_                                                  |
+| `JWT_SECRET`               | _(any long random string — see below)_                                                             |
+| `JWT_EXPIRES_IN`           | `15m`                                                                                              |
+| `REFRESH_TOKEN_SECRET`     | _(a different long random string)_                                                                 |
+| `REFRESH_TOKEN_EXPIRES_IN` | `7d`                                                                                               |
+| `CORS_ORIGIN`              | leave this blank for now — you'll come back and fill it in Step 5, after you have your Vercel URLs |
 
-   To generate the two random secrets, run this on your own machine (or use any password generator, 40+ characters):
-   ```
-   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-   ```
-   Run it twice — once for `JWT_SECRET`, once for `REFRESH_TOKEN_SECRET`. Never reuse the same value for both.
+To generate the two random secrets, run this on your own machine (or use any password generator, 40+ characters):
+
+```
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+Run it twice — once for `JWT_SECRET`, once for `REFRESH_TOKEN_SECRET`. Never reuse the same value for both.
 
 6. Click **Deploy Web Service** at the bottom.
 7. Render will start building. This takes a few minutes (Docker build). Watch the **Logs** tab. You want to see it end with something like `Servora API running on port 3000` or your health check passing.
@@ -153,10 +156,10 @@ You'll repeat this three times — once per app (`web`, `kitchen-display`, `wait
    - **Install Command**: `bun install` (override this manually if it's not auto-filled — it needs to run from a workspace root, but since you set Root Directory, Vercel handles the monorepo context automatically via its build system; if the install fails, see the troubleshooting note at the bottom)
 4. Expand **Environment Variables** and add:
 
-| Key | Value |
-|---|---|
-| `VITE_API_URL` | `https://servora-api.onrender.com` *(your Render URL from Step 3, no trailing slash)* |
-| `VITE_WS_URL` | `wss://servora-api.onrender.com/ws/events` *(same host, `wss://` not `https://`, note the `/ws/events` path)* |
+| Key            | Value                                                                                                         |
+| -------------- | ------------------------------------------------------------------------------------------------------------- |
+| `VITE_API_URL` | `https://servora-api.onrender.com` _(your Render URL from Step 3, no trailing slash)_                         |
+| `VITE_WS_URL`  | `wss://servora-api.onrender.com/ws/events` _(same host, `wss://` not `https://`, note the `/ws/events` path)_ |
 
 5. Click **Deploy**.
 6. Wait for the build (1–3 min). When done, Vercel shows your live URL, like:
@@ -168,6 +171,7 @@ You'll repeat this three times — once per app (`web`, `kitchen-display`, `wait
 ### 4c. Deploy `apps/kitchen-display`
 
 Repeat 4b exactly, but:
+
 - **Project Name**: `servora-kitchen-display`
 - **Root Directory**: `apps/kitchen-display`
 - Same two env vars, same values (`VITE_API_URL`, `VITE_WS_URL` — same Render URL)
@@ -176,6 +180,7 @@ Repeat 4b exactly, but:
 ### 4d. Deploy `apps/waiter-app`
 
 Repeat again:
+
 - **Project Name**: `servora-waiter-app`
 - **Root Directory**: `apps/waiter-app`
 - Same env vars
@@ -219,24 +224,24 @@ Click **Save Changes**. Render will automatically redeploy the API with the new 
 
 **Render (`servora-api`):**
 
-| Key | Value | Where it comes from |
-|---|---|---|
-| `NODE_ENV` | `production` | fixed |
-| `PORT` | `3000` | fixed |
-| `DATABASE_URL` | Neon pooled connection string | Step 1 |
-| `REDIS_URL` | Upstash `rediss://...` string | Step 2 |
-| `JWT_SECRET` | random 32+ byte hex string | you generate |
-| `JWT_EXPIRES_IN` | `15m` | fixed |
-| `REFRESH_TOKEN_SECRET` | random 32+ byte hex string (different from above) | you generate |
-| `REFRESH_TOKEN_EXPIRES_IN` | `7d` | fixed |
-| `CORS_ORIGIN` | comma-separated list of your 3 Vercel URLs | Step 5, after Step 4 |
+| Key                        | Value                                             | Where it comes from  |
+| -------------------------- | ------------------------------------------------- | -------------------- |
+| `NODE_ENV`                 | `production`                                      | fixed                |
+| `PORT`                     | `3000`                                            | fixed                |
+| `DATABASE_URL`             | Neon pooled connection string                     | Step 1               |
+| `REDIS_URL`                | Upstash `rediss://...` string                     | Step 2               |
+| `JWT_SECRET`               | random 32+ byte hex string                        | you generate         |
+| `JWT_EXPIRES_IN`           | `15m`                                             | fixed                |
+| `REFRESH_TOKEN_SECRET`     | random 32+ byte hex string (different from above) | you generate         |
+| `REFRESH_TOKEN_EXPIRES_IN` | `7d`                                              | fixed                |
+| `CORS_ORIGIN`              | comma-separated list of your 3 Vercel URLs        | Step 5, after Step 4 |
 
 **Vercel (`servora-web`, `servora-kitchen-display`, `servora-waiter-app` — same two vars, same values, on all three):**
 
-| Key | Value |
-|---|---|
-| `VITE_API_URL` | `https://servora-api.onrender.com` |
-| `VITE_WS_URL` | `wss://servora-api.onrender.com/ws/events` |
+| Key            | Value                                      |
+| -------------- | ------------------------------------------ |
+| `VITE_API_URL` | `https://servora-api.onrender.com`         |
+| `VITE_WS_URL`  | `wss://servora-api.onrender.com/ws/events` |
 
 ---
 
@@ -246,3 +251,23 @@ Click **Save Changes**. Render will automatically redeploy the API with the new 
 - **Neon**: free project scales compute to zero when idle too, but wakes up fast (usually under 1s) — not a practical issue.
 - **Upstash free tier**: 500,000 commands/month, 256MB storage. Fine unless you get real production traffic.
 - If you outgrow any of this, the cheapest next step is usually Render's $7/mo Starter instance (no sleep) — everything else can often stay free even at moderate usage.
+
+---
+
+## Phase 6 production-ready path
+
+The earlier sections document a low-cost/manual hosting path. For a reproducible release, Phase 6 adds a stricter production workflow:
+
+```bash
+cp .env.production.example .env.production
+# replace every placeholder with secret-manager / production values
+set -a
+. ./.env.production
+set +a
+
+bun run validate:production-env
+docker compose --env-file .env.production -f docker-compose.production.yml build
+docker compose --env-file .env.production -f docker-compose.production.yml up -d
+```
+
+Before promotion, run the GitHub **Release verification** workflow or the equivalent commands documented in `docs/PHASE_6_8_RELEASE_CERTIFICATION.md`. Database backups should be taken before migration/deployment changes, and restore should be tested in a non-production recovery environment.

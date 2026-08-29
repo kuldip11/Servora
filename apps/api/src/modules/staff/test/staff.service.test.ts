@@ -89,9 +89,17 @@ describe("staff service", () => {
     create.mockResolvedValue({ id: "m1", userId: "u2" });
     await staffService.create(
       { ...base, branchId: "b1", permissions: ["staff:create"] },
-      { firstName: "A", lastName: "B", email: "b@x.com", password: "password1", roleId: "r1" },
+      {
+        firstName: "A",
+        lastName: "B",
+        email: "b@x.com",
+        password: "password1",
+        roleId: "r1",
+      },
     );
-    expect(create).toHaveBeenCalledWith(expect.objectContaining({ branchIds: ["b1"] }));
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({ branchIds: ["b1"] }),
+    );
   });
 
   it("creates branch staff, hashes the password, and audits creation", async () => {

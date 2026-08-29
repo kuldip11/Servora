@@ -5,6 +5,7 @@ const { branches, orders } = vi.hoisted(() => ({
     tenantId: "tenantId",
     isActive: "isActive",
     createdAt: "createdAt",
+    code: "code",
   },
   orders: {
     id: "id",
@@ -45,6 +46,9 @@ describe("branch repository", () => {
     await expect(branchRepository.findById("t1", "b1")).resolves.toEqual({
       id: "b1",
     });
+    await expect(branchRepository.findByCode("t1", "MAIN-01")).resolves.toEqual(
+      { id: "b1" },
+    );
     await expect(branchRepository.countActive("t1")).resolves.toBe(2);
     expect(findMany).toHaveBeenCalledTimes(2);
   });

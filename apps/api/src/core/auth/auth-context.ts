@@ -38,6 +38,8 @@ export interface AuthContext {
   permissions: string[];
   tenantWide?: boolean;
   authorizedBranchIds?: string[];
+  requestId?: string | undefined;
+  ipAddress?: string | undefined;
 }
 
 function parseBearerToken(authHeader: string | undefined): string {
@@ -48,149 +50,149 @@ function parseBearerToken(authHeader: string | undefined): string {
 }
 
 export const requireAuthPlugin = () =>
-  new Elysia({ name: "require-auth" })
-    .use(requestContextPlugin())
-    .derive(
-      // Scoped (not global): this must stay confined to whichever router
-      // calls `.use(requireAuthPlugin())` directly. Elysia's "global" scope
-      // hoists a derive to the top-level app, so it silently applied to
-      // every router mounted after this one in apps/api/src/index.ts
-      // (e.g. the customer-facing endpoints, which are intentionally
-      // public) and forced them to require a Bearer token they never had.
-      { as: "scoped" },
-      async ({
-        headers,
-        requestContext,
-      }): Promise<{ auth: AuthContext; logger: Logger }> => {
-        const token = parseBearerToken(headers["authorization"]);
+  new Elysia({ name: "require-auth" }).use(requestContextPlugin()).derive(
+    // Scoped (not global): this must stay confined to whichever router
+    // calls `.use(requireAuthPlugin())` directly. Elysia's "global" scope
+    // hoists a derive to the top-level app, so it silently applied to
+    // every router mounted after this one in apps/api/src/index.ts
+    // (e.g. the customer-facing endpoints, which are intentionally
+    // public) and forced them to require a Bearer token they never had.
+    { as: "scoped" },
+    async ({
+      headers,
+      requestContext,
+    }): Promise<{ auth: AuthContext; logger: Logger }> => {
+      const token = parseBearerToken(headers["authorization"]);
 
-        let payload: JwtPayload;
-        try {
-          payload = verifyAccessToken(token);
-        } catch {
-          throw new UnauthorizedError("Invalid or expired token");
-        }
+      let payload: JwtPayload;
+      try {
+        payload = verifyAccessToken(token);
+      } catch {
+        throw new UnauthorizedError("Invalid or expired token");
+      }
 
-        // Access tokens issued before this architecture change contained active
-        // tenant/branch context. Force one refresh so those tokens cannot carry
-        // stale context or tenant-scoped permissions into the new model.
-        const legacyPayload = payload as JwtPayload & {
-          tenantId?: string;
-          membershipId?: string;
-          branchId?: string | null;
-        };
-        if (
-          legacyPayload.tenantId ||
-          legacyPayload.membershipId ||
-          legacyPayload.branchId
-        ) {
-          throw new UnauthorizedError(
-            "Session format changed; refresh required",
-          );
-        }
+      // Access tokens issued before this architecture change contained active
+      // tenant/branch context. Force one refresh so those tokens cannot carry
+      // stale context or tenant-scoped permissions into the new model.
+      const legacyPayload = payload as JwtPayload & {
+        tenantId?: string;
+        membershipId?: string;
+        branchId?: string | null;
+      };
+      if (
+        legacyPayload.tenantId ||
+        legacyPayload.membershipId ||
+        legacyPayload.branchId
+      ) {
+        throw new UnauthorizedError("Session format changed; refresh required");
+      }
 
-        const requestedTenant = headers["x-tenant-id"]?.trim() ?? "";
-        const requestedBranch = headers["x-branch-id"]?.trim() ?? "";
+      const requestedTenant = headers["x-tenant-id"]?.trim() ?? "";
+      const requestedBranch = headers["x-branch-id"]?.trim() ?? "";
 
-        if (!requestedTenant) {
-          if (requestedBranch && requestedBranch !== "all") {
-            throw new ForbiddenError("Active franchise is required");
-          }
-
-          const auth: AuthContext = {
-            userId: payload.sub,
-            tenantId: "",
-            branchId: null,
-            email: payload.email,
-            roles: payload.roles as RoleName[],
-            permissions: payload.permissions ?? [],
-            tenantWide: true,
-            authorizedBranchIds: [],
-          };
-
-          const logger = createLogger(
-            { requestId: requestContext.requestId, userId: auth.userId },
-            "app",
-          );
-          return { auth, logger };
-        }
-
-        const membership = await resolveMembership(
-          db,
-          payload.sub,
-          requestedTenant,
-        );
-        if (!membership) {
-          throw new ForbiddenError("Franchise access denied");
-        }
-
-        const baseContext = {
-          userId: payload.sub,
-          membershipId: membership.id,
-          tenantId: membership.tenantId,
-        };
-
-        let branchId: string | null = null;
+      if (!requestedTenant) {
         if (requestedBranch && requestedBranch !== "all") {
-          const active = await resolveActiveBranch(
-            db,
-            baseContext,
-            requestedBranch,
-          );
-          branchId = active.branchId ?? null;
-        } else if (requestedBranch === "all") {
-          const decision = await resolveAuthorization(db, baseContext);
-          if (!decision.allowed || !decision.tenantWide) {
-            throw new ForbiddenError("Branch access denied");
-          }
+          throw new ForbiddenError("Active franchise is required");
         }
-
-        const decision = await resolveAuthorization(db, {
-          ...baseContext,
-          branchId,
-        });
-        if (!decision.allowed) {
-          throw new ForbiddenError("Franchise access denied");
-        }
-
-        const globalRoles = await db.query.globalUserRoles.findMany({
-          where: eq(globalUserRoles.userId, payload.sub),
-          with: { role: true },
-        });
-        const roles = [
-          ...new Set([
-            ...globalRoles.map((item: any) => item.role?.name ?? item.roleId),
-            ...membership.roles.map(
-              (item: any) => item.role?.name ?? item.roleId,
-            ),
-          ]),
-        ] as RoleName[];
 
         const auth: AuthContext = {
           userId: payload.sub,
-          tenantId: membership.tenantId,
-          membershipId: membership.id,
-          branchId,
+          tenantId: "",
+          branchId: null,
           email: payload.email,
-          roles,
-          permissions: decision.permissionKeys,
-          tenantWide: decision.tenantWide,
-          authorizedBranchIds: decision.branchIds,
+          roles: payload.roles as RoleName[],
+          permissions: payload.permissions ?? [],
+          tenantWide: true,
+          authorizedBranchIds: [],
+          requestId: requestContext.requestId,
+          ipAddress: requestContext.ip,
         };
 
         const logger = createLogger(
-          {
-            requestId: requestContext.requestId,
-            tenantId: auth.tenantId,
-            ...(auth.branchId ? { branchId: auth.branchId } : {}),
-            userId: auth.userId,
-          },
+          { requestId: requestContext.requestId, userId: auth.userId },
           "app",
         );
-
         return { auth, logger };
-      },
-    );
+      }
+
+      const membership = await resolveMembership(
+        db,
+        payload.sub,
+        requestedTenant,
+      );
+      if (!membership) {
+        throw new ForbiddenError("Franchise access denied");
+      }
+
+      const baseContext = {
+        userId: payload.sub,
+        membershipId: membership.id,
+        tenantId: membership.tenantId,
+      };
+
+      let branchId: string | null = null;
+      if (requestedBranch && requestedBranch !== "all") {
+        const active = await resolveActiveBranch(
+          db,
+          baseContext,
+          requestedBranch,
+        );
+        branchId = active.branchId ?? null;
+      } else if (requestedBranch === "all") {
+        const decision = await resolveAuthorization(db, baseContext);
+        if (!decision.allowed || !decision.tenantWide) {
+          throw new ForbiddenError("Branch access denied");
+        }
+      }
+
+      const decision = await resolveAuthorization(db, {
+        ...baseContext,
+        branchId,
+      });
+      if (!decision.allowed) {
+        throw new ForbiddenError("Franchise access denied");
+      }
+
+      const globalRoles = await db.query.globalUserRoles.findMany({
+        where: eq(globalUserRoles.userId, payload.sub),
+        with: { role: true },
+      });
+      const roles = [
+        ...new Set([
+          ...globalRoles.map((item: any) => item.role?.name ?? item.roleId),
+          ...membership.roles.map(
+            (item: any) => item.role?.name ?? item.roleId,
+          ),
+        ]),
+      ] as RoleName[];
+
+      const auth: AuthContext = {
+        userId: payload.sub,
+        tenantId: membership.tenantId,
+        membershipId: membership.id,
+        branchId,
+        email: payload.email,
+        roles,
+        permissions: decision.permissionKeys,
+        tenantWide: decision.tenantWide,
+        authorizedBranchIds: decision.branchIds,
+        requestId: requestContext.requestId,
+        ipAddress: requestContext.ip,
+      };
+
+      const logger = createLogger(
+        {
+          requestId: requestContext.requestId,
+          tenantId: auth.tenantId,
+          ...(auth.branchId ? { branchId: auth.branchId } : {}),
+          userId: auth.userId,
+        },
+        "app",
+      );
+
+      return { auth, logger };
+    },
+  );
 
 export function requireRoles(auth: AuthContext, allowed: RoleName[]): void {
   const hasRole = allowed.some((role) => auth.roles.includes(role));

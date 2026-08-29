@@ -5,6 +5,8 @@ import {
   branchHasOpenDineInOrders,
   lastActiveBranch,
   branchHasOpenOrders,
+  branchCodeAlreadyExists,
+  tablesRequireDineIn,
 } from "../branch.errors";
 describe("branch errors", () => {
   it("creates a stable not-found error with the branch id", () => {
@@ -23,6 +25,13 @@ describe("branch errors", () => {
     expect(lastActiveBranch().details).toMatchObject({ reason: "LAST_BRANCH" });
     expect(branchHasOpenOrders().details).toMatchObject({
       reason: "BRANCH_HAS_OPEN_ORDERS",
+    });
+    expect(branchCodeAlreadyExists("MAIN-01").details).toMatchObject({
+      reason: "BRANCH_CODE_EXISTS",
+      code: "MAIN-01",
+    });
+    expect(tablesRequireDineIn().details).toMatchObject({
+      reason: "TABLES_REQUIRE_DINE_IN",
     });
     expect(lastActiveBranch().statusCode).toBe(409);
   });

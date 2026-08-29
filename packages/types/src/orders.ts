@@ -3,7 +3,8 @@ import { RestaurantTable } from "./common";
 export type OrderStatus =
   "OPEN" | "BILL_REQUESTED" | "PAID" | "CLOSED" | "CANCELLED";
 
-export type KitchenTicketStatus = "PENDING_PAYMENT" | "FIRED" | "PREPARING" | "READY" | "SERVED";
+export type KitchenTicketStatus =
+  "PENDING_PAYMENT" | "FIRED" | "PREPARING" | "READY" | "SERVED";
 
 export type OrderType = "DINE_IN" | "TAKEAWAY" | "DELIVERY" | "ONLINE";
 export type OrderItemFulfillmentType = "DINE_IN" | "TAKEAWAY";
@@ -25,6 +26,7 @@ export interface Order {
   items: OrderItem[];
   kitchenTickets?: KitchenTicket[];
   statusHistory: OrderStatusHistory[];
+  payments?: import("./billing").Payment[];
   createdAt: string;
   updatedAt: string;
 }

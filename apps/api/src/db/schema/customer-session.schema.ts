@@ -1,9 +1,19 @@
-import { pgTable, uuid, timestamp, index, boolean, pgEnum } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  uuid,
+  timestamp,
+  index,
+  boolean,
+  pgEnum,
+} from "drizzle-orm/pg-core";
 import { tenants } from "./tenant.schema";
 import { branches } from "./branch.schema";
 import { restaurantTables } from "./restaurant-table.schema";
 
-export const customerSessionModeEnum = pgEnum("customer_session_mode", ["DINE_IN", "TAKEAWAY"]);
+export const customerSessionModeEnum = pgEnum("customer_session_mode", [
+  "DINE_IN",
+  "TAKEAWAY",
+]);
 
 export const customerSessions = pgTable(
   "customer_sessions",
@@ -15,8 +25,9 @@ export const customerSessions = pgTable(
     branchId: uuid("branch_id")
       .notNull()
       .references(() => branches.id, { onDelete: "cascade" }),
-    tableId: uuid("table_id")
-      .references(() => restaurantTables.id, { onDelete: "cascade" }),
+    tableId: uuid("table_id").references(() => restaurantTables.id, {
+      onDelete: "cascade",
+    }),
     mode: customerSessionModeEnum("mode").notNull().default("DINE_IN"),
     token: uuid("token").notNull().defaultRandom().unique(),
     active: boolean("active").notNull().default(true),
