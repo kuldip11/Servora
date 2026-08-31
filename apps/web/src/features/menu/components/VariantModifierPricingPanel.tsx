@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Button, Input } from "@pos/ui";
 import type { MenuItemVariant, ModifierGroup } from "@pos/types";
+import { createMenuApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
+
+const menuApi = createMenuApi(apiClient);
 import { queryClient } from "../../../shared/lib/query-client";
 import { notifyError, notifySuccess } from "../../../shared/lib/notify";
 
@@ -35,7 +38,7 @@ export function VariantModifierPricingPanel({ variants, groups }: Props) {
   const variantIds = useMemo(() => new Set(variants.map((variant) => variant.id)), [variants]);
   const save = useMutation({
     mutationFn: async (group: ModifierGroup) => {
-      await apiClient.patch(`/menu/modifier-groups/${group.id}`, {
+      await menuApi.updateModifierGroup(group.id, {
         options: group.options.map((option) => ({
           id: option.id,
           name: option.name,

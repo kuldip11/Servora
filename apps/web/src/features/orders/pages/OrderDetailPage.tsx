@@ -445,7 +445,7 @@ export function OrderDetailPage() {
                   <span className="text-text-secondary">
                     Table:{" "}
                     <span className="font-medium text-text-primary">
-                      {(order.table as any).name}
+                      {order.table.name}
                     </span>
                   </span>
                 </div>

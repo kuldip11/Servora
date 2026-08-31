@@ -33,11 +33,11 @@ export const staffRepository = {
 
     const scoped = authorizedBranchIds
       ? branchId
-        ? memberships.filter((membership: any) =>
-            membership.branches.some((item: any) => item.branchId === branchId),
+        ? memberships.filter((membership) =>
+            membership.branches.some((item) => item.branchId === branchId),
           )
-        : memberships.filter((membership: any) =>
-            membership.branches.some((item: any) =>
+        : memberships.filter((membership) =>
+            membership.branches.some((item) =>
               authorizedBranchIds.includes(item.branchId),
             ),
           )
@@ -45,17 +45,17 @@ export const staffRepository = {
 
     return scoped
       .filter(
-        (membership: any) =>
+        (membership) =>
           membership.user &&
           !membership.user.deletedAt &&
           membership.user.id !== excludeUserId,
       )
-      .map((membership: any) => ({
+      .map((membership) => ({
         ...membership.user,
         membershipId: membership.id,
-        roles: membership.roles.map((item: any) => item.role),
+        roles: membership.roles.map((item) => item.role),
         assignedBranches: membership.branches
-          .map((item: any) => item.branch)
+          .map((item) => item.branch)
           .filter(Boolean),
       }));
   },

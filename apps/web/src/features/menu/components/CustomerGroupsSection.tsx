@@ -2,9 +2,12 @@ import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button, Input } from "@pos/ui";
 import type { CustomerGroup } from "@pos/types";
+import { createCustomersApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
 import { queryClient } from "../../../shared/lib/query-client";
 import { notifyError, notifySuccess } from "../../../shared/lib/notify";
+
+const customersApi = createCustomersApi(apiClient);
 
 export function CustomerGroupsSection() {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -12,7 +15,7 @@ export function CustomerGroupsSection() {
   const [discountType, setDiscountType] = useState<"NONE" | "PERCENT" | "FIXED">("NONE");
   const [discount, setDiscount] = useState("");
   const key = ["customer-groups"];
-  const { data: groups = [] } = useQuery<CustomerGroup[]>({ queryKey: key, queryFn: async () => (await apiClient.get("/customer-groups")).data.data });
+  const { data: groups = [] } = useQuery<CustomerGroup[]>({ queryKey: key, queryFn: customersApi.listGroups });
 
   const clear = () => { setEditingId(null); setName(""); setDiscountType("NONE"); setDiscount(""); };
   const save = useMutation({
@@ -22,13 +25,13 @@ export function CustomerGroupsSection() {
         discountPercent: discountType === "PERCENT" && discount !== "" ? Number(discount) : null,
         discountFixed: discountType === "FIXED" && discount !== "" ? Number(discount) : null,
       };
-      return editingId ? apiClient.patch(`/customer-groups/${editingId}`, payload) : apiClient.post("/customer-groups", payload);
+      return editingId ? customersApi.updateGroup(editingId, payload) : customersApi.createGroup(payload);
     },
     onSuccess: async () => { clear(); await queryClient.invalidateQueries({ queryKey: key }); notifySuccess("Customer group saved"); },
     onError: (error) => notifyError(error, "Failed to save customer group"),
   });
   const remove = useMutation({
-    mutationFn: (id: string) => apiClient.delete(`/customer-groups/${id}`),
+    mutationFn: customersApi.deleteGroup,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
     onError: (error) => notifyError(error, "Failed to delete customer group"),
   });

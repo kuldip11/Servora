@@ -69,9 +69,9 @@ export const modifierRepository = {
     return new Set(
       rows
         .filter(
-          (row: any) => row.branchId === null || row.branchId === branchId,
+          (row) => row.branchId === null || row.branchId === branchId,
         )
-        .map((row: any) => row.id),
+        .map((row) => row.id),
     );
   },
 
@@ -81,7 +81,7 @@ export const modifierRepository = {
       where: and(eq(menuTags.tenantId, tenantId), inArray(menuTags.id, tagIds)),
       columns: { id: true },
     });
-    return new Set(rows.map((row: any) => row.id));
+    return new Set(rows.map((row) => row.id));
   },
 
   async createModifierGroup(data: {

@@ -1,13 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-const { signup, login, refresh, memberships, me } = vi.hoisted(() => ({
+const { signup, memberships, me } = vi.hoisted(() => ({
   signup: vi.fn(),
-  login: vi.fn(),
-  refresh: vi.fn(),
   memberships: vi.fn(),
   me: vi.fn(),
 }));
 vi.mock("../auth.service", () => ({
-  authService: { signup, login, refresh, memberships, me },
+  authService: { signup, memberships, me },
 }));
 import { authController } from "../auth.controller";
 const auth: any = {
@@ -20,21 +18,11 @@ const auth: any = {
   permissions: ["x"],
 };
 describe("auth controller", () => {
-  it("delegates public auth operations and wraps results", async () => {
+  it("delegates signup and wraps the result", async () => {
     signup.mockResolvedValue({ user: { id: "u1" } });
-    login.mockResolvedValue({ accessToken: "a" });
-    refresh.mockResolvedValue({ accessToken: "b" });
     await expect(authController.signup({} as any)).resolves.toEqual({
       success: true,
       data: { user: { id: "u1" } },
-    });
-    await expect(authController.login({} as any)).resolves.toEqual({
-      success: true,
-      data: { accessToken: "a" },
-    });
-    await expect(authController.refresh("r")).resolves.toEqual({
-      success: true,
-      data: { accessToken: "b" },
     });
   });
   it("delegates memberships and builds me roles/permissions", async () => {

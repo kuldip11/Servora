@@ -16,7 +16,7 @@ export const tenantService = {
     return Promise.all(
       memberships.map(async (membership) => {
         const tenantWide = membership.roles.some(
-          (item: any) => item.role.scope === "TENANT",
+          (item) => item.role.scope === "TENANT",
         );
         const branchIds = tenantWide
           ? (await branchRepository.findMany(membership.tenant.id, null)).map(
@@ -27,7 +27,7 @@ export const tenantService = {
         return {
           membershipId: membership.id,
           tenant: membership.tenant,
-          roles: membership.roles.map((item: any) => ({
+          roles: membership.roles.map((item) => ({
             id: item.roleId,
             name: item.role.name,
             scope: item.role.scope,

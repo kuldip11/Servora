@@ -31,7 +31,10 @@ import {
 } from "@pos/ui";
 import { useAuthStore } from "../../../store/auth";
 import { useBranches } from "../../branches/hooks/useBranches";
+import { createTablesApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
+
+const tablesApi = createTablesApi(apiClient);
 import { useTables } from "../hooks/useTables";
 import { useTablesRealtimeSync } from "../hooks/useTablesRealtimeSync";
 import { useCreateTable } from "../hooks/useCreateTable";
@@ -136,8 +139,7 @@ export function TablesPage() {
     if (!branchId || branchId === "all") return;
     try {
       setTakeawayQrBusy(true);
-      const res = await apiClient.get(`/branches/${branchId}/takeaway-qr`);
-      setTakeawayQr(res.data.data);
+      setTakeawayQr(await tablesApi.getTakeawayQr(branchId));
       setTakeawayQrOpen(true);
     } catch (error) {
       console.error("Unable to load takeaway QR", error);
@@ -150,10 +152,7 @@ export function TablesPage() {
     if (!branchId || branchId === "all") return;
     try {
       setTakeawayQrBusy(true);
-      const res = await apiClient.post(
-        `/branches/${branchId}/takeaway-qr/regenerate`,
-      );
-      setTakeawayQr(res.data.data);
+      setTakeawayQr(await tablesApi.regenerateTakeawayQr(branchId));
     } catch (error) {
       console.error("Unable to regenerate takeaway QR", error);
     } finally {

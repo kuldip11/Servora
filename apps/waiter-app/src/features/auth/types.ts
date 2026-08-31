@@ -8,6 +8,5 @@ export type { Branch, AvailableMembership };
 
 export interface LoginResult {
   accessToken: string;
-  refreshToken: string;
   user: User;
 }

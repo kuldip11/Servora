@@ -9,11 +9,21 @@ import { useCreateOrder } from "../hooks/useCreateOrder";
 import { toCartItemPayload } from "../services/orders.service";
 import { ItemCustomizerModal } from "./ItemCustomizerModal";
 import { cartItemKey, type CartItem } from "../utils/cartTypes";
-import type { FoodType, MenuItem } from "@pos/types";
+import type { FoodType, MenuCategory, MenuItem } from "@pos/types";
 import { createOrderSchema } from "@pos/validation";
 import { useBranches } from "../../branches/hooks/useBranches";
+import { createMenuApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
+
+const menuApi = createMenuApi(apiClient);
 import { useCourseSequencingEnabled } from "../hooks/useCourseSequencingEnabled";
+
+
+interface ActiveMenuSummary {
+  id: string;
+  name: string;
+  memberships: Array<{ menuItemId: string }>;
+}
 
 const ALL_ORDER_TYPES = [
   {
@@ -76,17 +86,17 @@ export function CreateOrderModal({ onClose }: { onClose: () => void }) {
   }, [currentBranch?.id]);
 
   const { data: categories } = useMenuCategories();
-  const { data: activeMenus = [] } = useQuery<any[]>({
+  const { data: activeMenus = [] } = useQuery<ActiveMenuSummary[]>({
     queryKey: ["menus", "active", orderType],
-    queryFn: async () => (await apiClient.get("/menu/menus/active", { params: { channel: "STAFF", fulfillmentType: orderType } })).data.data,
+    queryFn: () => menuApi.listActiveMenus(orderType),
   });
   useEffect(() => {
     if (!activeMenus.some((menu) => menu.id === selectedMenuId)) setSelectedMenuId(activeMenus[0]?.id ?? "");
   }, [activeMenus, selectedMenuId]);
   const visibleItemIds = new Set(
-    activeMenus.filter((menu) => !selectedMenuId || menu.id === selectedMenuId).flatMap((menu) => menu.memberships.map((membership: any) => membership.menuItemId)),
+    activeMenus.filter((menu) => !selectedMenuId || menu.id === selectedMenuId).flatMap((menu) => menu.memberships.map((membership) => membership.menuItemId)),
   );
-  const scopedCategories = categories?.map((category: any) => ({ ...category, menuItems: (category.menuItems ?? []).filter((item: any) => visibleItemIds.has(item.id)) })).filter((category: any) => category.menuItems.length > 0);
+  const scopedCategories = categories?.map((category: MenuCategory) => ({ ...category, menuItems: (category.menuItems ?? []).filter((item) => visibleItemIds.has(item.id)) })).filter((category) => category.menuItems.length > 0);
 
   const { data: tables } = useTables({
     enabled: orderType === "DINE_IN" && tablesEnabled,

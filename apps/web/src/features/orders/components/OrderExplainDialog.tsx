@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { Badge, Button, Card, Modal, Spinner } from "@pos/ui";
+import { createOrdersApi } from "@pos/api-client";
 import { apiClient, extractApiError } from "../../../shared/lib/api-client";
+
+const ordersApi = createOrdersApi(apiClient);
 import { formatCurrency } from "../../../shared/utils/format";
 
 type ExplanationTrace = {
@@ -89,10 +92,10 @@ export function OrderExplainDialog({
     setLoading(true);
     setError(null);
 
-    void apiClient
-      .get(`/orders/${orderId}/explain`)
+    void ordersApi
+      .explain<OrderExplanation>(orderId)
       .then((response) => {
-        if (!cancelled) setExplanation(response.data.data as OrderExplanation);
+        if (!cancelled) setExplanation(response);
       })
       .catch((reason: unknown) => {
         if (!cancelled) setError(extractApiError(reason));

@@ -72,11 +72,6 @@ export interface Branch {
   tablesEnabled: boolean;
 }
 
-export interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-}
 export interface OrganizationSummary {
   id: string;
   name: string;

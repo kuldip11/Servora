@@ -25,7 +25,7 @@ export const permissionService = {
     const role = await permissionRepository.findRole(auth.tenantId, roleId);
     if (!role) throw new NotFoundError("Role not found");
     return role.rolePermissions
-      .map((item: any) => item.permission)
+      .map((item) => item.permission)
       .filter(Boolean);
   },
   async setForRole(auth: AuthContext, roleId: string, permissionIds: string[]) {

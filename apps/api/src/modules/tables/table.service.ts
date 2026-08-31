@@ -1,7 +1,6 @@
 /**
- * Table service — business rules that used to live inline in the
- * controller: branch resolution/validation on create, and blocking
- * status/delete changes while a table has an active order.
+ * Table application service: branch resolution/validation on create and
+ * guards that prevent status/delete changes while a table has an active order.
  */
 import type { TableStatus } from "@pos/types";
 import type { AuthContext } from "../../core/auth";

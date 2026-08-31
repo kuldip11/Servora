@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Button, Input, Modal, toast } from "@pos/ui";
+import { createApprovalsApi } from "@pos/api-client";
 import { apiClient, extractApiError } from "../../../shared/lib/api-client";
+
+const approvalsApi = createApprovalsApi(apiClient);
 
 export interface ManagerApprovalRequest {
   action: "void" | "comp";
@@ -29,14 +32,14 @@ export function ManagerApprovalDialog({
     if (!request) return;
     setLoading(true);
     try {
-      const response = await apiClient.post("/approvals/manager", {
+      const response = await approvalsApi.requestManagerApproval({
         actionType: request.action === "void" ? "VOID" : "COMP",
         orderId,
         orderItemId: request.itemId,
         managerEmail: managerEmail.trim(),
         password,
       });
-      onApproved(response.data.data.token as string);
+      onApproved(response.token);
       setPassword("");
     } catch (error) {
       toast({ title: extractApiError(error), tone: "danger" });

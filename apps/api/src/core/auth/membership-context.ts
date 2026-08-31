@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { ForbiddenError } from "../errors";
+import type { Database } from "../../db";
 
 import type { AvailableMembership } from "@pos/types";
 import {
@@ -12,7 +13,7 @@ import { type ActiveAuthContext } from "./membership-session";
 import { resolveMembership } from "./authorization";
 
 export async function listUserMemberships(
-  db: any,
+  db: Database,
   userId: string,
 ): Promise<AvailableMembership[]> {
   const [memberships, user] = await Promise.all([
@@ -41,15 +42,15 @@ export async function listUserMemberships(
 
   const isGlobalOwner = Boolean(
     user?.globalUserRoles?.some(
-      (item: any) =>
+      (item) =>
         item.role?.name === "OWNER" && item.role?.scope === "GLOBAL",
     ),
   );
 
   return Promise.all(
-    memberships.map(async (membership: any) => {
+    memberships.map(async (membership) => {
       const tenantWide = membership.roles.some(
-        (item: any) =>
+        (item) =>
           item.role?.scope === "GLOBAL" || item.role?.scope === "TENANT",
       );
       const branchRecords = tenantWide
@@ -59,7 +60,7 @@ export async function listUserMemberships(
               eq(branches.isActive, true),
             ),
           })
-        : membership.branches.map((item: any) => item.branch).filter(Boolean);
+        : membership.branches.map((item) => item.branch).filter(Boolean);
 
       return {
         membershipId: membership.id,
@@ -67,12 +68,12 @@ export async function listUserMemberships(
         tenant: membership.tenant
           ? { id: membership.tenant.id, name: membership.tenant.name }
           : { id: membership.tenantId, name: "" },
-        roles: membership.roles.map((item: any) => ({
+        roles: membership.roles.map((item) => ({
           id: item.roleId,
           name: item.role?.name ?? item.roleId,
           scope: item.role?.scope ?? "BRANCH",
         })),
-        branches: branchRecords.map((branch: any) => ({
+        branches: branchRecords.map((branch) => ({
           id: branch.id,
           name: branch.name,
           address: branch.address,
@@ -91,7 +92,7 @@ export async function listUserMemberships(
  * membership belongs to the authenticated user before activating it.
  */
 export async function resolveActiveBranch(
-  db: any,
+  db: Database,
   context: ActiveAuthContext,
   branchId: string,
 ): Promise<ActiveAuthContext> {
@@ -126,13 +127,13 @@ export async function resolveActiveBranch(
   });
   const tenantWide =
     membership.roles.some(
-      (item: any) =>
+      (item) =>
         item.role?.scope === "GLOBAL" || item.role?.scope === "TENANT",
-    ) || globalRoles.some((item: any) => item.role?.scope === "GLOBAL");
+    ) || globalRoles.some((item) => item.role?.scope === "GLOBAL");
 
   if (!tenantWide) {
     const assigned = membership.branches.some(
-      (item: any) => item.branchId === branchId,
+      (item) => item.branchId === branchId,
     );
 
     if (!assigned) {

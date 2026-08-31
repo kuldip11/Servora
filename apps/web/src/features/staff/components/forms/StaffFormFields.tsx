@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import type { UseFormRegister, UseFormSetValue } from "react-hook-form";
+import type { FieldErrors, UseFormRegister, UseFormSetValue } from "react-hook-form";
+import type { CreateStaffInput } from "@pos/validation";
 import { Input, Select } from "@pos/ui";
 
 export interface StaffRoleOption {
@@ -14,13 +15,13 @@ export interface StaffBranchOption {
 }
 
 interface CreateFieldsProps {
-  register: UseFormRegister<any>;
-  errors: any;
+  register: UseFormRegister<CreateStaffInput>;
+  errors: FieldErrors<CreateStaffInput>;
   roleId: string;
   branchId?: string | undefined;
   roles: StaffRoleOption[];
   branches: StaffBranchOption[];
-  setValue: UseFormSetValue<any>;
+  setValue: UseFormSetValue<CreateStaffInput>;
 }
 
 export function StaffFormFields({

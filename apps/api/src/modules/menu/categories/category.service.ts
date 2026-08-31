@@ -1,6 +1,6 @@
 /**
  * Menu category service — orchestrates `category.repository.ts` and
- * applies the business rules that used to live inline in the controller:
+ * applies category business rules, including:
  * draft visibility by role, branch resolution on create, and the
  * "blocked while items exist" guard on delete (deactivate).
  */

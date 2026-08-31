@@ -1,0 +1,38 @@
+import { getDomainData, postDomainData, type DomainHttpClient } from "./shared";
+
+export interface CollectPaymentInput {
+  orderId: string;
+  billId?: string;
+  method: string;
+  amount: number;
+  reference?: string;
+}
+
+export interface BillItemAllocation {
+  label: string;
+  orderItemIds: string[];
+}
+
+export type SeatSplitResult =
+  | { status: "CREATED"; bills: unknown[] }
+  | { status: "MANUAL_REQUIRED"; allocations: BillItemAllocation[]; sharedItemIds: string[] };
+
+export function createBillingApi(client: DomainHttpClient) {
+  return {
+    collectPayment(input: CollectPaymentInput): Promise<void> {
+      return client.post("/payments", input).then(() => undefined);
+    },
+    getOrderBills<T = unknown[]>(orderId: string): Promise<T> {
+      return getDomainData<T>(client, `/orders/${orderId}/bills`);
+    },
+    splitOrder<T = unknown>(orderId: string, ways: number): Promise<T> {
+      return postDomainData<T>(client, `/orders/${orderId}/bills/split`, { ways });
+    },
+    splitOrderByItems<T = unknown>(orderId: string, allocations: BillItemAllocation[]): Promise<T> {
+      return postDomainData<T>(client, `/orders/${orderId}/bills/split-items`, { allocations });
+    },
+    splitOrderBySeat(orderId: string, sharedItemStrategy: "EVEN_SPLIT" | "MANUAL"): Promise<SeatSplitResult> {
+      return postDomainData<SeatSplitResult>(client, `/orders/${orderId}/bills/split-seat`, { sharedItemStrategy });
+    },
+  };
+}

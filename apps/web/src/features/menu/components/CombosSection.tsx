@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button, Input, Select } from "@pos/ui";
+import { createMenuApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
+
+const menuApi = createMenuApi(apiClient);
 import { queryClient } from "../../../shared/lib/query-client";
 
 type ComboSummary = {
@@ -17,9 +20,9 @@ export function CombosSection() {
   const [amount, setAmount] = useState("0");
   const [itemId, setItemId] = useState("");
   const [unlimitedRefill, setUnlimitedRefill] = useState(false);
-  const { data: combos = [] } = useQuery<ComboSummary[]>({ queryKey: ["menu", "combos"], queryFn: async () => (await apiClient.get("/menu/combos")).data.data });
+  const { data: combos = [] } = useQuery<ComboSummary[]>({ queryKey: ["menu", "combos"], queryFn: () => menuApi.listCombos<ComboSummary>() });
   const create = useMutation({
-    mutationFn: () => apiClient.post("/menu/combos", {
+    mutationFn: () => menuApi.createCombo<ComboSummary>({
       name,
       pricePolicy: policy,
       ...(policy === "FIXED" ? { fixedPrice: Number(amount) } : { percentOff: Number(amount) }),

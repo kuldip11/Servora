@@ -12,7 +12,6 @@ const required = {
     "RATE_LIMIT_WINDOW_SECONDS",
     "DATABASE_URL",
     "JWT_SECRET",
-    "REFRESH_TOKEN_SECRET",
   ],
   "apps/web/.env.example": [
     "VITE_API_URL",

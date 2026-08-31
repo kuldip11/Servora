@@ -1,18 +1,17 @@
+import { createKitchenApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
+
+const kitchenApi = createKitchenApi(apiClient);
 import type { KitchenStation, KitchenTicket, KitchenTicketStatus } from "@pos/types";
 
 export async function fetchKitchenTickets(stationId?: string): Promise<KitchenTicket[]> {
-  const res = stationId
-    ? await apiClient.get("/kitchen-tickets", { params: { stationId } })
-    : await apiClient.get("/kitchen-tickets");
-  return res.data.data;
+  return kitchenApi.tickets(stationId);
 }
 
 export async function fetchKitchenStations(): Promise<KitchenStation[]> {
-  const res = await apiClient.get("/kitchen-tickets/stations");
-  return res.data.data;
+  return kitchenApi.stations();
 }
 
 export async function updateTicketStatus(id: string, status: KitchenTicketStatus): Promise<void> {
-  await apiClient.patch(`/kitchen-tickets/${id}/status`, { status });
+  await kitchenApi.updateTicketStatus(id, status);
 }

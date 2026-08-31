@@ -10,6 +10,17 @@ export interface CreateMenuInput {
   description?: string | undefined;
 }
 
+export interface CreateMenuScheduleInput {
+  scheduleType: "DAILY" | "WEEKLY" | "SPECIFIC_DATE" | "HOLIDAY";
+  startTime?: string | null | undefined;
+  endTime?: string | null | undefined;
+  dayOfWeek?: number | null | undefined;
+  startDate?: string | null | undefined;
+  endDate?: string | null | undefined;
+  holidayName?: string | null | undefined;
+  isActive?: boolean | undefined;
+}
+
 export interface UpdateMenuInput {
   name?: string | undefined;
   description?: string | null | undefined;
@@ -91,7 +102,7 @@ export const menuService = {
     await this.getById(auth, menuId);
     return menuRepository.listSchedules(auth.tenantId, menuId);
   },
-  async createSchedule(auth: AuthContext, menuId: string, input: any) {
+  async createSchedule(auth: AuthContext, menuId: string, input: CreateMenuScheduleInput) {
     await this.getById(auth, menuId);
     if ((input.scheduleType === "DAILY" || input.scheduleType === "WEEKLY") && (!input.startTime || !input.endTime)) throw new ValidationError("Time schedules require a start and end time");
     if (input.scheduleType === "WEEKLY" && input.dayOfWeek == null) throw new ValidationError("Weekly schedules require a day");

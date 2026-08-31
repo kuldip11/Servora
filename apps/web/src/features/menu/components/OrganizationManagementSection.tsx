@@ -2,7 +2,11 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button, Input } from "@pos/ui";
 import type { CustomerLoyaltyTier, PriceRule } from "@pos/types";
+import { createMenuApi, createOrganizationsApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
+
+const organizationsApi = createOrganizationsApi(apiClient);
+const menuApi = createMenuApi(apiClient);
 import { queryClient } from "../../../shared/lib/query-client";
 import { notifyError, notifySuccess } from "../../../shared/lib/notify";
 import { usePermissions } from "../../../shared/auth/permissions";
@@ -14,17 +18,17 @@ interface OrganizationTenantSummary { id: string; name: string; slug?: string; i
 export function OrganizationManagementSection() {
   const { has } = usePermissions();
   const canManage = has("organization:manage");
-  const { data: memberships = [] } = useQuery<OrgMembership[]>({ queryKey: ["organizations"], queryFn: async () => (await apiClient.get("/organizations")).data.data, enabled: canManage });
+  const { data: memberships = [] } = useQuery<OrgMembership[]>({ queryKey: ["organizations"], queryFn: () => organizationsApi.list<OrgMembership>(), enabled: canManage });
   const [selectedOrgId, setSelectedOrgId] = useState("");
   const organizationId = selectedOrgId || memberships[0]?.organizationId || memberships[0]?.organization?.id || "";
   const organization = useMemo(() => memberships.find((entry) => (entry.organizationId || entry.organization.id) === organizationId)?.organization, [memberships, organizationId]);
   const menusKey = ["organizations", organizationId, "menus"];
   const rulesKey = ["organizations", organizationId, "price-rules"];
   const loyaltyKey = ["organizations", organizationId, "loyalty-tiers"];
-  const { data: tenants = [] } = useQuery<OrganizationTenantSummary[]>({ queryKey: ["organizations", organizationId, "tenants"], queryFn: async () => (await apiClient.get(`/organizations/${organizationId}/tenants`)).data.data, enabled: !!organizationId && canManage });
-  const { data: menus = [] } = useQuery<OrgMenu[]>({ queryKey: menusKey, queryFn: async () => (await apiClient.get(`/organizations/${organizationId}/menus`)).data.data, enabled: !!organizationId && canManage });
-  const { data: rules = [] } = useQuery<PriceRule[]>({ queryKey: rulesKey, queryFn: async () => (await apiClient.get("/menu/price-rules", { params: { organizationId } })).data.data, enabled: !!organizationId && canManage });
-  const { data: loyaltyTiers = [] } = useQuery<CustomerLoyaltyTier[]>({ queryKey: loyaltyKey, queryFn: async () => (await apiClient.get(`/organizations/${organizationId}/loyalty-tiers`)).data.data, enabled: !!organizationId && canManage });
+  const { data: tenants = [] } = useQuery<OrganizationTenantSummary[]>({ queryKey: ["organizations", organizationId, "tenants"], queryFn: () => organizationsApi.tenants<OrganizationTenantSummary>(organizationId), enabled: !!organizationId && canManage });
+  const { data: menus = [] } = useQuery<OrgMenu[]>({ queryKey: menusKey, queryFn: () => organizationsApi.menus<OrgMenu>(organizationId), enabled: !!organizationId && canManage });
+  const { data: rules = [] } = useQuery<PriceRule[]>({ queryKey: rulesKey, queryFn: () => menuApi.listPriceRulesFor<PriceRule>({ organizationId }), enabled: !!organizationId && canManage });
+  const { data: loyaltyTiers = [] } = useQuery<CustomerLoyaltyTier[]>({ queryKey: loyaltyKey, queryFn: () => organizationsApi.loyaltyTiers<CustomerLoyaltyTier>(organizationId), enabled: !!organizationId && canManage });
   const [menuName, setMenuName] = useState("");
   const [menuSkus, setMenuSkus] = useState("");
   const [menuPublished, setMenuPublished] = useState(false);
@@ -35,13 +39,13 @@ export function OrganizationManagementSection() {
   const [loyaltyMode, setLoyaltyMode] = useState<"PERCENT" | "FIXED">("PERCENT");
   const [loyaltyValue, setLoyaltyValue] = useState("5");
 
-  const createMenu = useMutation({ mutationFn: () => apiClient.post(`/organizations/${organizationId}/menus`, { name: menuName.trim(), status: menuPublished ? "PUBLISHED" : "DRAFT", isDefault: menuDefault, items: menuSkus.split(/[,\n]/).map((value) => value.trim()).filter(Boolean).map((itemSku, index) => ({ itemSku, sortOrder: index })) }), onSuccess: async () => { setMenuName(""); setMenuSkus(""); await queryClient.invalidateQueries({ queryKey: menusKey }); notifySuccess("Organization menu created"); }, onError: (error) => notifyError(error, "Failed to create organization menu") });
-  const toggleMenu = useMutation({ mutationFn: ({ menuId, status }: { menuId: string; status: "DRAFT" | "PUBLISHED" }) => apiClient.patch(`/organizations/${organizationId}/menus/${menuId}`, { status }), onSuccess: () => queryClient.invalidateQueries({ queryKey: menusKey }) });
-  const deleteMenu = useMutation({ mutationFn: (menuId: string) => apiClient.delete(`/organizations/${organizationId}/menus/${menuId}`), onSuccess: () => queryClient.invalidateQueries({ queryKey: menusKey }) });
-  const createRule = useMutation({ mutationFn: () => apiClient.post("/menu/price-rules", { organizationId, menuItemSku: ruleSku.trim(), price: Number(rulePrice), priority: 0 }), onSuccess: async () => { setRuleSku(""); setRulePrice(""); await queryClient.invalidateQueries({ queryKey: rulesKey }); notifySuccess("Organization price rule created"); }, onError: (error) => notifyError(error, "Failed to create organization price rule") });
-  const deleteRule = useMutation({ mutationFn: (id: string) => apiClient.delete(`/menu/price-rules/${id}`), onSuccess: () => queryClient.invalidateQueries({ queryKey: rulesKey }) });
+  const createMenu = useMutation({ mutationFn: () => organizationsApi.createMenu<OrgMenu>(organizationId, { name: menuName.trim(), status: menuPublished ? "PUBLISHED" : "DRAFT", isDefault: menuDefault, items: menuSkus.split(/[,\n]/).map((value) => value.trim()).filter(Boolean).map((itemSku, index) => ({ itemSku, sortOrder: index })) }), onSuccess: async () => { setMenuName(""); setMenuSkus(""); await queryClient.invalidateQueries({ queryKey: menusKey }); notifySuccess("Organization menu created"); }, onError: (error) => notifyError(error, "Failed to create organization menu") });
+  const toggleMenu = useMutation({ mutationFn: ({ menuId, status }: { menuId: string; status: "DRAFT" | "PUBLISHED" }) => organizationsApi.updateMenu<OrgMenu>(organizationId, menuId, { status }), onSuccess: () => queryClient.invalidateQueries({ queryKey: menusKey }) });
+  const deleteMenu = useMutation({ mutationFn: (menuId: string) => organizationsApi.removeMenu(organizationId, menuId), onSuccess: () => queryClient.invalidateQueries({ queryKey: menusKey }) });
+  const createRule = useMutation({ mutationFn: () => menuApi.createPriceRule<PriceRule>({ organizationId, menuItemSku: ruleSku.trim(), price: Number(rulePrice), priority: 0 }), onSuccess: async () => { setRuleSku(""); setRulePrice(""); await queryClient.invalidateQueries({ queryKey: rulesKey }); notifySuccess("Organization price rule created"); }, onError: (error) => notifyError(error, "Failed to create organization price rule") });
+  const deleteRule = useMutation({ mutationFn: (id: string) => menuApi.removePriceRule(id), onSuccess: () => queryClient.invalidateQueries({ queryKey: rulesKey }) });
   const createLoyaltyTier = useMutation({
-    mutationFn: () => apiClient.post(`/organizations/${organizationId}/loyalty-tiers`, {
+    mutationFn: () => organizationsApi.createLoyaltyTier<CustomerLoyaltyTier>(organizationId, {
       name: loyaltyName.trim(),
       ...(loyaltyMode === "PERCENT" ? { discountPercent: Number(loyaltyValue) } : { discountFixed: Number(loyaltyValue) }),
     }),
@@ -49,7 +53,7 @@ export function OrganizationManagementSection() {
     onError: (error) => notifyError(error, "Failed to create organization loyalty tier"),
   });
   const deleteLoyaltyTier = useMutation({
-    mutationFn: (id: string) => apiClient.delete(`/organizations/${organizationId}/loyalty-tiers/${id}`),
+    mutationFn: (id: string) => organizationsApi.removeLoyaltyTier(organizationId, id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: loyaltyKey }),
     onError: (error) => notifyError(error, "Failed to remove organization loyalty tier"),
   });

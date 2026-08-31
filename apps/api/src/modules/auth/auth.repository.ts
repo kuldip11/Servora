@@ -1,3 +1,4 @@
+import type { RoleName } from "@pos/types";
 /**
  * Auth repository — data access only. Password hashing, token issuing,
  * and business rules live in `auth.service.ts`.
@@ -286,10 +287,10 @@ export const authRepository = {
     });
   },
 
-  async findRoleByName(name: string) {
+  async findRoleByName(name: RoleName) {
     return db.query.roles.findFirst({
       where: and(
-        eq(roles.name, name as any),
+        eq(roles.name, name),
         isNull(roles.tenantId),
         eq(roles.isSystem, true),
       ),

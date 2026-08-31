@@ -10,7 +10,6 @@ describe("auth API", () => {
   it("posts credentials and returns login data", async () => {
     const payload = {
       accessToken: "a",
-      refreshToken: "r",
       expiresIn: 3600,
       user: { id: "u1" },
     };

@@ -118,4 +118,6 @@ export const updateKitchenTicketStatusSchema = z.object({
 });
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
+export type AddOrderItemsInput = z.infer<typeof addOrderItemsSchema>;
 export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
+export type UpdateKitchenTicketStatusInput = z.infer<typeof updateKitchenTicketStatusSchema>;

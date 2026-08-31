@@ -213,6 +213,8 @@
       "name": "@pos/api-client",
       "version": "0.1.0",
       "dependencies": {
+        "@pos/types": "workspace:*",
+        "@pos/validation": "workspace:*",
         "axios": "^1.7.2",
       },
       "devDependencies": {

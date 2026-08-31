@@ -53,7 +53,7 @@ const tooltipAnimationClasses = cn(
 );
 
 /**
- * Phase 9 (Accessibility Hardening) fix: this used to render
+ * Accessibility contract: render
  * `bg-text-primary ... text-white`. `--text-primary` is theme-reactive —
  * it's `#111827` (near-black) in light/high-contrast but `#f9fafb`
  * (near-white) in dark theme (see `theme/tokens.css`). So in dark theme

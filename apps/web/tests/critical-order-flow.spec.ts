@@ -108,7 +108,6 @@ async function installApi(page: Page) {
     if (method === "POST" && path === "/api/auth/login") {
       return json(route, {
         accessToken: "access-token",
-        refreshToken: "refresh-token",
         expiresIn: 900,
         user,
         memberships: [membership],
@@ -117,7 +116,6 @@ async function installApi(page: Page) {
     if (method === "POST" && path === "/api/auth/refresh") {
       return json(route, {
         accessToken: "access-token-refreshed",
-        refreshToken: "refresh-token-refreshed",
         expiresIn: 900,
         user,
         memberships: [membership],

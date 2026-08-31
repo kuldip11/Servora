@@ -23,10 +23,12 @@ export interface UpdateStaffInput {
   branchIds?: string[] | undefined;
 }
 
-function canManageTarget(auth: AuthContext, membership: any) {
+type StaffMembership = NonNullable<Awaited<ReturnType<typeof staffRepository.findMembership>>>;
+
+function canManageTarget(auth: AuthContext, membership: StaffMembership) {
   if (!membership) throw staffNotFound("unknown");
   if (auth.tenantWide) return;
-  const targetBranches = membership.branches.map((item: any) => item.branchId);
+  const targetBranches = membership.branches.map((item) => item.branchId);
   if (
     !targetBranches.some((id: string) =>
       (auth.authorizedBranchIds ?? []).includes(id),
@@ -177,7 +179,7 @@ export const staffService = {
       const role = await validateRole(auth, input.roleId);
       const targetBranches =
         input.branchIds ??
-        membership.branches.map((item: any) => item.branchId);
+        membership.branches.map((item) => item.branchId);
       if (
         (role.scope === "GLOBAL" || role.scope === "TENANT") &&
         targetBranches.length
@@ -255,7 +257,7 @@ export const staffService = {
     requirePermission(auth, "staff:read");
     const roles = await staffRepository.findAllRoles(auth.tenantId);
     return roles.filter(
-      (role: any) =>
+      (role) =>
         auth.roles.includes("OWNER") ||
         auth.tenantWide ||
         role.scope === "BRANCH",

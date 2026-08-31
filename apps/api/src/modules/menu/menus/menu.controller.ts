@@ -3,6 +3,7 @@ import { createdResponse, successResponse } from "../../../core/response";
 import {
   menuService,
   type CreateMenuInput,
+  type CreateMenuScheduleInput,
   type UpdateMenuInput,
 } from "./menu.service";
 
@@ -33,6 +34,6 @@ export const menuController = {
     return successResponse(null);
   },
   async listSchedules(auth: AuthContext, id: string) { return successResponse(await menuService.listSchedules(auth, id)); },
-  async createSchedule(auth: AuthContext, id: string, input: any) { return createdResponse(await menuService.createSchedule(auth, id, input)); },
+  async createSchedule(auth: AuthContext, id: string, input: CreateMenuScheduleInput) { return createdResponse(await menuService.createSchedule(auth, id, input)); },
   async deleteSchedule(auth: AuthContext, id: string) { await menuService.deleteSchedule(auth, id); return successResponse(null); },
 };

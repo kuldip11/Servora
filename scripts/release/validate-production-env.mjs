@@ -2,7 +2,7 @@ const required = [
   "POSTGRES_PASSWORD",
   "REDIS_PASSWORD",
   "JWT_SECRET",
-  "REFRESH_TOKEN_SECRET",
+  "METRICS_TOKEN",
   "CORS_ORIGIN",
   "PUBLIC_API_URL",
   "PUBLIC_WS_URL",
@@ -12,10 +12,16 @@ const required = [
   "PUBLIC_CUSTOMER_URL",
   "PUBLIC_WEBSITE_URL",
   "LEAD_WEBHOOK_URL",
+  "TRUST_PROXY_HOPS",
 ];
 
 const placeholderPattern = /(replace-with|example\.com|change-this)/i;
 const errors = [];
+
+const trustedProxyHops = Number(process.env.TRUST_PROXY_HOPS);
+if (!Number.isInteger(trustedProxyHops) || trustedProxyHops < 0 || trustedProxyHops > 10) {
+  errors.push("TRUST_PROXY_HOPS must be an integer between 0 and 10");
+}
 
 for (const key of required) {
   const value = process.env[key]?.trim();
@@ -29,21 +35,13 @@ for (const key of required) {
 
 for (const key of [
   "JWT_SECRET",
-  "REFRESH_TOKEN_SECRET",
   "POSTGRES_PASSWORD",
   "REDIS_PASSWORD",
+  "METRICS_TOKEN",
 ]) {
   const value = process.env[key] ?? "";
   if (value && value.length < 32)
     errors.push(`${key} must be at least 32 characters`);
-}
-
-if (
-  process.env.JWT_SECRET &&
-  process.env.REFRESH_TOKEN_SECRET &&
-  process.env.JWT_SECRET === process.env.REFRESH_TOKEN_SECRET
-) {
-  errors.push("JWT_SECRET and REFRESH_TOKEN_SECRET must be different");
 }
 
 for (const key of [

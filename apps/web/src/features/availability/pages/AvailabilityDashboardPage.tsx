@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, Page, PageHeader, Spinner } from "@pos/ui";
+import { createAvailabilityApi } from "@pos/api-client";
 import { apiClient, extractApiError } from "../../../shared/lib/api-client";
+
+const availabilityApi = createAvailabilityApi(apiClient);
 import { useRealtimeEvent } from "../../../shared/lib/realtime";
 
 type AvailabilityRow = {
@@ -46,14 +49,12 @@ export function AvailabilityDashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await apiClient.get("/menu/availability/dashboard", {
-        params: {
-          channel,
-          fulfillmentType,
-          ...(cause ? { cause } : {}),
-        },
+      const response = await availabilityApi.dashboard<DashboardResponse>({
+        channel,
+        fulfillmentType,
+        ...(cause ? { cause } : {}),
       });
-      setRows((response.data.data as DashboardResponse).rows);
+      setRows(response.rows);
     } catch (reason) {
       setError(extractApiError(reason));
     } finally {

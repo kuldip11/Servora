@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Button, Input, Select } from "@pos/ui";
+import { createMenuApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
+
+const menuApi = createMenuApi(apiClient);
 import { useMenuCategories } from "../hooks/useMenuCategories";
 import { useMenus } from "../hooks/useMenus";
 
@@ -35,14 +38,14 @@ export function HappyHourSection() {
     : menus.map((menu) => ({ value: menu.id, label: menu.name }));
 
   const create = useMutation({
-    mutationFn: async () => (await apiClient.post("/menu/price-rules/happy-hour", {
+    mutationFn: async () => await menuApi.createHappyHourRule<unknown[]>({
       ...(scopeType === "CATEGORY" ? { categoryId: scopeId } : { menuId: scopeId }),
       percentOff: Number(percentOff),
       startTime,
       endTime,
       ...(startDate ? { startDate } : {}),
       ...(endDate ? { endDate } : {}),
-    })).data.data as unknown[],
+    }),
     onSuccess: (rows) => {
       setError(null);
       setCreatedCount(rows.length);

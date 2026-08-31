@@ -3,6 +3,7 @@ import { and, inArray, lte, or, isNull } from "drizzle-orm";
 import { db } from "../../db";
 import { paymentWebhookEvents } from "../../db/schema";
 import { razorpayWebhookService } from "./razorpay-webhook.service";
+import { metrics } from "../../core/observability/metrics";
 
 const QUEUE = "pos:queue:razorpay_webhooks";
 const queueUrl = process.env["REDIS_URL"];
@@ -62,10 +63,12 @@ export function startRazorpayWebhookWorker() {
         try {
           await razorpayWebhookService.processEvent(eventId);
         } catch (error) {
+          metrics.increment("servora_payment_webhook_failures_total", { stage: "worker" });
           console.error(`[Razorpay Worker] Failed event ${eventId}`, error);
         }
       } catch (error) {
         if (!stopped) {
+          metrics.increment("servora_payment_webhook_failures_total", { stage: "queue" });
           console.error("[Razorpay Worker] Redis error", error);
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }

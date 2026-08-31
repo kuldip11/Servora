@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, Page, PageHeader, toast } from "@pos/ui";
-import type { MenuCategory } from "@pos/types";
+import { createAnalyticsApi, createApprovalsApi, createAvailabilityApi, createMenuApi, createOrdersApi } from "@pos/api-client";
 import { apiClient, extractApiError } from "../../../shared/lib/api-client";
+
+const analyticsApi = createAnalyticsApi(apiClient);
+const approvalsApi = createApprovalsApi(apiClient);
+const availabilityApi = createAvailabilityApi(apiClient);
+const menuApi = createMenuApi(apiClient);
+const ordersApi = createOrdersApi(apiClient);
 import { useRealtimeEvent } from "../../../shared/lib/realtime";
 
 type Tab = "availability" | "engineering" | "explain" | "builder" | "approvals";
@@ -90,14 +96,12 @@ export function DifferentiatorsPage() {
 
   async function loadAvailability() {
     try {
-      const response = await apiClient.get("/menu/availability/dashboard", {
-        params: {
-          channel: availabilityChannel,
-          fulfillmentType: availabilityFulfillment,
-          ...(availabilityCause.trim() ? { cause: availabilityCause.trim() } : {}),
-        },
+      const response = await availabilityApi.dashboard<{ rows: AvailabilityRow[] }>({
+        channel: availabilityChannel,
+        fulfillmentType: availabilityFulfillment,
+        ...(availabilityCause.trim() ? { cause: availabilityCause.trim() } : {}),
       });
-      setAvailability(response.data.data.rows as AvailabilityRow[]);
+      setAvailability(response.rows);
     } catch (error) {
       fail(error);
     }
@@ -105,10 +109,7 @@ export function DifferentiatorsPage() {
 
   async function loadEngineering(days = windowDays) {
     try {
-      const response = await apiClient.get("/analytics/menu-engineering", {
-        params: { windowDays: Number(days) },
-      });
-      setEngineering(response.data.data as EngineeringRow[]);
+      setEngineering(await analyticsApi.menuEngineering<EngineeringRow[]>(Number(days)));
     } catch (error) {
       fail(error);
     }
@@ -116,8 +117,7 @@ export function DifferentiatorsPage() {
 
   async function loadMenuChoices() {
     try {
-      const response = await apiClient.get("/menu/categories");
-      const categories = response.data.data as MenuCategory[];
+      const categories = await menuApi.listCategories();
       setMenuChoices(
         categories.flatMap((category) =>
           (category.menuItems ?? [])
@@ -182,8 +182,8 @@ export function DifferentiatorsPage() {
     setBusy(true);
     try {
       const { name: _name, ...previewInput } = comboPayload;
-      const response = await apiClient.post("/menu/combos/preview", previewInput);
-      setPreview(Number(response.data.data.resolvedTotal));
+      const response = await menuApi.previewCombo<{ resolvedTotal: number }>(previewInput);
+      setPreview(Number(response.resolvedTotal));
     } catch (error) {
       setPreview(null);
       fail(error);
@@ -196,12 +196,12 @@ export function DifferentiatorsPage() {
     if (!comboReady) return;
     setBusy(true);
     try {
-      const response = await apiClient.post("/menu/combos/preview", (() => {
+      const response = await menuApi.previewCombo<{ resolvedTotal: number }>((() => {
         const { name: _name, ...previewInput } = comboPayload;
         return previewInput;
       })());
-      const authoritativePreview = Number(response.data.data.resolvedTotal);
-      await apiClient.post("/menu/combos/", comboPayload);
+      const authoritativePreview = Number(response.resolvedTotal);
+      await menuApi.createCombo(comboPayload);
       setPreview(authoritativePreview);
       toast({ title: `Combo created at previewed price ₹${authoritativePreview.toFixed(2)}`, tone: "success" });
       setComboName("");
@@ -231,11 +231,10 @@ export function DifferentiatorsPage() {
 
   async function getPromotionPreview() {
     if (!promotionReady) return null;
-    const response = await apiClient.post("/menu/promotions/preview", {
+    const result = await menuApi.previewPromotion<{ subtotal: number; discountAmount: number; totalAmount: number }>({
       promotion: promotionPayload,
       items: [{ menuItemId: promotionPreviewItemId, quantity: 1 }],
     });
-    const result = response.data.data as { subtotal: number; discountAmount: number; totalAmount: number };
     setPromotionPreview(result);
     return result;
   }
@@ -262,7 +261,7 @@ export function DifferentiatorsPage() {
       // discount arithmetic that can drift.
       const authoritativePreview = await getPromotionPreview();
       if (!authoritativePreview) return;
-      await apiClient.post("/menu/promotions", promotionPayload);
+      await menuApi.createPromotion(promotionPayload);
       toast({
         title: `Promotion created · sample discount ₹${authoritativePreview.discountAmount.toFixed(2)}`,
         tone: "success",
@@ -280,8 +279,7 @@ export function DifferentiatorsPage() {
     if (!orderId.trim()) return;
     setBusy(true);
     try {
-      const response = await apiClient.get(`/orders/${orderId.trim()}/explain`);
-      setExplain(response.data.data as Record<string, unknown>);
+      setExplain(await ordersApi.explain<Record<string, unknown>>(orderId.trim()));
     } catch (error) {
       fail(error);
     } finally {
@@ -292,7 +290,7 @@ export function DifferentiatorsPage() {
   async function saveThreshold() {
     setBusy(true);
     try {
-      await apiClient.put(`/approvals/thresholds/${action}`, {
+      await approvalsApi.setThreshold(action, {
         thresholdAmount: Number(threshold),
         requiresRole: requiresRole.trim(),
       });

@@ -1,11 +1,9 @@
 import { STORAGE_KEYS } from "../../shared/constants/storage-keys";
-export function saveTokens(accessToken: string, refreshToken: string) {
+export function saveTokens(accessToken: string) {
   sessionStorage.setItem(STORAGE_KEYS.token, accessToken);
-  sessionStorage.setItem(STORAGE_KEYS.refresh, refreshToken);
 }
 export function clearTokens() {
   sessionStorage.removeItem(STORAGE_KEYS.token);
-  sessionStorage.removeItem(STORAGE_KEYS.refresh);
   sessionStorage.removeItem(STORAGE_KEYS.tenant);
   sessionStorage.removeItem(STORAGE_KEYS.branch);
 }

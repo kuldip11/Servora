@@ -102,57 +102,57 @@ export const analyticsService = {
       branchId,
       categoryId,
     );
-    const rows: CostMarginRow[] = [];
+    const selections = items.flatMap((item) => [
+      {
+        item,
+        variantId: null as string | null,
+        variantName: null as string | null,
+      },
+      ...item.variants.map((variant) => ({
+        item,
+        variantId: variant.id,
+        variantName: variant.name,
+      })),
+    ]);
+    const inputs = selections.map((selection) => ({
+      menuItemId: selection.item.id,
+      ...(selection.variantId ? { variantId: selection.variantId } : {}),
+      quantity: 1,
+    }));
+    const [costs, pricing] = await Promise.all([
+      inventoryService.computeRecipeCosts(auth.tenantId, branchId, inputs),
+      pricingPipeline.price(
+        {
+          tenantId: auth.tenantId,
+          branchId,
+          channel: "STAFF",
+          fulfillmentType: "DINE_IN",
+          asOf,
+          allowUnavailable: true,
+          allowIncompleteModifierSelection: true,
+        },
+        inputs,
+      ),
+    ]);
 
-    for (const item of items) {
-      const selections: Array<{
-        variantId: string | null;
-        variantName: string | null;
-      }> = [
-        { variantId: null, variantName: null },
-        ...item.variants.map((variant) => ({
-          variantId: variant.id,
-          variantName: variant.name,
-        })),
-      ];
-      for (const selection of selections) {
-        const input = {
-          menuItemId: item.id,
-          ...(selection.variantId ? { variantId: selection.variantId } : {}),
-          quantity: 1,
-        };
-        const [cost, pricing] = await Promise.all([
-          inventoryService.computeRecipeCost(auth.tenantId, branchId, input),
-          pricingPipeline.price(
-            {
-              tenantId: auth.tenantId,
-              branchId,
-              channel: "STAFF",
-              fulfillmentType: "DINE_IN",
-              asOf,
-              allowUnavailable: true,
-              allowIncompleteModifierSelection: true,
-            },
-            [input],
-          ),
-        ]);
-        const price = pricing.lines[0]?.unitPrice ?? 0;
-        const margin = Number((price - cost).toFixed(2));
-        rows.push({
-          menuItemId: item.id,
-          menuItemName: item.name,
-          categoryId: item.categoryId,
-          categoryName: item.category.name,
-          variantId: selection.variantId,
-          variantName: selection.variantName,
-          price,
-          cost: Number(cost.toFixed(2)),
-          margin,
-          marginPercent:
-            price > 0 ? Number(((margin / price) * 100).toFixed(2)) : 0,
-        });
-      }
-    }
+    const rows: CostMarginRow[] = selections.map((selection, index) => {
+      const cost = costs[index] ?? 0;
+      const price = pricing.lines[index]?.unitPrice ?? 0;
+      const margin = Number((price - cost).toFixed(2));
+      return {
+        menuItemId: selection.item.id,
+        menuItemName: selection.item.name,
+        categoryId: selection.item.categoryId,
+        categoryName: selection.item.category.name,
+        variantId: selection.variantId,
+        variantName: selection.variantName,
+        price,
+        cost: Number(cost.toFixed(2)),
+        margin,
+        marginPercent:
+          price > 0 ? Number(((margin / price) * 100).toFixed(2)) : 0,
+      };
+    });
     return rows.sort((a, b) => b.marginPercent - a.marginPercent);
   },
 

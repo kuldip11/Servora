@@ -218,7 +218,7 @@ export function BulkActionsToolbar({
               { value: "remove", label: "Remove these tags" },
               { value: "replace", label: "Replace all tags with these" },
             ]}
-            onChange={(e) => setTagMode(e.target.value as any)}
+            onChange={(e) => setTagMode(e.target.value as "add" | "remove" | "replace")}
           />
           {!tags.length ? (
             <p className="text-xs text-text-disabled">
@@ -278,7 +278,7 @@ export function BulkActionsToolbar({
               { value: "decrease", label: "Decrease by %" },
               { value: "set", label: "Set to a fixed price (₹)" },
             ]}
-            onChange={(e) => setPriceMode(e.target.value as any)}
+            onChange={(e) => setPriceMode(e.target.value as "set" | "increase" | "decrease")}
           />
           <Input
             label={priceMode === "set" ? "New price (₹)" : "Percentage"}

@@ -7,7 +7,7 @@
 import type { AuthContext } from "../../core/auth";
 import { successResponse } from "../../core/response";
 import { authService } from "./auth.service";
-import type { SignupInput, LoginInput } from "@pos/validation";
+import type { SignupInput } from "@pos/validation";
 
 export const authController = {
   async signup(input: SignupInput) {
@@ -15,20 +15,8 @@ export const authController = {
     return successResponse(result);
   },
 
-  async login(input: LoginInput) {
-    const result = await authService.login(input);
-    return successResponse(result);
-  },
 
-  async refresh(refreshToken: string) {
-    const result = await authService.refresh(refreshToken);
-    return successResponse(result);
-  },
 
-  async logout(refreshToken: string) {
-    const result = await authService.logout(refreshToken);
-    return successResponse(result);
-  },
 
   async memberships(auth: AuthContext) {
     return successResponse(await authService.memberships(auth.userId));
@@ -58,10 +46,10 @@ export const authController = {
       auth.membershipId,
     );
     const membershipRoles = membership
-      ? membership.roles.map((mr: any) => ({
+      ? membership.roles.map((mr) => ({
           id: mr.roleId,
           name: mr.role.name,
-          permissions: mr.role.rolePermissions.map((rp: any) => rp.permission),
+          permissions: mr.role.rolePermissions.map((rp) => rp.permission),
         }))
       : [];
     const globalRoles = user.globalUserRoles.map((ur) => ({

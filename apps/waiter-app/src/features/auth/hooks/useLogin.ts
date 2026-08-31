@@ -43,7 +43,7 @@ export function useLogin(onLogin: () => void): UseLoginResult {
   const mutation = useMutation({
     mutationFn: async (creds: CredentialsForm) => {
       const result = await login(creds.email, creds.password);
-      saveTokens(result.accessToken, result.refreshToken);
+      saveTokens(result.accessToken);
       saveProfile(result.user);
       const list = await fetchMemberships();
       if (!list.length)

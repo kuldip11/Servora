@@ -114,7 +114,7 @@ function KitchenStatus({ order }: { order: Order }) {
   if (tickets.some((t) => t.status === "READY")) {
     return <span className="text-success font-semibold text-xs">Ready</span>;
   }
-  if (tickets.every((t: any) => t.status === "SERVED")) {
+  if (tickets.every((t) => t.status === "SERVED")) {
     return <span className="text-xs text-text-secondary">All served</span>;
   }
   return (

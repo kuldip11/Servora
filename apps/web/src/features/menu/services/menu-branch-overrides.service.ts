@@ -1,8 +1,11 @@
+import { createMenuApi } from "@pos/api-client";
+import type { MenuItemStatus } from "@pos/types";
 import { apiClient } from "../../../shared/lib/api-client";
-import type { MenuItemBranchOverride, MenuItemStatus } from "@pos/types";
+
+const menuApi = createMenuApi(apiClient);
 
 export interface BranchOverrideFormInput {
-  price: string; // '' = no override, matches how the API stores/reads null
+  price: string;
   taxRate: string;
   prepTimeMinutes: string;
   status: MenuItemStatus | "";
@@ -11,29 +14,16 @@ export interface BranchOverrideFormInput {
 }
 
 export const menuBranchOverridesService = {
-  async list(itemId: string): Promise<MenuItemBranchOverride[]> {
-    const res = await apiClient.get(`/menu/items/${itemId}/branches`);
-    return res.data.data;
-  },
-
-  async save(
-    itemId: string,
-    branchId: string,
-    input: BranchOverrideFormInput,
-  ): Promise<void> {
-    await apiClient.put(`/menu/items/${itemId}/branch/${branchId}`, {
+  list: menuApi.listBranchOverrides,
+  async save(itemId: string, branchId: string, input: BranchOverrideFormInput): Promise<void> {
+    await menuApi.saveBranchOverride(itemId, branchId, {
       price: input.price.trim() ? parseFloat(input.price) : null,
       taxRate: input.taxRate.trim() ? parseFloat(input.taxRate) : null,
-      prepTimeMinutes: input.prepTimeMinutes.trim()
-        ? parseInt(input.prepTimeMinutes, 10)
-        : null,
+      prepTimeMinutes: input.prepTimeMinutes.trim() ? parseInt(input.prepTimeMinutes, 10) : null,
       status: input.status || null,
       isHidden: input.isHidden,
       availabilityReason: input.availabilityReason.trim() || null,
     });
   },
-
-  async reset(itemId: string, branchId: string): Promise<void> {
-    await apiClient.delete(`/menu/items/${itemId}/branch/${branchId}`);
-  },
+  reset: menuApi.resetBranchOverride,
 };

@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import { requireAuthPlugin, type AuthContext } from "../../core/auth";
+import { requireAuthPlugin } from "../../core/auth";
 import {
   requireMenuPermission,
   type MenuPermission,
@@ -27,11 +27,11 @@ function permissionFor(pathname: string, method: string): MenuPermission {
 export const menuAuthorizationPlugin = () =>
   new Elysia({ name: "menu-authorization" })
     .use(requireAuthPlugin())
-    .onBeforeHandle(({ request, auth }: any) => {
+    .onBeforeHandle(({ request, auth }) => {
       const pathname = new URL(request.url).pathname;
       if (!pathname.startsWith("/api/menu/")) return;
       requireMenuPermission(
-        auth as AuthContext,
+        auth,
         permissionFor(pathname, request.method),
       );
     });

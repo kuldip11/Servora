@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Card, Input, Select } from "@pos/ui";
 import { ReceiptText } from "lucide-react";
+import { createSettingsApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
+
+const settingsApi = createSettingsApi(apiClient);
 import { notifyError, notifySuccess } from "../../../shared/lib/notify";
 import type { Tenant } from "@pos/types";
 
@@ -18,7 +21,7 @@ export function PricingSettingsCard({ tenantId }: { tenantId: string }) {
   const { data: settings } = useQuery<TenantSettings>({
     queryKey: key,
     queryFn: async () => {
-      const memberships = (await apiClient.get("/tenants")).data.data as Array<{ tenant: TenantSettings }>;
+      const memberships = await settingsApi.tenants<TenantSettings>();
       const tenant = memberships.find((entry) => entry.tenant.id === tenantId)?.tenant;
       if (!tenant) throw new Error("Active tenant settings are unavailable");
       return tenant;
@@ -32,7 +35,7 @@ export function PricingSettingsCard({ tenantId }: { tenantId: string }) {
     setDefaultTaxMode(settings.defaultTaxMode);
   }, [settings]);
   const save = useMutation({
-    mutationFn: () => apiClient.patch(`/tenants/${tenantId}`, {
+    mutationFn: () => settingsApi.updateTenant<TenantSettings>(tenantId, {
       serviceChargePercent: serviceChargePercent.trim() === "" ? null : Number(serviceChargePercent),
       serviceChargeTaxable,
       roundingPolicy,

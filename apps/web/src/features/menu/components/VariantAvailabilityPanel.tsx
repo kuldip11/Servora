@@ -2,15 +2,18 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Button, Input } from "@pos/ui";
 import type { MenuItemVariant } from "@pos/types";
+import { createMenuApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
+
+const menuApi = createMenuApi(apiClient);
 import { queryClient } from "../../../shared/lib/query-client";
 import { notifyError, notifySuccess } from "../../../shared/lib/notify";
 
 export function VariantAvailabilityPanel({ itemId, variants }: { itemId: string; variants: MenuItemVariant[] }) {
   const [counts, setCounts] = useState<Record<string, string>>(() => Object.fromEntries(variants.map((variant) => [variant.id, variant.manualStockCount == null ? "" : String(variant.manualStockCount)])));
-  const update = useMutation({ mutationFn: ({ id, unavailable }: { id: string; unavailable: boolean }) => apiClient.put(`/menu/variants/${id}/availability`, { status: unavailable ? "OUT_OF_STOCK" : null, reason: unavailable ? "Manually 86'd" : null }), onSuccess: () => queryClient.invalidateQueries({ queryKey: ["menu"] }) });
+  const update = useMutation({ mutationFn: ({ id, unavailable }: { id: string; unavailable: boolean }) => menuApi.updateVariantAvailability(id, { status: unavailable ? "OUT_OF_STOCK" : null, reason: unavailable ? "Manually 86'd" : null }), onSuccess: () => queryClient.invalidateQueries({ queryKey: ["menu"] }) });
   const stock = useMutation({
-    mutationFn: ({ variantId, count }: { variantId: string; count: number | null }) => apiClient.post(`/menu/items/${itemId}/stock-count`, { variantId, count }),
+    mutationFn: ({ variantId, count }: { variantId: string; count: number | null }) => menuApi.setManualStockCount(itemId, count, variantId),
     onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ["menu"] }); notifySuccess("Variant stock count updated"); },
     onError: (error) => notifyError(error, "Failed to update variant stock count"),
   });

@@ -1,8 +1,6 @@
 /**
- * Branch service — business rules that used to live inline in the
- * controller: capability-merge validation on update (at least one order
- * type must stay enabled; dine-in can't be turned off with open dine-in
- * orders), and the last-active-branch / open-orders guards on delete.
+ * Branch application service: capability validation, active-order guards,
+ * authorization, audit logging, and branch lifecycle orchestration.
  */
 import { requirePermission } from "../../core/auth";
 import type { AuthContext } from "../../core/auth";

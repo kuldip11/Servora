@@ -1,15 +1,15 @@
 import { Elysia } from "elysia";
 import { redis } from "../../lib/redis";
 import { env } from "../../config/env";
+import { resolveClientIp } from "./client-ip";
 
 const RATE_LIMIT_PREFIX = "servora:rate-limit";
 
-function requestIp(headers: Record<string, string | undefined>): string {
-  return (
-    headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
-    headers["x-real-ip"] ||
-    "unknown"
-  );
+function requestIp(
+  headers: Record<string, string | undefined>,
+  directIp: string | undefined,
+): string {
+  return resolveClientIp(headers, directIp, env.TRUST_PROXY_HOPS) ?? "unknown";
 }
 
 function isRateLimitExempt(pathname: string): boolean {
@@ -31,6 +31,8 @@ export const securityHeadersPlugin = () =>
         "camera=(), microphone=(), geolocation=(), payment=()";
       set.headers["cross-origin-opener-policy"] = "same-origin";
       set.headers["cross-origin-resource-policy"] = "same-site";
+      set.headers["content-security-policy"] =
+        "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'";
       if (env.NODE_ENV === "production") {
         set.headers["strict-transport-security"] =
           "max-age=31536000; includeSubDomains";
@@ -41,7 +43,7 @@ export const securityHeadersPlugin = () =>
 export const rateLimitPlugin = () =>
   new Elysia({ name: "global-rate-limit" }).onBeforeHandle(
     { as: "global" },
-    async ({ request, headers, set }) => {
+    async ({ request, headers, set, server }) => {
       const pathname = new URL(request.url).pathname;
       if (isRateLimitExempt(pathname)) return;
 

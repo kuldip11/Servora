@@ -4,7 +4,7 @@ import { swagger } from "@elysiajs/swagger";
 
 import { requestContextPlugin } from "./core/context";
 import { securityHeadersPlugin, rateLimitPlugin } from "./core/security";
-import { requestLoggingPlugin } from "./core/observability";
+import { metrics, metricsRouter, requestLoggingPlugin } from "./core/observability";
 import { AppError } from "./core/errors";
 import { rootLogger } from "./core/logger";
 
@@ -65,10 +65,10 @@ const corsOrigins = env.CORS_ORIGIN.split(",");
 // "Type instantiation is excessively deep and possibly infinite"). None of
 // the mounted routers depend on `app`'s own accumulated type — they're
 // already fully-typed standalone Elysia instances — so it's safe to widen
-// the working type to `any` at each checkpoint below purely to keep the
-// compiler's bookkeeping bounded; this has no effect on runtime behavior,
-// which is unchanged.
-type AnyElysia = Elysia<any, any, any, any, any, any, any>;
+// the working type to Elysia's public default generic shape at each checkpoint below
+// purely to keep the compiler's bookkeeping bounded; this has no effect on
+// runtime behavior, which is unchanged.
+type WidenedElysia = Elysia;
 
 let app = new Elysia()
   .use(
@@ -109,6 +109,7 @@ let app = new Elysia()
   .use(securityHeadersPlugin())
   .use(rateLimitPlugin())
   .use(requestLoggingPlugin())
+  .use(metricsRouter)
   // Health check
   .get("/health", () => ({
     status: "ok",
@@ -121,13 +122,21 @@ let app = new Elysia()
   }))
   .get("/health/ready", async ({ set }) => {
     const checks = { database: false, redis: false };
+    const dbStarted = performance.now();
     try {
       await db.execute(sql`select 1`);
       checks.database = true;
-    } catch {}
+    } catch {} finally {
+      metrics.observeDuration(
+        "servora_db_query_duration_ms",
+        performance.now() - dbStarted,
+        { operation: "readiness" },
+      );
+    }
     try {
       checks.redis = (await redis.ping()) === "PONG";
     } catch {}
+    metrics.setGauge("servora_redis_available", checks.redis ? 1 : 0);
 
     if (!checks.database || !checks.redis) {
       set.status = 503;
@@ -138,7 +147,7 @@ let app = new Elysia()
       };
     }
     return { status: "ready", checks, timestamp: new Date().toISOString() };
-  }) as AnyElysia;
+  }) as WidenedElysia;
 
 // Routers
 app = app
@@ -182,7 +191,7 @@ app = app
   .use(customerRequestRouter)
   .use(razorpayWebhookRouter)
   .use(realtimeRouter)
-  .use(customerRealtimeRouter) as AnyElysia;
+  .use(customerRealtimeRouter) as WidenedElysia;
 
 // Global error handler
 app = app.onError(({ code, error, set, requestContext }) => {

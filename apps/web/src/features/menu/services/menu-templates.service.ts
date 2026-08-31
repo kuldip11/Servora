@@ -1,44 +1,30 @@
+import { createMenuApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
-import type { MenuTemplate } from "@pos/types";
+
+const menuApi = createMenuApi(apiClient);
 
 export interface ApplyTemplateInput {
   branchId?: string;
   categoryName?: string;
 }
-
 export interface SaveTemplateInput {
   name: string;
   description?: string;
 }
 
 export const menuTemplatesService = {
-  async list(): Promise<MenuTemplate[]> {
-    const res = await apiClient.get("/menu/templates");
-    return res.data.data;
-  },
-
-  async remove(id: string): Promise<void> {
-    await apiClient.delete(`/menu/templates/${id}`);
-  },
-
+  list: menuApi.listTemplates,
+  remove: menuApi.removeTemplate,
   async apply(templateId: string, input: ApplyTemplateInput): Promise<void> {
-    await apiClient.post(`/menu/templates/${templateId}/apply`, {
+    await menuApi.applyTemplate(templateId, {
       branchId: input.branchId || undefined,
       categoryName: input.categoryName || undefined,
     });
   },
-
-  async saveFromCategory(
-    categoryId: string,
-    input: SaveTemplateInput,
-  ): Promise<MenuTemplate> {
-    const res = await apiClient.post(
-      `/menu/templates/from-category/${categoryId}`,
-      {
-        name: input.name,
-        description: input.description || undefined,
-      },
-    );
-    return res.data.data;
+  async saveFromCategory(categoryId: string, input: SaveTemplateInput) {
+    return menuApi.saveTemplateFromCategory(categoryId, {
+      name: input.name,
+      description: input.description || undefined,
+    });
   },
 };

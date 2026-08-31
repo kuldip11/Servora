@@ -3,7 +3,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Card } from "@pos/ui";
 import { ChefHat } from "lucide-react";
 import type { Tenant } from "@pos/types";
+import { createSettingsApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
+
+const settingsApi = createSettingsApi(apiClient);
 import { notifyError, notifySuccess } from "../../../shared/lib/notify";
 
 type KitchenSettings = Required<Pick<Tenant, "id" | "courseSequencingEnabled">>;
@@ -15,7 +18,7 @@ export function KitchenOperationsSettingsCard({ tenantId }: { tenantId: string }
   const { data: settings } = useQuery<KitchenSettings>({
     queryKey: key,
     queryFn: async () => {
-      const memberships = (await apiClient.get("/tenants")).data.data as Array<{ tenant: KitchenSettings }>;
+      const memberships = await settingsApi.tenants<KitchenSettings>();
       const tenant = memberships.find((entry) => entry.tenant.id === tenantId)?.tenant;
       if (!tenant) throw new Error("Active tenant settings are unavailable");
       return tenant;
@@ -25,7 +28,7 @@ export function KitchenOperationsSettingsCard({ tenantId }: { tenantId: string }
     if (settings) setCourseSequencingEnabled(settings.courseSequencingEnabled);
   }, [settings]);
   const save = useMutation({
-    mutationFn: () => apiClient.patch(`/tenants/${tenantId}`, { courseSequencingEnabled }),
+    mutationFn: () => settingsApi.updateTenant<KitchenSettings>(tenantId, { courseSequencingEnabled }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: key });
       notifySuccess("Kitchen operations settings updated");

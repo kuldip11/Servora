@@ -2,7 +2,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Card, Input } from "@pos/ui";
 import { ShieldCheck } from "lucide-react";
+import { createApprovalsApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
+
+const approvalsApi = createApprovalsApi(apiClient);
 import { notifyError, notifySuccess } from "../../../shared/lib/notify";
 
 type ApprovalAction = "VOID" | "COMP";
@@ -30,7 +33,7 @@ export function ApprovalThresholdSettingsCard() {
 
   const { data: thresholds } = useQuery<ThresholdRow[]>({
     queryKey,
-    queryFn: async () => (await apiClient.get("/approvals/thresholds")).data.data,
+    queryFn: () => approvalsApi.listThresholds<ThresholdRow>(),
   });
 
   useEffect(() => {
@@ -54,7 +57,7 @@ export function ApprovalThresholdSettingsCard() {
       const thresholdAmount = Number(draft.thresholdAmount);
       if (!Number.isFinite(thresholdAmount) || thresholdAmount < 0) throw new Error("Threshold must be zero or greater");
       if (!draft.requiresRole.trim()) throw new Error("Approval role is required");
-      return apiClient.put(`/approvals/thresholds/${actionType}`, {
+      return approvalsApi.setThreshold<ThresholdRow>(actionType, {
         thresholdAmount,
         requiresRole: draft.requiresRole.trim(),
       });

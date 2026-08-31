@@ -1,5 +1,7 @@
+import { createMenuApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
-import type { Holiday } from "@pos/types";
+
+const menuApi = createMenuApi(apiClient);
 
 export interface HolidayFormInput {
   name: string;
@@ -8,17 +10,7 @@ export interface HolidayFormInput {
 }
 
 export const menuHolidaysService = {
-  async list(): Promise<Holiday[]> {
-    const res = await apiClient.get("/menu/holidays");
-    return res.data.data;
-  },
-
-  async add(input: HolidayFormInput): Promise<Holiday> {
-    const res = await apiClient.post("/menu/holidays", input);
-    return res.data.data;
-  },
-
-  async remove(id: string): Promise<void> {
-    await apiClient.delete(`/menu/holidays/${id}`);
-  },
+  list: menuApi.listHolidays,
+  add: menuApi.addHoliday,
+  remove: menuApi.removeHoliday,
 };

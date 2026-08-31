@@ -1,9 +1,10 @@
+import type { WaiterMenuCategory } from "../api/menu";
 import { FOOD_TYPE_FILTERS } from "../constants";
 
 interface Props {
   foodTypeFilter: "ALL" | "VEG" | "NON_VEG" | "EGG";
   onFoodTypeChange: (value: "ALL" | "VEG" | "NON_VEG" | "EGG") => void;
-  categories: any[] | undefined;
+  categories: WaiterMenuCategory[] | undefined;
   activeCategory: string | null;
   onCategoryChange: (id: string) => void;
   menuSearch: string;
@@ -44,7 +45,7 @@ export function CategoryTabs({
       </div>
       {!menuSearch && (
         <div className="flex gap-2 px-4 pb-3 overflow-x-auto">
-          {categories?.map((cat: any) => (
+          {categories?.map((cat) => (
             <button
               key={cat.id}
               onClick={() => onCategoryChange(cat.id)}

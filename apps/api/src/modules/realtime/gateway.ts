@@ -9,11 +9,28 @@ import {
 } from "../../core/auth/authorization";
 import { shouldDeliverRealtimeEvent } from "./delivery-scope";
 import { customerService } from "../customer/customer.service";
+import { metrics } from "../../core/observability/metrics";
 
-const customerClients = new Map<string, Set<any>>();
-interface CustomerBranchSocket { send(message: string): void }
+interface RealtimeSocket {
+  send(message: string): unknown;
+  close(): unknown;
+}
+
+type RealtimeEnvelope = {
+  type?: string;
+  tenantId?: string;
+  branchId?: string | null;
+  payload?: {
+    customerSessionId?: string;
+    customerSession?: { id?: string };
+  };
+};
+
+const customerClients = new Map<string, Set<RealtimeSocket>>();
+interface CustomerBranchSocket { send(message: string): unknown }
 const customerBranchClients = new Map<string, Set<CustomerBranchSocket>>();
 const customerScopeBySocket = new WeakMap<object, { tenantId: string; branchId: string }>();
+const customerSessionBySocket = new WeakMap<object, string>();
 
 function customerBranchKey(tenantId: string, branchId: string) {
   return `${tenantId}:${branchId}`;
@@ -31,19 +48,19 @@ function removeCustomerBranchClient(tenantId: string, branchId: string, ws: Cust
   if (set.size === 0) customerBranchClients.delete(key);
 }
 
-function addCustomerClient(sessionId: string, ws: any) {
+function addCustomerClient(sessionId: string, ws: RealtimeSocket) {
   if (!customerClients.has(sessionId))
     customerClients.set(sessionId, new Set());
   customerClients.get(sessionId)!.add(ws);
 }
-function removeCustomerClient(sessionId: string, ws: any) {
+function removeCustomerClient(sessionId: string, ws: RealtimeSocket) {
   const set = customerClients.get(sessionId);
   if (!set) return;
   set.delete(ws);
   if (set.size === 0) customerClients.delete(sessionId);
 }
 
-function customerSessionIdFromEvent(event: any): string | undefined {
+function customerSessionIdFromEvent(event: RealtimeEnvelope): string | undefined {
   if (
     event.type === "customer.request.created" ||
     event.type === "customer.request.updated"
@@ -59,16 +76,19 @@ function customerSessionIdFromEvent(event: any): string | undefined {
 // Connected clients are grouped by tenant. Each socket also carries its
 // authorized branch scope so tenant-wide events never leak into a branch-only
 // session. A null branch means tenant-wide access.
-const clients = new Map<string, Set<any>>();
+const clients = new Map<string, Set<RealtimeSocket>>();
+const staffScopeBySocket = new WeakMap<object, { tenantId: string; branchId: string | null }>();
+let staffConnectionCount = 0;
+let customerConnectionCount = 0;
 
-function addClient(tenantId: string, ws: any) {
+function addClient(tenantId: string, ws: RealtimeSocket) {
   if (!clients.has(tenantId)) {
     clients.set(tenantId, new Set());
   }
   clients.get(tenantId)!.add(ws);
 }
 
-function removeClient(tenantId: string, ws: any) {
+function removeClient(tenantId: string, ws: RealtimeSocket) {
   const tenantClients = clients.get(tenantId);
   if (!tenantClients) return;
   tenantClients.delete(ws);
@@ -150,10 +170,7 @@ async function startRedisSubscription() {
 
   subscriber.on("message", (channel, message) => {
     try {
-      const event = JSON.parse(message) as {
-        tenantId: string;
-        branchId?: string | null;
-      };
+      const event = JSON.parse(message) as RealtimeEnvelope;
       const sessionId = customerSessionIdFromEvent(event);
       if (sessionId) {
         const sessionClients = customerClients.get(sessionId);
@@ -167,7 +184,7 @@ async function startRedisSubscription() {
           }
         }
       }
-      if (event.branchId && (event as { type?: string }).type === "menu.availability.updated") {
+      if (event.tenantId && event.branchId && event.type === "menu.availability.updated") {
         const branchClients = customerBranchClients.get(
           customerBranchKey(event.tenantId, event.branchId),
         );
@@ -182,7 +199,7 @@ async function startRedisSubscription() {
         }
       }
 
-      forwardTenantRealtimeMessage(message);
+      if (event.tenantId) forwardTenantRealtimeMessage(message);
     } catch (err) {
       console.error("[WS Gateway] Failed to parse Redis message:", err);
     }
@@ -208,9 +225,10 @@ export const realtimeRouter = new Elysia({ prefix: "/ws" }).ws("/events", {
         ? String(ws.data.query["branchId"])
         : undefined;
       const context = await resolveRealtimeContext(payload, tenantId, branchId);
-      (ws as any).__tenantId = context.tenantId;
-      (ws as any).__branchId = context.branchId;
+      staffScopeBySocket.set(ws, { tenantId: context.tenantId, branchId: context.branchId });
       addClient(context.tenantId, ws);
+      staffConnectionCount += 1;
+      metrics.setGauge("servora_websocket_connections", staffConnectionCount, { kind: "staff" });
       ws.send(
         JSON.stringify({ type: "connected", tenantId: context.tenantId }),
       );
@@ -226,8 +244,13 @@ export const realtimeRouter = new Elysia({ prefix: "/ws" }).ws("/events", {
   },
 
   close(ws) {
-    const tenantId = (ws as any).__tenantId as string | undefined;
-    if (tenantId) removeClient(tenantId, ws);
+    const scope = staffScopeBySocket.get(ws);
+    if (scope) {
+      removeClient(scope.tenantId, ws);
+      staffConnectionCount = Math.max(0, staffConnectionCount - 1);
+      metrics.setGauge("servora_websocket_connections", staffConnectionCount, { kind: "staff" });
+    }
+    staffScopeBySocket.delete(ws);
   },
 });
 
@@ -245,10 +268,12 @@ export const customerRealtimeRouter = new Elysia({ prefix: "/ws/customer" }).ws(
       }
       try {
         const session = await customerService.getSession(token);
-        (ws as any).__customerSessionId = session.id;
+        customerSessionBySocket.set(ws, session.id);
         customerScopeBySocket.set(ws, { tenantId: session.tenantId, branchId: session.branchId });
         addCustomerClient(session.id, ws);
         addCustomerBranchClient(session.tenantId, session.branchId, ws);
+        customerConnectionCount += 1;
+        metrics.setGauge("servora_websocket_connections", customerConnectionCount, { kind: "customer" });
         ws.send(JSON.stringify({ type: "connected", sessionId: session.id }));
       } catch {
         ws.send(
@@ -261,10 +286,15 @@ export const customerRealtimeRouter = new Elysia({ prefix: "/ws/customer" }).ws(
       if (message === "ping") ws.send("pong");
     },
     close(ws) {
-      const id = (ws as any).__customerSessionId as string | undefined;
+      const id = customerSessionBySocket.get(ws);
       const scope = customerScopeBySocket.get(ws);
-      if (id) removeCustomerClient(id, ws);
+      if (id) {
+        removeCustomerClient(id, ws);
+        customerConnectionCount = Math.max(0, customerConnectionCount - 1);
+        metrics.setGauge("servora_websocket_connections", customerConnectionCount, { kind: "customer" });
+      }
       if (scope) removeCustomerBranchClient(scope.tenantId, scope.branchId, ws);
+      customerSessionBySocket.delete(ws);
       customerScopeBySocket.delete(ws);
     },
   },

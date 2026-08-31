@@ -31,6 +31,7 @@ import { TenantSwitcher } from "./TenantSwitcher";
 import { useBranches } from "../../../features/branches/hooks/useBranches";
 import { usePermissions } from "../../auth/permissions";
 import { RealtimeNotifications } from "./RealtimeNotifications";
+import { authService } from "../../../features/auth/services/auth.service";
 
 const navItems = [
   {
@@ -133,11 +134,15 @@ export function DashboardLayout() {
   const tablesHidden =
     branchId !== "all" && currentBranch ? !currentBranch.tablesEnabled : false;
 
-  function handleLogout() {
-    logout();
-    queryClient.clear();
-    toast({ title: "Logged out successfully", tone: "success" });
-    router.navigate({ to: "/login" });
+  async function handleLogout() {
+    try {
+      await authService.logout();
+    } finally {
+      logout();
+      queryClient.clear();
+      toast({ title: "Logged out successfully", tone: "success" });
+      router.navigate({ to: "/login" });
+    }
   }
 
   return (
@@ -215,7 +220,7 @@ export function DashboardLayout() {
             </div>
           </div>
           <button
-            onClick={handleLogout}
+            onClick={() => void handleLogout()}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-text-secondary hover:bg-danger-surface hover:text-danger transition-colors"
           >
             <LogOut aria-hidden="true" className="w-4 h-4" />

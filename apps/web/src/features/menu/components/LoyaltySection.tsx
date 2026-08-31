@@ -1,8 +1,14 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Input, Select } from "@pos/ui";
+import { createCustomersApi } from "@pos/api-client";
+import { createMenuApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
+
+const menuApi = createMenuApi(apiClient);
 import type { CustomerLoyaltyTier, LoyaltyCustomer } from "@pos/types";
+
+const customersApi = createCustomersApi(apiClient);
 
 export function LoyaltySection() {
   const qc = useQueryClient();
@@ -13,12 +19,12 @@ export function LoyaltySection() {
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerTierId, setCustomerTierId] = useState("");
-  const { data: tiers = [] } = useQuery<CustomerLoyaltyTier[]>({ queryKey: ["loyalty", "tiers"], queryFn: async () => (await apiClient.get("/loyalty/tiers")).data.data });
-  const { data: customers = [] } = useQuery<LoyaltyCustomer[]>({ queryKey: ["loyalty", "customers"], queryFn: async () => (await apiClient.get("/loyalty/customers")).data.data });
-  const createTier = useMutation({ mutationFn: () => apiClient.post("/loyalty/tiers", { name: tierName, ...(discountType === "PERCENT" ? { discountPercent: Number(discountValue) } : { discountFixed: Number(discountValue) }) }), onSuccess: () => { qc.invalidateQueries({ queryKey: ["loyalty"] }); setTierName(""); } });
-  const createCustomer = useMutation({ mutationFn: () => apiClient.post("/loyalty/customers", { name: customerName, ...(customerPhone ? { phone: customerPhone } : {}), ...(customerEmail ? { email: customerEmail } : {}), ...(customerTierId ? { loyaltyTierId: customerTierId } : {}) }), onSuccess: () => { qc.invalidateQueries({ queryKey: ["loyalty", "customers"] }); setCustomerName(""); setCustomerPhone(""); setCustomerEmail(""); } });
-  const assign = useMutation({ mutationFn: ({ id, loyaltyTierId }: { id: string; loyaltyTierId: string | null }) => apiClient.patch(`/loyalty/customers/${id}`, { loyaltyTierId }), onSuccess: () => qc.invalidateQueries({ queryKey: ["loyalty", "customers"] }) });
-  const removeTier = useMutation({ mutationFn: (id: string) => apiClient.delete(`/loyalty/tiers/${id}`), onSuccess: () => qc.invalidateQueries({ queryKey: ["loyalty"] }) });
+  const { data: tiers = [] } = useQuery<CustomerLoyaltyTier[]>({ queryKey: ["loyalty", "tiers"], queryFn: () => menuApi.listLoyaltyTiers<CustomerLoyaltyTier>() });
+  const { data: customers = [] } = useQuery<LoyaltyCustomer[]>({ queryKey: ["loyalty", "customers"], queryFn: customersApi.list });
+  const createTier = useMutation({ mutationFn: () => menuApi.createLoyaltyTier<CustomerLoyaltyTier>({ name: tierName, ...(discountType === "PERCENT" ? { discountPercent: Number(discountValue) } : { discountFixed: Number(discountValue) }) }), onSuccess: () => { qc.invalidateQueries({ queryKey: ["loyalty"] }); setTierName(""); } });
+  const createCustomer = useMutation({ mutationFn: () => customersApi.create({ name: customerName, ...(customerPhone ? { phone: customerPhone } : {}), ...(customerEmail ? { email: customerEmail } : {}), ...(customerTierId ? { loyaltyTierId: customerTierId } : {}) }), onSuccess: () => { qc.invalidateQueries({ queryKey: ["loyalty", "customers"] }); setCustomerName(""); setCustomerPhone(""); setCustomerEmail(""); } });
+  const assign = useMutation({ mutationFn: ({ id, loyaltyTierId }: { id: string; loyaltyTierId: string | null }) => customersApi.assignTier(id, loyaltyTierId), onSuccess: () => qc.invalidateQueries({ queryKey: ["loyalty", "customers"] }) });
+  const removeTier = useMutation({ mutationFn: (id: string) => menuApi.removeLoyaltyTier(id), onSuccess: () => qc.invalidateQueries({ queryKey: ["loyalty"] }) });
 
   return <div className="space-y-6">
     <div><h2 className="font-semibold text-text-primary">Loyalty pricing</h2><p className="text-sm text-text-secondary">Stage 6 applies a customer tier after promotions. Non-stackable promotions explicitly compete with the loyalty discount and the larger discount wins.</p></div>

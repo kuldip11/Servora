@@ -9,18 +9,11 @@ vi.mock("../../../features/auth/services/auth.service", () => ({
 
 describe("bootstrapAuthSession", () => {
   beforeEach(() => {
-    localStorage.clear();
     useAuthStore.getState().logout();
     vi.mocked(authService.refresh).mockReset();
   });
 
-  it("returns when there is no refresh token", async () => {
-    await bootstrapAuthSession();
-    expect(authService.refresh).not.toHaveBeenCalled();
-  });
-
-  it("refreshes and restores the authenticated session", async () => {
-    localStorage.setItem("pos-refresh-token", "refresh-1");
+  it("refreshes through the HttpOnly cookie and restores the session", async () => {
     vi.mocked(authService.refresh).mockResolvedValue({
       user: {
         id: "u1",
@@ -30,21 +23,18 @@ describe("bootstrapAuthSession", () => {
         branchId: "br-1",
       } as any,
       accessToken: "access-1",
-      refreshToken: "refresh-2",
       expiresIn: 900,
     });
     await bootstrapAuthSession();
+    expect(authService.refresh).toHaveBeenCalledOnce();
     expect(useAuthStore.getState().isAuthenticated).toBe(true);
     expect(useAuthStore.getState().accessToken).toBe("access-1");
-    expect(localStorage.getItem("pos-refresh-token")).toBe("refresh-2");
   });
 
-  it("logs out when refresh fails", async () => {
-    localStorage.setItem("pos-refresh-token", "refresh-1");
-    useAuthStore.getState().setTokens("access-1", "refresh-1");
+  it("leaves the app logged out when no valid refresh cookie is present", async () => {
+    useAuthStore.getState().setAccessToken("access-1");
     vi.mocked(authService.refresh).mockRejectedValue(new Error("expired"));
     await bootstrapAuthSession();
     expect(useAuthStore.getState().isAuthenticated).toBe(false);
-    expect(localStorage.getItem("pos-refresh-token")).toBeNull();
   });
 });

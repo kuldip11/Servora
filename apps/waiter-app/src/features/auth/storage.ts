@@ -1,14 +1,12 @@
 import { STORAGE_KEYS } from "../../shared/constants/storage-keys";
 import type { User } from "@pos/types";
 
-export function saveTokens(accessToken: string, refreshToken: string) {
+export function saveTokens(accessToken: string) {
   localStorage.setItem(STORAGE_KEYS.token, accessToken);
-  localStorage.setItem(STORAGE_KEYS.refresh, refreshToken);
 }
 
 export function clearTokens() {
   localStorage.removeItem(STORAGE_KEYS.token);
-  localStorage.removeItem(STORAGE_KEYS.refresh);
   localStorage.removeItem(STORAGE_KEYS.tenant);
   localStorage.removeItem(STORAGE_KEYS.branch);
 }

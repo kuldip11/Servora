@@ -347,6 +347,10 @@ export interface OrderableModifierGroup {
 }
 
 /** Shared order-entry wire shape consumed by waiter/customer clients. */
+export type OrderableMenuCategory = Omit<MenuCategory, "menuItems"> & {
+  menuItems?: OrderableMenuItem[];
+};
+
 export interface OrderableMenuItem {
   id: string;
   categoryId?: string;

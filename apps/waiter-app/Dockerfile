@@ -19,6 +19,7 @@ RUN bun run build
 FROM nginx:alpine AS runner
 COPY --from=builder /app/apps/waiter-app/dist /usr/share/nginx/html
 COPY apps/waiter-app/nginx.conf /etc/nginx/conf.d/default.conf
+COPY deploy/nginx/security-headers.conf /etc/nginx/snippets/servora-security-headers.conf
 
 EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \

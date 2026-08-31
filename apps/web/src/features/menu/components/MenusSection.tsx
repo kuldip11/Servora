@@ -4,7 +4,10 @@ import { Pencil, Plus, Trash2 } from "lucide-react";
 import { Button, Input, Modal } from "@pos/ui";
 import { useBranches } from "../../branches/hooks/useBranches";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { createMenuApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
+
+const menuApi = createMenuApi(apiClient);
 import { queryClient } from "../../../shared/lib/query-client";
 import {
   useCreateMenu,
@@ -27,7 +30,7 @@ export function MenusSection() {
   const { data: menus, isLoading } = useMenus();
   const { data: resolvedMenus = [] } = useQuery<Menu[]>({
     queryKey: ["menus", "active", "origin-preview"],
-    queryFn: async () => (await apiClient.get("/menu/menus/active", { params: { channel: "STAFF", fulfillmentType: "DINE_IN" } })).data.data,
+    queryFn: () => menuApi.listActiveMenus<Menu>("DINE_IN"),
   });
   const inheritedMenus = resolvedMenus.filter((menu) => !!menu.organizationId);
   const { data: branches = [] } = useBranches();
@@ -172,6 +175,16 @@ export function MenusSection() {
   );
 }
 
+interface MenuScheduleRow {
+  id: string;
+  scheduleType: "DAILY" | "WEEKLY" | "SPECIFIC_DATE" | "HOLIDAY";
+  startTime?: string | null;
+  endTime?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  holidayName?: string | null;
+}
+
 function MenuScheduleEditor({ menuId }: { menuId: string }) {
   const [scheduleType, setScheduleType] = useState("DAILY");
   const [startTime, setStartTime] = useState("07:00");
@@ -181,15 +194,15 @@ function MenuScheduleEditor({ menuId }: { menuId: string }) {
   const [endDate, setEndDate] = useState("");
   const [holidayName, setHolidayName] = useState("");
   const key = ["menus", menuId, "schedules"];
-  const { data: schedules = [] } = useQuery<any[]>({ queryKey: key, queryFn: async () => (await apiClient.get(`/menu/menus/${menuId}/schedules`)).data.data });
-  const add = useMutation({ mutationFn: () => apiClient.post(`/menu/menus/${menuId}/schedules`, {
+  const { data: schedules = [] } = useQuery<MenuScheduleRow[]>({ queryKey: key, queryFn: () => menuApi.listMenuSchedules<MenuScheduleRow>(menuId) });
+  const add = useMutation({ mutationFn: () => menuApi.createMenuSchedule<MenuScheduleRow>(menuId, {
     scheduleType,
     ...((scheduleType === "DAILY" || scheduleType === "WEEKLY") ? { startTime, endTime } : {}),
     ...(scheduleType === "WEEKLY" ? { dayOfWeek } : {}),
     ...(scheduleType === "SPECIFIC_DATE" ? { startDate, endDate: endDate || startDate } : {}),
     ...(scheduleType === "HOLIDAY" ? { holidayName } : {}),
   }), onSuccess: () => queryClient.invalidateQueries({ queryKey: key }) });
-  const remove = useMutation({ mutationFn: (id: string) => apiClient.delete(`/menu/menus/schedules/${id}`), onSuccess: () => queryClient.invalidateQueries({ queryKey: key }) });
+  const remove = useMutation({ mutationFn: (id: string) => menuApi.removeMenuSchedule(id), onSuccess: () => queryClient.invalidateQueries({ queryKey: key }) });
   return <fieldset className="space-y-2">
     <legend className="text-sm font-medium text-text-primary">Menu windows</legend>
     {schedules.map((schedule) => <div key={schedule.id} className="flex items-center justify-between rounded bg-surface-secondary px-3 py-2 text-sm"><span>{schedule.scheduleType}: {schedule.holidayName ?? schedule.startDate ?? `${schedule.startTime?.slice(0, 5)}–${schedule.endTime?.slice(0, 5)}`}</span><button type="button" className="text-danger" onClick={() => remove.mutate(schedule.id)}>Remove</button></div>)}

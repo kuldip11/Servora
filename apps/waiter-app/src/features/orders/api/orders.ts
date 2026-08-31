@@ -1,3 +1,4 @@
+import { createBillingApi, createOrdersApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
 import type { CancellationReason, Order } from "@pos/types";
 import {
@@ -19,6 +20,9 @@ export interface AddOrderItemInput {
 }
 
 
+const ordersApi = createOrdersApi(apiClient);
+const billingApi = createBillingApi(apiClient);
+
 export interface AddOrderComboInput {
   comboId: string;
   quantity?: number;
@@ -26,13 +30,11 @@ export interface AddOrderComboInput {
 }
 
 export async function fetchOrders(): Promise<Order[]> {
-  const res = await apiClient.get("/orders");
-  return res.data.data;
+  return ordersApi.list();
 }
 
 export async function fetchOrder(orderId: string): Promise<Order> {
-  const res = await apiClient.get(`/orders/${orderId}`);
-  return res.data.data;
+  return ordersApi.get(orderId);
 }
 
 export async function updateOrderStatus(
@@ -41,12 +43,11 @@ export async function updateOrderStatus(
   reason?: { cancellationReasonId?: string; reason?: string },
 ): Promise<void> {
   const validated = updateOrderStatusSchema.parse({ status });
-  await apiClient.patch(`/orders/${id}/status`, { ...validated, ...reason });
+  await ordersApi.updateStatus(id, { ...validated, ...reason });
 }
 
 export async function fetchCancellationReasons(): Promise<CancellationReason[]> {
-  const res = await apiClient.get("/orders/cancellation-reasons", { params: { activeOnly: "true" } });
-  return res.data.data;
+  return ordersApi.listCancellationReasons();
 }
 
 export async function addOrderItems(
@@ -63,8 +64,7 @@ export async function addOrderItems(
     ...(pricing?.couponCode ? { couponCode: pricing.couponCode } : {}),
     ...(pricing?.promotionIds?.length ? { promotionIds: pricing.promotionIds } : {}),
   });
-  const res = await apiClient.post(`/orders/${orderId}/items`, validated);
-  return res.data.data;
+  return ordersApi.addItems(orderId, validated);
 }
 
 export async function updateTicketStatus(
@@ -72,22 +72,20 @@ export async function updateTicketStatus(
   status: string,
 ): Promise<void> {
   const validated = updateKitchenTicketStatusSchema.parse({ status });
-  await apiClient.patch(`/kitchen-tickets/${ticketId}/status`, validated);
+  await ordersApi.updateTicketStatus(ticketId, validated);
 }
 
 export async function refireOrderItem(orderId: string, orderItemId: string, reason: string, alsoCompOriginal = true): Promise<Order> {
-  const res = await apiClient.post(`/orders/${orderId}/items/${orderItemId}/refire`, { reason, alsoCompOriginal });
-  return res.data.data;
+  return ordersApi.refireItem(orderId, orderItemId, reason, alsoCompOriginal);
 }
 
 
 export async function refillOrderItem(orderId: string, orderItemId: string): Promise<Order> {
-  const res = await apiClient.post(`/orders/${orderId}/items/${orderItemId}/refill`);
-  return res.data.data;
+  return ordersApi.refillItem(orderId, orderItemId);
 }
 
 export async function setOrderItemSeatShares(orderId: string, orderItemId: string, shares: Array<{ seatLabel: string; shareRatio: number }>): Promise<void> {
-  await apiClient.put(`/orders/${orderId}/items/${orderItemId}/seat-shares`, { shares });
+  await ordersApi.setItemSeatShares(orderId, orderItemId, shares);
 }
 
 export async function voidOrderItem(
@@ -95,8 +93,7 @@ export async function voidOrderItem(
   orderItemId: string,
   reason: { cancellationReasonId?: string; reason?: string; approvalToken?: string },
 ): Promise<Order> {
-  const res = await apiClient.post(`/orders/${orderId}/items/${orderItemId}/void`, reason);
-  return res.data.data;
+  return ordersApi.voidItem(orderId, orderItemId, reason);
 }
 
 export async function compOrderItem(
@@ -104,8 +101,7 @@ export async function compOrderItem(
   orderItemId: string,
   reason: { cancellationReasonId?: string; reason?: string; approvalToken?: string },
 ): Promise<Order> {
-  const res = await apiClient.post(`/orders/${orderId}/items/${orderItemId}/comp`, reason);
-  return res.data.data;
+  return ordersApi.compItem(orderId, orderItemId, reason);
 }
 
 export async function transferOrderTable(
@@ -113,24 +109,19 @@ export async function transferOrderTable(
   newTableId: string,
   reason?: string,
 ): Promise<Order> {
-  const res = await apiClient.post(`/orders/${orderId}/transfer-table`, {
-    newTableId,
-    ...(reason?.trim() ? { reason: reason.trim() } : {}),
-  });
-  return res.data.data;
+  return ordersApi.transferTable(orderId, newTableId, reason);
 }
 
 export async function splitOrderBill(orderId: string, ways: number): Promise<void> {
-  await apiClient.post(`/orders/${orderId}/bills/split`, { ways });
+  await billingApi.splitOrder(orderId, ways);
 }
 export async function splitOrderBillByItems(orderId: string, allocations: Array<{ label: string; orderItemIds: string[] }>): Promise<void> {
-  await apiClient.post(`/orders/${orderId}/bills/split-items`, { allocations });
+  await billingApi.splitOrderByItems(orderId, allocations);
 }
 export async function splitOrderBillBySeat(orderId: string, sharedItemStrategy: "EVEN_SPLIT" | "MANUAL") {
-  const response = await apiClient.post(`/orders/${orderId}/bills/split-seat`, { sharedItemStrategy });
-  return response.data.data as { status: "CREATED" } | { status: "MANUAL_REQUIRED"; allocations: Array<{ label: string; orderItemIds: string[] }>; sharedItemIds: string[] };
+  return billingApi.splitOrderBySeat(orderId, sharedItemStrategy);
 }
 
 export async function mergeOrders(sourceOrderId: string, targetOrderId: string): Promise<void> {
-  await apiClient.post(`/orders/${sourceOrderId}/merge`, { targetOrderId });
+  await ordersApi.merge(sourceOrderId, targetOrderId);
 }

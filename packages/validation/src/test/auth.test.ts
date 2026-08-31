@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loginSchema, refreshTokenSchema, signupSchema } from "../auth";
+import { loginSchema, signupSchema } from "../auth";
 
 const validSignup = {
   firstName: "Ada",
@@ -48,16 +48,5 @@ describe("loginSchema", () => {
     expect(
       loginSchema.safeParse({ email: "ada@example.com", password: "" }).success,
     ).toBe(false);
-  });
-});
-
-describe("refreshTokenSchema", () => {
-  it("requires a non-empty refresh token", () => {
-    expect(
-      refreshTokenSchema.safeParse({ refreshToken: "token" }).success,
-    ).toBe(true);
-    expect(refreshTokenSchema.safeParse({ refreshToken: "" }).success).toBe(
-      false,
-    );
   });
 });

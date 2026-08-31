@@ -1,5 +1,8 @@
 import { useMutation } from "@tanstack/react-query";
+import { createOrdersApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
+
+const ordersApi = createOrdersApi(apiClient);
 import { queryClient } from "../../../shared/lib/query-client";
 import { notifyError, notifySuccess } from "../../../shared/lib/notify";
 import { orderKeys } from "../query-keys";
@@ -7,7 +10,7 @@ import { orderKeys } from "../query-keys";
 export function useSetOrderItemSeatShares(orderId: string) {
   return useMutation({
     mutationFn: ({ itemId, shares }: { itemId: string; shares: Array<{ seatLabel: string; shareRatio: number }> }) =>
-      apiClient.put(`/orders/${orderId}/items/${itemId}/seat-shares`, { shares }),
+      ordersApi.setItemSeatShares(orderId, itemId, shares),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: orderKeys.detail(orderId) });
       notifySuccess("Shared item allocation saved");

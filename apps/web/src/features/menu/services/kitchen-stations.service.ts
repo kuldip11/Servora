@@ -1,21 +1,13 @@
-import type { ItemStationRoute, KitchenStation } from "@pos/types";
+import { createMenuApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
 
+const menuApi = createMenuApi(apiClient);
+
 export const kitchenStationsService = {
-  async list(): Promise<KitchenStation[]> {
-    return (await apiClient.get("/kitchen/stations")).data.data;
-  },
-  async create(input: { name: string; printerIdentifier?: string; sortOrder?: number }): Promise<KitchenStation> {
-    return (await apiClient.post("/kitchen/stations", input)).data.data;
-  },
-  async remove(id: string): Promise<void> { await apiClient.delete(`/kitchen/stations/${id}`); },
-  async routes(itemId: string): Promise<ItemStationRoute[]> {
-    return (await apiClient.get(`/kitchen/stations/routes/${itemId}`)).data.data;
-  },
-  async setRoute(itemId: string, stationId: string, modifierOptionId?: string | null): Promise<ItemStationRoute> {
-    return (await apiClient.put(`/kitchen/stations/routes/${itemId}`, { stationId, modifierOptionId: modifierOptionId ?? null })).data.data;
-  },
-  async removeRoute(itemId: string, modifierOptionId?: string | null): Promise<void> {
-    await apiClient.delete(`/kitchen/stations/routes/${itemId}`, { params: modifierOptionId ? { modifierOptionId } : {} });
-  },
+  list: menuApi.listKitchenStations,
+  create: menuApi.createKitchenStation,
+  remove: menuApi.removeKitchenStation,
+  routes: menuApi.listStationRoutes,
+  setRoute: menuApi.setStationRoute,
+  removeRoute: menuApi.removeStationRoute,
 };

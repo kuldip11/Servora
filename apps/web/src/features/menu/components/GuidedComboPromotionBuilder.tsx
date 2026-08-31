@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button, Card, toast } from "@pos/ui";
-import type { MenuCategory } from "@pos/types";
+import { createMenuApi } from "@pos/api-client";
 import { apiClient, extractApiError } from "../../../shared/lib/api-client";
+
+const menuApi = createMenuApi(apiClient);
 import { usePermissions } from "../../../shared/auth/permissions";
 
 type BuilderKind = "combo" | "promotion";
@@ -37,10 +39,9 @@ export function GuidedComboPromotionBuilder() {
 
   useEffect(() => {
     let cancelled = false;
-    void apiClient.get("/menu/categories")
-      .then((response) => {
+    void menuApi.listCategories()
+      .then((categories) => {
         if (cancelled) return;
-        const categories = response.data.data as MenuCategory[];
         setMenuChoices(categories.flatMap((category) =>
           (category.menuItems ?? [])
             .filter((item) => item.isPublished && item.status !== "DISCONTINUED")
@@ -80,8 +81,8 @@ export function GuidedComboPromotionBuilder() {
     setBusy(true);
     try {
       const { name: _name, ...previewInput } = comboPayload;
-      const response = await apiClient.post("/menu/combos/preview", previewInput);
-      const total = Number(response.data.data.resolvedTotal);
+      const response = await menuApi.previewCombo<{ resolvedTotal: number }>(previewInput);
+      const total = Number(response.resolvedTotal);
       setComboPreview(total);
       return total;
     } catch (error) {
@@ -98,9 +99,9 @@ export function GuidedComboPromotionBuilder() {
     setBusy(true);
     try {
       const { name: _name, ...previewInput } = comboPayload;
-      const previewResponse = await apiClient.post("/menu/combos/preview", previewInput);
-      const authoritativePreview = Number(previewResponse.data.data.resolvedTotal);
-      await apiClient.post("/menu/combos/", comboPayload);
+      const previewResponse = await menuApi.previewCombo<{ resolvedTotal: number }>(previewInput);
+      const authoritativePreview = Number(previewResponse.resolvedTotal);
+      await menuApi.createCombo(comboPayload);
       setComboPreview(authoritativePreview);
       setComboName("");
       toast({ title: `Combo created at previewed price ₹${authoritativePreview.toFixed(2)}`, tone: "success" });
@@ -130,11 +131,10 @@ export function GuidedComboPromotionBuilder() {
 
   async function getPromotionPreview() {
     if (!promotionReady) return null;
-    const response = await apiClient.post("/menu/promotions/preview", {
+    const result = await menuApi.previewPromotion<{ subtotal: number; discountAmount: number; totalAmount: number }>({
       promotion: promotionPayload,
       items: [{ menuItemId: promotionPreviewItemId, quantity: 1 }],
     });
-    const result = response.data.data as { subtotal: number; discountAmount: number; totalAmount: number };
     setPromotionPreview(result);
     return result;
   }
@@ -158,7 +158,7 @@ export function GuidedComboPromotionBuilder() {
     try {
       const authoritativePreview = await getPromotionPreview();
       if (!authoritativePreview) return;
-      await apiClient.post("/menu/promotions", promotionPayload);
+      await menuApi.createPromotion(promotionPayload);
       setPromotionName("");
       setPromotionCoupon("");
       toast({ title: `Promotion created · sample discount ₹${authoritativePreview.discountAmount.toFixed(2)}`, tone: "success" });

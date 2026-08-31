@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Button, Input, Modal, toast } from "@pos/ui";
-import { extractApiError } from "@pos/api-client";
+import { createApprovalsApi, extractApiError } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
+
+const approvalsApi = createApprovalsApi(apiClient);
 
 export interface ManagerApprovalRequest {
   action: "void" | "comp";
@@ -20,14 +22,14 @@ export async function requestManagerApproval({
   managerEmail: string;
   password: string;
 }): Promise<string> {
-  const response = await apiClient.post("/approvals/manager", {
+  const response = await approvalsApi.requestManagerApproval({
     actionType: request.action === "void" ? "VOID" : "COMP",
     orderId,
     orderItemId: request.itemId,
     managerEmail: managerEmail.trim(),
     password,
   });
-  return response.data.data.token as string;
+  return response.token;
 }
 
 export function ManagerApprovalDialog({

@@ -4,43 +4,17 @@ import { Card } from "@pos/ui";
 import type { CartItem } from "../types";
 import { FOOD_TYPE_DOT_CLASSES } from "../constants";
 import { priceLabel } from "../utils/cart";
+import type { OrderableMenuItem } from "@pos/types";
 
 interface Props {
-  item: any;
+  item: OrderableMenuItem;
   cartQty: number;
   singleCart: CartItem | false | undefined;
   onTap: () => void;
   onQtyChange: (delta: number) => void;
 }
 
-// Design-system Phase 11, Sprint WA-3 — rebuilt on `Card` (Phase 2),
-// same `rounded-2xl` `className` override as `OrderCard`/`HomePage`
-// (Sprint WA-1), for the same reason: `Card` has no `radius` prop and
-// this app's cards are a step rounder than Admin's by design.
-//
-// `FOOD_TYPE_DOT_CLASSES` (`../constants.ts`) is **untouched** — the
-// emerald/red/amber veg/non-veg/egg dot is the same fixed
-// packaging-convention color scheme `apps/web`'s `FoodTypeDot`
-// component already hardcodes (checked directly — that Admin component
-// isn't tokenized either), not a design-system literal to repoint.
-// The cart-count badge's `amber-500`, on the other hand, retokenizes
-// to `warning` — that one's this app's own choice of "draws the eye"
-// color, not a shared cross-app convention.
-//
-// **Flagged, not silent:** original padding was `p-3` (12px); `Card`'s
-// padding scale only has `sm` (8px, `--spacing-sm`) and `md` (16px,
-// `--spacing-md`), no 12px step — `sm` was picked as the closer/
-// tighter option, same "no exact token, document the gap" call the
-// item grid's `gap-3` got in `MenuPage` (Admin, Sprint AD-9).
-// Phase 14 (perf pass, follow-up): wrapped in `React.memo`. Flagged in
-// the prior pass alongside `OrderCard` as an unmemoized list card, but
-// this one needed more than the wrapper alone — `MenuGrid.tsx` used to
-// build a fresh `onTap`/`onQtyChange` arrow per item on every render,
-// which would defeat `memo` outright (same "stabilize the callback and
-// memo the child together, one without the other doesn't help" lesson
-// `KitchenBoard`'s fix already documented). `MenuGrid.tsx` now routes
-// through a small `MenuGridItem` wrapper that stabilizes both callbacks
-// with `useCallback` before they reach this component.
+// Memoized menu card used by the waiter order-entry grid.
 export const MenuItemCard = memo(function MenuItemCard({
   item,
   cartQty,

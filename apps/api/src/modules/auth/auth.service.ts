@@ -59,11 +59,11 @@ export const authService = {
         lastName: fullUser.lastName,
         email: fullUser.email,
         status: fullUser.status,
-        roles: fullUser.globalUserRoles.map((ur: any) => ({
+        roles: fullUser.globalUserRoles.map((ur) => ({
           id: ur.roleId,
           name: ur.role.name,
           description: ur.role.description ?? "",
-          permissions: ur.role.rolePermissions.map((rp: any) => rp.permission),
+          permissions: ur.role.rolePermissions.map((rp) => rp.permission),
         })),
       },
     };
@@ -185,11 +185,11 @@ export const authService = {
   ) {
     if (!user) throw new Error("User not found");
 
-    const globalRoles = user.globalUserRoles.map((ur: any) => ({
+    const globalRoles = user.globalUserRoles.map((ur) => ({
       id: ur.roleId,
       name: ur.role.name,
       description: ur.role.description ?? "",
-      permissions: ur.role.rolePermissions.map((rp: any) => rp.permission),
+      permissions: ur.role.rolePermissions.map((rp) => rp.permission),
     }));
 
     const accessToken = signAccessToken({

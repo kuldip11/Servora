@@ -22,26 +22,11 @@ import { useUpdateStaffStatus } from "../hooks/useUpdateStaffStatus";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "../../../shared/lib/query-client";
 import { notifyError, notifySuccess } from "../../../shared/lib/notify";
-import { staffService } from "../services/staff.service";
+import { staffService, type StaffRow } from "../services/staff.service";
 import { staffKeys } from "../query-keys";
 import { AddStaffForm } from "../components/forms/AddStaffForm";
 import { EditStaffForm } from "../components/forms/EditStaffForm";
 import { RoleManager } from "../components/roles/RoleManager";
-
-// The staff service returns `any[]` (see `staff.service.ts` — never
-// typed, not something this render-only migration changes). This local
-// shape covers only the fields this page actually reads, so `Table`'s
-// columns get real types without inventing a `@pos/types` export that
-// isn't backed by an actual typed API response.
-interface StaffRow {
-  id: string;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  status: string;
-  assignedBranches?: { id?: string; name?: string }[];
-  roles?: { name?: string; scope?: string }[];
-}
 
 const STATUS_TONES: Record<string, StatusTone> = {
   ACTIVE: "success",

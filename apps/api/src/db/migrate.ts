@@ -75,7 +75,7 @@ async function runMigrations() {
   await migrationClient.end();
 }
 
-runMigrations().catch((err: any) => {
+runMigrations().catch((err: unknown) => {
   console.error("❌ Migration failed:", err);
   if (
     process.env["NODE_ENV"] !== "production" &&

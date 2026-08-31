@@ -9,7 +9,13 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRealtimeEvent } from "../../../shared/lib/realtime";
+import { createCustomersApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
+
+const customersApi = createCustomersApi(apiClient);
+import { createCustomersApi } from "@pos/api-client";
+
+const customersApi = createCustomersApi(apiClient);
 import { Card } from "@pos/ui";
 import { useOrders } from "../../orders/hooks/useOrders";
 import { OrderCard } from "../../orders/components/OrderCard";
@@ -29,7 +35,7 @@ interface Props {
 // so it stays page-specific markup — only its color literals moved
 // onto tokens, same as every Admin sprint's treatment of a
 // deliberately page-specific visual element (e.g. `DashboardPage`'s
-// quick-action tiles, Sprint AD-7).
+// quick-action tiles).
 export function HomePage({
   waiterName,
   onNewOrder,
@@ -41,9 +47,9 @@ export function HomePage({
     Array<{ id: string; tableId: string; type: string; status: string }>
   >([]);
   useEffect(() => {
-    void apiClient
-      .get("/customer/requests")
-      .then((response) => setRequests(response.data.data ?? []))
+    void customersApi
+      .listRequests<{ id: string; tableId: string; type: string; status: string }>()
+      .then((response) => setRequests(response))
       .catch(() => undefined);
   }, []);
   useRealtimeEvent("customer.request.created", (event) => {
@@ -68,7 +74,7 @@ export function HomePage({
       );
   });
   async function resolveRequest(id: string) {
-    await apiClient.patch(`/customer/requests/${id}`, { status: "RESOLVED" });
+    await customersApi.resolveRequest(id);
     setRequests((current) => current.filter((r) => r.id !== id));
   }
 

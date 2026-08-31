@@ -1,23 +1,20 @@
 import type { CancellationReason } from "@pos/types";
+import { createOrdersApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
+
+const ordersApi = createOrdersApi(apiClient);
 
 export const cancellationReasonsService = {
   async list(activeOnly = true): Promise<CancellationReason[]> {
-    const res = await apiClient.get("/orders/cancellation-reasons", {
-      params: { activeOnly: String(activeOnly) },
-    });
-    return res.data.data;
+    return activeOnly ? ordersApi.listCancellationReasons() : ordersApi.listAllCancellationReasons();
   },
   async listAll(): Promise<CancellationReason[]> {
-    const res = await apiClient.get("/orders/cancellation-reasons");
-    return res.data.data;
+    return ordersApi.listAllCancellationReasons();
   },
   async create(label: string): Promise<CancellationReason> {
-    const res = await apiClient.post("/orders/cancellation-reasons", { label });
-    return res.data.data;
+    return ordersApi.createCancellationReason(label);
   },
   async update(id: string, patch: { label?: string; isActive?: boolean }): Promise<CancellationReason> {
-    const res = await apiClient.patch(`/orders/cancellation-reasons/${id}`, patch);
-    return res.data.data;
+    return ordersApi.updateCancellationReason(id, patch);
   },
 };

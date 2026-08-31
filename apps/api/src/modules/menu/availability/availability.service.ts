@@ -1,10 +1,7 @@
 /**
- * Menu availability service — schedule field validation, effective-status
- * computation (schedule precedence + branch override layering), and
- * branch-override validation. Extracted from `schedule.service.ts` (kept
- * pure business logic here) and `menu/repository.ts#getEffectiveItem`
- * (moved here since it's a decision — override > schedule > base status —
- * not just a data read).
+ * Menu availability application service: schedule/override validation,
+ * persistence orchestration, inventory-driven signals, and effective-status
+ * lookup. Pure precedence resolution lives in `availability-resolution.ts`.
  */
 import type {
   MenuItemStatus,
@@ -72,46 +69,22 @@ export interface UpdateScheduleInput {
   isActive?: boolean | undefined;
 }
 
-export type AvailabilityChannel = "UNSCOPED" | "STAFF" | "CUSTOMER_QR";
-
-export type AvailabilityFulfillmentType = "UNSCOPED" | OrderType;
-
-export interface AvailabilityReplayItem {
-  id: string;
-  branchId: string | null;
-  status: MenuItemStatus;
-  basePrice: string;
-  taxRate: string;
-  prepTimeMinutes: number | null;
-  availabilityReason: string | null;
-  manualOverrideStatus: MenuItemStatus | null;
-  manualOverrideReason: string | null;
-  manualStockCount: number | null;
-}
-
-export interface AvailabilityReplayOverride {
-  status?: MenuItemStatus | null;
-  price?: string | null;
-  taxRate?: string | null;
-  prepTimeMinutes?: number | null;
-  isHidden?: boolean | null;
-  availabilityReason?: string | null;
-}
-
-export interface AvailabilityReplayEvidence {
-  item: AvailabilityReplayItem;
-  resolvedStatus: { status: MenuItemStatus; reason: string };
-  branchOverride: AvailabilityReplayOverride | null;
-  channelOverride: AvailabilityReplayOverride | null;
-}
-
-export interface AvailabilityContext {
-  channel: AvailabilityChannel;
-  fulfillmentType: AvailabilityFulfillmentType;
-  asOf: Date;
-  /** H1 read-only deterministic replay input captured at fire time. */
-  historicalReplay?: AvailabilityReplayEvidence | undefined;
-}
+export type {
+  AvailabilityChannel,
+  AvailabilityContext,
+  AvailabilityFulfillmentType,
+  AvailabilityReplayEvidence,
+  AvailabilityReplayItem,
+  AvailabilityReplayOverride,
+} from "./availability.types";
+import type {
+  AvailabilityChannel,
+  AvailabilityContext,
+  AvailabilityFulfillmentType,
+  AvailabilityReplayEvidence,
+} from "./availability.types";
+import { resolveEffectiveAvailability } from "./availability-resolution";
+import { availabilityDashboardService } from "./availability-dashboard.service";
 
 export interface ManualOverrideInput {
   status: MenuItemStatus;
@@ -160,129 +133,7 @@ function describeSchedule(schedule: ScheduleRow): string {
 }
 
 export const availabilityService = {
-  async getUnavailableDashboard(
-    tenantId: string,
-    branchIds: string[],
-    filters: {
-      channel?: AvailabilityChannel;
-      fulfillmentType?: AvailabilityFulfillmentType;
-      cause?: string;
-    },
-    asOf: Date,
-  ) {
-    const channels: AvailabilityChannel[] =
-      filters.channel && filters.channel !== "UNSCOPED"
-        ? [filters.channel]
-        : ["STAFF", "CUSTOMER_QR"];
-    const fulfillmentTypes: AvailabilityFulfillmentType[] =
-      filters.fulfillmentType && filters.fulfillmentType !== "UNSCOPED"
-        ? [filters.fulfillmentType]
-        : ["DINE_IN", "TAKEAWAY", "DELIVERY", "ONLINE"];
-    const normalizedCause = filters.cause?.trim().toUpperCase();
-    const items = await availabilityRepository.listDashboardItems(tenantId);
-    const rows: Array<Record<string, unknown>> = [];
-
-    const includeCause = (cause: string) =>
-      !normalizedCause || cause.toUpperCase() === normalizedCause;
-
-    for (const branchId of branchIds) {
-      for (const item of items) {
-        if (item.branchId && item.branchId !== branchId) continue;
-        for (const channel of channels) {
-          for (const fulfillmentType of fulfillmentTypes) {
-            const resolved = await availabilityService.getEffectiveItem(
-              tenantId,
-              item.id,
-              branchId,
-              { channel, fulfillmentType, asOf },
-            );
-            if (resolved.effectiveStatus !== "ACTIVE" || resolved.isHidden) {
-              const reason = resolved.availabilityReason ?? "Unavailable";
-              const cause = resolved.availabilityCause ?? "BASE_STATUS";
-              if (includeCause(cause))
-                rows.push({
-                  entityType: "ITEM",
-                  entityId: item.id,
-                  menuItemId: item.id,
-                  name: item.name,
-                  status: resolved.effectiveStatus,
-                  reason,
-                  cause,
-                  branchId,
-                  channel,
-                  fulfillmentType,
-                });
-            }
-
-            for (const variant of item.variants) {
-              const variantResolved =
-                await availabilityService.getEffectiveVariant(tenantId, variant.id);
-              if (variantResolved.effectiveStatus !== "ACTIVE") {
-                const reason =
-                  variantResolved.availabilityReason ?? "Variant unavailable";
-                const cause = variantResolved.manualOverrideStatus
-                  ? "MANUAL_OVERRIDE"
-                  : variantResolved.manualStockCount != null &&
-                      variantResolved.manualStockCount <= 0
-                    ? "MANUAL_COUNT"
-                    : "COMPUTED_STATUS";
-                if (includeCause(cause))
-                  rows.push({
-                    entityType: "VARIANT",
-                    entityId: variant.id,
-                    menuItemId: item.id,
-                    name: `${item.name} — ${variant.name}`,
-                    status: variantResolved.effectiveStatus,
-                    reason,
-                    cause,
-                    branchId,
-                    channel,
-                    fulfillmentType,
-                  });
-              }
-            }
-
-            for (const link of item.modifierGroupLinks) {
-              for (const option of link.group.options) {
-                const effectiveAvailability =
-                  option.manualOverrideAvailability ?? option.computedAvailability;
-                if (!effectiveAvailability) {
-                  const cause =
-                    option.manualOverrideAvailability !== null
-                      ? "MANUAL_OVERRIDE"
-                      : "RECIPE_DRIVEN";
-                  if (includeCause(cause))
-                    rows.push({
-                      entityType: "MODIFIER_OPTION",
-                      entityId: option.id,
-                      menuItemId: item.id,
-                      name: `${item.name} — ${link.group.name}: ${option.name}`,
-                      status: "OUT_OF_STOCK",
-                      reason:
-                        cause === "MANUAL_OVERRIDE"
-                          ? "Modifier manually unavailable"
-                          : "Modifier unavailable from recipe/inventory state",
-                      cause,
-                      branchId,
-                      channel,
-                      fulfillmentType,
-                    });
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    return {
-      asOf: asOf.toISOString(),
-      branches: branchIds,
-      channels,
-      fulfillmentTypes,
-      rows,
-    };
-  },
+  getUnavailableDashboard: availabilityDashboardService.getUnavailableDashboard,
   async getEffectiveVariant(tenantId: string, variantId: string) {
     const variant = await availabilityRepository.findVariant(variantId);
     if (!variant || variant.menuItem.tenantId !== tenantId)
@@ -849,65 +700,9 @@ export const availabilityService = {
       };
     }
 
-    const item = evidence.item;
-    const resolvedStatus = evidence.resolvedStatus;
-    const override = evidence.branchOverride ?? undefined;
-    const channelOverride = evidence.channelOverride ?? undefined;
-
-    // Explicit precedence, highest to lowest:
-    // human manual override > finite count depletion > channel/branch status >
-    // schedule/computed/base. Both live resolution and H1 replay execute this
-    // exact block; replay merely substitutes immutable fire-time inputs.
-    const countDepleted =
-      item.manualStockCount !== null && item.manualStockCount <= 0;
-    const effectiveStatus = item.manualOverrideStatus
-      ? item.manualOverrideStatus
-      : countDepleted
-        ? resolvedStatus.status
-        : (channelOverride?.status ?? override?.status ?? resolvedStatus.status);
-    const effectivePrice = override?.price ?? item.basePrice;
-    const effectiveTaxRate = override?.taxRate ?? item.taxRate;
-    const effectivePrepTimeMinutes =
-      override?.prepTimeMinutes ?? item.prepTimeMinutes;
-
-    const availabilityCause = item.manualOverrideStatus
-      ? "MANUAL_OVERRIDE"
-      : countDepleted
-        ? "MANUAL_COUNT"
-        : channelOverride?.status || channelOverride?.isHidden
-          ? "CHANNEL_OVERRIDE"
-          : override?.status || override?.isHidden
-            ? "BRANCH_OVERRIDE"
-            : resolvedStatus.reason.startsWith("Daily window") ||
-                resolvedStatus.reason.startsWith("Scheduled") ||
-                resolvedStatus.reason.startsWith("Holiday:") ||
-                /^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday) /.test(
-                  resolvedStatus.reason,
-                )
-              ? "SCHEDULE"
-              : resolvedStatus.reason === "Insufficient inventory"
-                ? "RECIPE_DRIVEN"
-                : "BASE_STATUS";
-
     return {
       evidence,
-      effective: {
-        ...item,
-        effectivePrice,
-        effectiveTaxRate,
-        effectivePrepTimeMinutes,
-        effectiveStatus,
-        isHidden: channelOverride?.isHidden ?? override?.isHidden ?? false,
-        availabilityReason: item.manualOverrideStatus
-          ? (item.manualOverrideReason ?? "Manual availability override")
-          : countDepleted
-            ? resolvedStatus.reason
-            : (channelOverride?.availabilityReason ??
-              override?.availabilityReason ??
-              resolvedStatus.reason),
-        availabilityCause,
-        overrideApplied: !!override || !!channelOverride,
-      },
+      effective: resolveEffectiveAvailability(evidence),
     };
   },
 

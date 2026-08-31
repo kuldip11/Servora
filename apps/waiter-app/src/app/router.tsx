@@ -8,7 +8,7 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import { Home, ClipboardList, Plus, LogOut, Settings } from "lucide-react";
 import { IconButton } from "@pos/ui";
-import { LoginPage, getToken, getWaiterName, logout } from "../features/auth";
+import { LoginPage, getToken, getWaiterName, logout, logoutSession } from "../features/auth";
 import { HomePage } from "../features/home/pages/HomePage";
 import { OrdersPage } from "../features/orders/pages/OrdersPage";
 import { MenuPage } from "../features/menu";
@@ -37,10 +37,14 @@ function AppLayout({ children }: { children?: ReactNode }) {
   const connected = useConnectionStatus();
   useWaiterAttention();
 
-  function handleLogout() {
-    logout();
-    navigate({ to: "/" });
-    window.location.reload();
+  async function handleLogout() {
+    try {
+      await logoutSession();
+    } finally {
+      logout();
+      navigate({ to: "/" });
+      window.location.reload();
+    }
   }
 
   return (
@@ -61,7 +65,7 @@ function AppLayout({ children }: { children?: ReactNode }) {
         <IconButton
           icon={LogOut}
           aria-label="Log out"
-          onClick={handleLogout}
+          onClick={() => void handleLogout()}
           className="w-9 h-9 rounded-full bg-surface/80 backdrop-blur shadow-sm text-text-secondary hover:bg-surface-secondary/80"
         />
       </div>

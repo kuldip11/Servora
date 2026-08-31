@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Value } from "@sinclair/typebox/value";
-import { signupBody, loginBody, refreshBody } from "../auth.validator";
+import { signupBody, loginBody } from "../auth.validator";
 describe("auth validators", () => {
   it("accepts valid signup payloads and enforces required fields", () => {
     expect(
@@ -28,12 +28,10 @@ describe("auth validators", () => {
       }),
     ).toBe(false);
   });
-  it("validates login and refresh token bodies", () => {
+  it("validates login bodies", () => {
     expect(
       Value.Check(loginBody, { email: "a@example.com", password: "x" }),
     ).toBe(true);
     expect(Value.Check(loginBody, { email: "bad", password: "x" })).toBe(false);
-    expect(Value.Check(refreshBody, { refreshToken: "token" })).toBe(true);
-    expect(Value.Check(refreshBody, { refreshToken: "" })).toBe(false);
   });
 });

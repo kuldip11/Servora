@@ -1,6 +1,6 @@
 /**
  * Menu templates service — orchestrates `templates.repository.ts` and
- * applies the business rules that used to live inline in the monolithic
+ * applies template business rules while the
  * `menu/templates.service.ts`: category ownership checks on create,
  * not-found handling on get/apply/delete.
  */

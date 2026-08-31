@@ -11,6 +11,7 @@ import {
   branches,
 } from "../../db/schema";
 import { ForbiddenError } from "../errors";
+import type { Database } from "../../db";
 
 /**
  * Server-authoritative membership authorization.
@@ -36,7 +37,7 @@ export type AuthorizationDecision = {
 };
 
 export async function resolveMembership(
-  db: any,
+  db: Database,
   userId: string,
   tenantId: string,
 ) {
@@ -62,7 +63,7 @@ export async function resolveMembership(
 }
 
 export async function resolveAuthorization(
-  db: any,
+  db: Database,
   context: AuthorizationContext,
 ): Promise<AuthorizationDecision> {
   const membership = await resolveMembership(
@@ -90,16 +91,16 @@ export async function resolveAuthorization(
 
   const roleIds = [
     ...new Set([
-      ...membership.roles.map((item: any) => item.roleId),
-      ...globalRoles.map((item: any) => item.roleId),
+      ...membership.roles.map((item) => item.roleId),
+      ...globalRoles.map((item) => item.roleId),
     ]),
   ];
   const tenantWide =
     membership.roles.some(
-      (item: any) =>
+      (item) =>
         item.role?.scope === "GLOBAL" || item.role?.scope === "TENANT",
-    ) || globalRoles.some((item: any) => item.role?.scope === "GLOBAL");
-  const branchIds = membership.branches.map((item: any) => item.branchId);
+    ) || globalRoles.some((item) => item.role?.scope === "GLOBAL");
+  const branchIds = membership.branches.map((item) => item.branchId);
 
   if (context.branchId) {
     const branch = await db.query.branches.findFirst({
@@ -140,7 +141,7 @@ export async function resolveAuthorization(
     .where(inArray(rolePermissions.roleId, roleIds));
 
   const permissionKeys = new Set<string>(
-    rows.map((row: any) => row.key as string),
+    rows.map((row) => row.key),
   );
   for (const globalRole of globalRoles) {
     for (const rolePermission of globalRole.role?.rolePermissions ?? []) {
@@ -162,7 +163,7 @@ export async function resolveAuthorization(
 }
 
 export async function hasPermission(
-  db: any,
+  db: Database,
   context: AuthorizationContext,
   permissionKey: string,
 ) {
@@ -171,7 +172,7 @@ export async function hasPermission(
 }
 
 export async function requirePermission(
-  db: any,
+  db: Database,
   context: AuthorizationContext,
   permissionKey: string,
 ) {
@@ -189,7 +190,7 @@ export async function requirePermission(
 }
 
 export async function requireBranchAccess(
-  db: any,
+  db: Database,
   context: AuthorizationContext,
   branchId: string,
 ) {

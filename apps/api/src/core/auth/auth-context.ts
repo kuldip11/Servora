@@ -143,9 +143,9 @@ export const requireAuthPlugin = () =>
       });
       const roles = [
         ...new Set([
-          ...globalRoles.map((item: any) => item.role?.name ?? item.roleId),
+          ...globalRoles.map((item) => item.role?.name ?? item.roleId),
           ...membership.roles.map(
-            (item: any) => item.role?.name ?? item.roleId,
+            (item) => item.role?.name ?? item.roleId,
           ),
         ]),
       ] as RoleName[];

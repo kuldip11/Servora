@@ -25,8 +25,20 @@ import { OrderOptionsPanel } from "../components/OrderOptionsPanel";
 import { CartSummary } from "../components/CartSummary";
 import { ComboCustomiser } from "../components/ComboCustomiser";
 import { apiClient } from "../../../shared/lib/api-client";
+import { createAuthApi, createCustomersApi, createMenuApi } from "@pos/api-client";
 import { STORAGE_KEYS } from "../../../shared/constants/storage-keys";
-import type { Tenant } from "@pos/types";
+import type { OrderableMenuItem, Tenant } from "@pos/types";
+import type { WaiterMenuCategory } from "../api/menu";
+
+
+const menuApi = createMenuApi(apiClient);
+const customersApi = createCustomersApi(apiClient);
+const authApi = createAuthApi(apiClient);
+
+type ActiveMenu = {
+  id: string;
+  memberships: Array<{ menuItemId: string }>;
+};
 
 interface Props {
   onBack: () => void;
@@ -35,25 +47,7 @@ interface Props {
   existingOrderId?: string;
 }
 
-// Design-system Phase 11, Sprint WA-2: this page's own chrome (header,
-// cart strip) retokenized, and its back button moved onto `IconButton`
-// (Phase 3) — `size="lg"` plus a `w-9 h-9` override reproduces the
-// original 36px circle with a 20px icon exactly (`IconButton`'s own
-// `md` default is a smaller 16px icon). One flagged, accepted loss:
-// `IconButton`'s `ghost` variant has no persistent fill, only a hover
-// fill, so the always-on `bg-surface-secondary` circle is forced via
-// `className` — the original's `active:bg-gray-200` tap-darken feedback
-// doesn't have an equivalent prop to carry over and is dropped here,
-// same category of small interaction-detail loss `StaffPage`'s row
-// actions accepted in Sprint AD-3.
-//
-// `SearchBar`/`CategoryTabs`/`MenuGrid`/`MenuItemCard`/
-// `OrderOptionsPanel` (rendered below) are NOT touched this sprint —
-// each is its own reasonably-sized component and a fair next sprint,
-// not mechanically bundled in here just because this page renders them.
-// This sprint's real work is `CartSummary`/`ItemCustomiser`, the app's
-// 2 flagged overlays (see those files' own doc comments) — this page
-// only needed its own wrapper chrome touched to render them.
+// Waiter order-entry page: menu discovery, item customization, cart, and order submission.
 export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
   const qc = useQueryClient();
   const isAddingToExisting = !!existingOrderId;
@@ -77,7 +71,7 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
   const [orderNotes, setOrderNotes] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showCart, setShowCart] = useState(false);
-  const [customising, setCustomising] = useState<{ item: any } | null>(null);
+  const [customising, setCustomising] = useState<{ item: OrderableMenuItem } | null>(null);
   const [customerSearch, setCustomerSearch] = useState("");
   const [menuSearch, setMenuSearch] = useState("");
   const [foodTypeFilter, setFoodTypeFilter] = useState<
@@ -88,23 +82,23 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
   const [roundCourseNumber, setRoundCourseNumber] = useState(1);
 
   const { data: categories, isLoading: menuLoading } = useMenuCategories();
-  const { data: activeMenus = [], isLoading: activeMenusLoading } = useQuery<any[]>({
+  const { data: activeMenus = [], isLoading: activeMenusLoading } = useQuery<ActiveMenu[]>({
     queryKey: ["menus", "active", orderType],
-    queryFn: async () => (await apiClient.get("/menu/menus/active", { params: { channel: "STAFF", fulfillmentType: orderType } })).data.data,
+    queryFn: () => menuApi.listActiveMenus<ActiveMenu>(orderType),
   });
   useEffect(() => {
     if (!activeMenus.some((menu) => menu.id === selectedMenuId)) setSelectedMenuId(activeMenus[0]?.id ?? "");
   }, [activeMenus, selectedMenuId]);
-  const visibleIds = new Set(activeMenus.filter((menu) => !selectedMenuId || menu.id === selectedMenuId).flatMap((menu) => menu.memberships.map((membership: any) => membership.menuItemId)));
+  const visibleIds = new Set(activeMenus.filter((menu) => !selectedMenuId || menu.id === selectedMenuId).flatMap((menu) => menu.memberships.map((membership) => membership.menuItemId)));
   const scopedCategories = activeMenusLoading
     ? categories
-    : categories?.map((category: any) => ({ ...category, menuItems: (category.menuItems ?? []).filter((item: any) => visibleIds.has(item.id)) })).filter((category: any) => category.menuItems.length > 0);
+    : categories?.map((category) => ({ ...category, menuItems: (category.menuItems ?? []).filter((item) => visibleIds.has(item.id)) })).filter((category) => category.menuItems.length > 0);
   const tenantId = localStorage.getItem(STORAGE_KEYS.tenant);
   const { data: tenantSettings } = useQuery<Tenant | null>({
     queryKey: ["tenant-settings", tenantId],
     enabled: !!tenantId,
     queryFn: async () => {
-      const memberships = (await apiClient.get("/tenants")).data.data as Array<{ tenant: Tenant }>;
+      const memberships = await authApi.listTenants();
       return memberships.find((entry) => entry.tenant.id === tenantId)?.tenant ?? null;
     },
   });
@@ -112,21 +106,21 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
 
   const { data: combos = [] } = useQuery<WaiterCombo[]>({
     queryKey: ["menu-combos"],
-    queryFn: async () => (await apiClient.get("/menu/combos")).data.data,
+    queryFn: () => menuApi.listCombos<WaiterCombo>(),
     enabled: !isAddingToExisting,
   });
   const { data: promotions = [] } = useQuery<Array<{ id: string; name: string; couponCode: string | null; isActive: boolean }>>({
     queryKey: ["menu-promotions"],
-    queryFn: async () => (await apiClient.get("/menu/promotions")).data.data,
+    queryFn: () => menuApi.listPromotions<{ id: string; name: string; couponCode: string | null; isActive: boolean }>(),
   });
   const { data: customerGroups = [] } = useQuery<Array<{ id: string; name: string }>>({
     queryKey: ["customer-groups"],
-    queryFn: async () => (await apiClient.get("/customer-groups")).data.data,
+    queryFn: () => customersApi.listGroups(),
     enabled: !isAddingToExisting,
   });
   const { data: priceRules = [] } = useQuery<Array<{ id: string; isPerCover?: boolean; coverTier?: "ADULT" | "CHILD" | null; price: string | number | null }>>({
     queryKey: ["menu-price-rules", "per-cover"],
-    queryFn: async () => (await apiClient.get("/menu/price-rules")).data.data,
+    queryFn: () => menuApi.listPriceRules<{ id: string; isPerCover?: boolean; coverTier?: "ADULT" | "CHILD" | null; price: string | number | null }>(),
     enabled: !isAddingToExisting,
   });
   const perCoverRules = priceRules.filter((rule) => rule.isPerCover);
@@ -173,7 +167,7 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
   const addItemsMutation = useAddOrderItems();
   const createOrderMutation = useCreateOrder();
 
-  function handleItemTap(item: any) {
+  function handleItemTap(item: OrderableMenuItem) {
     const hasOptions =
       item.variants?.length > 0 || item.modifierGroupLinks?.length > 0 ||
       item.supportsZones === true || item.pricingMode === "WEIGHT_BASED" || item.pricingMode === "OPEN";
@@ -206,12 +200,6 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         );
       return [...prev, newItem];
     });
-    // Phase 14 toast consolidation: `@pos/ui`'s `toast()` supports `duration`
-    // but has no per-call `icon` override (icon is derived from `tone` via
-    // `TONE_ICON` — see Toast.tsx) — dropping the custom '✓' override since
-    // `tone: 'success'` already renders a check icon (`CheckCircle2`), just
-    // not this exact glyph. Flagged since it's a small but real visual
-    // change, not a silent drop.
     toast({ title: `${newItem.name} added`, tone: "success", duration: 1000 });
   }
 
@@ -389,19 +377,19 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
   const selectedCoverRule = perCoverRules.find((rule) => rule.id === perCoverPriceRuleId);
   const selectedCoverRate = Number(selectedCoverRule?.price ?? 0);
   const totalPrice = !isAddingToExisting && billingMode === "PER_COVER" ? coverCount * selectedCoverRate : lineItemTotal;
-  const allItems = scopedCategories?.flatMap((c: any) => c.menuItems ?? []) ?? [];
-  const activeItems: any[] = (
+  const allItems = scopedCategories?.flatMap((c: WaiterMenuCategory) => c.menuItems ?? []) ?? [];
+  const activeItems: OrderableMenuItem[] = (
     menuSearch.length >= 2
       ? allItems.filter(
-          (i: any) =>
+          (i) =>
             i.isAvailable &&
             i.name.toLowerCase().includes(menuSearch.toLowerCase()),
         )
       : (scopedCategories
-          ?.find((c: any) => c.id === activeCategory)
-          ?.menuItems?.filter((i: any) => i.isAvailable) ?? [])
+          ?.find((c) => c.id === activeCategory)
+          ?.menuItems?.filter((i) => i.isAvailable) ?? [])
   ).filter(
-    (i: any) => foodTypeFilter === "ALL" || i.foodType === foodTypeFilter,
+    (i) => foodTypeFilter === "ALL" || i.foodType === foodTypeFilter,
   );
 
   const isPending = addItemsMutation.isPending || createOrderMutation.isPending;

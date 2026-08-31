@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button, Input } from "@pos/ui";
+import { createCustomersApi, createMenuApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
+
+const menuApi = createMenuApi(apiClient);
+const customersApi = createCustomersApi(apiClient);
 import { queryClient } from "../../../shared/lib/query-client";
 import type { CustomerGroup, PriceRule } from "@pos/types";
 import { getErrorMessage } from "../../../shared/lib/errors";
@@ -45,17 +49,17 @@ export function PriceRulesPanel({ itemId, branchId }: { itemId: string; branchId
   const key = ["menu-items", itemId, "price-rules"];
   const { data: customerGroups = [] } = useQuery<CustomerGroup[]>({
     queryKey: ["customer-groups"],
-    queryFn: async () => (await apiClient.get("/customer-groups")).data.data,
+    queryFn: () => customersApi.listGroups(),
   });
 
   const { data: rules = [] } = useQuery<PriceRule[]>({
     queryKey: key,
-    queryFn: async () => (await apiClient.get(`/menu/price-rules`, { params: { menuItemId: itemId } })).data.data,
+    queryFn: () => menuApi.listPriceRulesFor<PriceRule>({ menuItemId: itemId }),
   });
 
   const save = useMutation({
     mutationFn: () =>
-      apiClient.post(`/menu/price-rules`, {
+      menuApi.createPriceRule<PriceRule>({
         menuItemId: itemId,
         branchId: scopeToBranch && branchId ? branchId : undefined,
         channel: channel || undefined,
@@ -79,7 +83,7 @@ export function PriceRulesPanel({ itemId, branchId }: { itemId: string; branchId
   });
 
   const remove = useMutation({
-    mutationFn: (id: string) => apiClient.delete(`/menu/price-rules/${id}`),
+    mutationFn: (id: string) => menuApi.removePriceRule(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
   });
 

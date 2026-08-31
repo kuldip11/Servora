@@ -1,14 +1,17 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Input, Select } from "@pos/ui";
+import { createMenuApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
+
+const menuApi = createMenuApi(apiClient);
 import type { Promotion, PromotionStats as PromotionStatsData } from "@pos/types";
 
 
 function PromotionStats({ id }: { id: string }) {
   const { data } = useQuery<PromotionStatsData>({
     queryKey: ["menu", "promotions", id, "stats"],
-    queryFn: async () => (await apiClient.get(`/menu/promotions/${id}/stats`)).data.data,
+    queryFn: () => menuApi.promotionStats<PromotionStatsData>(id),
   });
   return <span>{data ? `${data.uses} uses · ${Number(data.discountAmount).toFixed(2)} discounted` : "Loading stats…"}</span>;
 }
@@ -39,7 +42,7 @@ export function PromotionsSection() {
   const key = ["menu", "promotions"];
   const { data: promotions = [] } = useQuery<Promotion[]>({
     queryKey: key,
-    queryFn: async () => (await apiClient.get("/menu/promotions")).data.data,
+    queryFn: () => menuApi.listPromotionsFor<Promotion>(),
   });
   const create = useMutation({
     mutationFn: () => {
@@ -68,7 +71,7 @@ export function PromotionsSection() {
       maxUsesPerCustomer: maxUsesPerCustomer ? Number(maxUsesPerCustomer) : null,
       stackableWithLoyalty,
       };
-      return editingId ? apiClient.patch(`/menu/promotions/${editingId}`, payload) : apiClient.post("/menu/promotions", payload);
+      return editingId ? menuApi.updatePromotion<Promotion>(editingId, payload) : menuApi.createPromotion<Promotion>(payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: key });
@@ -76,11 +79,11 @@ export function PromotionsSection() {
     },
   });
   const update = useMutation({
-    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) => apiClient.patch(`/menu/promotions/${id}`, { isActive }),
+    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) => menuApi.updatePromotion<Promotion>(id, { isActive }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
   });
   const remove = useMutation({
-    mutationFn: (id: string) => apiClient.delete(`/menu/promotions/${id}`),
+    mutationFn: (id: string) => menuApi.removePromotion(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
   });
 

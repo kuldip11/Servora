@@ -1,3 +1,4 @@
+import type { RoleName } from "@pos/types";
 import { and, eq, isNull } from "drizzle-orm";
 import { db } from "../../db";
 import {
@@ -74,10 +75,10 @@ export const tenantRepository = {
     });
   },
 
-  async findRoleByName(name: string) {
+  async findRoleByName(name: RoleName) {
     return db.query.roles.findFirst({
       where: and(
-        eq(roles.name, name as any),
+        eq(roles.name, name),
         isNull(roles.tenantId),
         eq(roles.isSystem, true),
       ),

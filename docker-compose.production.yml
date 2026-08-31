@@ -51,15 +51,16 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-servora}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-servora}
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
-      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:?REFRESH_TOKEN_SECRET is required}
+      METRICS_TOKEN: ${METRICS_TOKEN:?METRICS_TOKEN is required}
       CORS_ORIGIN: ${CORS_ORIGIN:?CORS_ORIGIN is required}
       RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-600}
       RATE_LIMIT_WINDOW_SECONDS: ${RATE_LIMIT_WINDOW_SECONDS:-60}
+      TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-1}
       RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
       RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-}
       RAZORPAY_WEBHOOK_SECRET: ${RAZORPAY_WEBHOOK_SECRET:-}
     ports:
-      - "${API_PORT:-3000}:3000"
+      - "127.0.0.1:${API_PORT:-3000}:3000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -79,7 +80,7 @@ services:
         VITE_WAITER_APP_URL: ${PUBLIC_WAITER_URL:?PUBLIC_WAITER_URL is required}
         VITE_CUSTOMER_APP_URL: ${PUBLIC_CUSTOMER_URL:?PUBLIC_CUSTOMER_URL is required}
     restart: unless-stopped
-    ports: ["${WEB_PORT:-5173}:80"]
+    ports: ["127.0.0.1:${WEB_PORT:-5173}:80"]
 
   kitchen:
     build:
@@ -87,7 +88,7 @@ services:
       dockerfile: apps/kitchen-display/Dockerfile
       args: *vite_api_args
     restart: unless-stopped
-    ports: ["${KITCHEN_PORT:-5174}:80"]
+    ports: ["127.0.0.1:${KITCHEN_PORT:-5174}:80"]
 
   waiter:
     build:
@@ -95,7 +96,7 @@ services:
       dockerfile: apps/waiter-app/Dockerfile
       args: *vite_api_args
     restart: unless-stopped
-    ports: ["${WAITER_PORT:-5175}:80"]
+    ports: ["127.0.0.1:${WAITER_PORT:-5175}:80"]
 
   customer:
     build:
@@ -105,7 +106,7 @@ services:
         <<: *vite_api_args
         VITE_RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
     restart: unless-stopped
-    ports: ["${CUSTOMER_PORT:-5176}:80"]
+    ports: ["127.0.0.1:${CUSTOMER_PORT:-5176}:80"]
 
   website:
     build:
@@ -122,7 +123,7 @@ services:
     restart: unless-stopped
     environment:
       LEAD_WEBHOOK_URL: ${LEAD_WEBHOOK_URL:?LEAD_WEBHOOK_URL is required}
-    ports: ["${WEBSITE_PORT:-3001}:3000"]
+    ports: ["127.0.0.1:${WEBSITE_PORT:-3001}:3000"]
 
 volumes:
   postgres_data:

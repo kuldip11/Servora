@@ -1,3 +1,4 @@
+import { createInventoryApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
 import type { InventoryItem, InventoryRecipeImpact, InventoryTransaction, WasteReason } from "@pos/types";
 
@@ -11,8 +12,6 @@ export interface InventoryItemFormInput {
   branchId?: string | undefined;
 }
 
-
-
 export interface StockUpdateInput {
   quantity: string;
   transactionType: string;
@@ -20,53 +19,44 @@ export interface StockUpdateInput {
   wasteReasonId?: string | undefined;
 }
 
-export const inventoryService = {
-  async list(): Promise<InventoryItem[]> {
-    const res = await apiClient.get("/inventory/items");
-    return res.data.data;
-  },
+const inventoryApi = createInventoryApi(apiClient);
 
+export const inventoryService = {
+  list(): Promise<InventoryItem[]> {
+    return inventoryApi.list();
+  },
   async add(input: InventoryItemFormInput): Promise<void> {
-    await apiClient.post("/inventory/items", {
-      ...input,
-      branchId: input.branchId || undefined,
+    await inventoryApi.create({
+      name: input.name,
+      unit: input.unit as "KG" | "GRAMS" | "LITERS" | "ML" | "PIECES" | "PACKETS",
       currentStock: parseFloat(input.currentStock),
       minimumStock: parseFloat(input.minimumStock),
       reorderPoint: parseFloat(input.reorderPoint),
       costPerUnit: parseFloat(input.costPerUnit),
+      ...(input.branchId ? { branchId: input.branchId } : {}),
     });
   },
-
-  async recipeImpact(itemId: string): Promise<InventoryRecipeImpact> {
-    const res = await apiClient.get(`/inventory/items/${itemId}/recipe-impact`);
-    return res.data.data;
+  recipeImpact(itemId: string): Promise<InventoryRecipeImpact> {
+    return inventoryApi.recipeImpact(itemId);
   },
-
-  async transactions(): Promise<InventoryTransaction[]> {
-    const res = await apiClient.get("/inventory/transactions");
-    return res.data.data;
+  transactions(): Promise<InventoryTransaction[]> {
+    return inventoryApi.transactions();
   },
-
   async updateStock(itemId: string, input: StockUpdateInput): Promise<void> {
-    await apiClient.patch(`/inventory/items/${itemId}/stock`, {
+    await inventoryApi.updateStock(itemId, {
       quantity: parseFloat(input.quantity),
-      transactionType: input.transactionType,
-      notes: input.notes || undefined,
-      wasteReasonId: input.wasteReasonId || undefined,
+      transactionType: input.transactionType as "IN" | "OUT" | "ADJUSTMENT" | "WASTE",
+      ...(input.notes ? { notes: input.notes } : {}),
+      ...(input.wasteReasonId ? { wasteReasonId: input.wasteReasonId } : {}),
     });
   },
-
-  async wasteReasons(): Promise<WasteReason[]> {
-    const res = await apiClient.get("/inventory/waste-reasons");
-    return res.data.data;
+  wasteReasons(): Promise<WasteReason[]> {
+    return inventoryApi.wasteReasons();
   },
-
-  async createWasteReason(label: string): Promise<WasteReason> {
-    const res = await apiClient.post("/inventory/waste-reasons", { label });
-    return res.data.data;
+  createWasteReason(label: string): Promise<WasteReason> {
+    return inventoryApi.createWasteReason(label);
   },
-
-  async logWaste(itemId: string, input: { quantity: number; wasteReasonId: string; notes?: string }): Promise<void> {
-    await apiClient.post(`/inventory/items/${itemId}/waste`, input);
+  logWaste(itemId: string, input: { quantity: number; wasteReasonId: string; notes?: string }): Promise<void> {
+    return inventoryApi.logWaste(itemId, input);
   },
 };

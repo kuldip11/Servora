@@ -49,7 +49,7 @@ export const categoryRepository = {
               ? or(eq(menuItems.branchId, branchId), isNull(menuItems.branchId))
               : undefined,
           ),
-          orderBy: (t: any, { asc }: any) => [asc(t.sortOrder)],
+          orderBy: (t, { asc }) => [asc(t.sortOrder)],
           with: ITEM_DETAIL_RELATIONS,
         },
       },

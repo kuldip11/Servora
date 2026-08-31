@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, Page, PageHeader, Spinner } from "@pos/ui";
+import { createAnalyticsApi } from "@pos/api-client";
 import { apiClient, extractApiError } from "../../../shared/lib/api-client";
+
+const analyticsApi = createAnalyticsApi(apiClient);
 import { formatCurrency } from "../../../shared/utils/format";
 
 type EngineeringQuadrant = "STAR" | "PUZZLE" | "PLOWHORSE" | "DOG";
@@ -31,8 +34,7 @@ export function MenuEngineeringPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await apiClient.get("/analytics/menu-engineering", { params: { windowDays: Number(days) } });
-      setRows(response.data.data as EngineeringRow[]);
+      setRows(await analyticsApi.menuEngineering<EngineeringRow[]>(Number(days)));
     } catch (reason) {
       setError(extractApiError(reason));
     } finally {

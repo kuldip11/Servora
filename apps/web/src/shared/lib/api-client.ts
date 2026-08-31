@@ -8,9 +8,8 @@ import { queryClient } from "./query-client";
 
 const webStorageAdapter: TokenStorageAdapter = {
   getAccessToken: () => useAuthStore.getState().accessToken,
-  getRefreshToken: () => useAuthStore.getState().refreshToken,
-  setTokens: (accessToken, refreshToken) =>
-    useAuthStore.getState().setTokens(accessToken, refreshToken),
+  setAccessToken: (accessToken) =>
+    useAuthStore.getState().setAccessToken(accessToken),
   clear: () => {
     useAuthStore.getState().logout();
     queryClient.clear();

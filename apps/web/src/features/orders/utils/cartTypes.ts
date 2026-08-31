@@ -1,6 +1,6 @@
 // Shared between CreateOrderModal and AddItemsModal — both need the same
 // "pick an item, optionally customise it, add to cart" flow that the waiter
-// app already has (see ItemCustomiser.tsx there). This used to be missing
+// app already has (see ItemCustomiser.tsx there). This keeps
 // entirely from the web app: clicking an item just added it at base price
 // with no variant/modifier picker at all.
 

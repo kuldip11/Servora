@@ -43,6 +43,7 @@ export function createApiClient(config: ApiClientConfig): AxiosInstance {
     baseURL,
     headers: { "Content-Type": "application/json" },
     timeout,
+    withCredentials: true,
   };
 
   const apiClient = axios.create(clientConfig);
@@ -107,17 +108,10 @@ export function createApiClient(config: ApiClientConfig): AxiosInstance {
 
       original._retry = true;
       isRefreshing = true;
-      const refreshToken = storage.getRefreshToken();
-
-      if (!refreshToken) {
-        isRefreshing = false;
-        onRefreshFailure();
-        return Promise.reject(error);
-      }
       try {
-        const res = await refreshClient.post("/auth/refresh", { refreshToken });
-        const { accessToken, refreshToken: newRefreshToken } = res.data.data;
-        storage.setTokens(accessToken, newRefreshToken);
+        const res = await refreshClient.post("/auth/refresh");
+        const { accessToken } = res.data.data;
+        storage.setAccessToken(accessToken);
         processQueue(null, accessToken);
         original.headers["Authorization"] = `Bearer ${accessToken}`;
         return apiClient(original);

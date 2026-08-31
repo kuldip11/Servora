@@ -8,7 +8,7 @@ import { CELL_PADDING, type TableDensity } from "./shared";
  * need (`Table`'s `loading` prop renders `SkeletonTable` internally —
  * see `Table.tsx` — rather than duplicating this row markup there).
  *
- * Phase 8 (Motion System) replaced the plain `animate-pulse` this used to
+ * Motion contract replaces plain `animate-pulse` to
  * carry with a real shimmer-sweep: a `before:` pseudo-element (a
  * semi-transparent gradient band) translated across the placeholder via
  * the `shimmer` keyframe defined in `tailwind-preset.js`. `overflow-hidden`

@@ -3,12 +3,10 @@ import { STORAGE_KEYS } from "../constants/storage-keys";
 
 const waiterStorageAdapter: TokenStorageAdapter = {
   getAccessToken: () => localStorage.getItem(STORAGE_KEYS.token),
-  getRefreshToken: () => localStorage.getItem(STORAGE_KEYS.refresh),
   getTenantId: () => localStorage.getItem(STORAGE_KEYS.tenant),
   getBranchId: () => localStorage.getItem(STORAGE_KEYS.branch),
-  setTokens: (accessToken, refreshToken) => {
+  setAccessToken: (accessToken) => {
     localStorage.setItem(STORAGE_KEYS.token, accessToken);
-    localStorage.setItem(STORAGE_KEYS.refresh, refreshToken);
   },
   clear: () =>
     Object.values(STORAGE_KEYS).forEach((k) => localStorage.removeItem(k)),

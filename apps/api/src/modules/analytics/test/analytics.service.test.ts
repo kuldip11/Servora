@@ -39,9 +39,9 @@ vi.mock("../analytics.repository", () => ({
   },
 }));
 
-const { computeRecipeCost } = vi.hoisted(() => ({ computeRecipeCost: vi.fn() }));
+const { computeRecipeCosts } = vi.hoisted(() => ({ computeRecipeCosts: vi.fn() }));
 vi.mock("../../inventory/inventory.service", () => ({
-  inventoryService: { computeRecipeCost },
+  inventoryService: { computeRecipeCosts },
 }));
 
 const { price } = vi.hoisted(() => ({ price: vi.fn() }));
@@ -129,16 +129,19 @@ describe("analytics service", () => {
       basePrice: "999.00",
       variants: [{ id: "v1", name: "Large" }],
     }]);
-    computeRecipeCost.mockResolvedValueOnce(40).mockResolvedValueOnce(55);
-    price
-      .mockResolvedValueOnce({ lines: [{ unitPrice: 100 }] })
-      .mockResolvedValueOnce({ lines: [{ unitPrice: 140 }] });
+    computeRecipeCosts.mockResolvedValue([40, 55]);
+    price.mockResolvedValue({ lines: [{ unitPrice: 100 }, { unitPrice: 140 }] });
 
     const result = await analyticsService.getCostMarginReport(auth(), "c1");
 
     expect(findCostReportItems).toHaveBeenCalledWith("t1", "b1", "c1");
-    expect(price).toHaveBeenNthCalledWith(
-      1,
+    expect(computeRecipeCosts).toHaveBeenCalledTimes(1);
+    expect(computeRecipeCosts).toHaveBeenCalledWith("t1", "b1", [
+      { menuItemId: "m1", quantity: 1 },
+      { menuItemId: "m1", variantId: "v1", quantity: 1 },
+    ]);
+    expect(price).toHaveBeenCalledTimes(1);
+    expect(price).toHaveBeenCalledWith(
       expect.objectContaining({
         tenantId: "t1",
         branchId: "b1",
@@ -148,15 +151,10 @@ describe("analytics service", () => {
         allowUnavailable: true,
         allowIncompleteModifierSelection: true,
       }),
-      [{ menuItemId: "m1", quantity: 1 }],
-    );
-    expect(price).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({
-        tenantId: "t1", branchId: "b1", allowUnavailable: true,
-        allowIncompleteModifierSelection: true,
-      }),
-      [{ menuItemId: "m1", variantId: "v1", quantity: 1 }],
+      [
+        { menuItemId: "m1", quantity: 1 },
+        { menuItemId: "m1", variantId: "v1", quantity: 1 },
+      ],
     );
     expect(result).toEqual([
       expect.objectContaining({ variantId: "v1", price: 140, cost: 55, margin: 85, marginPercent: 60.71 }),

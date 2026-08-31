@@ -1,6 +1,6 @@
 /**
  * Menu item service — orchestrates `item.repository.ts` and applies the
- * business rules that used to live inline in the controller: branch
+ * item business rules: branch
  * resolution on create, price-to-string conversion for Drizzle's numeric
  * columns, splitting tag/allergen/modifier-group/image links out of the
  * main item patch, and the publish/unpublish role restriction.
