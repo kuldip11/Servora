@@ -7,14 +7,7 @@ import { useMenuTags } from "../hooks/useMenuTags";
 import { useAddMenuTag } from "../hooks/useAddMenuTag";
 import { useDeleteMenuTag } from "../hooks/useDeleteMenuTag";
 
-const COLORS = [
-  "#8b5cf6",
-  "#f59e0b",
-  "#10b981",
-  "#ef4444",
-  "#3b82f6",
-  "#ec4899",
-];
+import { TAG_COLORS } from "../constants";
 
 export function TagsSection() {
   const {
@@ -26,7 +19,7 @@ export function TagsSection() {
     formState: { errors },
   } = useForm<CreateMenuTagInput>({
     resolver: zodResolver(createMenuTagSchema),
-    defaultValues: { name: "", color: COLORS[0] ?? "#8b5cf6" },
+    defaultValues: { name: "", color: TAG_COLORS[0] ?? "#8b5cf6" },
   });
   const color = watch("color");
 
@@ -86,7 +79,7 @@ export function TagsSection() {
           {...register("name")}
         />
         <div className="flex gap-1 pb-2.5">
-          {COLORS.map((c) => (
+          {TAG_COLORS.map((c) => (
             <button
               type="button"
               key={c}

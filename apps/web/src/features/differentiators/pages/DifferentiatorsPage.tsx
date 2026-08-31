@@ -44,8 +44,7 @@ type AvailabilityRow = {
 type MenuChoice = { id: string; name: string; categoryName: string };
 type ComboSlotDraft = { id: number; name: string; menuItemId: string; upcharge: string };
 
-const selectClass = "rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-primary";
-const inputClass = "rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-primary";
+import { DIFFERENTIATORS_INPUT_CLASS, DIFFERENTIATORS_SELECT_CLASS } from "../constants";
 
 export function DifferentiatorsPage() {
   const [tab, setTab] = useState<Tab>("availability");
@@ -329,14 +328,14 @@ export function DifferentiatorsPage() {
           </div>
           <div className="mt-4 grid gap-3 md:grid-cols-3">
             <label className="text-sm font-medium text-text-primary">Channel
-              <select className={`mt-1 w-full ${selectClass}`} value={availabilityChannel} onChange={(event) => setAvailabilityChannel(event.target.value)}>
+              <select className={`mt-1 w-full ${DIFFERENTIATORS_SELECT_CLASS}`} value={availabilityChannel} onChange={(event) => setAvailabilityChannel(event.target.value)}>
                 <option value="UNSCOPED">All channels</option>
                 <option value="STAFF">Staff</option>
                 <option value="CUSTOMER_QR">Customer QR</option>
               </select>
             </label>
             <label className="text-sm font-medium text-text-primary">Fulfillment
-              <select className={`mt-1 w-full ${selectClass}`} value={availabilityFulfillment} onChange={(event) => setAvailabilityFulfillment(event.target.value)}>
+              <select className={`mt-1 w-full ${DIFFERENTIATORS_SELECT_CLASS}`} value={availabilityFulfillment} onChange={(event) => setAvailabilityFulfillment(event.target.value)}>
                 <option value="UNSCOPED">All fulfillment types</option>
                 <option value="DINE_IN">Dine in</option>
                 <option value="TAKEAWAY">Takeaway</option>
@@ -345,7 +344,7 @@ export function DifferentiatorsPage() {
               </select>
             </label>
             <label className="text-sm font-medium text-text-primary">Cause
-              <select className={`mt-1 w-full ${selectClass}`} value={availabilityCause} onChange={(event) => setAvailabilityCause(event.target.value)}>
+              <select className={`mt-1 w-full ${DIFFERENTIATORS_SELECT_CLASS}`} value={availabilityCause} onChange={(event) => setAvailabilityCause(event.target.value)}>
                 <option value="">All causes</option>
                 <option value="MANUAL_OVERRIDE">Manual override</option>
                 <option value="MANUAL_COUNT">Manual count</option>
@@ -382,17 +381,17 @@ export function DifferentiatorsPage() {
           <Card>
             <div className="grid gap-3 md:grid-cols-3">
               <label className="text-sm font-medium text-text-primary">Analysis window
-                <select className={`mt-1 w-full ${selectClass}`} value={windowDays} onChange={(event) => { setWindowDays(event.target.value); void loadEngineering(event.target.value); }}>
+                <select className={`mt-1 w-full ${DIFFERENTIATORS_SELECT_CLASS}`} value={windowDays} onChange={(event) => { setWindowDays(event.target.value); void loadEngineering(event.target.value); }}>
                   <option value="30">Last 30 days</option><option value="60">Last 60 days</option><option value="90">Last 90 days</option><option value="180">Last 180 days</option><option value="365">Last 365 days</option>
                 </select>
               </label>
               <label className="text-sm font-medium text-text-primary">Quadrant
-                <select className={`mt-1 w-full ${selectClass}`} value={quadrantFilter} onChange={(event) => setQuadrantFilter(event.target.value as "ALL" | EngineeringQuadrant)}>
+                <select className={`mt-1 w-full ${DIFFERENTIATORS_SELECT_CLASS}`} value={quadrantFilter} onChange={(event) => setQuadrantFilter(event.target.value as "ALL" | EngineeringQuadrant)}>
                   <option value="ALL">All quadrants</option><option value="STAR">Stars</option><option value="PUZZLE">Puzzles</option><option value="PLOWHORSE">Plowhorses</option><option value="DOG">Dogs</option>
                 </select>
               </label>
               <label className="text-sm font-medium text-text-primary">Sort by
-                <select className={`mt-1 w-full ${selectClass}`} value={engineeringSort} onChange={(event) => setEngineeringSort(event.target.value as EngineeringSort)}>
+                <select className={`mt-1 w-full ${DIFFERENTIATORS_SELECT_CLASS}`} value={engineeringSort} onChange={(event) => setEngineeringSort(event.target.value as EngineeringSort)}>
                   <option value="volume">Sales volume</option><option value="margin">Margin</option><option value="name">Name</option>
                 </select>
               </label>
@@ -415,7 +414,7 @@ export function DifferentiatorsPage() {
           <h2 className="font-semibold">Reconstruct an order</h2>
           <p className="mt-1 text-sm text-text-secondary">Uses the order's immutable resolution timestamp and fire-time resolver snapshots.</p>
           <div className="mt-3 flex gap-2">
-            <input className={`min-w-0 flex-1 ${inputClass}`} value={orderId} onChange={(event) => setOrderId(event.target.value)} placeholder="Order UUID" />
+            <input className={`min-w-0 flex-1 ${DIFFERENTIATORS_INPUT_CLASS}`} value={orderId} onChange={(event) => setOrderId(event.target.value)} placeholder="Order UUID" />
             <Button loading={busy} disabled={!orderId.trim()} onClick={explainOrder}>Explain</Button>
           </div>
           {explain && <pre className="mt-4 max-h-[32rem] overflow-auto rounded-lg bg-surface-secondary p-4 text-xs">{JSON.stringify(explain, null, 2)}</pre>}
@@ -433,16 +432,16 @@ export function DifferentiatorsPage() {
               <p className="mt-1 text-sm text-text-secondary">Step 1: name the offer. Step 2: choose real menu items by name. Step 3: preview through the same server pricing stages used by order creation.</p>
               <div className="mt-4 space-y-4">
                 <div className="grid gap-3 md:grid-cols-3">
-                  <label className="text-sm font-medium text-text-primary">Combo name<input className={`mt-1 w-full ${inputClass}`} value={comboName} onChange={(event) => { setComboName(event.target.value); setPreview(null); }} placeholder="Lunch combo" /></label>
-                  <label className="text-sm font-medium text-text-primary">Pricing<select className={`mt-1 w-full ${selectClass}`} value={comboPolicy} onChange={(event) => { setComboPolicy(event.target.value as ComboPolicy); setPreview(null); }}><option value="FIXED">Fixed total</option><option value="PERCENT_OFF_SUM">Percent off components</option></select></label>
-                  <label className="text-sm font-medium text-text-primary">{comboPolicy === "FIXED" ? "Fixed price" : "Percent off"}<input className={`mt-1 w-full ${inputClass}`} type="number" min="0" max={comboPolicy === "PERCENT_OFF_SUM" ? "100" : undefined} step="0.01" value={comboValue} onChange={(event) => { setComboValue(event.target.value); setPreview(null); }} /></label>
+                  <label className="text-sm font-medium text-text-primary">Combo name<input className={`mt-1 w-full ${DIFFERENTIATORS_INPUT_CLASS}`} value={comboName} onChange={(event) => { setComboName(event.target.value); setPreview(null); }} placeholder="Lunch combo" /></label>
+                  <label className="text-sm font-medium text-text-primary">Pricing<select className={`mt-1 w-full ${DIFFERENTIATORS_SELECT_CLASS}`} value={comboPolicy} onChange={(event) => { setComboPolicy(event.target.value as ComboPolicy); setPreview(null); }}><option value="FIXED">Fixed total</option><option value="PERCENT_OFF_SUM">Percent off components</option></select></label>
+                  <label className="text-sm font-medium text-text-primary">{comboPolicy === "FIXED" ? "Fixed price" : "Percent off"}<input className={`mt-1 w-full ${DIFFERENTIATORS_INPUT_CLASS}`} type="number" min="0" max={comboPolicy === "PERCENT_OFF_SUM" ? "100" : undefined} step="0.01" value={comboValue} onChange={(event) => { setComboValue(event.target.value); setPreview(null); }} /></label>
                 </div>
                 <div className="space-y-3">
                   {comboSlots.map((slot, index) => (
                     <div key={slot.id} className="grid gap-2 rounded-lg border border-border p-3 md:grid-cols-[1fr_2fr_1fr_auto] md:items-end">
-                      <label className="text-sm font-medium text-text-primary">Slot {index + 1}<input className={`mt-1 w-full ${inputClass}`} value={slot.name} onChange={(event) => { setComboSlots((current) => current.map((value) => value.id === slot.id ? { ...value, name: event.target.value } : value)); setPreview(null); }} /></label>
-                      <label className="text-sm font-medium text-text-primary">Menu item<select className={`mt-1 w-full ${selectClass}`} value={slot.menuItemId} onChange={(event) => { setComboSlots((current) => current.map((value) => value.id === slot.id ? { ...value, menuItemId: event.target.value } : value)); setPreview(null); }}><option value="">Choose an item</option>{menuChoices.map((choice) => <option key={choice.id} value={choice.id}>{choice.categoryName} — {choice.name}</option>)}</select></label>
-                      <label className="text-sm font-medium text-text-primary">Upcharge<input className={`mt-1 w-full ${inputClass}`} type="number" step="0.01" value={slot.upcharge} onChange={(event) => { setComboSlots((current) => current.map((value) => value.id === slot.id ? { ...value, upcharge: event.target.value } : value)); setPreview(null); }} /></label>
+                      <label className="text-sm font-medium text-text-primary">Slot {index + 1}<input className={`mt-1 w-full ${DIFFERENTIATORS_INPUT_CLASS}`} value={slot.name} onChange={(event) => { setComboSlots((current) => current.map((value) => value.id === slot.id ? { ...value, name: event.target.value } : value)); setPreview(null); }} /></label>
+                      <label className="text-sm font-medium text-text-primary">Menu item<select className={`mt-1 w-full ${DIFFERENTIATORS_SELECT_CLASS}`} value={slot.menuItemId} onChange={(event) => { setComboSlots((current) => current.map((value) => value.id === slot.id ? { ...value, menuItemId: event.target.value } : value)); setPreview(null); }}><option value="">Choose an item</option>{menuChoices.map((choice) => <option key={choice.id} value={choice.id}>{choice.categoryName} — {choice.name}</option>)}</select></label>
+                      <label className="text-sm font-medium text-text-primary">Upcharge<input className={`mt-1 w-full ${DIFFERENTIATORS_INPUT_CLASS}`} type="number" step="0.01" value={slot.upcharge} onChange={(event) => { setComboSlots((current) => current.map((value) => value.id === slot.id ? { ...value, upcharge: event.target.value } : value)); setPreview(null); }} /></label>
                       <Button variant="secondary" disabled={comboSlots.length === 1} onClick={() => { setComboSlots((current) => current.filter((value) => value.id !== slot.id)); setPreview(null); }}>Remove</Button>
                     </div>
                   ))}
@@ -456,11 +455,11 @@ export function DifferentiatorsPage() {
               <h2 className="font-semibold">Guided promotion builder</h2>
               <p className="mt-1 text-sm text-text-secondary">Common order-level promotions are created here; advanced item/category/BOGO targeting remains in the full promotion editor.</p>
               <div className="mt-4 grid gap-3 md:grid-cols-2">
-                <label className="text-sm font-medium text-text-primary">Promotion name<input className={`mt-1 w-full ${inputClass}`} value={promotionName} onChange={(event) => { setPromotionName(event.target.value); setPromotionPreview(null); }} placeholder="Weekday special" /></label>
-                <label className="text-sm font-medium text-text-primary">Discount type<select className={`mt-1 w-full ${selectClass}`} value={promotionType} onChange={(event) => { setPromotionType(event.target.value as PromotionType); setPromotionPreview(null); }}><option value="PERCENTAGE">Percentage</option><option value="FIXED_AMOUNT">Fixed amount</option></select></label>
-                <label className="text-sm font-medium text-text-primary">{promotionType === "PERCENTAGE" ? "Percent off" : "Amount off"}<input className={`mt-1 w-full ${inputClass}`} type="number" min="0.01" max={promotionType === "PERCENTAGE" ? "100" : undefined} step="0.01" value={promotionValue} onChange={(event) => { setPromotionValue(event.target.value); setPromotionPreview(null); }} /></label>
-                <label className="text-sm font-medium text-text-primary">Coupon code (optional)<input className={`mt-1 w-full ${inputClass}`} value={promotionCoupon} onChange={(event) => { setPromotionCoupon(event.target.value.toUpperCase()); setPromotionPreview(null); }} placeholder="LUNCH10" /></label>
-                <label className="text-sm font-medium text-text-primary md:col-span-2">Preview against menu item<select className={`mt-1 w-full ${selectClass}`} value={promotionPreviewItemId} onChange={(event) => { setPromotionPreviewItemId(event.target.value); setPromotionPreview(null); }}><option value="">Choose an item</option>{menuChoices.map((choice) => <option key={choice.id} value={choice.id}>{choice.categoryName} — {choice.name}</option>)}</select></label>
+                <label className="text-sm font-medium text-text-primary">Promotion name<input className={`mt-1 w-full ${DIFFERENTIATORS_INPUT_CLASS}`} value={promotionName} onChange={(event) => { setPromotionName(event.target.value); setPromotionPreview(null); }} placeholder="Weekday special" /></label>
+                <label className="text-sm font-medium text-text-primary">Discount type<select className={`mt-1 w-full ${DIFFERENTIATORS_SELECT_CLASS}`} value={promotionType} onChange={(event) => { setPromotionType(event.target.value as PromotionType); setPromotionPreview(null); }}><option value="PERCENTAGE">Percentage</option><option value="FIXED_AMOUNT">Fixed amount</option></select></label>
+                <label className="text-sm font-medium text-text-primary">{promotionType === "PERCENTAGE" ? "Percent off" : "Amount off"}<input className={`mt-1 w-full ${DIFFERENTIATORS_INPUT_CLASS}`} type="number" min="0.01" max={promotionType === "PERCENTAGE" ? "100" : undefined} step="0.01" value={promotionValue} onChange={(event) => { setPromotionValue(event.target.value); setPromotionPreview(null); }} /></label>
+                <label className="text-sm font-medium text-text-primary">Coupon code (optional)<input className={`mt-1 w-full ${DIFFERENTIATORS_INPUT_CLASS}`} value={promotionCoupon} onChange={(event) => { setPromotionCoupon(event.target.value.toUpperCase()); setPromotionPreview(null); }} placeholder="LUNCH10" /></label>
+                <label className="text-sm font-medium text-text-primary md:col-span-2">Preview against menu item<select className={`mt-1 w-full ${DIFFERENTIATORS_SELECT_CLASS}`} value={promotionPreviewItemId} onChange={(event) => { setPromotionPreviewItemId(event.target.value); setPromotionPreview(null); }}><option value="">Choose an item</option>{menuChoices.map((choice) => <option key={choice.id} value={choice.id}>{choice.categoryName} — {choice.name}</option>)}</select></label>
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <Button variant="secondary" loading={busy} disabled={!promotionReady} onClick={previewPromotion}>Preview authoritative discount</Button>
@@ -477,9 +476,9 @@ export function DifferentiatorsPage() {
           <h2 className="font-semibold">Manager approval threshold</h2>
           <p className="mt-1 text-sm text-text-secondary">Void/comp actions above the configured amount require a short-lived, single-use approval from the selected role.</p>
           <div className="mt-4 grid gap-3 md:grid-cols-4 md:items-end">
-            <label className="text-sm font-medium text-text-primary">Action<select className={`mt-1 w-full ${selectClass}`} value={action} onChange={(event) => setAction(event.target.value as "VOID" | "COMP")}><option value="COMP">Comp</option><option value="VOID">Void</option></select></label>
-            <label className="text-sm font-medium text-text-primary">Threshold amount<input className={`mt-1 w-full ${inputClass}`} type="number" min="0" step="0.01" value={threshold} onChange={(event) => setThreshold(event.target.value)} /></label>
-            <label className="text-sm font-medium text-text-primary">Required role<input className={`mt-1 w-full ${inputClass}`} value={requiresRole} onChange={(event) => setRequiresRole(event.target.value)} placeholder="Manager" /></label>
+            <label className="text-sm font-medium text-text-primary">Action<select className={`mt-1 w-full ${DIFFERENTIATORS_SELECT_CLASS}`} value={action} onChange={(event) => setAction(event.target.value as "VOID" | "COMP")}><option value="COMP">Comp</option><option value="VOID">Void</option></select></label>
+            <label className="text-sm font-medium text-text-primary">Threshold amount<input className={`mt-1 w-full ${DIFFERENTIATORS_INPUT_CLASS}`} type="number" min="0" step="0.01" value={threshold} onChange={(event) => setThreshold(event.target.value)} /></label>
+            <label className="text-sm font-medium text-text-primary">Required role<input className={`mt-1 w-full ${DIFFERENTIATORS_INPUT_CLASS}`} value={requiresRole} onChange={(event) => setRequiresRole(event.target.value)} placeholder="Manager" /></label>
             <Button loading={busy} disabled={!requiresRole.trim() || Number(threshold) < 0} onClick={saveThreshold}>Save threshold</Button>
           </div>
         </Card>

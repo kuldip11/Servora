@@ -43,15 +43,7 @@ export interface ValidatedRow {
   };
 }
 
-const FOOD_TYPES = new Set(["VEG", "NON_VEG", "EGG"]);
-const SPICE_LEVELS = new Set(["NONE", "MILD", "MEDIUM", "HOT"]);
-const STATUSES = new Set([
-  "ACTIVE",
-  "OUT_OF_STOCK",
-  "HIDDEN",
-  "SEASONAL",
-  "DISCONTINUED",
-]);
+import { MENU_IMPORT_FOOD_TYPES, MENU_IMPORT_SPICE_LEVELS, MENU_IMPORT_STATUSES } from "./constants";
 
 export function parseFile(
   buffer: ArrayBuffer,
@@ -160,31 +152,31 @@ export function validateRows(
     const foodType = String(raw.foodType ?? "VEG")
       .trim()
       .toUpperCase();
-    if (!FOOD_TYPES.has(foodType))
+    if (!MENU_IMPORT_FOOD_TYPES.has(foodType))
       rowErrors.push({
         row: rowNum,
         field: "foodType",
-        message: `foodType must be one of ${[...FOOD_TYPES].join(", ")}`,
+        message: `foodType must be one of ${[...MENU_IMPORT_FOOD_TYPES].join(", ")}`,
       });
 
     const spiceLevelRaw =
       raw.spiceLevel != null ? String(raw.spiceLevel).trim().toUpperCase() : "";
-    if (spiceLevelRaw && !SPICE_LEVELS.has(spiceLevelRaw)) {
+    if (spiceLevelRaw && !MENU_IMPORT_SPICE_LEVELS.has(spiceLevelRaw)) {
       rowErrors.push({
         row: rowNum,
         field: "spiceLevel",
-        message: `spiceLevel must be one of ${[...SPICE_LEVELS].join(", ")}`,
+        message: `spiceLevel must be one of ${[...MENU_IMPORT_SPICE_LEVELS].join(", ")}`,
       });
     }
 
     const status = raw.status
       ? String(raw.status).trim().toUpperCase()
       : "ACTIVE";
-    if (!STATUSES.has(status))
+    if (!MENU_IMPORT_STATUSES.has(status))
       rowErrors.push({
         row: rowNum,
         field: "status",
-        message: `status must be one of ${[...STATUSES].join(", ")}`,
+        message: `status must be one of ${[...MENU_IMPORT_STATUSES].join(", ")}`,
       });
 
     const skuRaw = raw.sku != null ? String(raw.sku).trim() : "";

@@ -19,10 +19,10 @@ type PersistedCartLine = {
   fulfillmentType: "DINE_IN" | "TAKEAWAY";
 };
 
-const PREFIX = "servora:customer";
+import { CART_STORAGE_PREFIX } from "./constants";
 
 function key(scope: string, name: string) {
-  return `${PREFIX}:${scope}:${name}`;
+  return `${CART_STORAGE_PREFIX}:${scope}:${name}`;
 }
 
 function read<T>(storageKey: string): T | null {

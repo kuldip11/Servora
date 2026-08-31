@@ -37,20 +37,7 @@ import { useInventoryRecipeImpact } from "../hooks/useInventoryRecipeImpact";
 import { useCreateWasteReason, useLogInventoryWaste } from "../hooks/useLogInventoryWaste";
 import type { InventoryItem } from "@pos/types";
 
-const UNIT_OPTIONS = [
-  { value: "KG", label: "Kilograms (KG)" },
-  { value: "GRAMS", label: "Grams (g)" },
-  { value: "LITERS", label: "Liters (L)" },
-  { value: "ML", label: "Milliliters (ml)" },
-  { value: "PIECES", label: "Pieces" },
-  { value: "PACKETS", label: "Packets" },
-];
-
-const TRANSACTION_OPTIONS = [
-  { value: "IN", label: "Stock In" },
-  { value: "OUT", label: "Stock Out" },
-  { value: "ADJUSTMENT", label: "Adjustment" },
-];
+import { INVENTORY_TRANSACTION_OPTIONS, INVENTORY_UNIT_OPTIONS } from "../constants";
 
 export function InventoryPage() {
   const { has } = usePermissions();
@@ -326,7 +313,7 @@ export function InventoryPage() {
           />
           <Select
             label="Unit"
-            options={UNIT_OPTIONS}
+            options={INVENTORY_UNIT_OPTIONS}
             error={addErrors.unit?.message}
             {...registerAdd("unit")}
           />
@@ -404,7 +391,7 @@ export function InventoryPage() {
         >
           <Select
             label="Transaction Type"
-            options={TRANSACTION_OPTIONS}
+            options={INVENTORY_TRANSACTION_OPTIONS}
             error={stockErrors.transactionType?.message}
             {...registerStock("transactionType")}
           />

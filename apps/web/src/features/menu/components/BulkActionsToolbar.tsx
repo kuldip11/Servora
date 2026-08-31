@@ -8,7 +8,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Button, Modal, Select, Input } from "@pos/ui";
-import { STATUS_OPTIONS } from "./StatusBadge";
+import { MENU_ITEM_STATUS_OPTIONS } from "../constants";
 import { useBulkSetStatus } from "../hooks/useBulkSetStatus";
 import { useBulkMoveCategory } from "../hooks/useBulkMoveCategory";
 import { useBulkUpdateTags } from "../hooks/useBulkUpdateTags";
@@ -133,7 +133,7 @@ export function BulkActionsToolbar({
           <Select
             label="New status"
             value={status}
-            options={STATUS_OPTIONS}
+            options={MENU_ITEM_STATUS_OPTIONS}
             onChange={(e) => setStatus(e.target.value as MenuItemStatus)}
           />
           <Input

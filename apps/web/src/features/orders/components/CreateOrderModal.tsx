@@ -24,24 +24,7 @@ interface ActiveMenuSummary {
   memberships: Array<{ menuItemId: string }>;
 }
 
-const ALL_ORDER_TYPES = [
-  {
-    value: "DINE_IN",
-    label: "Dine In",
-    capabilityKey: "dineInEnabled" as const,
-  },
-  {
-    value: "TAKEAWAY",
-    label: "Takeaway",
-    capabilityKey: "takeawayEnabled" as const,
-  },
-  {
-    value: "DELIVERY",
-    label: "Delivery",
-    capabilityKey: "deliveryEnabled" as const,
-  },
-  { value: "ONLINE", label: "Online", capabilityKey: "onlineEnabled" as const },
-];
+import { ALL_ORDER_TYPES } from "../constants";
 
 export function CreateOrderModal({ onClose }: { onClose: () => void }) {
   const [orderType, setOrderType] = useState("DINE_IN");

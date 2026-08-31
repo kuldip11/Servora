@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { CustomerOrder } from "../../api";
 
-const MAX_RECONNECT_DELAY = 30_000;
-const INITIAL_RECONNECT_DELAY = 1_000;
+import { CUSTOMER_ORDER_INITIAL_RECONNECT_DELAY_MS, CUSTOMER_ORDER_MAX_RECONNECT_DELAY_MS } from "./constants";
 
 export function useCustomerOrderRealtime(
   sessionToken: string | undefined,
@@ -43,8 +42,8 @@ export function useCustomerOrderRealtime(
     const scheduleReconnect = () => {
       if (stopped || reconnectTimer.current !== undefined) return;
       const delay = Math.min(
-        INITIAL_RECONNECT_DELAY * 2 ** reconnectAttempt.current,
-        MAX_RECONNECT_DELAY,
+        CUSTOMER_ORDER_INITIAL_RECONNECT_DELAY_MS * 2 ** reconnectAttempt.current,
+        CUSTOMER_ORDER_MAX_RECONNECT_DELAY_MS,
       );
       reconnectAttempt.current += 1;
       reconnectTimer.current = window.setTimeout(() => {

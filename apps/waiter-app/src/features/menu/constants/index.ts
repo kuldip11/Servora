@@ -30,3 +30,5 @@ export const FOOD_TYPE_FILTERS = [
   { value: "NON_VEG" as const, label: "Non-Veg" },
   { value: "EGG" as const, label: "Egg" },
 ];
+
+export const COURSE_OPTIONS = [1, 2, 3, 4, 5] as const;

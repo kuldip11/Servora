@@ -10,7 +10,7 @@ import {
   users,
 } from "../../db/schema";
 
-const STAFF_LIST_COLUMNS = { passwordHash: false } as const;
+import { STAFF_LIST_COLUMNS } from "./constants";
 
 export const staffRepository = {
   async findMany(

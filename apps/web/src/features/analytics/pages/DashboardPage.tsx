@@ -1,15 +1,13 @@
 import { useMemo, useState } from "react";
 import {
-  ShoppingBag,
   TrendingUp,
-  Package,
-  AlertTriangle,
   Clock,
   CheckCircle2,
-  ChefHat,
   ArrowRight,
   RefreshCw,
   CircleDollarSign,
+  ShoppingBag,
+  AlertTriangle,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
@@ -34,31 +32,7 @@ import { useCostMarginReport } from "../hooks/useCostMarginReport";
 import { useOrders } from "../../orders/hooks/useOrders";
 import { useAuthStore } from "../../../store/auth";
 
-const STATUS_TONE: Partial<
-  Record<string, "info" | "warning" | "neutral" | "danger">
-> = {
-  OPEN: "info",
-  BILL_REQUESTED: "warning",
-  CLOSED: "neutral",
-  CANCELLED: "danger",
-};
-
-const QUICK_ACTIONS = [
-  { label: "New Order", icon: ShoppingBag, to: "/orders" as const },
-  {
-    label: "Kitchen Queue",
-    icon: ChefHat,
-    to: "/orders" as const,
-    search: { view: "kitchen" },
-  },
-  { label: "Inventory", icon: Package, to: "/inventory" as const },
-  {
-    label: "Low Stock",
-    icon: AlertTriangle,
-    to: "/inventory" as const,
-    search: { filter: "low" },
-  },
-];
+import { ANALYTICS_STATUS_TONE, DASHBOARD_QUICK_ACTIONS } from "../constants";
 
 export function DashboardPage() {
   const branchId = useAuthStore((state) => state.branchId);
@@ -436,7 +410,7 @@ export function DashboardPage() {
           ) : (
             <div className="space-y-2">
               {activeOrders.slice(0, 5).map((order) => {
-                const tone = STATUS_TONE[order.status];
+                const tone = ANALYTICS_STATUS_TONE[order.status];
                 return (
                   <Link
                     key={order.id}
@@ -493,13 +467,13 @@ export function DashboardPage() {
             </p>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {QUICK_ACTIONS.map((action) => {
+            {DASHBOARD_QUICK_ACTIONS.map((action) => {
               const Icon = action.icon;
               return (
                 <Link
                   key={action.label}
                   to={action.to}
-                  search={action.search as never}
+                  search={("search" in action ? action.search : undefined) as never}
                   className="group flex items-center gap-3 rounded-lg border border-border p-4 transition-all duration-fast ease-standard hover:border-primary/30 hover:bg-primary-surface/30"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface-secondary text-text-secondary transition-colors group-hover:bg-primary-surface group-hover:text-primary">

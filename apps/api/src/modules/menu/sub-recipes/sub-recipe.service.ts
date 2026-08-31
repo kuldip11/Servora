@@ -7,7 +7,7 @@ import { areInventoryUnitsCompatible } from "../../inventory/inventory-units";
 import { menuChangeLog, buildDiff } from "../change-log/menu-change-log";
 import { inventoryService } from "../../inventory/inventory.service";
 
-const MAX_SUB_RECIPE_DEPTH = 3;
+import { MAX_SUB_RECIPE_DEPTH } from "./constants";
 
 async function validateSources(
   tenantId: string,

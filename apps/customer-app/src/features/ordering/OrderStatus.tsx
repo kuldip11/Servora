@@ -3,7 +3,7 @@ import { Badge, Button, Card } from "@pos/ui";
 import type { CustomerOrder, CustomerRequestType } from "../../api";
 import { formatMoney } from "../../shared/utils/money";
 
-const ticketSteps = ["FIRED", "PREPARING", "READY", "SERVED"] as const;
+import { CUSTOMER_ORDER_TICKET_STEPS } from "./constants";
 
 function statusLabel(status: string) {
   if (status === "SERVED") return "Served";
@@ -50,7 +50,7 @@ export function OrderStatus({
   const latestStatus = latestTicket?.status ?? "FIRED";
   const displayStatus =
     latestStatus === "PENDING_PAYMENT" ? "FIRED" : latestStatus;
-  const activeStep = Math.max(0, ticketSteps.indexOf(displayStatus));
+  const activeStep = Math.max(0, CUSTOMER_ORDER_TICKET_STEPS.indexOf(displayStatus));
   const terminal =
     order.status === "PAID" ||
     order.status === "CLOSED" ||
@@ -121,7 +121,7 @@ export function OrderStatus({
                 className="mt-6 grid grid-cols-4 gap-2"
                 aria-label={`Latest kitchen status: ${statusLabel(latestStatus)}`}
               >
-                {ticketSteps.map((step, index) => (
+                {CUSTOMER_ORDER_TICKET_STEPS.map((step, index) => (
                   <div key={step} className="text-center">
                     <div
                       className={`mx-auto flex h-9 w-9 items-center justify-center rounded-full ${index <= activeStep ? "bg-primary text-primary-foreground" : "bg-surface-secondary text-text-secondary"}`}

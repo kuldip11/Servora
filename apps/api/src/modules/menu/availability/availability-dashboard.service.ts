@@ -22,22 +22,14 @@ type DashboardFilters = {
   cause?: string;
 };
 
-const DAY_NAMES = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-] as const;
+import { AVAILABILITY_DAY_NAMES } from "./constants";
 
 function describeSchedule(schedule: Schedule): string {
   switch (schedule.scheduleType) {
     case "DAILY":
       return `Daily window ${schedule.startTime}–${schedule.endTime}`;
     case "WEEKLY":
-      return `${DAY_NAMES[schedule.dayOfWeek ?? 0]} ${schedule.startTime}–${schedule.endTime}`;
+      return `${AVAILABILITY_DAY_NAMES[schedule.dayOfWeek ?? 0]} ${schedule.startTime}–${schedule.endTime}`;
     case "SPECIFIC_DATE":
       return `Scheduled ${schedule.startDate}${schedule.endDate && schedule.endDate !== schedule.startDate ? ` – ${schedule.endDate}` : ""}`;
     case "HOLIDAY":

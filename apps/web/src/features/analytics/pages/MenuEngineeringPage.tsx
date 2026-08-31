@@ -20,7 +20,7 @@ type EngineeringRow = {
   recommendation: string;
 };
 
-const selectClass = "rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-primary";
+import { ANALYTICS_SELECT_CLASS } from "../constants";
 
 export function MenuEngineeringPage() {
   const [windowDays, setWindowDays] = useState("90");
@@ -66,9 +66,9 @@ export function MenuEngineeringPage() {
 
       <Card>
         <div className="grid gap-3 md:grid-cols-4 md:items-end">
-          <label className="text-sm font-medium text-text-primary">Analysis window<select className={`mt-1 w-full ${selectClass}`} value={windowDays} onChange={(event) => setWindowDays(event.target.value)}><option value="30">30 days</option><option value="60">60 days</option><option value="90">90 days</option><option value="180">180 days</option><option value="365">365 days</option></select></label>
-          <label className="text-sm font-medium text-text-primary">Quadrant<select className={`mt-1 w-full ${selectClass}`} value={quadrant} onChange={(event) => setQuadrant(event.target.value as "ALL" | EngineeringQuadrant)}><option value="ALL">All quadrants</option><option value="STAR">Stars</option><option value="PUZZLE">Puzzles</option><option value="PLOWHORSE">Plowhorses</option><option value="DOG">Dogs</option></select></label>
-          <label className="text-sm font-medium text-text-primary">Sort by<select className={`mt-1 w-full ${selectClass}`} value={sort} onChange={(event) => setSort(event.target.value as EngineeringSort)}><option value="volume">Sales volume</option><option value="margin">Margin</option><option value="name">Name</option></select></label>
+          <label className="text-sm font-medium text-text-primary">Analysis window<select className={`mt-1 w-full ${ANALYTICS_SELECT_CLASS}`} value={windowDays} onChange={(event) => setWindowDays(event.target.value)}><option value="30">30 days</option><option value="60">60 days</option><option value="90">90 days</option><option value="180">180 days</option><option value="365">365 days</option></select></label>
+          <label className="text-sm font-medium text-text-primary">Quadrant<select className={`mt-1 w-full ${ANALYTICS_SELECT_CLASS}`} value={quadrant} onChange={(event) => setQuadrant(event.target.value as "ALL" | EngineeringQuadrant)}><option value="ALL">All quadrants</option><option value="STAR">Stars</option><option value="PUZZLE">Puzzles</option><option value="PLOWHORSE">Plowhorses</option><option value="DOG">Dogs</option></select></label>
+          <label className="text-sm font-medium text-text-primary">Sort by<select className={`mt-1 w-full ${ANALYTICS_SELECT_CLASS}`} value={sort} onChange={(event) => setSort(event.target.value as EngineeringSort)}><option value="volume">Sales volume</option><option value="margin">Margin</option><option value="name">Name</option></select></label>
           <Button variant="secondary" loading={loading} onClick={() => void load()}>Apply</Button>
         </div>
       </Card>

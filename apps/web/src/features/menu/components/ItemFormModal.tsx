@@ -5,7 +5,7 @@ import { Button, Modal, Input, Select } from "@pos/ui";
 import { ItemMediaVariantsSection } from "./forms/ItemMediaVariantsSection";
 import { ItemAssociationsSection } from "./forms/ItemAssociationsSection";
 import { FoodTypeDot } from "./FoodTypeDot";
-import { STATUS_OPTIONS } from "./StatusBadge";
+import { MENU_ITEM_STATUS_OPTIONS } from "../constants";
 import { RecipeBuilder } from "./RecipeBuilder";
 import { ScheduleManager } from "./ScheduleManager";
 import { BranchOverridesPanel } from "./BranchOverridesPanel";
@@ -411,7 +411,7 @@ export function ItemFormModal({ categoryId, item, onClose }: Props) {
             label="Status"
             error={errors.status?.message}
             {...register("status")}
-            options={STATUS_OPTIONS}
+            options={MENU_ITEM_STATUS_OPTIONS}
           />
           <Input
             label="Reason (optional)"

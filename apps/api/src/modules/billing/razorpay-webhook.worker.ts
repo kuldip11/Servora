@@ -5,7 +5,7 @@ import { paymentWebhookEvents } from "../../db/schema";
 import { razorpayWebhookService } from "./razorpay-webhook.service";
 import { metrics } from "../../core/observability/metrics";
 
-const QUEUE = "pos:queue:razorpay_webhooks";
+import { RAZORPAY_WEBHOOK_QUEUE } from "./constants";
 const queueUrl = process.env["REDIS_URL"];
 
 async function recoverDurableEvents() {
@@ -27,7 +27,7 @@ async function recoverDurableEvents() {
     enableReadyCheck: true,
   });
   try {
-    for (const event of events) await redis.lpush(QUEUE, event.eventId);
+    for (const event of events) await redis.lpush(RAZORPAY_WEBHOOK_QUEUE, event.eventId);
     await db
       .update(paymentWebhookEvents)
       .set({ nextAttemptAt: new Date(Date.now() + 30_000) })
@@ -57,7 +57,7 @@ export function startRazorpayWebhookWorker() {
   const run = async () => {
     while (!stopped) {
       try {
-        const result = await workerRedis.brpop(QUEUE, 5);
+        const result = await workerRedis.brpop(RAZORPAY_WEBHOOK_QUEUE, 5);
         if (!result) continue;
         const eventId = result[1];
         try {

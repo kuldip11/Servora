@@ -25,7 +25,7 @@ export interface AutocompleteProps {
   value: SelectOption | undefined;
   onChange: (option: SelectOption | undefined) => void;
 
-  options: SelectOption[];
+  options: readonly SelectOption[];
 
   onSearch: (query: string) => void;
   loading?: boolean | undefined;

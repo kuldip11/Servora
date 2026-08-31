@@ -38,7 +38,7 @@ export interface PromotionPreviewInput {
   items: OrderItemInput[];
 }
 
-const PREVIEW_PROMOTION_ID = "00000000-0000-4000-8000-0000000000f4";
+import { PREVIEW_PROMOTION_ID } from "./constants";
 
 function validate(input: PromotionInput) {
   if (input.ruleType === "PERCENTAGE") {

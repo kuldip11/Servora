@@ -17,8 +17,7 @@ import {
   useUpdateMenu,
 } from "../hooks/useMenus";
 
-const CHANNELS = ["STAFF", "CUSTOMER_QR"] as const;
-const FULFILLMENT_TYPES = ["DINE_IN", "TAKEAWAY", "DELIVERY", "ONLINE"] as const;
+import { FULFILLMENT_TYPES, MENU_CHANNELS } from "../constants";
 
 export function MenusSection() {
   const [name, setName] = useState("");
@@ -41,7 +40,7 @@ export function MenusSection() {
 
   function startEditing(menu: Menu) {
     setEditing(menu);
-    setChannels(menu.availableChannels ?? [...CHANNELS]);
+    setChannels(menu.availableChannels ?? [...MENU_CHANNELS]);
     setFulfillmentTypes(menu.availableFulfillmentTypes ?? [...FULFILLMENT_TYPES]);
     setBranchIds(menu.availableBranchIds ?? branches.map((branch) => branch.id));
     setEffectiveFrom(menu.effectiveFrom ? new Date(menu.effectiveFrom).toISOString().slice(0, 16) : "");
@@ -150,14 +149,14 @@ export function MenusSection() {
           updateMenu.mutate({
             id: editing.id,
             input: {
-              availableChannels: channels.length === CHANNELS.length ? null : channels as Menu["availableChannels"],
+              availableChannels: channels.length === MENU_CHANNELS.length ? null : channels as Menu["availableChannels"],
               availableFulfillmentTypes: fulfillmentTypes.length === FULFILLMENT_TYPES.length ? null : fulfillmentTypes as Menu["availableFulfillmentTypes"],
               availableBranchIds: branchIds.length === branches.length ? null : branchIds,
               effectiveFrom: effectiveFrom ? new Date(effectiveFrom).toISOString() : null,
             },
           }, { onSuccess: () => setEditing(null) });
         }}>
-          <ScopeChoices label="Ordering channels" options={CHANNELS} values={channels} onToggle={(value) => toggle(value, channels, setChannels)} />
+          <ScopeChoices label="Ordering channels" options={MENU_CHANNELS} values={channels} onToggle={(value) => toggle(value, channels, setChannels)} />
           <ScopeChoices label="Fulfillment types" options={FULFILLMENT_TYPES} values={fulfillmentTypes} onToggle={(value) => toggle(value, fulfillmentTypes, setFulfillmentTypes)} />
           <ScopeChoices label="Branches" options={branches.map((branch) => ({ value: branch.id, label: branch.name }))} values={branchIds} onToggle={(value) => toggle(value, branchIds, setBranchIds)} />
           {branchIds.length < branches.length && <p className="rounded bg-warning-surface px-3 py-2 text-xs text-warning">Branch-specific items assigned to this menu are reachable only where the item’s own branch and this menu’s selected branches overlap.</p>}

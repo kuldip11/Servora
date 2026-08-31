@@ -24,18 +24,7 @@ type DashboardResponse = {
   rows: AvailabilityRow[];
 };
 
-const CAUSES = [
-  "MANUAL_OVERRIDE",
-  "MANUAL_COUNT",
-  "CHANNEL_OVERRIDE",
-  "BRANCH_OVERRIDE",
-  "SCHEDULE",
-  "RECIPE_DRIVEN",
-  "COMPUTED_STATUS",
-  "BASE_STATUS",
-] as const;
-
-const selectClass = "rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-primary";
+import { AVAILABILITY_CAUSES, AVAILABILITY_SELECT_CLASS } from "../constants";
 
 export function AvailabilityDashboardPage() {
   const [channel, setChannel] = useState("UNSCOPED");
@@ -92,7 +81,7 @@ export function AvailabilityDashboardPage() {
         <div className="grid gap-3 md:grid-cols-4 md:items-end">
           <label className="text-sm font-medium text-text-primary">
             Channel
-            <select className={`mt-1 w-full ${selectClass}`} value={channel} onChange={(event) => setChannel(event.target.value)}>
+            <select className={`mt-1 w-full ${AVAILABILITY_SELECT_CLASS}`} value={channel} onChange={(event) => setChannel(event.target.value)}>
               <option value="UNSCOPED">All channels</option>
               <option value="STAFF">Staff</option>
               <option value="CUSTOMER_QR">Customer QR</option>
@@ -100,7 +89,7 @@ export function AvailabilityDashboardPage() {
           </label>
           <label className="text-sm font-medium text-text-primary">
             Fulfillment
-            <select className={`mt-1 w-full ${selectClass}`} value={fulfillmentType} onChange={(event) => setFulfillmentType(event.target.value)}>
+            <select className={`mt-1 w-full ${AVAILABILITY_SELECT_CLASS}`} value={fulfillmentType} onChange={(event) => setFulfillmentType(event.target.value)}>
               <option value="UNSCOPED">All fulfillment types</option>
               <option value="DINE_IN">Dine in</option>
               <option value="TAKEAWAY">Takeaway</option>
@@ -110,9 +99,9 @@ export function AvailabilityDashboardPage() {
           </label>
           <label className="text-sm font-medium text-text-primary">
             Cause
-            <select className={`mt-1 w-full ${selectClass}`} value={cause} onChange={(event) => setCause(event.target.value)}>
+            <select className={`mt-1 w-full ${AVAILABILITY_SELECT_CLASS}`} value={cause} onChange={(event) => setCause(event.target.value)}>
               <option value="">All causes</option>
-              {CAUSES.map((value) => <option key={value} value={value}>{value.replace(/_/g, " ")}</option>)}
+              {AVAILABILITY_CAUSES.map((value) => <option key={value} value={value}>{value.replace(/_/g, " ")}</option>)}
             </select>
           </label>
           <Button variant="secondary" onClick={() => void load()} loading={loading}>Refresh</Button>

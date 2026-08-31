@@ -35,7 +35,7 @@ interface Props {
   onClose: () => void;
 }
 
-const COURSE_OPTIONS = [1, 2, 3, 4, 5];
+import { COURSE_OPTIONS } from "../constants";
 function courseLabel(course: number) {
   return COURSE_LABELS[course as keyof typeof COURSE_LABELS] ?? `Course ${course}`;
 }

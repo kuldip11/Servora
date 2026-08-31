@@ -5,7 +5,7 @@ import {
   invalidCustomerSession,
 } from "./customer.errors";
 
-const SESSION_TTL_MINUTES = 12 * 60;
+import { CUSTOMER_SESSION_TTL_MINUTES } from "./constants";
 
 export type CustomerSessionMode = "DINE_IN" | "TAKEAWAY";
 
@@ -20,7 +20,7 @@ export const customerSessionService = {
       ) {
         throw customerBranchUnavailable();
       }
-      const expiresAt = new Date(Date.now() + SESSION_TTL_MINUTES * 60_000);
+      const expiresAt = new Date(Date.now() + CUSTOMER_SESSION_TTL_MINUTES * 60_000);
       const session = await customerRepository.createSession({
         tenantId: table.tenantId,
         branchId: table.branchId,
@@ -39,7 +39,7 @@ export const customerSessionService = {
 
     const branch = await customerRepository.findBranchByTakeawayQrToken(qrToken);
     if (!branch || !branch.takeawayEnabled) throw customerTableNotFound();
-    const expiresAt = new Date(Date.now() + SESSION_TTL_MINUTES * 60_000);
+    const expiresAt = new Date(Date.now() + CUSTOMER_SESSION_TTL_MINUTES * 60_000);
     const session = await customerRepository.createSession({
       tenantId: branch.tenantId,
       branchId: branch.id,

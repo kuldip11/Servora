@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Plus, X, Clock } from "lucide-react";
-import { STATUS_OPTIONS } from "./StatusBadge";
+import { MENU_ITEM_STATUS_OPTIONS } from "../constants";
 import { useMenuItemSchedules } from "../hooks/useMenuItemSchedules";
 import { useAddSchedule } from "../hooks/useAddSchedule";
 import { useDeleteSchedule } from "../hooks/useDeleteSchedule";
@@ -10,7 +10,7 @@ import type {
   MenuItemStatus,
 } from "@pos/types";
 
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+import { WEEK_DAYS } from "../constants";
 
 const SCHEDULE_TYPE_OPTIONS: { value: MenuItemScheduleType; label: string }[] =
   [
@@ -47,7 +47,7 @@ function describe(s: MenuItemSchedule): string {
     case "DAILY":
       return `Every day, ${s.startTime?.slice(0, 5)}–${s.endTime?.slice(0, 5)}`;
     case "WEEKLY":
-      return `${DAYS[s.dayOfWeek ?? 0]}, ${s.startTime?.slice(0, 5)}–${s.endTime?.slice(0, 5)}`;
+      return `${WEEK_DAYS[s.dayOfWeek ?? 0]}, ${s.startTime?.slice(0, 5)}–${s.endTime?.slice(0, 5)}`;
     case "SPECIFIC_DATE":
       return s.endDate && s.endDate !== s.startDate
         ? `${s.startDate} – ${s.endDate}`
@@ -119,7 +119,7 @@ export function ScheduleManager({ itemId }: { itemId: string }) {
                 <span className="text-text-disabled">→</span>
                 <span className="font-medium">
                   {
-                    STATUS_OPTIONS.find((o) => o.value === s.statusDuringPeriod)
+                    MENU_ITEM_STATUS_OPTIONS.find((o) => o.value === s.statusDuringPeriod)
                       ?.label
                   }
                 </span>
@@ -169,7 +169,7 @@ export function ScheduleManager({ itemId }: { itemId: string }) {
                   }
                   className="px-2 py-1.5 text-sm border border-border rounded-md"
                 >
-                  {DAYS.map((d, i) => (
+                  {WEEK_DAYS.map((d, i) => (
                     <option key={i} value={i}>
                       {d}
                     </option>
@@ -248,7 +248,7 @@ export function ScheduleManager({ itemId }: { itemId: string }) {
               }
               className="px-2 py-1 text-xs border border-border rounded-md"
             >
-              {STATUS_OPTIONS.map((o) => (
+              {MENU_ITEM_STATUS_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
                 </option>

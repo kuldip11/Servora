@@ -2,13 +2,7 @@ import { and, asc, eq, inArray } from "drizzle-orm";
 import { db } from "../../../db";
 import { cancellationReasons } from "../../../db/schema";
 
-export const DEFAULT_CANCELLATION_REASONS = [
-  "Customer changed mind",
-  "Kitchen error",
-  "Duplicate order",
-  "Payment failed",
-  "Item unavailable",
-] as const;
+import { DEFAULT_CANCELLATION_REASONS } from "./constants";
 
 export const cancellationReasonRepository = {
   async ensureDefaults(tenantId: string) {

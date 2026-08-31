@@ -70,13 +70,7 @@ function assertCapabilityProfile(profile: {
   }
 }
 
-const CAPABILITY_FIELDS = [
-  "dineInEnabled",
-  "takeawayEnabled",
-  "deliveryEnabled",
-  "onlineEnabled",
-  "tablesEnabled",
-] as const;
+import { BRANCH_CAPABILITY_FIELDS } from "./constants";
 
 export const branchService = {
 
@@ -158,7 +152,7 @@ export const branchService = {
       changes = { ...changes, currency: changes.currency.trim().toUpperCase() };
     }
 
-    const touchesCapabilities = CAPABILITY_FIELDS.some(
+    const touchesCapabilities = BRANCH_CAPABILITY_FIELDS.some(
       (field) => changes[field] !== undefined,
     );
 

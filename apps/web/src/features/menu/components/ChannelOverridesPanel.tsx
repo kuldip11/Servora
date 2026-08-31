@@ -16,7 +16,7 @@ interface ChannelOverrideRow {
   isHidden: boolean;
 }
 
-const TYPES = ["DINE_IN", "TAKEAWAY", "DELIVERY", "ONLINE"];
+import { FULFILLMENT_TYPES } from "../constants";
 
 export function ChannelOverridesPanel({ itemId }: { itemId: string }) {
   const [channel, setChannel] = useState("CUSTOMER_QR");
@@ -33,7 +33,7 @@ export function ChannelOverridesPanel({ itemId }: { itemId: string }) {
     {overrides.map((override) => <div key={override.id} className="flex items-center justify-between rounded bg-surface-secondary px-3 py-2 text-xs"><span>{override.channel} · {override.fulfillmentType ?? "All fulfillment"} · {override.isHidden ? "Hidden" : override.status ?? "Default"}</span><button type="button" className="text-danger" onClick={() => remove.mutate(override.id)}>Remove</button></div>)}
     <div className="grid grid-cols-2 gap-2 rounded border border-border p-2">
       <select aria-label="Ordering channel" value={channel} onChange={(event) => setChannel(event.target.value)} className="rounded border border-border px-2 py-1.5 text-sm"><option value="STAFF">Staff</option><option value="CUSTOMER_QR">Customer QR</option></select>
-      <select aria-label="Fulfillment type" value={fulfillmentType} onChange={(event) => setFulfillmentType(event.target.value)} className="rounded border border-border px-2 py-1.5 text-sm">{TYPES.map((type) => <option key={type}>{type}</option>)}</select>
+      <select aria-label="Fulfillment type" value={fulfillmentType} onChange={(event) => setFulfillmentType(event.target.value)} className="rounded border border-border px-2 py-1.5 text-sm">{FULFILLMENT_TYPES.map((type) => <option key={type}>{type}</option>)}</select>
       <select aria-label="Channel status" value={status} onChange={(event) => setStatus(event.target.value)} className="rounded border border-border px-2 py-1.5 text-sm"><option value="ACTIVE">Active</option><option value="OUT_OF_STOCK">Out of stock</option><option value="HIDDEN">Hidden status</option><option value="SEASONAL">Seasonal</option><option value="DISCONTINUED">Discontinued</option></select>
       <Input aria-label="Channel override reason" value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Reason (optional)" />
       <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={isHidden} onChange={(event) => setIsHidden(event.target.checked)} /> Hide from this channel</label>

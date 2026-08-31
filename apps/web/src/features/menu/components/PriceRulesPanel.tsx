@@ -10,7 +10,7 @@ import { queryClient } from "../../../shared/lib/query-client";
 import type { CustomerGroup, PriceRule } from "@pos/types";
 import { getErrorMessage } from "../../../shared/lib/errors";
 
-const FULFILLMENT_TYPES = ["DINE_IN", "TAKEAWAY", "DELIVERY", "ONLINE"];
+import { FULFILLMENT_TYPES } from "../constants";
 
 const describeRule = (rule: PriceRule) => {
   const scope = [

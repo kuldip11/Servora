@@ -126,3 +126,14 @@ The P0 implementation tasks above are source-complete except approved legal cont
 | 2026-09-01 | Dependency-backed certification using complete uploaded `node_modules/.bun` store | Direct workspace `tsc --noEmit`; Vitest across all workspaces; root ESLint; Vite/Next production builds | **PASS — 12/12 typechecks; 1,067/1,067 tests; lint clean; customer/KDS/waiter/web Vite builds clean; website Next build compiled and generated 27/27 static pages** |
 | 2026-09-01 | Critical POS Playwright execution with system Chromium | `PLAYWRIGHT_CHROMIUM_PATH=/usr/bin/chromium playwright test tests/critical-order-flow.spec.ts` | **Environment-blocked — Chromium launches, but managed browser policy blocks navigation to `127.0.0.1` with `ERR_BLOCKED_BY_ADMINISTRATOR`; all three Vite servers independently returned HTTP 200** |
 | 2026-09-01 | API build | `apps/api` build script inspection | **Pending exact Bun runtime — script is `bun build src/index.ts --outdir dist --target bun`; uploaded dependency store does not include Bun executable** |
+
+## Feature constants structure cleanup
+
+- Added feature-level `constants/` directories where reusable static configuration exists.
+- Moved reusable tab definitions, option arrays, status metadata, capability maps, UI class constants, polling/storage values, and applicable backend domain constants out of components, pages, hooks, services, and repositories.
+- Consolidated duplicated menu fulfillment/channel/status constants into shared feature constants.
+- Converted existing Waiter and KDS feature `constants.ts` modules to `constants/index.ts` directory structure.
+- Kept validation schemas in validator modules and query-key factories in query-key/hook modules because they are executable schema/query definitions rather than static application constants.
+- Migration integrity verification: 78/78 green.
+- Relative TypeScript import resolution check: green across API, Web, Waiter, KDS, and Customer source trees.
+- Full Bun verification could not be rerun in the artifact environment because Bun is not installed there; the source baseline used for this refactor is the previously fully verified `servora-clean-code.zip`.

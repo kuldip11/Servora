@@ -23,13 +23,7 @@ import { queryClient } from "../../../shared/lib/query-client";
 import { notifyError, notifySuccess } from "../../../shared/lib/notify";
 import { usePermissions } from "../../../shared/auth/permissions";
 
-const PAYMENT_METHODS = [
-  { value: "CASH", label: "Cash" },
-  { value: "CARD", label: "Card" },
-  { value: "UPI", label: "UPI" },
-  { value: "RAZORPAY", label: "Razorpay" },
-  { value: "STRIPE", label: "Stripe" },
-];
+import { PAYMENT_METHODS } from "../constants";
 
 type BillAssignment = NonNullable<Bill["itemAssignments"]>[number];
 

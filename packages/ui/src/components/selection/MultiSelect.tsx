@@ -21,7 +21,7 @@ import {
 } from "./shared";
 
 export interface MultiSelectProps {
-  options: SelectOption[];
+  options: readonly SelectOption[];
   value: string[];
   onChange: (value: string[]) => void;
   label?: string | undefined;

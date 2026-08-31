@@ -16,7 +16,7 @@ import {
 import { db } from "../../db";
 import { orders, inventoryItems, orderItems, menuItems } from "../../db/schema";
 
-const ACTIVE_ORDER_EXCLUDED_STATUSES = ["PAID", "CLOSED", "CANCELLED"] as const;
+import { ACTIVE_ORDER_EXCLUDED_STATUSES } from "./constants";
 
 export const analyticsRepository = {
   async countPaidOrdersSince(

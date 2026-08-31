@@ -37,7 +37,7 @@ export function MenuPicker({
   categories?: MenuCategory[] | undefined;
   filter: FoodType | "ALL";
   onOrderTypeChange: (v: string) => void;
-  availableOrderTypes: { value: string; label: string }[];
+  availableOrderTypes: readonly { value: string; label: string }[];
   onTableChange: (v: string) => void;
   onFilterChange: (v: FoodType | "ALL") => void;
   onItemClick: (item: MenuItem) => void;

@@ -21,7 +21,7 @@ import {
 } from "./shared";
 
 export interface ComboboxProps {
-  options: SelectOption[];
+  options: readonly SelectOption[];
   value: string | undefined;
   onChange: (value: string) => void;
   label?: string | undefined;

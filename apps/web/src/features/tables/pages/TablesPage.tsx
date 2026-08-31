@@ -27,7 +27,6 @@ import {
   PageHeader,
   Select,
   StatusBadge,
-  type StatusTone,
 } from "@pos/ui";
 import { useAuthStore } from "../../../store/auth";
 import { useBranches } from "../../branches/hooks/useBranches";
@@ -52,33 +51,7 @@ import { ordersService } from "../../orders/services/orders.service";
 import { queryClient } from "../../../shared/lib/query-client";
 import { notifyError, notifySuccess } from "../../../shared/lib/notify";
 
-const STATUS_OPTIONS = [
-  { value: "AVAILABLE", label: "Available" },
-  { value: "OCCUPIED", label: "Occupied" },
-  { value: "CLEANING", label: "Cleaning" },
-  { value: "RESERVED", label: "Reserved" },
-];
-
-const STATUS_TONES: Record<RestaurantTable["status"], StatusTone> = {
-  AVAILABLE: "success",
-  OCCUPIED: "danger",
-  CLEANING: "info",
-  RESERVED: "warning",
-};
-
-const STATUS_CARD_BORDER: Record<RestaurantTable["status"], string> = {
-  AVAILABLE: "border-emerald-200",
-  OCCUPIED: "border-red-200",
-  CLEANING: "border-blue-200",
-  RESERVED: "border-amber-200",
-};
-
-const emptyForm: TableFormValues = {
-  name: "",
-  capacity: "4",
-  section: "",
-  branchId: "",
-};
+import { EMPTY_TABLE_FORM, TABLE_STATUS_CARD_BORDER, TABLE_STATUS_OPTIONS, TABLE_STATUS_TONES } from "../constants";
 
 export function TablesPage() {
   const { has } = usePermissions();
@@ -110,7 +83,7 @@ export function TablesPage() {
     formState: { errors },
   } = useForm<TableFormValues>({
     resolver: zodResolver(tableFormSchema),
-    defaultValues: emptyForm,
+    defaultValues: EMPTY_TABLE_FORM,
   });
 
   const { data: branches } = useBranches({ enabled: isAggregate });
@@ -160,13 +133,13 @@ export function TablesPage() {
   }
 
   function openAdd() {
-    reset(emptyForm);
+    reset(EMPTY_TABLE_FORM);
     setShowAdd(true);
   }
 
   function closeAdd() {
     setShowAdd(false);
-    reset(emptyForm);
+    reset(EMPTY_TABLE_FORM);
   }
 
   function openEdit(table: RestaurantTable) {
@@ -181,7 +154,7 @@ export function TablesPage() {
 
   function closeEdit() {
     setEditing(null);
-    reset(emptyForm);
+    reset(EMPTY_TABLE_FORM);
   }
 
   function toPayload(values: TableFormValues) {
@@ -419,7 +392,7 @@ function TableGrid({
       {tables.map((table) => (
         <Card
           key={table.id}
-          className={`border-2 flex flex-col gap-3 ${STATUS_CARD_BORDER[table.status]}`}
+          className={`border-2 flex flex-col gap-3 ${TABLE_STATUS_CARD_BORDER[table.status]}`}
         >
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
@@ -474,13 +447,13 @@ function TableGrid({
           </div>
 
           <StatusBadge
-            tone={STATUS_TONES[table.status]}
+            tone={TABLE_STATUS_TONES[table.status]}
             label={table.status.charAt(0) + table.status.slice(1).toLowerCase()}
             className="w-fit"
           />
 
           <Select
-            options={STATUS_OPTIONS}
+            options={TABLE_STATUS_OPTIONS}
             value={table.status}
             onChange={(e) => onStatusChange(table.id, e.target.value)}
             disabled={table.status === "OCCUPIED"}

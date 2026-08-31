@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { RotateCcw } from "lucide-react";
-import { STATUS_OPTIONS } from "./StatusBadge";
+import { MENU_ITEM_STATUS_OPTIONS } from "../constants";
 import { useBranches } from "../../branches/hooks/useBranches";
 import { useMenuItemBranchOverrides } from "../hooks/useMenuItemBranchOverrides";
 import { useSaveBranchOverride } from "../hooks/useSaveBranchOverride";
@@ -97,7 +97,7 @@ export function BranchOverridesPanel({
                       <span>
                         {override?.isHidden
                           ? "Hidden"
-                          : STATUS_OPTIONS.find(
+                          : MENU_ITEM_STATUS_OPTIONS.find(
                               (o) => o.value === (override?.status ?? "ACTIVE"),
                             )?.label}
                       </span>
@@ -177,7 +177,7 @@ export function BranchOverridesPanel({
                       className="px-2 py-1.5 text-sm border border-border rounded-md"
                     >
                       <option value="">Default status</option>
-                      {STATUS_OPTIONS.map((o) => (
+                      {MENU_ITEM_STATUS_OPTIONS.map((o) => (
                         <option key={o.value} value={o.value}>
                           {o.label}
                         </option>

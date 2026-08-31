@@ -29,7 +29,7 @@ type Row =
   | { kind: "header"; key: string; label: string }
   | { kind: "option"; key: string; option: SelectOption; optionIndex: number };
 
-export function buildRows(options: SelectOption[]): Row[] {
+export function buildRows(options: readonly SelectOption[]): Row[] {
   const hasAnyGroup = options.some((o) => o.group);
   if (!hasAnyGroup) {
     return options.map((option, optionIndex) => ({
@@ -104,10 +104,10 @@ export function useVirtualRows(
 }
 
 export function filterOptions(
-  options: SelectOption[],
+  options: readonly SelectOption[],
   query: string,
 ): SelectOption[] {
-  if (!query.trim()) return options;
+  if (!query.trim()) return [...options];
   const q = query.trim().toLowerCase();
   return options.filter(
     (o) =>

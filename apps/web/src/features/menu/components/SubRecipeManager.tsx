@@ -8,7 +8,7 @@ import { useSubRecipes, subRecipeQueryKey } from "../hooks/useSubRecipes";
 import { menuSubRecipesService } from "../services/menu-sub-recipes.service";
 import { notifyError, notifySuccess } from "../../../shared/lib/notify";
 
-const UNITS = ["KG", "GRAMS", "LITERS", "ML", "PIECES", "PACKETS"] as const;
+import { INVENTORY_UNITS } from "../constants";
 type IngredientDraft = { source: "inventory" | "sub"; sourceId: string; quantity: string; unit: InventoryUnit };
 
 export function SubRecipeManager() {
@@ -78,14 +78,14 @@ export function SubRecipeManager() {
       <div className="grid gap-3 sm:grid-cols-4">
         <Input label="Name" value={name} onChange={(e) => setName(e.target.value)} placeholder="House tomato sauce" />
         <Input label="Batch yield" type="number" min="0.001" step="0.001" value={yieldQuantity} onChange={(e) => setYieldQuantity(e.target.value)} />
-        <Select label="Yield unit" value={yieldUnit} onChange={(e) => setYieldUnit(e.target.value as InventoryUnit)} options={UNITS.map((unit) => ({ value: unit, label: unit }))} />
+        <Select label="Yield unit" value={yieldUnit} onChange={(e) => setYieldUnit(e.target.value as InventoryUnit)} options={INVENTORY_UNITS.map((unit) => ({ value: unit, label: unit }))} />
         <Input label="Yield % (optional)" type="number" min="0.01" max="100" step="0.01" value={yieldPercent} onChange={(e) => setYieldPercent(e.target.value)} placeholder="100" />
       </div>
       <div className="space-y-2">{ingredients.map((row, index) => <div key={index} className="grid gap-2 sm:grid-cols-[8rem_1fr_8rem_8rem_auto] items-center">
         <select value={row.source} onChange={(e) => { const source = e.target.value as "inventory" | "sub"; const first = source === "inventory" ? inventory?.[0] : subRecipes?.[0]; setIngredients((prev) => prev.map((entry, i) => i === index ? { ...entry, source, sourceId: first?.id ?? "", unit: source === "inventory" ? (inventory?.[0]?.unit ?? entry.unit) : (subRecipes?.[0]?.yieldUnit ?? entry.unit) } : entry)); }} className="rounded-md border border-border bg-surface px-2 py-2 text-xs"><option value="inventory">Raw item</option><option value="sub">Sub-recipe</option></select>
         <select value={row.sourceId} onChange={(e) => { const sourceId = e.target.value; const nextUnit = row.source === "inventory" ? inventory?.find((item) => item.id === sourceId)?.unit : subRecipes?.find((item) => item.id === sourceId)?.yieldUnit; setIngredients((prev) => prev.map((entry, i) => i === index ? { ...entry, sourceId, ...(nextUnit ? { unit: nextUnit } : {}) } : entry)); }} className="rounded-md border border-border bg-surface px-2 py-2 text-xs">{row.source === "inventory" ? (inventory ?? []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>) : (subRecipes ?? []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
         <input aria-label={`Sub-recipe ingredient quantity ${index + 1}`} type="number" min="0.001" step="0.001" value={row.quantity} onChange={(e) => setIngredients((prev) => prev.map((entry, i) => i === index ? { ...entry, quantity: e.target.value } : entry))} className="rounded-md border border-border px-2 py-2 text-xs" />
-        <select value={row.unit} onChange={(e) => setIngredients((prev) => prev.map((entry, i) => i === index ? { ...entry, unit: e.target.value as InventoryUnit } : entry))} className="rounded-md border border-border bg-surface px-2 py-2 text-xs">{UNITS.map((unit) => <option key={unit} value={unit}>{unit}</option>)}</select>
+        <select value={row.unit} onChange={(e) => setIngredients((prev) => prev.map((entry, i) => i === index ? { ...entry, unit: e.target.value as InventoryUnit } : entry))} className="rounded-md border border-border bg-surface px-2 py-2 text-xs">{INVENTORY_UNITS.map((unit) => <option key={unit} value={unit}>{unit}</option>)}</select>
         <button onClick={() => setIngredients((prev) => prev.filter((_, i) => i !== index))} className="p-2 text-text-disabled hover:text-danger"><Trash2 className="h-4 w-4" /></button>
       </div>)}</div>
       <div className="flex gap-2"><Button size="sm" variant="secondary" onClick={addIngredient}>Add ingredient</Button><Button size="sm" onClick={save} disabled={create.isPending}>{create.isPending ? "Saving…" : "Create component"}</Button></div>

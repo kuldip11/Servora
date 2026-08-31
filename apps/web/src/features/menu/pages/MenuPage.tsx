@@ -32,26 +32,10 @@ import { BuffetPricingSection } from "../components/BuffetPricingSection";
 import { OrganizationManagementSection } from "../components/OrganizationManagementSection";
 import { GuidedComboPromotionBuilder } from "../components/GuidedComboPromotionBuilder";
 
-const TABS = [
-  { id: "items", label: "Items" },
-  { id: "menus", label: "Menus" },
-  { id: "combos", label: "Combos" },
-  { id: "promotions", label: "Promotions" },
-  { id: "loyalty", label: "Loyalty" },
-  { id: "happy-hour", label: "Happy Hour" },
-  { id: "advanced", label: "Advanced Models" },
-  { id: "categories", label: "Categories" },
-  { id: "modifiers", label: "Modifiers" },
-  { id: "recipes", label: "Recipes" },
-  { id: "availability", label: "Availability" },
-  { id: "stations", label: "Stations" },
-  { id: "tools", label: "Tools" },
-] as const;
-
-type TabId = (typeof TABS)[number]["id"];
+import { MENU_TABS, type MenuTabId } from "../constants";
 
 export function MenuPage() {
-  const [tab, setTab] = useState<TabId>("items");
+  const [tab, setTab] = useState<MenuTabId>("items");
   const [showImport, setShowImport] = useState(false);
   const [savingTemplateFor, setSavingTemplateFor] = useState<{
     id: string;
@@ -191,7 +175,7 @@ export function MenuPage() {
       <Tabs
         items={tabItems}
         value={tab}
-        onValueChange={(v) => setTab(v as TabId)}
+        onValueChange={(v) => setTab(v as MenuTabId)}
       />
 
       {showImport && <ImportWizard onClose={() => setShowImport(false)} />}

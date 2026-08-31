@@ -25,7 +25,8 @@ import {
 } from "@pos/ui";
 import { formatCurrency } from "../../../shared/utils";
 import { FoodTypeDot } from "../components/FoodTypeDot";
-import { StatusBadge, STATUS_OPTIONS } from "../components/StatusBadge";
+import { StatusBadge } from "../components/StatusBadge";
+import { MENU_ITEM_STATUS_OPTIONS } from "../constants";
 import { PublishBadge } from "../components/PublishBadge";
 import { BulkActionsToolbar } from "../components/BulkActionsToolbar";
 import type {
@@ -44,7 +45,7 @@ const FOOD_TYPE_FILTERS: { value: FoodType | "ALL"; label: string }[] = [
 ];
 const STATUS_FILTERS: { value: MenuItemStatus | "ALL"; label: string }[] = [
   { value: "ALL", label: "All statuses" },
-  ...STATUS_OPTIONS,
+  ...MENU_ITEM_STATUS_OPTIONS,
 ];
 export interface MenuItemsContentProps {
   itemSearch: string;

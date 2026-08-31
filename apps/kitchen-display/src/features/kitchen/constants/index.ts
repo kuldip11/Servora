@@ -60,3 +60,7 @@ export const BOARD_COLUMNS: Array<{
   { title: "In Prep", status: "PREPARING", color: "text-amber-400" },
   { title: "Ready", status: "READY", color: "text-emerald-400" },
 ];
+
+export const KDS_STATION_STORAGE_KEY = "servora.kds.station-id";
+export const KDS_VOID_ALERT_STORAGE_KEY = "servora.kds.void-alerts";
+export const KITCHEN_STATIONS_QUERY_KEY = ["kitchen-stations"] as const;
