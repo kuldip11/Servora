@@ -8,6 +8,7 @@ export function useCustomerOrderRealtime(
   sessionToken: string | undefined,
   orderId: string | undefined,
   onOrder: (order: CustomerOrder) => void,
+  onMenuAvailability?: (() => void) | undefined,
 ) {
   const [live, setLive] = useState(false);
   const reconnectTimer = useRef<number | undefined>(undefined);
@@ -15,7 +16,7 @@ export function useCustomerOrderRealtime(
   const reconnectAttempt = useRef(0);
 
   useEffect(() => {
-    if (!sessionToken || sessionToken === "fixture" || !orderId) {
+    if (!sessionToken || sessionToken === "fixture") {
       setLive(false);
       return;
     }
@@ -75,9 +76,12 @@ export function useCustomerOrderRealtime(
           };
           if (
             message.type === "order.updated" &&
+            orderId &&
             message.payload?.id === orderId
           ) {
             onOrder(message.payload);
+          } else if (message.type === "menu.availability.updated") {
+            onMenuAvailability?.();
           }
         } catch {
           // Ignore malformed events. The next valid event or fallback poll remains authoritative.
@@ -106,7 +110,7 @@ export function useCustomerOrderRealtime(
       socket?.close();
       setLive(false);
     };
-  }, [sessionToken, orderId, onOrder]);
+  }, [sessionToken, orderId, onOrder, onMenuAvailability]);
 
   return live;
 }

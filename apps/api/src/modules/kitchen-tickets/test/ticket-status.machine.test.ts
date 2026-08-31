@@ -7,7 +7,8 @@ import {
 } from "../ticket-status.machine";
 
 describe("kitchen ticket status machine", () => {
-  it("allows only FIRED→PREPARING→READY→SERVED", () => {
+  it("supports HELD→FIRED→PREPARING→READY→SERVED", () => {
+    expect(canTransition("HELD", "FIRED")).toBe(true);
     expect(canTransition("FIRED", "PREPARING")).toBe(true);
     expect(canTransition("PREPARING", "READY")).toBe(true);
     expect(canTransition("READY", "SERVED")).toBe(true);
@@ -22,6 +23,7 @@ describe("kitchen ticket status machine", () => {
   });
   it("stamps ready and served timestamps only on entry to those states", () => {
     expect(timestampFieldsFor("PREPARING")).toEqual({});
+    expect(timestampFieldsFor("FIRED").firedAt).toBeInstanceOf(Date);
     expect(timestampFieldsFor("READY").readyAt).toBeInstanceOf(Date);
     expect(timestampFieldsFor("SERVED").servedAt).toBeInstanceOf(Date);
   });

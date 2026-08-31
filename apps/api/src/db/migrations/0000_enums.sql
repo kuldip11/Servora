@@ -12,6 +12,6 @@ CREATE TYPE "inventory_unit" AS ENUM ('KG', 'GRAMS', 'LITERS', 'ML', 'PIECES', '
 CREATE TYPE "inventory_transaction_type" AS ENUM ('IN', 'OUT', 'ADJUSTMENT', 'WASTE');
 CREATE TYPE "order_status" AS ENUM ('OPEN', 'BILL_REQUESTED', 'PAID', 'CLOSED', 'CANCELLED');
 CREATE TYPE "order_type" AS ENUM ('DINE_IN', 'TAKEAWAY', 'DELIVERY', 'ONLINE');
-CREATE TYPE "kitchen_ticket_status" AS ENUM ('FIRED', 'PREPARING', 'READY', 'SERVED');
+CREATE TYPE "kitchen_ticket_status" AS ENUM ('PENDING_PAYMENT', 'HELD', 'FIRED', 'PREPARING', 'READY', 'SERVED');
 CREATE TYPE "payment_method" AS ENUM ('CASH', 'CARD', 'UPI', 'RAZORPAY', 'STRIPE');
 CREATE TYPE "payment_status" AS ENUM ('PENDING', 'SUCCESS', 'FAILED', 'REFUNDED');

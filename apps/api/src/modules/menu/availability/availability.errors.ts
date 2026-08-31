@@ -35,3 +35,9 @@ export function itemNotTenantWide(): ValidationError {
 export function invalidScheduleFields(message: string): ValidationError {
   return new ValidationError(message, { reason: "INVALID_SCHEDULE_FIELDS" });
 }
+
+export function manualOverrideReasonRequired(): ValidationError {
+  return new ValidationError("A reason is required for a manual availability override", {
+    reason: "MANUAL_OVERRIDE_REASON_REQUIRED",
+  });
+}

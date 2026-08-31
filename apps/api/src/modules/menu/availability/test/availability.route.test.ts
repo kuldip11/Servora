@@ -46,6 +46,13 @@ describe("availability.route routes", () => {
       (v: any) => v && Array.isArray(v.routes),
     );
     expect(routers.length).toBeGreaterThan(0);
-    expect((routers[0] as any).routes.length).toBeGreaterThan(0);
+    const routes = (routers[0] as { routes: Array<{ method: string; path: string }> }).routes;
+    expect(routes.length).toBeGreaterThan(0);
+    expect(routes).toEqual(
+      expect.arrayContaining([
+        { method: "PUT", path: "/items/:id/manual-override" },
+        { method: "DELETE", path: "/items/:id/manual-override" },
+      ]),
+    );
   });
 });

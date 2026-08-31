@@ -3,6 +3,7 @@ import { BookOpen, CalendarClock } from "lucide-react";
 import { Button, Card, Grid, SearchInput, Spinner } from "@pos/ui";
 import { useMenuCategories } from "../hooks/useMenuCategories";
 import { ItemFormModal } from "./ItemFormModal";
+import { SubRecipeManager } from "./SubRecipeManager";
 import type { MenuItem } from "@pos/types";
 
 interface Props {
@@ -36,6 +37,7 @@ export function MenuSpecializedSection({ mode }: Props) {
             : "Open an item to manage schedules and branch-specific availability overrides."}
         </p>
       </div>
+      {mode === "recipes" ? <SubRecipeManager /> : null}
       <SearchInput
         aria-label={`Search items for ${mode}`}
         placeholder="Search items..."

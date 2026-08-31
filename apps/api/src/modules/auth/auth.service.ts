@@ -29,8 +29,7 @@ function hashToken(token: string): string {
 export const authService = {
   async signup(input: SignupInput) {
     // Signup creates only the authentication identity. Tenant ownership is
-    // established later through the tenant/membership flow; tenantName is
-    // accepted temporarily for older clients but is deliberately ignored.
+    // established later through the tenant/membership flow.
     const normalizedEmail = input.email.trim().toLowerCase();
     const existing =
       await authRepository.findStandaloneUserByEmail(normalizedEmail);

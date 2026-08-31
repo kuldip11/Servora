@@ -1,6 +1,6 @@
 import type { CustomerMenuItem } from "../../api";
 
-export type SelectedOption = { optionId: string; quantity: number };
+export type SelectedOption = { optionId: string; quantity: number; zoneLabel?: "LEFT" | "RIGHT" | "WHOLE" };
 export type CartLine = {
   item: CustomerMenuItem;
   quantity: number;
@@ -19,11 +19,25 @@ export function getLineUnitPrice(line: CartLine) {
   const variant = line.item.variants.find(
     (value) => value.id === line.variantId,
   );
-  const modifierTotal = line.selectedOptions.reduce((sum, selection) => {
+  const optionPrice = (selection: SelectedOption) => {
     const option = findOption(line.item, selection.optionId);
-    return sum + Number(option?.additionalPrice ?? 0) * selection.quantity;
-  }, 0);
-  return Number(variant?.price ?? line.item.basePrice) + modifierTotal;
+    const scoped = line.variantId ? option?.variantPrices?.find((value) => value.variantId === line.variantId) : undefined;
+    return Number(scoped?.additionalPrice ?? option?.additionalPrice ?? 0) * selection.quantity;
+  };
+  const whole = line.selectedOptions.filter((selection) => !selection.zoneLabel || selection.zoneLabel === "WHOLE").reduce((sum, selection) => sum + optionPrice(selection), 0);
+  const zoned = line.selectedOptions.filter((selection) => selection.zoneLabel && selection.zoneLabel !== "WHOLE");
+  const byZone = new Map<string, number>();
+  for (const selection of zoned) byZone.set(selection.zoneLabel!, (byZone.get(selection.zoneLabel!) ?? 0) + optionPrice(selection));
+  const zoneTotals = [...byZone.values()];
+  const rule = line.item.zonePricingRule ?? "HIGHER";
+  const zoneModifierTotal = !line.item.supportsZones || !zoneTotals.length
+    ? zoned.reduce((sum, selection) => sum + optionPrice(selection), 0)
+    : rule === "HIGHER"
+      ? Math.max(...zoneTotals)
+      : rule === "AVERAGE"
+        ? zoneTotals.reduce((sum, value) => sum + value, 0) / zoneTotals.length
+        : zoneTotals.reduce((sum, value) => sum + value * 0.5, 0);
+  return Number(variant?.price ?? line.item.basePrice) + whole + zoneModifierTotal;
 }
 
 export function getLineSubtotal(line: CartLine) {
@@ -86,7 +100,7 @@ export function getCartLineKey(
     itemId: line.item.id,
     variantId: line.variantId ?? null,
     selectedOptions: [...line.selectedOptions].sort((a, b) =>
-      a.optionId.localeCompare(b.optionId),
+      `${a.optionId}:${a.zoneLabel ?? "WHOLE"}`.localeCompare(`${b.optionId}:${b.zoneLabel ?? "WHOLE"}`),
     ),
     fulfillmentType: line.fulfillmentType,
   });

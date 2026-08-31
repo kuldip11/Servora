@@ -4,54 +4,69 @@ import { notifyError } from "../../../shared/lib/notify";
 import { useInventoryItems } from "../../inventory/hooks/useInventoryItems";
 import { useMenuItemRecipe } from "../hooks/useMenuItemRecipe";
 import { useSaveRecipe } from "../hooks/useSaveRecipe";
-import type { InventoryItem, InventoryUnit } from "@pos/types";
+import { useSubRecipes } from "../hooks/useSubRecipes";
+import type { InventoryItem, InventoryUnit, MenuItem } from "@pos/types";
 
 const UNIT_OPTIONS: { value: InventoryUnit; label: string }[] = [
-  { value: "KG", label: "kg" },
-  { value: "GRAMS", label: "g" },
-  { value: "LITERS", label: "L" },
-  { value: "ML", label: "ml" },
-  { value: "PIECES", label: "pcs" },
-  { value: "PACKETS", label: "packets" },
+  { value: "KG", label: "kg" }, { value: "GRAMS", label: "g" },
+  { value: "LITERS", label: "L" }, { value: "ML", label: "ml" },
+  { value: "PIECES", label: "pcs" }, { value: "PACKETS", label: "packets" },
 ];
 
+type SourceType = "inventory" | "sub-recipe";
+type ScopeType = "base" | "variant" | "modifier";
 interface Row {
+  sourceType: SourceType;
   inventoryItemId: string;
+  subRecipeId: string;
+  scopeType: ScopeType;
+  variantId: string;
+  modifierOptionId: string;
   quantity: string;
   unit: InventoryUnit;
+  yieldPercent: string;
   isOptional: boolean;
 }
 
-export function RecipeBuilder({ itemId }: { itemId: string }) {
+export function RecipeBuilder({ item }: { item: MenuItem }) {
+  const itemId = item.id;
   const [rows, setRows] = useState<Row[]>([]);
   const [dirty, setDirty] = useState(false);
-
   const { data: recipe, isLoading } = useMenuItemRecipe(itemId);
-  // Same inventory list the Inventory page uses — shares its cache instead
-  // of a duplicate ad-hoc query.
   const { data: inventoryItems } = useInventoryItems();
+  const { data: subRecipes } = useSubRecipes();
   const saveMutation = useSaveRecipe(itemId);
+  const modifierOptions = (item.modifierGroupLinks ?? []).flatMap((link) =>
+    link.group.options.map((option) => ({ ...option, groupName: link.group.name })),
+  );
 
   useEffect(() => {
     if (recipe && !dirty) {
-      setRows(
-        recipe.map((r) => ({
-          inventoryItemId: r.inventoryItemId,
-          quantity: String(r.quantityRequired),
-          unit: r.unit,
-          isOptional: r.isOptional,
-        })),
-      );
+      setRows(recipe.map((r) => ({
+        sourceType: r.subRecipeId ? "sub-recipe" : "inventory",
+        inventoryItemId: r.inventoryItemId ?? "",
+        subRecipeId: r.subRecipeId ?? "",
+        scopeType: r.variantId ? "variant" : r.modifierOptionId ? "modifier" : "base",
+        variantId: r.variantId ?? "",
+        modifierOptionId: r.modifierOptionId ?? "",
+        quantity: String(r.quantityRequired),
+        unit: r.unit,
+        yieldPercent: r.yieldPercent == null ? "" : String(r.yieldPercent),
+        isOptional: r.isOptional,
+      })));
     }
   }, [recipe, dirty]);
 
   function handleSave() {
     const ingredients = rows
-      .filter((r) => r.inventoryItemId && parseFloat(r.quantity) >= 0)
+      .filter((r) => (r.inventoryItemId || r.subRecipeId) && parseFloat(r.quantity) > 0)
       .map((r) => ({
-        inventoryItemId: r.inventoryItemId,
-        quantity: parseFloat(r.quantity) || 0,
-        unit: r.unit,
+        inventoryItemId: r.sourceType === "inventory" ? r.inventoryItemId : null,
+        subRecipeId: r.sourceType === "sub-recipe" ? r.subRecipeId : null,
+        variantId: r.scopeType === "variant" ? r.variantId : null,
+        modifierOptionId: r.scopeType === "modifier" ? r.modifierOptionId : null,
+        quantity: parseFloat(r.quantity), unit: r.unit,
+        yieldPercent: r.yieldPercent ? parseFloat(r.yieldPercent) : null,
         isOptional: r.isOptional,
       }));
     saveMutation.mutate(ingredients, { onSuccess: () => setDirty(false) });
@@ -59,162 +74,67 @@ export function RecipeBuilder({ itemId }: { itemId: string }) {
 
   function updateRow(i: number, patch: Partial<Row>) {
     setDirty(true);
-    setRows((prev) =>
-      prev.map((r, idx) => (idx === i ? { ...r, ...patch } : r)),
-    );
+    setRows((prev) => prev.map((r, idx) => idx === i ? { ...r, ...patch } : r));
   }
-
-  function removeRow(i: number) {
-    setDirty(true);
-    setRows((prev) => prev.filter((_, idx) => idx !== i));
-  }
-
+  function removeRow(i: number) { setDirty(true); setRows((prev) => prev.filter((_, idx) => idx !== i)); }
   function addRow() {
-    const first = inventoryItems?.find(
-      (inv) => !rows.some((r) => r.inventoryItemId === inv.id),
-    );
-    if (!first) {
-      notifyError(
-        undefined,
-        rows.length
-          ? "All inventory items are already in this recipe"
-          : "No inventory items yet — add some from the Inventory page first",
-      );
+    const first = inventoryItems?.[0];
+    if (!first && !subRecipes?.length) {
+      notifyError(undefined, "Add an inventory item or sub-recipe first");
       return;
     }
     setDirty(true);
-    setRows((prev) => [
-      ...prev,
-      {
-        inventoryItemId: first.id,
-        quantity: "1",
-        unit: first.unit,
-        isOptional: false,
-      },
-    ]);
+    setRows((prev) => [...prev, {
+      sourceType: first ? "inventory" : "sub-recipe",
+      inventoryItemId: first?.id ?? "", subRecipeId: first ? "" : (subRecipes?.[0]?.id ?? ""),
+      scopeType: "base", variantId: "", modifierOptionId: "",
+      quantity: "1", unit: first?.unit ?? subRecipes?.[0]?.yieldUnit ?? "PIECES",
+      yieldPercent: "", isOptional: false,
+    }]);
   }
 
-  const invMap = new Map<string, InventoryItem>(
-    (inventoryItems ?? []).map((i) => [i.id, i] as const),
-  );
+  const invMap = new Map<string, InventoryItem>((inventoryItems ?? []).map((i) => [i.id, i] as const));
 
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-sm font-medium text-text-primary">
-          Ingredients (auto-deducts inventory when ordered)
-        </span>
-        <button
-          onClick={handleSave}
-          disabled={!dirty || saveMutation.isPending}
-          className="text-xs font-medium text-primary hover:text-primary-hover disabled:text-text-disabled"
-        >
-          {saveMutation.isPending ? "Saving…" : dirty ? "Save recipe" : "Saved"}
-        </button>
+  return <div className="space-y-2">
+    <div className="flex items-center justify-between mb-1.5">
+      <div>
+        <span className="text-sm font-medium text-text-primary">Recipe ingredients</span>
+        <p className="text-xs text-text-disabled">Scope raw ingredients or prepared components to the base item, a variant, or a modifier.</p>
       </div>
-
-      {isLoading ? (
-        <p className="text-xs text-text-disabled">Loading…</p>
-      ) : !inventoryItems?.length ? (
-        <p className="text-xs text-text-disabled">
-          No inventory items set up yet for this branch — add some from the
-          Inventory page, then come back to link them here.
-        </p>
-      ) : (
-        <div className="space-y-2">
-          {rows.map((row, i) => {
-            const inv = invMap.get(row.inventoryItemId);
-            const short =
-              inv &&
-              parseFloat(row.quantity || "0") > 0 &&
-              inv.currentStock < parseFloat(row.quantity || "0");
-            return (
-              <div key={i} className="flex items-center gap-2">
-                <select
-                  value={row.inventoryItemId}
-                  onChange={(e) =>
-                    updateRow(i, { inventoryItemId: e.target.value })
-                  }
-                  aria-label={`Ingredient ${i + 1}`}
-                  className="flex-1 px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  {inventoryItems.map((inv2) => (
-                    <option
-                      key={inv2.id}
-                      value={inv2.id}
-                      disabled={rows.some(
-                        (r, idx) => idx !== i && r.inventoryItemId === inv2.id,
-                      )}
-                    >
-                      {inv2.name}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.001"
-                  value={row.quantity}
-                  onChange={(e) => updateRow(i, { quantity: e.target.value })}
-                  aria-label={`Quantity for ingredient ${i + 1}`}
-                  className="w-20 px-2 py-2 text-sm border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <select
-                  value={row.unit}
-                  onChange={(e) =>
-                    updateRow(i, { unit: e.target.value as InventoryUnit })
-                  }
-                  aria-label={`Unit for ingredient ${i + 1}`}
-                  className="w-24 px-2 py-2 text-sm border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  {UNIT_OPTIONS.map((u) => (
-                    <option key={u.value} value={u.value}>
-                      {u.label}
-                    </option>
-                  ))}
-                </select>
-                <label className="flex items-center gap-1 text-xs text-text-secondary whitespace-nowrap">
-                  <input
-                    type="checkbox"
-                    checked={row.isOptional}
-                    onChange={(e) =>
-                      updateRow(i, { isOptional: e.target.checked })
-                    }
-                  />
-                  optional
-                </label>
-                {!row.isOptional &&
-                  (short ? (
-                    <span title="Low stock">
-                      <AlertTriangle className="w-4 h-4 text-warning shrink-0" />
-                    </span>
-                  ) : (
-                    <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
-                  ))}
-                <button
-                  onClick={() => removeRow(i)}
-                  aria-label={`Remove ingredient ${i + 1}`}
-                  className="p-1 text-text-disabled hover:text-danger shrink-0"
-                >
-                  <X className="w-4 h-4" aria-hidden="true" />
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      <button
-        onClick={addRow}
-        className="mt-2 flex items-center gap-1 text-xs font-medium text-primary hover:text-primary-hover"
-      >
-        <Plus className="w-3.5 h-3.5" /> Add ingredient
+      <button onClick={handleSave} disabled={!dirty || saveMutation.isPending} className="text-xs font-medium text-primary hover:text-primary-hover disabled:text-text-disabled">
+        {saveMutation.isPending ? "Saving…" : dirty ? "Save recipe" : "Saved"}
       </button>
-      <p className="text-xs text-text-disabled mt-2">
-        Every non-optional ingredient is deducted automatically when this item
-        is ordered. If stock runs out for any of them, the item flips to "Out of
-        Stock" on its own — no need to toggle it by hand.
-      </p>
     </div>
-  );
+    {isLoading ? <p className="text-xs text-text-disabled">Loading…</p> : <div className="space-y-3">
+      {rows.map((row, i) => {
+        const inv = invMap.get(row.inventoryItemId);
+        const short = row.sourceType === "inventory" && inv && parseFloat(row.quantity || "0") > inv.currentStock;
+        return <div key={i} className="rounded-lg border border-border p-3 space-y-2">
+          <div className="grid gap-2 md:grid-cols-[8rem_1fr_8rem_7rem_auto]">
+            <select value={row.sourceType} onChange={(e) => { const sourceType = e.target.value as SourceType; const firstInventory = inventoryItems?.[0]; const firstSubRecipe = subRecipes?.[0]; updateRow(i, { sourceType, inventoryItemId: sourceType === "inventory" ? (firstInventory?.id ?? "") : "", subRecipeId: sourceType === "sub-recipe" ? (firstSubRecipe?.id ?? "") : "", unit: sourceType === "inventory" ? (firstInventory?.unit ?? row.unit) : (firstSubRecipe?.yieldUnit ?? row.unit) }); }} className="px-2 py-2 text-sm border border-border rounded-md bg-surface">
+              <option value="inventory">Raw item</option><option value="sub-recipe">Sub-recipe</option>
+            </select>
+            {row.sourceType === "inventory" ? <select value={row.inventoryItemId} onChange={(e) => { const next = inventoryItems?.find((x) => x.id === e.target.value); updateRow(i, { inventoryItemId: e.target.value, ...(next ? { unit: next.unit } : {}) }); }} className="px-3 py-2 text-sm border border-border rounded-md bg-surface">
+              {(inventoryItems ?? []).map((source) => <option key={source.id} value={source.id}>{source.name}</option>)}
+            </select> : <select value={row.subRecipeId} onChange={(e) => { const next = subRecipes?.find((x) => x.id === e.target.value); updateRow(i, { subRecipeId: e.target.value, ...(next ? { unit: next.yieldUnit } : {}) }); }} className="px-3 py-2 text-sm border border-border rounded-md bg-surface">
+              {(subRecipes ?? []).map((source) => <option key={source.id} value={source.id}>{source.name}</option>)}
+            </select>}
+            <input type="number" min="0.001" step="0.001" value={row.quantity} onChange={(e) => updateRow(i, { quantity: e.target.value })} aria-label={`Quantity for recipe row ${i + 1}`} className="px-2 py-2 text-sm border border-border rounded-md" />
+            <select value={row.unit} onChange={(e) => updateRow(i, { unit: e.target.value as InventoryUnit })} className="px-2 py-2 text-sm border border-border rounded-md bg-surface">{UNIT_OPTIONS.map((u) => <option key={u.value} value={u.value}>{u.label}</option>)}</select>
+            <button onClick={() => removeRow(i)} aria-label={`Remove recipe row ${i + 1}`} className="p-2 text-text-disabled hover:text-danger"><X className="w-4 h-4" /></button>
+          </div>
+          <div className="grid gap-2 md:grid-cols-[8rem_1fr_8rem_auto_auto] items-center">
+            <select value={row.scopeType} onChange={(e) => updateRow(i, { scopeType: e.target.value as ScopeType, variantId: e.target.value === "variant" ? (item.variants[0]?.id ?? "") : "", modifierOptionId: e.target.value === "modifier" ? (modifierOptions[0]?.id ?? "") : "" })} className="px-2 py-2 text-xs border border-border rounded-md bg-surface">
+              <option value="base">Base item</option>{item.variants.length ? <option value="variant">Variant</option> : null}{modifierOptions.length ? <option value="modifier">Modifier</option> : null}
+            </select>
+            {row.scopeType === "variant" ? <select value={row.variantId} onChange={(e) => updateRow(i, { variantId: e.target.value })} className="px-2 py-2 text-xs border border-border rounded-md bg-surface">{item.variants.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}</select> : row.scopeType === "modifier" ? <select value={row.modifierOptionId} onChange={(e) => updateRow(i, { modifierOptionId: e.target.value })} className="px-2 py-2 text-xs border border-border rounded-md bg-surface">{modifierOptions.map((o) => <option key={o.id} value={o.id}>{o.groupName} · {o.name}</option>)}</select> : <span className="text-xs text-text-disabled">Applies to every order of this item</span>}
+            <label className="flex items-center gap-1 text-xs"><span>Yield %</span><input type="number" min="0.01" max="100" step="0.01" value={row.yieldPercent} placeholder="100" onChange={(e) => updateRow(i, { yieldPercent: e.target.value })} className="w-16 px-1.5 py-1 border border-border rounded" /></label>
+            <label className="flex items-center gap-1 text-xs text-text-secondary"><input type="checkbox" checked={row.isOptional} onChange={(e) => updateRow(i, { isOptional: e.target.checked })} /> optional</label>
+            {!row.isOptional && (short ? <AlertTriangle className="w-4 h-4 text-warning" /> : <CheckCircle2 className="w-4 h-4 text-success" />)}
+          </div>
+        </div>;
+      })}
+    </div>}
+    <button onClick={addRow} className="mt-2 flex items-center gap-1 text-xs font-medium text-primary hover:text-primary-hover"><Plus className="w-3.5 h-3.5" /> Add ingredient</button>
+  </div>;
 }

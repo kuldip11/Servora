@@ -25,9 +25,11 @@ import {
 const emptyGroup: ModifierGroupFormValues = {
   name: "",
   selectionType: "SINGLE",
+  groupType: "ADDON",
   minSelections: "0",
   maxSelections: "",
   options: [{ name: "", additionalPrice: "0", maxQuantity: "1" }],
+  dependsOnOptionId: null,
 };
 
 export function ModifierGroupsSection() {
@@ -64,14 +66,19 @@ export function ModifierGroupsSection() {
     reset({
       name: group.name,
       selectionType: group.selectionType,
+      groupType: group.groupType ?? "ADDON",
       minSelections: String(group.minSelections),
       maxSelections:
         group.maxSelections != null ? String(group.maxSelections) : "",
+      dependsOnOptionId: group.dependsOnOptionId ?? null,
       options: group.options.length
         ? group.options.map((o) => ({
+            id: o.id,
             name: o.name,
             additionalPrice: String(o.additionalPrice),
             maxQuantity: String(o.maxQuantity),
+            isDefault: o.isDefault ?? false,
+            replacesDefaultComponent: o.replacesDefaultComponent ?? "",
           }))
         : [{ name: "", additionalPrice: "0", maxQuantity: "1" }],
     });
@@ -82,14 +89,19 @@ export function ModifierGroupsSection() {
     const payload = {
       name: values.name.trim(),
       selectionType: values.selectionType,
+      groupType: values.groupType,
       minSelections: Number(values.minSelections),
       ...(values.maxSelections !== "" && {
         maxSelections: Number(values.maxSelections),
       }),
+      dependsOnOptionId: values.dependsOnOptionId ?? null,
       options: values.options.map((o) => ({
+        ...(o.id ? { id: o.id } : {}),
         name: o.name.trim(),
         additionalPrice: Number(o.additionalPrice),
         maxQuantity: Number(o.maxQuantity),
+        isDefault: o.isDefault ?? false,
+        ...(o.replacesDefaultComponent?.trim() ? { replacesDefaultComponent: o.replacesDefaultComponent.trim() } : {}),
       })),
     };
     saveMutation.mutate(
@@ -221,6 +233,7 @@ export function ModifierGroupsSection() {
           />
 
           <div className="grid grid-cols-3 gap-3">
+            <Controller control={control} name="groupType" render={({ field }) => <Select label="Group type" value={field.value} options={[{ value: "ADDON", label: "Addon" }, { value: "SUBSTITUTION", label: "Substitution" }]} onChange={field.onChange} />} />
             <Controller
               control={control}
               name="selectionType"
@@ -256,6 +269,7 @@ export function ModifierGroupsSection() {
             Min 0 = optional. Leave max blank for no limit on how many a guest
             can pick.
           </p>
+          <Controller control={control} name="dependsOnOptionId" render={({ field }) => <Select label="Show only after option" value={field.value ?? ""} options={[{ value: "", label: "Always show" }, ...(groups ?? []).filter((group) => group.id !== editing?.id).flatMap((group) => group.options.map((option) => ({ value: option.id, label: `${group.name} → ${option.name}` })))]} onChange={(value) => field.onChange(value || null)} />} />
 
           <div>
             <p className="text-sm font-medium text-text-primary mb-2">
@@ -302,6 +316,8 @@ export function ModifierGroupsSection() {
                     >
                       <X className="w-4 h-4" aria-hidden="true" />
                     </button>
+                    <label className="mt-2 flex items-center gap-1 text-xs"><input type="checkbox" {...register(`options.${i}.isDefault`)} /> Default</label>
+                    <div className="w-32"><Input placeholder="Replaces (e.g. Fries)" {...register(`options.${i}.replacesDefaultComponent`)} /></div>
                   </div>
                 </div>
               ))}
@@ -314,7 +330,7 @@ export function ModifierGroupsSection() {
             <button
               type="button"
               onClick={() =>
-                append({ name: "", additionalPrice: "0", maxQuantity: "1" })
+                append({ name: "", additionalPrice: "0", maxQuantity: "1", isDefault: false, replacesDefaultComponent: "" })
               }
               className="mt-2 text-xs font-medium text-primary hover:text-primary-hover"
             >

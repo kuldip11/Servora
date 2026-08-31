@@ -1,12 +1,6 @@
 import { apiClient } from "../../../shared/lib/api-client";
-import type { Recipe, InventoryUnit } from "@pos/types";
+import type { Recipe, RecipeIngredientInput } from "@pos/types";
 
-export interface RecipeIngredientInput {
-  inventoryItemId: string;
-  quantity: number;
-  unit: InventoryUnit;
-  isOptional: boolean;
-}
 
 export const menuRecipesService = {
   async get(itemId: string): Promise<Recipe[]> {

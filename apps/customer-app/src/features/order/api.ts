@@ -5,17 +5,24 @@ export type CustomerOrder = {
   status: string;
   subtotal: string;
   taxAmount: string;
+  discountAmount: string;
+  serviceChargeAmount: string;
+  roundingAdjustment: string;
   totalAmount: string;
   createdAt: string;
   items: Array<{
     id: string;
-    menuItemId: string;
+    menuItemId: string | null;
     menuItemName: string;
+    comboId?: string | null;
+    comboGroupId?: string | null;
     variantId: string | null;
     variantName: string | null;
     quantity: number;
     unitPrice: string | number;
     subtotal: string | number;
+    taxRate?: string | number;
+    taxMode?: "INCLUSIVE" | "EXCLUSIVE";
     chefNotes: string | null;
     fulfillmentType: "DINE_IN" | "TAKEAWAY";
     modifiers: Array<{
@@ -41,15 +48,22 @@ export type CustomerOrder = {
 };
 
 export type CreateCustomerOrderInput = {
-  items: Array<{
+  items?: Array<{
     menuItemId: string;
     variantId?: string;
     quantity: number;
     chefNotes?: string;
     fulfillmentType?: "DINE_IN" | "TAKEAWAY";
-    selectedOptions?: Array<{ optionId: string; quantity?: number }>;
+    selectedOptions?: Array<{ optionId: string; quantity?: number; zoneLabel?: "LEFT" | "RIGHT" | "WHOLE" }>;
+  }>;
+  combos?: Array<{
+    comboId: string;
+    quantity?: number;
+    selections: Array<{ slotId: string; optionIds: string[] }>;
   }>;
   notes?: string;
+  couponCode?: string;
+  loyaltyPhone?: string;
 };
 
 export function createCustomerOrder(

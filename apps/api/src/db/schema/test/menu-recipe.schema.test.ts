@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getTableConfig } from "drizzle-orm/pg-core";
-import { recipes } from "../menu-recipe.schema";
+import { recipes, subRecipes, subRecipeIngredients } from "../menu-recipe.schema";
 
 function expectTable(
   table: Parameters<typeof getTableConfig>[0],
@@ -20,10 +20,25 @@ describe("menu-recipe.schema.ts", () => {
       "id",
       "menuItemId",
       "inventoryItemId",
+      "subRecipeId",
+      "variantId",
+      "modifierOptionId",
       "quantityRequired",
       "unit",
+      "yieldPercent",
       "isOptional",
       "createdAt",
     ]);
   });
+  it("defines branch-scoped prepared components and recursive ingredients", () => {
+    expectTable(subRecipes, "sub_recipes", [
+      "id", "tenantId", "branchId", "name", "yieldQuantity",
+      "yieldUnit", "yieldPercent", "createdAt", "updatedAt",
+    ]);
+    expectTable(subRecipeIngredients, "sub_recipe_ingredients", [
+      "id", "subRecipeId", "inventoryItemId", "ingredientSubRecipeId",
+      "quantityRequired", "unit", "createdAt",
+    ]);
+  });
+
 });

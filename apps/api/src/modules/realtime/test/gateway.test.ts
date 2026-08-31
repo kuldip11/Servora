@@ -25,7 +25,7 @@ vi.mock("../../../lib/authorization/authorization", () => ({
 }));
 vi.mock("../../../lib/jwt", () => ({ verifyAccessToken: vi.fn() }));
 
-import { resolveRealtimeContext } from "../gateway";
+import { forwardTenantRealtimeMessage, resolveRealtimeContext } from "../gateway";
 
 const payload = { sub: "u1" } as any;
 
@@ -104,4 +104,17 @@ describe("realtime gateway context", () => {
       { tenantId: "t1", membershipId: "m1", branchId: null },
     );
   });
+
+  it("forwards a branch-scoped void event through the same tenant realtime transport as kitchen events", () => {
+    const b1 = { __branchId: "b1", send: vi.fn() };
+    const b2 = { __branchId: "b2", send: vi.fn() };
+    const all = { __branchId: null, send: vi.fn() };
+    const registry = new Map([["t1", new Set([b1, b2, all])]]);
+    const message = JSON.stringify({ type: "order.item.voided", tenantId: "t1", branchId: "b1", payload: { id: "kt1" } });
+    forwardTenantRealtimeMessage(message, registry);
+    expect(b1.send).toHaveBeenCalledWith(message);
+    expect(all.send).toHaveBeenCalledWith(message);
+    expect(b2.send).not.toHaveBeenCalled();
+  });
+
 });

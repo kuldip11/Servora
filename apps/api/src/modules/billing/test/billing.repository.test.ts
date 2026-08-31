@@ -2,7 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { tx, db } = vi.hoisted(() => {
   const tx = {
-    query: { orders: { findFirst: vi.fn() }, bills: { findFirst: vi.fn() } },
+    query: {
+      orders: { findFirst: vi.fn(), findMany: vi.fn() },
+      bills: { findFirst: vi.fn(), findMany: vi.fn() },
+      orderItems: { findMany: vi.fn() },
+      payments: { findFirst: vi.fn() },
+    },
     select: vi.fn(),
     insert: vi.fn(),
     update: vi.fn(),
@@ -23,7 +28,11 @@ const where = (rows: any[]) => ({
 beforeEach(() => {
   vi.clearAllMocks();
   tx.query.orders.findFirst.mockReset();
+  tx.query.orders.findMany.mockReset();
+  tx.query.orders.findMany.mockResolvedValue([]);
   tx.query.bills.findFirst.mockReset();
+  tx.query.bills.findMany.mockReset();
+  tx.query.orderItems.findMany.mockReset();
   tx.insert.mockReset();
   tx.update.mockReset();
   tx.select.mockReset();
@@ -68,7 +77,8 @@ describe("billing repository", () => {
     const bill = { id: "b1" };
     const payment = { id: "p1", amount: "10.00", status: "SUCCESS" };
     tx.query.orders.findFirst.mockResolvedValue(order);
-    tx.query.bills.findFirst.mockResolvedValue(undefined);
+    tx.query.bills.findMany.mockResolvedValue([]);
+    tx.query.orderItems.findMany.mockResolvedValue([]);
     tx.insert
       .mockReturnValueOnce({
         values: vi.fn().mockReturnValue({ returning: returning([bill]) }),
@@ -77,7 +87,12 @@ describe("billing repository", () => {
         values: vi.fn().mockReturnValue({ returning: returning([payment]) }),
       });
     const selectResult = (rows: any[]) => ({
-      from: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(rows) }),
+      from: vi.fn().mockReturnValue({
+        where: vi.fn().mockReturnValue({
+          groupBy: vi.fn().mockResolvedValue(rows),
+          then: (resolve: any) => resolve(rows),
+        }),
+      }),
     });
     tx.select
       .mockReturnValueOnce(selectResult([{ total: "0" }]))

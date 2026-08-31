@@ -7,12 +7,10 @@
  * unit tested directly instead of only through a full service/repository
  * round-trip.
  *
- * No behavior change from the pre-refactor repository — including one
- * quirk worth flagging rather than silently "fixing": WASTE and
- * ADJUSTMENT both set the stock to the given `quantity` as an absolute
- * value. WASTE was never treated as "subtract this much" in the
- * pre-refactor code; it fell into the same catch-all `else` branch as
- * ADJUSTMENT. Preserved as-is here — see docs/NEXT_STEPS.md.
+ * Transaction semantics are explicit: IN adds stock, OUT and WASTE
+ * subtract stock, and ADJUSTMENT sets an absolute counted balance. This
+ * keeps the dedicated E3 waste workflow aligned with its user-facing
+ * "quantity wasted" contract instead of treating waste as a recount.
  */
 import type { InventoryTransactionType } from "@pos/types";
 
@@ -29,12 +27,16 @@ export function resolveStockBalance(
     return { ok: true, balanceAfter: currentStock + quantity };
   }
 
-  if (transactionType === "OUT") {
+  if (transactionType === "OUT" || transactionType === "WASTE") {
     const balanceAfter = currentStock - quantity;
     if (balanceAfter < 0) return { ok: false, reason: "INSUFFICIENT_STOCK" };
     return { ok: true, balanceAfter };
   }
 
-  // ADJUSTMENT and WASTE: sets the absolute value (see file header note).
+  // ADJUSTMENT is an absolute physical-count correction.
   return { ok: true, balanceAfter: quantity };
+}
+
+export function resolveInventoryReversal(currentStock: number, quantityActuallyDeducted: number) {
+  return { balanceAfter: currentStock + quantityActuallyDeducted };
 }

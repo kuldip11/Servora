@@ -11,12 +11,34 @@ export interface AuditEntry {
   userName: string | null;
 }
 
+export interface MenuHistoryEntry {
+  id: string;
+  entityType: string;
+  entityId: string;
+  changeType: string;
+  diff: Record<string, unknown>;
+  changedBy: string | null;
+  changedAt: string;
+}
+
 export const auditService = {
   async list(limit = 50): Promise<AuditEntry[]> {
     const response = await apiClient.get<{
       success: boolean;
       data: AuditEntry[];
     }>("/audit", { params: { limit } });
+    return response.data.data;
+  },
+  async menuHistory(filters: {
+    entityType?: string;
+    changeType?: string;
+    entityId?: string;
+    limit?: number;
+  } = {}): Promise<MenuHistoryEntry[]> {
+    const response = await apiClient.get<{ success: boolean; data: MenuHistoryEntry[] }>(
+      "/menu/history",
+      { params: filters },
+    );
     return response.data.data;
   },
 };

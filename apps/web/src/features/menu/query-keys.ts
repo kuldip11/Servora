@@ -5,6 +5,7 @@ import {
 
 export const menuKeys = {
   all: ["menu"] as const,
+  menus: () => [...menuKeys.all, ...franchiseQueryContextKey(), "menus"] as const,
   categories: () =>
     [...menuKeys.all, ...branchQueryContextKey(), "categories"] as const,
   tags: () => [...menuKeys.all, ...franchiseQueryContextKey(), "tags"] as const,

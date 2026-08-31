@@ -16,5 +16,13 @@ describe("inventoryKeys", () => {
       "br-1",
       "items",
     ]);
+    expect(inventoryKeys.impact("i1")).toEqual([
+      "inventory",
+      "branch-context",
+      "fr-1",
+      "br-1",
+      "impact",
+      "i1",
+    ]);
   });
 });

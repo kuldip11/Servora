@@ -3,7 +3,7 @@ import { requirePermission, requireBranch } from "../../core/auth";
 import { ForbiddenError } from "../../core/errors";
 
 export type MenuPermission =
-  "menu:read" | "menu:create" | "menu:update" | "menu:delete" | "menu:publish";
+  "menu:read" | "menu:create" | "menu:update" | "menu:delete" | "menu:publish" | "menu:pricing:write";
 
 /** API-boundary authorization for all menu sub-routers. */
 export function requireMenuPermission(

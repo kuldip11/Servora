@@ -7,8 +7,10 @@ import {
   timestamp,
   pgEnum,
   index,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { orders } from "./order.schema";
+import { orderItems } from "./kitchen.schema";
 import { users } from "./auth.schema";
 
 export const paymentMethodEnum = pgEnum("payment_method", [
@@ -30,17 +32,37 @@ export const bills = pgTable("bills", {
   id: uuid("id").primaryKey().defaultRandom(),
   orderId: uuid("order_id")
     .notNull()
-    .unique()
     .references(() => orders.id, { onDelete: "cascade" }),
+  splitLabel: varchar("split_label", { length: 100 }),
   subtotal: numeric("subtotal", { precision: 10, scale: 2 }).notNull(),
   taxAmount: numeric("tax_amount", { precision: 10, scale: 2 }).notNull(),
   discountAmount: numeric("discount_amount", { precision: 10, scale: 2 })
+    .notNull()
+    .default("0"),
+  serviceChargeAmount: numeric("service_charge_amount", { precision: 10, scale: 2 })
+    .notNull()
+    .default("0"),
+  roundingAdjustment: numeric("rounding_adjustment", { precision: 10, scale: 2 })
     .notNull()
     .default("0"),
   totalAmount: numeric("total_amount", { precision: 10, scale: 2 }).notNull(),
   gstNumber: varchar("gst_number", { length: 50 }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+export const billOrderItems = pgTable(
+  "bill_order_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    billId: uuid("bill_id").notNull().references(() => bills.id, { onDelete: "cascade" }),
+    orderItemId: uuid("order_item_id").notNull().references(() => orderItems.id, { onDelete: "cascade" }),
+    allocationRatio: numeric("allocation_ratio", { precision: 8, scale: 6 }).notNull().default("1"),
+  },
+  (t) => ({
+    billIdx: index("bill_order_items_bill_idx").on(t.billId),
+    billOrderItemUnique: uniqueIndex("bill_order_items_bill_order_item_unique").on(t.billId, t.orderItemId),
+  }),
+);
 
 export const payments = pgTable(
   "payments",

@@ -1,10 +1,8 @@
 import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "../../../shared/lib/query-client";
 import { notifyError, notifySuccess } from "../../../shared/lib/notify";
-import {
-  menuRecipesService,
-  type RecipeIngredientInput,
-} from "../services/menu-recipes.service";
+import type { RecipeIngredientInput } from "@pos/types";
+import { menuRecipesService } from "../services/menu-recipes.service";
 import { menuKeys } from "../query-keys";
 import { inventoryKeys } from "../../inventory/query-keys";
 

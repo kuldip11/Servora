@@ -19,6 +19,7 @@ describe("orders constants", () => {
     expect(STATUS_CONFIG.OPEN.label).toBe("Open");
     expect(STATUS_CONFIG.CANCELLED.label).toBe("Cancelled");
     expect(TICKET_STATUS_LABEL).toEqual({
+      HELD: "Held",
       FIRED: "Waiting",
       PREPARING: "Cooking",
       READY: "Ready",

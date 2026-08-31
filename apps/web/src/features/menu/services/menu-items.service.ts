@@ -6,7 +6,15 @@ export interface MenuItemFormPayload {
   name: string;
   description?: string;
   basePrice: number;
+  pricingMode?: "FIXED" | "WEIGHT_BASED" | "OPEN";
+  weightUnit?: "G" | "KG" | "LB" | "OZ" | null;
+  openPriceMin?: number | null;
+  openPriceMax?: number | null;
+  supportsZones?: boolean;
+  zonePricingRule?: "AVERAGE" | "HIGHER" | "SUM_HALF";
+  manualStockCount?: number | null;
   taxRate: number;
+  taxMode?: "INCLUSIVE" | "EXCLUSIVE" | null;
   foodType: string;
   spiceLevel?: string;
   sku?: string;
@@ -15,6 +23,8 @@ export interface MenuItemFormPayload {
   status: MenuItemStatus;
   availabilityReason: string | null;
   enableRecipeDeduction: boolean;
+  displayMode?: "STANDARD" | "GUIDED_BUILDER";
+  effectiveFrom?: string | null;
   variants: { name: string; price: number }[];
   modifierGroupIds: string[];
   tagIds: string[];
@@ -52,8 +62,28 @@ export const menuItemsService = {
     return res.data.data;
   },
 
-  async setAvailability(id: string, isAvailable: boolean): Promise<void> {
-    await apiClient.patch(`/menu/items/${id}/availability`, { isAvailable });
+
+  async setManualStockCount(
+    id: string,
+    count: number | null,
+    variantId?: string,
+  ): Promise<void> {
+    await apiClient.post(`/menu/items/${id}/stock-count`, {
+      count,
+      ...(variantId ? { variantId } : {}),
+    });
+  },
+
+  async setManualAvailabilityOverride(
+    id: string,
+    status: MenuItemStatus,
+    reason: string,
+  ): Promise<void> {
+    await apiClient.put(`/menu/items/${id}/manual-override`, { status, reason });
+  },
+
+  async clearManualAvailabilityOverride(id: string): Promise<void> {
+    await apiClient.delete(`/menu/items/${id}/manual-override`);
   },
 
   async deleteItem(id: string): Promise<void> {

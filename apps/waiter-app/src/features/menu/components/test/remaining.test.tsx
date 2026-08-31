@@ -69,14 +69,29 @@ describe("remaining menu components", () => {
     const html = renderToStaticMarkup(
       <CartSummary
         cart={cart}
+        combos={[]}
+        menuById={new Map()}
         isAddingToExisting={false}
+        courseSequencingAvailable={false}
+        courseMode={false}
+        onCourseModeChange={vi.fn()}
+        roundCourseNumber={1}
+        onRoundCourseNumberChange={vi.fn()}
+        onUpdateCourse={vi.fn()}
+        onUpdateComboCourse={vi.fn()}
         orderNotes="note"
         onOrderNotesChange={vi.fn()}
+        couponCode=""
+        onCouponCodeChange={vi.fn()}
+        promotions={[]}
+        selectedPromotionIds={[]}
+        onTogglePromotion={vi.fn()}
         totalItems={2}
         totalPrice={240}
         isPending={false}
         needsTable
         onUpdateQty={vi.fn()}
+        onUpdateComboQty={vi.fn()}
         onSubmit={vi.fn()}
         onClose={vi.fn()}
       />,
@@ -99,5 +114,38 @@ describe("remaining menu components", () => {
     expect(html).toContain("Large");
     expect(html).toContain("Extras");
     expect(html).toContain("Cheese");
+  });
+
+  it("renders build-your-own items as a guided step flow", () => {
+    const guidedItem = {
+      ...item,
+      displayMode: "GUIDED_BUILDER",
+      modifierGroupLinks: [
+        {
+          group: {
+            ...item.modifierGroupLinks[0].group,
+            minSelections: 1,
+          },
+        },
+        {
+          group: {
+            id: "g2",
+            name: "Sauce",
+            selectionType: "SINGLE",
+            minSelections: 1,
+            maxSelections: 1,
+            options: [{ id: "o2", name: "Mint", additionalPrice: "0", maxQuantity: 1, isAvailable: true }],
+          },
+        },
+      ],
+    };
+    const html = renderToStaticMarkup(
+      <ItemCustomiser item={guidedItem} onConfirm={vi.fn()} onClose={vi.fn()} />,
+    );
+    expect(html).toContain("Build your dish");
+    expect(html).toContain("Step 1 of 2");
+    expect(html).toContain("Extras");
+    expect(html).not.toContain("Sauce");
+    expect(html).toContain("Next step");
   });
 });

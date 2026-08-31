@@ -14,7 +14,6 @@ export interface AuthResponse {
 
 export const authService = {
   async signup(data: {
-    tenantName?: string;
     firstName: string;
     lastName: string;
     email: string;

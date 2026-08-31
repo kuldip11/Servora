@@ -1,5 +1,5 @@
 import { apiClient } from "../../../shared/lib/api-client";
-import type { InventoryItem, InventoryTransaction } from "@pos/types";
+import type { InventoryItem, InventoryRecipeImpact, InventoryTransaction, WasteReason } from "@pos/types";
 
 export interface InventoryItemFormInput {
   name: string;
@@ -11,10 +11,13 @@ export interface InventoryItemFormInput {
   branchId?: string | undefined;
 }
 
+
+
 export interface StockUpdateInput {
   quantity: string;
   transactionType: string;
   notes: string;
+  wasteReasonId?: string | undefined;
 }
 
 export const inventoryService = {
@@ -34,6 +37,11 @@ export const inventoryService = {
     });
   },
 
+  async recipeImpact(itemId: string): Promise<InventoryRecipeImpact> {
+    const res = await apiClient.get(`/inventory/items/${itemId}/recipe-impact`);
+    return res.data.data;
+  },
+
   async transactions(): Promise<InventoryTransaction[]> {
     const res = await apiClient.get("/inventory/transactions");
     return res.data.data;
@@ -44,6 +52,21 @@ export const inventoryService = {
       quantity: parseFloat(input.quantity),
       transactionType: input.transactionType,
       notes: input.notes || undefined,
+      wasteReasonId: input.wasteReasonId || undefined,
     });
+  },
+
+  async wasteReasons(): Promise<WasteReason[]> {
+    const res = await apiClient.get("/inventory/waste-reasons");
+    return res.data.data;
+  },
+
+  async createWasteReason(label: string): Promise<WasteReason> {
+    const res = await apiClient.post("/inventory/waste-reasons", { label });
+    return res.data.data;
+  },
+
+  async logWaste(itemId: string, input: { quantity: number; wasteReasonId: string; notes?: string }): Promise<void> {
+    await apiClient.post(`/inventory/items/${itemId}/waste`, input);
   },
 };

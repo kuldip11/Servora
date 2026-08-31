@@ -1,7 +1,7 @@
 import { formatTicketAge, isUrgent } from "../utils/ticket";
 
 interface Props {
-  firedAt: string;
+  firedAt: string | null;
 }
 
 // `text-red-400` kept literal for the urgent state — same legibility

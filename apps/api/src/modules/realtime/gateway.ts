@@ -10,6 +10,25 @@ import { shouldDeliverRealtimeEvent } from "./delivery-scope";
 import { customerService } from "../customer/customer.service";
 
 const customerClients = new Map<string, Set<any>>();
+interface CustomerBranchSocket { send(message: string): void }
+const customerBranchClients = new Map<string, Set<CustomerBranchSocket>>();
+const customerScopeBySocket = new WeakMap<object, { tenantId: string; branchId: string }>();
+
+function customerBranchKey(tenantId: string, branchId: string) {
+  return `${tenantId}:${branchId}`;
+}
+function addCustomerBranchClient(tenantId: string, branchId: string, ws: CustomerBranchSocket) {
+  const key = customerBranchKey(tenantId, branchId);
+  if (!customerBranchClients.has(key)) customerBranchClients.set(key, new Set());
+  customerBranchClients.get(key)!.add(ws);
+}
+function removeCustomerBranchClient(tenantId: string, branchId: string, ws: CustomerBranchSocket) {
+  const key = customerBranchKey(tenantId, branchId);
+  const set = customerBranchClients.get(key);
+  if (!set) return;
+  set.delete(ws);
+  if (set.size === 0) customerBranchClients.delete(key);
+}
 
 function addCustomerClient(sessionId: string, ws: any) {
   if (!customerClients.has(sessionId))
@@ -102,6 +121,23 @@ export async function resolveRealtimeContext(
   };
 }
 
+export function forwardTenantRealtimeMessage(
+  message: string,
+  tenantClients: Map<string, Set<{ __branchId?: string | null; send(message: string): void }>> = clients,
+): void {
+  const event = JSON.parse(message) as { tenantId: string; branchId?: string | null };
+  const scopedClients = tenantClients.get(event.tenantId);
+  if (!scopedClients) return;
+  for (const ws of scopedClients) {
+    if (!shouldDeliverRealtimeEvent(ws.__branchId, event.branchId)) continue;
+    try {
+      ws.send(message);
+    } catch {
+      if (tenantClients === clients) removeClient(event.tenantId, ws);
+    }
+  }
+}
+
 // Subscribe to Redis channels and forward to WebSocket clients
 async function startRedisSubscription() {
   await subscriber.subscribe(
@@ -130,19 +166,22 @@ async function startRedisSubscription() {
           }
         }
       }
-      const tenantClients = clients.get(event.tenantId);
-      if (!tenantClients) return;
-      for (const ws of tenantClients) {
-        try {
-          if (
-            shouldDeliverRealtimeEvent((ws as any).__branchId, event.branchId)
-          ) {
-            ws.send(message);
+      if (event.branchId && (event as { type?: string }).type === "menu.availability.updated") {
+        const branchClients = customerBranchClients.get(
+          customerBranchKey(event.tenantId, event.branchId),
+        );
+        if (branchClients) {
+          for (const ws of branchClients) {
+            try {
+              ws.send(message);
+            } catch {
+              removeCustomerBranchClient(event.tenantId, event.branchId, ws);
+            }
           }
-        } catch {
-          removeClient(event.tenantId, ws);
         }
       }
+
+      forwardTenantRealtimeMessage(message);
     } catch (err) {
       console.error("[WS Gateway] Failed to parse Redis message:", err);
     }
@@ -206,7 +245,9 @@ export const customerRealtimeRouter = new Elysia({ prefix: "/ws/customer" }).ws(
       try {
         const session = await customerService.getSession(token);
         (ws as any).__customerSessionId = session.id;
+        customerScopeBySocket.set(ws, { tenantId: session.tenantId, branchId: session.branchId });
         addCustomerClient(session.id, ws);
+        addCustomerBranchClient(session.tenantId, session.branchId, ws);
         ws.send(JSON.stringify({ type: "connected", sessionId: session.id }));
       } catch {
         ws.send(
@@ -220,7 +261,10 @@ export const customerRealtimeRouter = new Elysia({ prefix: "/ws/customer" }).ws(
     },
     close(ws) {
       const id = (ws as any).__customerSessionId as string | undefined;
+      const scope = customerScopeBySocket.get(ws);
       if (id) removeCustomerClient(id, ws);
+      if (scope) removeCustomerBranchClient(scope.tenantId, scope.branchId, ws);
+      customerScopeBySocket.delete(ws);
     },
   },
 );

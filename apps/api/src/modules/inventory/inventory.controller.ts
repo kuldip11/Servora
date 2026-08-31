@@ -40,4 +40,32 @@ export const inventoryController = {
     const transactions = await inventoryService.recentTransactions(auth);
     return successResponse(transactions);
   },
+
+  async recipeImpact(auth: AuthContext, itemId: string) {
+    return successResponse(await inventoryService.getRecipeImpact(auth, itemId));
+  },
+
+  async listWasteReasons(auth: AuthContext, includeInactive = false) {
+    return successResponse(await inventoryService.listWasteReasons(auth, includeInactive));
+  },
+
+  async createWasteReason(auth: AuthContext, input: { label: string }) {
+    return createdResponse(await inventoryService.createWasteReason(auth, input.label));
+  },
+
+  async updateWasteReason(
+    auth: AuthContext,
+    id: string,
+    input: { label?: string | undefined; isActive?: boolean | undefined },
+  ) {
+    return successResponse(await inventoryService.updateWasteReason(auth, id, input));
+  },
+
+  async logWaste(
+    auth: AuthContext,
+    itemId: string,
+    input: { quantity: number; wasteReasonId: string; notes?: string | undefined },
+  ) {
+    return successResponse(await inventoryService.logWaste(auth, itemId, input));
+  },
 };

@@ -9,6 +9,7 @@ vi.mock("@pos/ui", () => ({
   ThemeSwitcher: () => <span>theme</span>,
 }));
 vi.mock("../../hooks/useKitchenTickets", () => ({
+  useKitchenStations: () => ({ data: [] }),
   useKitchenTickets: () => ({
     data: [],
     isLoading: false,
@@ -31,7 +32,8 @@ describe("KitchenBoard", () =>
   it("renders board shell", () => {
     const h = renderToStaticMarkup(<KitchenBoard onLogout={() => {}} />);
     expect(h).toContain("Kitchen Display");
-    expect(h).toContain("New Tickets");
+    expect(h).toContain("Held");
+    expect(h).toContain("New");
     expect(h).toContain("In Prep");
     expect(h).toContain("Ready");
   }));

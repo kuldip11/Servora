@@ -9,14 +9,8 @@ const validSignup = {
 };
 
 describe("signupSchema", () => {
-  it("accepts valid signup data without the deprecated tenant field", () => {
+  it("accepts valid standalone signup data", () => {
     expect(signupSchema.parse(validSignup)).toEqual(validSignup);
-  });
-  it("accepts the optional tenantName compatibility field", () => {
-    expect(
-      signupSchema.parse({ ...validSignup, tenantName: "Main Restaurant" })
-        .tenantName,
-    ).toBe("Main Restaurant");
   });
   it.each([
     ["firstName", ""],

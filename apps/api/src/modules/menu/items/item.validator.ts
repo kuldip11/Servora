@@ -11,6 +11,10 @@ const SPICE_LEVEL = t.Union([
   t.Literal("MEDIUM"),
   t.Literal("HOT"),
 ]);
+const PRICING_MODE = t.Union([t.Literal("FIXED"), t.Literal("WEIGHT_BASED"), t.Literal("OPEN")]);
+const WEIGHT_UNIT = t.Union([t.Literal("G"), t.Literal("KG"), t.Literal("LB"), t.Literal("OZ")]);
+const ZONE_PRICING_RULE = t.Union([t.Literal("AVERAGE"), t.Literal("HIGHER"), t.Literal("SUM_HALF")]);
+const TAX_MODE = t.Union([t.Literal("INCLUSIVE"), t.Literal("EXCLUSIVE")]);
 const ITEM_STATUS = t.Union([
   t.Literal("ACTIVE"),
   t.Literal("OUT_OF_STOCK"),
@@ -24,7 +28,15 @@ export const createItemBody = t.Object({
   name: t.String({ minLength: 1 }),
   description: t.Optional(t.String()),
   basePrice: t.Number({ minimum: 0 }),
+  pricingMode: t.Optional(PRICING_MODE),
+  weightUnit: t.Optional(WEIGHT_UNIT),
+  openPriceMin: t.Optional(t.Number({ minimum: 0 })),
+  openPriceMax: t.Optional(t.Number({ minimum: 0 })),
+  supportsZones: t.Optional(t.Boolean()),
+  zonePricingRule: t.Optional(ZONE_PRICING_RULE),
+  manualStockCount: t.Optional(t.Number({ minimum: 0 })),
   taxRate: t.Optional(t.Number()),
+  taxMode: t.Optional(TAX_MODE),
   branchId: t.Optional(t.String()),
   foodType: t.Optional(FOOD_TYPE),
   spiceLevel: t.Optional(SPICE_LEVEL),
@@ -35,6 +47,8 @@ export const createItemBody = t.Object({
   status: t.Optional(ITEM_STATUS),
   enableRecipeDeduction: t.Optional(t.Boolean()),
   isPublished: t.Optional(t.Boolean()),
+  displayMode: t.Optional(t.Union([t.Literal("STANDARD"), t.Literal("GUIDED_BUILDER")])),
+  effectiveFrom: t.Optional(t.String()),
   // Absolute price for the item when this variant is picked (e.g.
   // "Half" -> 200, "Full" -> 400) — not an add-on to basePrice.
   variants: t.Optional(
@@ -50,7 +64,15 @@ export const updateItemBody = t.Object({
   name: t.Optional(t.String()),
   description: t.Optional(t.String()),
   basePrice: t.Optional(t.Number()),
+  pricingMode: t.Optional(PRICING_MODE),
+  weightUnit: t.Optional(t.Union([WEIGHT_UNIT, t.Null()])),
+  openPriceMin: t.Optional(t.Union([t.Number({ minimum: 0 }), t.Null()])),
+  openPriceMax: t.Optional(t.Union([t.Number({ minimum: 0 }), t.Null()])),
+  supportsZones: t.Optional(t.Boolean()),
+  zonePricingRule: t.Optional(ZONE_PRICING_RULE),
+  manualStockCount: t.Optional(t.Union([t.Number({ minimum: 0 }), t.Null()])),
   taxRate: t.Optional(t.Number()),
+  taxMode: t.Optional(t.Union([TAX_MODE, t.Null()])),
   isAvailable: t.Optional(t.Boolean()),
   foodType: t.Optional(FOOD_TYPE),
   spiceLevel: t.Optional(t.Union([SPICE_LEVEL, t.Null()])),
@@ -61,6 +83,8 @@ export const updateItemBody = t.Object({
   status: t.Optional(ITEM_STATUS),
   availabilityReason: t.Optional(t.Union([t.String(), t.Null()])),
   enableRecipeDeduction: t.Optional(t.Boolean()),
+  displayMode: t.Optional(t.Union([t.Literal("STANDARD"), t.Literal("GUIDED_BUILDER")])),
+  effectiveFrom: t.Optional(t.Union([t.String(), t.Null()])),
   tagIds: t.Optional(t.Array(t.String())),
   allergenIds: t.Optional(t.Array(t.String())),
   modifierGroupIds: t.Optional(t.Array(t.String())),

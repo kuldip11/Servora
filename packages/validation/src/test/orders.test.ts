@@ -20,6 +20,19 @@ describe("createOrderSchema", () => {
       createOrderSchema.safeParse({ type: "DINE_IN", items: [] }).success,
     ).toBe(false);
   });
+  it("accepts a combo-only order and rejects empty order payloads", () => {
+    expect(
+      createOrderSchema.safeParse({
+        type: "TAKEAWAY",
+        combos: [{
+          comboId: uuid,
+          selections: [{ slotId: uuid, optionIds: [uuid] }],
+        }],
+      }).success,
+    ).toBe(true);
+    expect(createOrderSchema.safeParse({ type: "TAKEAWAY" }).success).toBe(false);
+  });
+
   it("accepts optional table/customer and selected options", () => {
     expect(
       createOrderSchema.safeParse({

@@ -6,8 +6,22 @@ import { menuKeys } from "../query-keys";
 
 export function useToggleItemAvailability() {
   return useMutation({
-    mutationFn: ({ id, isAvailable }: { id: string; isAvailable: boolean }) =>
-      menuItemsService.setAvailability(id, isAvailable),
+    mutationFn: ({
+      id,
+      isAvailable,
+      reason,
+    }: {
+      id: string;
+      isAvailable: boolean;
+      reason?: string;
+    }) =>
+      isAvailable
+        ? menuItemsService.clearManualAvailabilityOverride(id)
+        : menuItemsService.setManualAvailabilityOverride(
+            id,
+            "OUT_OF_STOCK",
+            reason ?? "Manual availability override",
+          ),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: menuKeys.categories() }),
     onError: () => notifyError(undefined, "Failed to update availability"),

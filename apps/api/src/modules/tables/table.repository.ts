@@ -5,7 +5,12 @@
 import { eq, and, notInArray } from "drizzle-orm";
 import type { TableStatus } from "@pos/types";
 import { db } from "../../db";
-import { restaurantTables, orders } from "../../db/schema";
+import {
+  restaurantTables,
+  orders,
+  customerSessions,
+  orderStatusHistory,
+} from "../../db/schema";
 import { compact } from "../../lib/object-utils";
 
 export const tableRepository = {
@@ -108,5 +113,76 @@ export const tableRepository = {
       columns: { id: true },
     });
     return !!openOrder;
+  },
+
+  async transferOrderTable(input: {
+    tenantId: string;
+    branchId: string;
+    orderId: string;
+    oldTableId: string;
+    newTableId: string;
+    customerSessionId?: string | null;
+    changedBy: string;
+    oldTableName: string;
+    newTableName: string;
+    reason?: string;
+  }) {
+    return db.transaction(async (tx) => {
+      // The status predicate is the concurrency guard: only one transaction
+      // can claim an AVAILABLE destination. A competing transfer gets no row.
+      const [newTable] = await tx
+        .update(restaurantTables)
+        .set({ status: "OCCUPIED", updatedAt: new Date() })
+        .where(and(
+          eq(restaurantTables.id, input.newTableId),
+          eq(restaurantTables.tenantId, input.tenantId),
+          eq(restaurantTables.branchId, input.branchId),
+          eq(restaurantTables.status, "AVAILABLE"),
+          eq(restaurantTables.isActive, true),
+        ))
+        .returning();
+      if (!newTable) return undefined;
+
+      const [oldTable] = await tx
+        .update(restaurantTables)
+        .set({ status: "AVAILABLE", updatedAt: new Date() })
+        .where(and(
+          eq(restaurantTables.id, input.oldTableId),
+          eq(restaurantTables.tenantId, input.tenantId),
+          eq(restaurantTables.branchId, input.branchId),
+        ))
+        .returning();
+
+      const [order] = await tx
+        .update(orders)
+        .set({ tableId: input.newTableId, updatedAt: new Date() })
+        .where(and(
+          eq(orders.id, input.orderId),
+          eq(orders.tenantId, input.tenantId),
+          eq(orders.branchId, input.branchId),
+          eq(orders.status, "OPEN"),
+          eq(orders.tableId, input.oldTableId),
+        ))
+        .returning();
+      if (!order || !oldTable) throw new Error("ORDER_TABLE_TRANSFER_CONFLICT");
+
+      if (input.customerSessionId) {
+        await tx.update(customerSessions)
+          .set({ tableId: input.newTableId, updatedAt: new Date() })
+          .where(and(
+            eq(customerSessions.id, input.customerSessionId),
+            eq(customerSessions.tenantId, input.tenantId),
+          ));
+      }
+
+      await tx.insert(orderStatusHistory).values({
+        orderId: input.orderId,
+        oldStatus: "OPEN",
+        newStatus: "OPEN",
+        changedBy: input.changedBy,
+        reason: `Table transfer: ${input.oldTableName} → ${input.newTableName}${input.reason?.trim() ? ` · ${input.reason.trim()}` : ""}`,
+      });
+      return { order, oldTable, newTable };
+    });
   },
 };

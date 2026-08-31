@@ -14,10 +14,8 @@ describe("bootstrapAuthSession", () => {
     vi.mocked(authService.refresh).mockReset();
   });
 
-  it("cleans legacy auth state and returns when there is no refresh token", async () => {
-    localStorage.setItem("pos-auth", "legacy");
+  it("returns when there is no refresh token", async () => {
     await bootstrapAuthSession();
-    expect(localStorage.getItem("pos-auth")).toBeNull();
     expect(authService.refresh).not.toHaveBeenCalled();
   });
 

@@ -4,6 +4,7 @@ import {
   inventoryItems,
   inventoryTransactions,
   orderInventoryDeductions,
+  wasteReasons,
   inventoryUnitEnum,
   inventoryTransactionTypeEnum,
 } from "../inventory.schema";
@@ -40,19 +41,32 @@ describe("inventory.schema.ts", () => {
       "balanceAfter",
       "notes",
       "performedBy",
+      "wasteReasonId",
+      "reversalOfDeductionId",
       "createdAt",
+    ]));
+  it("defines waste_reasons", () =>
+    expectTable(wasteReasons, "waste_reasons", [
+      "id",
+      "tenantId",
+      "label",
+      "isActive",
+      "createdAt",
+      "updatedAt",
     ]));
   it("defines order_inventory_deductions", () =>
     expectTable(orderInventoryDeductions, "order_inventory_deductions", [
       "id",
       "orderId",
       "kitchenTicketId",
+      "orderItemId",
       "menuItemId",
       "inventoryItemId",
       "quantityDeducted",
       "unit",
       "wasShort",
       "deductedAt",
+      "reversedAt",
     ]));
   it("keeps inventory enums stable", () => {
     expect(inventoryUnitEnum.enumValues).toEqual([

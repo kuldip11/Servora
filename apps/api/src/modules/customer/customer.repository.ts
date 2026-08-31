@@ -52,7 +52,7 @@ export const customerRepository = {
         eq(orders.customerSessionId, sessionId),
         notInArray(orders.status, ["PAID", "CLOSED", "CANCELLED"]),
       ),
-      columns: { id: true, status: true },
+      columns: { id: true, status: true, customerId: true },
     });
   },
 

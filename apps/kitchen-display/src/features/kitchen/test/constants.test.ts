@@ -10,7 +10,9 @@ describe("kitchen constants", () => {
     expect(STATUS_CONFIG.FIRED.next).toBe("PREPARING");
     expect(STATUS_CONFIG.PREPARING.next).toBe("READY");
     expect(STATUS_CONFIG.READY.next).toBeNull();
+    expect(STATUS_CONFIG.HELD.next).toBe("FIRED");
     expect(BOARD_COLUMNS.map((x) => x.status)).toEqual([
+      "HELD",
       "FIRED",
       "PREPARING",
       "READY",

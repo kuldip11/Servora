@@ -16,3 +16,23 @@ export interface DashboardStats {
     revenue: number;
   }[];
 }
+
+export interface CostMarginRow {
+  menuItemId: string;
+  menuItemName: string;
+  categoryId: string;
+  categoryName: string;
+  variantId: string | null;
+  variantName: string | null;
+  price: number;
+  cost: number;
+  margin: number;
+  marginPercent: number;
+}
+
+export type MenuEngineeringQuadrant = "STAR" | "PUZZLE" | "PLOWHORSE" | "DOG";
+export interface MenuEngineeringRow extends CostMarginRow {
+  salesVolume: number;
+  quadrant: MenuEngineeringQuadrant;
+  recommendation: string;
+}

@@ -1,5 +1,6 @@
 import { usePermissions } from "../../../shared/auth/permissions";
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { tableFormSchema } from "@pos/validation";
@@ -39,9 +40,14 @@ import { useUpdateTable } from "../hooks/useUpdateTable";
 import { useUpdateTableStatus } from "../hooks/useUpdateTableStatus";
 import { useDeleteTable } from "../hooks/useDeleteTable";
 import { useRegenerateTableQr } from "../hooks/useRegenerateTableQr";
+import { useOrders } from "../../orders/hooks/useOrders";
+import { useTransferTable } from "../../orders/hooks/useTransferTable";
 import { TableFormModal } from "../components/TableFormModal";
 import type { RestaurantTable } from "../types";
 import { QRCodeSVG } from "qrcode.react";
+import { ordersService } from "../../orders/services/orders.service";
+import { queryClient } from "../../../shared/lib/query-client";
+import { notifyError, notifySuccess } from "../../../shared/lib/notify";
 
 const STATUS_OPTIONS = [
   { value: "AVAILABLE", label: "Available" },
@@ -89,6 +95,11 @@ export function TablesPage() {
     token: string;
   } | null>(null);
   const [takeawayQrBusy, setTakeawayQrBusy] = useState(false);
+  const [transferSource, setTransferSource] = useState<RestaurantTable | null>(null);
+  const [transferDestinationId, setTransferDestinationId] = useState("");
+  const [transferReason, setTransferReason] = useState("");
+  const [mergeSource, setMergeSource] = useState<RestaurantTable | null>(null);
+  const [mergeTargetOrderId, setMergeTargetOrderId] = useState("");
 
   const {
     register,
@@ -103,6 +114,7 @@ export function TablesPage() {
 
   const { data: branches } = useBranches({ enabled: isAggregate });
   const { data: tables, isLoading } = useTables();
+  const { data: openOrders = [] } = useOrders({ status: "OPEN" });
   useTablesRealtimeSync();
 
   const addMutation = useCreateTable();
@@ -110,6 +122,16 @@ export function TablesPage() {
   const statusMutation = useUpdateTableStatus();
   const deleteMutation = useDeleteTable();
   const regenerateQrMutation = useRegenerateTableQr();
+  const transferMutation = useTransferTable();
+  const mergeMutation = useMutation({
+    mutationFn: ({ sourceOrderId, targetOrderId }: { sourceOrderId: string; targetOrderId: string }) => ordersService.mergeOrders(sourceOrderId, targetOrderId),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["orders"] }); notifySuccess("Tables merged for billing"); setMergeSource(null); setMergeTargetOrderId(""); },
+    onError: (error) => notifyError(error, "Unable to merge tables"),
+  });
+
+  const transferOrder = transferSource
+    ? openOrders.find((order) => order.tableId === transferSource.id)
+    : undefined;
 
   async function openTakeawayQr() {
     if (!branchId || branchId === "all") return;
@@ -248,6 +270,8 @@ export function TablesPage() {
                 statusMutation.mutate({ id, status })
               }
               onShowQr={setQrTable}
+              onTransfer={has("orders:update") ? setTransferSource : undefined}
+              onMerge={has("orders:update") ? setMergeSource : undefined}
             />
           </div>
         ))
@@ -260,6 +284,8 @@ export function TablesPage() {
           }}
           onStatusChange={(id, status) => statusMutation.mutate({ id, status })}
           onShowQr={setQrTable}
+          onTransfer={has("orders:update") ? setTransferSource : undefined}
+          onMerge={has("orders:update") ? setMergeSource : undefined}
         />
       )}
 
@@ -330,6 +356,47 @@ export function TablesPage() {
         }}
         regenerating={regenerateQrMutation.isPending}
       />
+      <Modal open={!!transferSource} onClose={() => setTransferSource(null)} title={`Transfer ${transferSource?.name ?? "table"}`}>
+        <div className="space-y-4">
+          <label className="block text-sm font-medium text-text-primary">Destination
+            <select className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2" value={transferDestinationId} onChange={(event) => setTransferDestinationId(event.target.value)}>
+              <option value="">Select an available table</option>
+              {(tables ?? []).filter((table) => table.status === "AVAILABLE" && table.branchId === transferSource?.branchId).map((table) => (
+                <option key={table.id} value={table.id}>{table.name}</option>
+              ))}
+            </select>
+          </label>
+          <Input label="Reason (optional)" value={transferReason} onChange={(event) => setTransferReason(event.target.value)} />
+          {!transferOrder && <p className="text-sm text-danger">No open order was found for this table.</p>}
+          <div className="flex justify-end gap-2">
+            <Button variant="secondary" onClick={() => setTransferSource(null)}>Cancel</Button>
+            <Button disabled={!transferOrder || !transferDestinationId} loading={transferMutation.isPending} onClick={() => {
+              if (!transferOrder) return;
+              transferMutation.mutate({ orderId: transferOrder.id, newTableId: transferDestinationId, reason: transferReason }, { onSuccess: () => {
+                setTransferSource(null); setTransferDestinationId(""); setTransferReason("");
+              }});
+            }}>Transfer</Button>
+          </div>
+        </div>
+      </Modal>
+      <Modal open={!!mergeSource} onClose={() => setMergeSource(null)} title={`Merge ${mergeSource?.name ?? "table"}`}>
+        <div className="space-y-4">
+          <label className="block text-sm font-medium text-text-primary">Merge billing into
+            <select className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2" value={mergeTargetOrderId} onChange={(event) => setMergeTargetOrderId(event.target.value)}>
+              <option value="">Select another occupied table</option>
+              {openOrders.filter((order) => order.tableId !== mergeSource?.id && !order.mergedIntoOrderId).map((order) => {
+                const table = (tables ?? []).find((candidate) => candidate.id === order.tableId);
+                return <option key={order.id} value={order.id}>{table?.name ?? `Order ${order.id.slice(-8)}`}</option>;
+              })}
+            </select>
+          </label>
+          <p className="text-xs text-text-secondary">Kitchen tickets remain separate. The orders will share one combined bill.</p>
+          <div className="flex justify-end gap-2"><Button variant="secondary" onClick={() => setMergeSource(null)}>Cancel</Button><Button disabled={!mergeTargetOrderId} loading={mergeMutation.isPending} onClick={() => {
+            const source = openOrders.find((order) => order.tableId === mergeSource?.id);
+            if (source) mergeMutation.mutate({ sourceOrderId: source.id, targetOrderId: mergeTargetOrderId });
+          }}>Merge tables</Button></div>
+        </div>
+      </Modal>
     </Page>
   );
 }
@@ -340,12 +407,16 @@ function TableGrid({
   onDelete,
   onStatusChange,
   onShowQr,
+  onTransfer,
+  onMerge,
 }: {
   tables: RestaurantTable[];
   onEdit: (table: RestaurantTable) => void;
   onDelete: (id: string, name: string) => void;
   onStatusChange: (id: string, status: string) => void;
   onShowQr: (table: RestaurantTable) => void;
+  onTransfer?: ((table: RestaurantTable) => void) | undefined;
+  onMerge?: ((table: RestaurantTable) => void) | undefined;
 }) {
   return (
     <Grid columns={{ base: 2, sm: 3, lg: 4 }} gap="md">
@@ -420,9 +491,11 @@ function TableGrid({
             className="text-xs py-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
           />
           {table.status === "OCCUPIED" && (
-            <p className="text-[11px] text-text-disabled -mt-1">
-              Has an active order — frees up automatically once it's closed.
-            </p>
+            <div className="space-y-2 -mt-1">
+              <p className="text-[11px] text-text-disabled">Has an active order — frees up automatically once it's closed.</p>
+              {onTransfer && <Button size="sm" variant="secondary" onClick={() => onTransfer(table)}>Transfer</Button>}
+              {onMerge && <Button size="sm" variant="secondary" onClick={() => onMerge(table)}>Merge</Button>}
+            </div>
           )}
         </Card>
       ))}

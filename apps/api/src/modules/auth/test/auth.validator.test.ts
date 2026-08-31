@@ -28,17 +28,6 @@ describe("auth validators", () => {
       }),
     ).toBe(false);
   });
-  it("allows the deprecated optional tenantName but does not require it", () => {
-    expect(
-      Value.Check(signupBody, {
-        tenantName: "Tenant",
-        firstName: "A",
-        lastName: "B",
-        email: "a@example.com",
-        password: "password123",
-      }),
-    ).toBe(true);
-  });
   it("validates login and refresh token bodies", () => {
     expect(
       Value.Check(loginBody, { email: "a@example.com", password: "x" }),

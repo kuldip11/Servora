@@ -95,9 +95,6 @@ describe("inventory repository", () => {
     await expect(
       inventoryRepository.findRequiredRecipeLines("t1", "b1", []),
     ).resolves.toEqual([]);
-    await expect(
-      inventoryRepository.findAffectedMenuItemIds([], "b1"),
-    ).resolves.toEqual([]);
     expect(db.select).not.toHaveBeenCalled();
   });
   it("filters low-stock results at the repository boundary", async () => {

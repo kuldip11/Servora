@@ -8,14 +8,16 @@ import {
   ShoppingBag,
   Utensils,
 } from "lucide-react";
-import { Button, Card, EmptyState, IconButton } from "@pos/ui";
+import { Button, Card, EmptyState, IconButton, TextInput } from "@pos/ui";
 import type { CartLine } from "./pricing";
+import type { ComboCartLine } from "./combo";
 import { getLineSubtotal } from "./pricing";
 
 import { formatMoney } from "../../shared/utils/money";
 
 export const CartView = memo(function CartView({
   cart,
+  combos,
   subtotal,
   tax,
   total,
@@ -23,11 +25,17 @@ export const CartView = memo(function CartView({
   mode = "DINE_IN",
   onBack,
   onChange,
+  onComboChange,
   onFulfillmentChange,
   onPlace,
+  couponCode,
+  onCouponCodeChange,
+  loyaltyPhone,
+  onLoyaltyPhoneChange,
   loading,
 }: {
   cart: CartLine[];
+  combos: ComboCartLine[];
   subtotal: number;
   tax: number;
   total: number;
@@ -35,8 +43,13 @@ export const CartView = memo(function CartView({
   mode?: "DINE_IN" | "TAKEAWAY";
   onBack: () => void;
   onChange: (index: number, delta: number) => void;
+  onComboChange: (index: number, delta: number) => void;
   onFulfillmentChange: (index: number, value: "DINE_IN" | "TAKEAWAY") => void;
   onPlace: () => void;
+  couponCode: string;
+  onCouponCodeChange: (value: string) => void;
+  loyaltyPhone: string;
+  onLoyaltyPhoneChange: (value: string) => void;
   loading: boolean;
 }) {
   return (
@@ -62,7 +75,7 @@ export const CartView = memo(function CartView({
             </p>
           </div>
         </Card>
-        {cart.length === 0 ? (
+        {cart.length === 0 && combos.length === 0 ? (
           <EmptyState
             icon={ShoppingBag}
             title="Your order is empty"
@@ -72,11 +85,25 @@ export const CartView = memo(function CartView({
         ) : (
           <>
             <div className="mt-3 space-y-2">
+              {combos.map((line, index) => (
+                <Card key={`${line.combo.id}-${index}`} padding="sm" className="flex items-center gap-3">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-primary-surface text-sm font-bold text-primary">COMBO</div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-text-primary">{line.combo.name}</p>
+                    <p className="mt-1 text-sm text-text-secondary">{line.selections.reduce((sum, value) => sum + value.optionIds.length, 0)} selected components · final price recalculated at checkout</p>
+                  </div>
+                  <div className="flex items-center gap-1 rounded-lg bg-surface-secondary p-1">
+                    <IconButton aria-label={`Decrease ${line.combo.name}`} icon={Minus} size="sm" onClick={() => onComboChange(index, -1)} />
+                    <span className="w-5 text-center text-sm font-semibold">{line.quantity}</span>
+                    <IconButton aria-label={`Increase ${line.combo.name}`} icon={Plus} size="sm" variant="primary" onClick={() => onComboChange(index, 1)} />
+                  </div>
+                </Card>
+              ))}
               {cart.map((line, index) => {
                 const image = line.item.imageUrl ?? line.item.images[0]?.url;
                 return (
                   <Card
-                    key={`${line.item.id}-${line.variantId ?? "base"}-${line.selectedOptions.map((option) => `${option.optionId}:${option.quantity}`).join(",")}`}
+                    key={`${line.item.id}-${line.variantId ?? "base"}-${line.selectedOptions.map((option) => `${option.optionId}:${option.zoneLabel ?? "WHOLE"}:${option.quantity}`).join(",")}`}
                     padding="sm"
                     className="flex items-center gap-3"
                   >
@@ -152,6 +179,24 @@ export const CartView = memo(function CartView({
                 );
               })}
             </div>
+            <Card padding="md" className="mt-5">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <TextInput
+                  label="Coupon code"
+                  placeholder="Optional"
+                  value={couponCode}
+                  onChange={(event) => onCouponCodeChange(event.target.value.toUpperCase())}
+                />
+                <TextInput
+                  label="Loyalty phone"
+                  placeholder="Optional"
+                  inputMode="tel"
+                  value={loyaltyPhone}
+                  onChange={(event) => onLoyaltyPhoneChange(event.target.value)}
+                />
+              </div>
+              <p className="mt-2 text-xs text-text-secondary">Promotions and loyalty pricing are validated by the restaurant when the order is submitted; totals above are pre-discount estimates.</p>
+            </Card>
             <Card padding="md" className="mt-5">
               <div className="flex justify-between py-1 text-sm text-text-secondary">
                 <span>Subtotal</span>

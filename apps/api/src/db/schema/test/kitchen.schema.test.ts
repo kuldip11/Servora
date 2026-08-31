@@ -40,7 +40,10 @@ describe("kitchen.schema.ts", () => {
       "quantity",
       "unitPrice",
       "subtotal",
+      "taxRate",
+      "pricingAttribution",
       "chefNotes",
+      "seatLabel",
       "fulfillmentType",
       "createdAt",
     ]));
@@ -67,6 +70,7 @@ describe("kitchen.schema.ts", () => {
   it("keeps kitchen ticket enum stable", () =>
     expect(kitchenTicketStatusEnum.enumValues).toEqual([
       "PENDING_PAYMENT",
+      "HELD",
       "FIRED",
       "PREPARING",
       "READY",

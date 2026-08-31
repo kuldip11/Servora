@@ -295,6 +295,321 @@
       "when": 1786109000041,
       "tag": "0041_ticket_inventory_idempotency",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1786109000042,
+      "tag": "0042_menu_manual_availability_override",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1786109000043,
+      "tag": "0043_price_rules",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1786109000044,
+      "tag": "0044_order_item_pricing_snapshots",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1786109000045,
+      "tag": "0045_menus",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1786109000046,
+      "tag": "0046_menu_memberships",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1786109000047,
+      "tag": "0047_menu_change_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1786109000048,
+      "tag": "0048_kitchen_station_routing",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1786109000049,
+      "tag": "0049_order_item_route_version_snapshots",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1786109000050,
+      "tag": "0050_order_item_voids",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1786109000051,
+      "tag": "0051_structured_cancellation_reasons",
+      "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1786109000052,
+      "tag": "0052_multi_bill_cardinality",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1786109000053,
+      "tag": "0053_table_merge",
+      "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1786109000054,
+      "tag": "0054_order_item_seat_labels",
+      "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1786109000055,
+      "tag": "0055_inventory_void_reversals",
+      "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1786109000056,
+      "tag": "0056_menu_context_scopes",
+      "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "7",
+      "when": 1786109000057,
+      "tag": "0057_menu_schedules",
+      "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1786109000058,
+      "tag": "0058_menu_item_channel_overrides",
+      "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1786109000059,
+      "tag": "0059_variant_availability",
+      "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1786109000060,
+      "tag": "0060_conditional_modifier_groups",
+      "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1786109000061,
+      "tag": "0061_substitution_modifier_groups",
+      "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1786109000062,
+      "tag": "0062_guided_builder_display",
+      "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1786109000063,
+      "tag": "0063_combos",
+      "breakpoints": true
+    },
+    {
+      "idx": 64,
+      "version": "7",
+      "when": 1786109000064,
+      "tag": "0064_scheduled_menu_changes",
+      "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "7",
+      "when": 1786109000065,
+      "tag": "0065_combo_parent_order_items",
+      "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1786109000066,
+      "tag": "0066_promotions",
+      "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1786109000067,
+      "tag": "0067_happy_hour",
+      "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "7",
+      "when": 1786109000068,
+      "tag": "0068_bogo_promotions",
+      "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1786109000069,
+      "tag": "0069_loyalty_pricing",
+      "breakpoints": true
+    },
+    {
+      "idx": 70,
+      "version": "7",
+      "when": 1786109000070,
+      "tag": "0070_service_charge",
+      "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1786109000071,
+      "tag": "0071_rounding",
+      "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1786109000072,
+      "tag": "0072_tax_modes",
+      "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1786109000073,
+      "tag": "0073_menu_pricing_permission",
+      "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1786109000074,
+      "tag": "0074_variant_modifier_recipes",
+      "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1786109000075,
+      "tag": "0075_sub_recipes",
+      "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1786109000076,
+      "tag": "0076_yield_wastage",
+      "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1786109000077,
+      "tag": "0077_modifier_computed_availability",
+      "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1786109000078,
+      "tag": "0078_phase_e_inventory_hardening",
+      "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1786109000079,
+      "tag": "0079_phase_e_completion",
+      "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "7",
+      "when": 1786109000080,
+      "tag": "0080_phase_f_kitchen_operations",
+      "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "7",
+      "when": 1786109000081,
+      "tag": "0081_phase_f_completion",
+      "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1786109000082,
+      "tag": "0082_phase_g_advanced_restaurant_models",
+      "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "7",
+      "when": 1786109000083,
+      "tag": "0083_phase_g_completion",
+      "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1786109000084,
+      "tag": "0084_phase_h_differentiators",
+      "breakpoints": true
+    },
+    {
+      "idx": 85,
+      "version": "7",
+      "when": 1786109000085,
+      "tag": "0085_phase_h_replay_snapshots",
+      "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "7",
+      "when": 1786109000086,
+      "tag": "0086_historical_resolver_replay_evidence",
+      "breakpoints": true
     }
   ]
 }

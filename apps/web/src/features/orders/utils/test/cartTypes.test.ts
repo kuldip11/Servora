@@ -37,7 +37,7 @@ describe("cartItemKey", () => {
           ],
         }),
       ),
-    ).toBe("item-1____m1x2,m2x1");
+    ).toBe("item-1______m1x2,m2x1");
   });
 
   it("is independent of modifier ordering", () => {
@@ -101,6 +101,12 @@ describe("cartItemKey", () => {
           ],
         }),
       ),
+    );
+  });
+
+  it("keeps identical dishes for different seats as separate lines", () => {
+    expect(cartItemKey(item({ seatLabel: "Seat 1" }))).not.toBe(
+      cartItemKey(item({ seatLabel: "Seat 2" })),
     );
   });
 });

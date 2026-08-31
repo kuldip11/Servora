@@ -1,7 +1,7 @@
 import { useAuthStore } from "../../../store/auth";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authService } from "../../auth/services/auth.service";
 import { Button, Input, Modal } from "@pos/ui";
 import { notifyError, notifySuccess } from "../../../shared/lib/notify";
@@ -14,9 +14,32 @@ import {
   ThemeSwitcher,
 } from "@pos/ui";
 import { Building2, User, Shield, Bell, Palette } from "lucide-react";
+import { usePermissions } from "../../../shared/auth/permissions";
+import { useCancellationReasons, cancellationReasonKeys } from "../../orders/hooks/useCancellationReasons";
+import { cancellationReasonsService } from "../../orders/services/cancellation-reasons.service";
+import { PricingSettingsCard } from "../components/PricingSettingsCard";
+import { KitchenOperationsSettingsCard } from "../components/KitchenOperationsSettingsCard";
+import { ApprovalThresholdSettingsCard } from "../components/ApprovalThresholdSettingsCard";
 
 export function SettingsPage() {
-  const { user, setContext } = useAuthStore();
+  const { user, setContext, franchiseId } = useAuthStore();
+  const { has } = usePermissions();
+  const queryClient = useQueryClient();
+  const { data: cancellationReasons = [] } = useCancellationReasons(false);
+  const [newCancellationReason, setNewCancellationReason] = useState("");
+  const reasonMutation = useMutation({
+    mutationFn: (action: { type: "create"; label: string } | { type: "toggle"; id: string; isActive: boolean }) =>
+      action.type === "create"
+        ? cancellationReasonsService.create(action.label)
+        : cancellationReasonsService.update(action.id, { isActive: action.isActive }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: cancellationReasonKeys.all });
+      queryClient.invalidateQueries({ queryKey: cancellationReasonKeys.active });
+      setNewCancellationReason("");
+      notifySuccess("Cancellation reasons updated");
+    },
+    onError: (error) => notifyError(error, "Failed to update cancellation reasons"),
+  });
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   const profileMutation = useMutation({
     mutationFn: authService.updateProfile,
@@ -94,6 +117,35 @@ export function SettingsPage() {
             </div>
           </div>
         </Card>
+
+        {franchiseId && has("tenant:update") && <PricingSettingsCard tenantId={franchiseId} />}
+        {franchiseId && has("tenant:update") && <KitchenOperationsSettingsCard tenantId={franchiseId} />}
+        {has("roles:manage") && has("orders:update") && <ApprovalThresholdSettingsCard />}
+
+        {has("settings:update") && (
+          <Card>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-9 h-9 bg-red-50 rounded-lg flex items-center justify-center">
+                <Shield className="w-5 h-5 text-red-600" />
+              </div>
+              <h2 className="text-base font-semibold text-text-primary">Cancellation reasons</h2>
+            </div>
+            <div className="space-y-2 mb-4">
+              {cancellationReasons.map((reason) => (
+                <div key={reason.id} className="flex items-center justify-between gap-3 text-sm">
+                  <span className={reason.isActive ? "text-text-primary" : "text-text-disabled line-through"}>{reason.label}</span>
+                  <Button size="sm" variant="secondary" onClick={() => reasonMutation.mutate({ type: "toggle", id: reason.id, isActive: !reason.isActive })}>
+                    {reason.isActive ? "Disable" : "Enable"}
+                  </Button>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-end gap-2">
+              <Input label="New reason" value={newCancellationReason} onChange={(event) => setNewCancellationReason(event.target.value)} />
+              <Button disabled={!newCancellationReason.trim()} loading={reasonMutation.isPending} onClick={() => reasonMutation.mutate({ type: "create", label: newCancellationReason.trim() })}>Add</Button>
+            </div>
+          </Card>
+        )}
 
         {/* Phase 16 — Appearance section. Same icon-box + heading shape
             as every other card on this page; `ThemeSwitcher` (`@pos/ui`)

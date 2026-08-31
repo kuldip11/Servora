@@ -71,22 +71,6 @@ export const requireAuthPlugin = () =>
         throw new UnauthorizedError("Invalid or expired token");
       }
 
-      // Access tokens issued before this architecture change contained active
-      // tenant/branch context. Force one refresh so those tokens cannot carry
-      // stale context or tenant-scoped permissions into the new model.
-      const legacyPayload = payload as JwtPayload & {
-        tenantId?: string;
-        membershipId?: string;
-        branchId?: string | null;
-      };
-      if (
-        legacyPayload.tenantId ||
-        legacyPayload.membershipId ||
-        legacyPayload.branchId
-      ) {
-        throw new UnauthorizedError("Session format changed; refresh required");
-      }
-
       const requestedTenant = headers["x-tenant-id"]?.trim() ?? "";
       const requestedBranch = headers["x-branch-id"]?.trim() ?? "";
 

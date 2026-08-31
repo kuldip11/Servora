@@ -9,7 +9,9 @@ export function OrderCart({
   pending,
   canSubmit,
   validationError,
+  courseMode,
   onQty,
+  onCourse,
   onNotes,
   onSubmit,
 }: {
@@ -19,7 +21,9 @@ export function OrderCart({
   pending: boolean;
   canSubmit: boolean;
   validationError?: string;
+  courseMode: boolean;
   onQty: (key: string, delta: number) => void;
+  onCourse: (key: string, courseNumber: number) => void;
   onNotes: (v: string) => void;
   onSubmit: () => void;
 }) {
@@ -59,6 +63,7 @@ export function OrderCart({
                       {m.quantity > 1 ? ` ×${m.quantity}` : ""}
                     </span>
                   ))}
+                  {courseMode && <label className="mt-1 block text-[11px] text-text-secondary">Course <select className="ml-1 rounded border border-border bg-surface px-1 py-0.5" value={item.courseNumber ?? 1} onChange={(event) => onCourse(key, Number(event.target.value))}>{[1,2,3,4,5].map((course) => <option key={course} value={course}>{course}</option>)}</select></label>}
                   {item.chefNotes && (
                     <span className="text-xs text-primary block">
                       📝 {item.chefNotes}

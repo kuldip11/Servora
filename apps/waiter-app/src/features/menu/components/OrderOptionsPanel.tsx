@@ -16,6 +16,16 @@ interface Props {
   onCustomerSearchChange: (value: string) => void;
   customerResults: any[] | undefined;
   onSelectCustomer: (id: string, name: string) => void;
+  customerGroups: Array<{ id: string; name: string }>;
+  customerGroupId: string;
+  onCustomerGroupChange: (id: string) => void;
+  billingMode: "LINE_ITEMS" | "PER_COVER";
+  onBillingModeChange: (mode: "LINE_ITEMS" | "PER_COVER") => void;
+  coverCount: number;
+  onCoverCountChange: (count: number) => void;
+  perCoverRules: Array<{ id: string; coverTier?: "ADULT" | "CHILD" | null; price: string | number | null }>;
+  perCoverPriceRuleId: string;
+  onPerCoverPriceRuleChange: (id: string) => void;
 }
 
 // Design-system Phase 11, Sprint WA-3 — retokenized only, on purpose.
@@ -48,6 +58,16 @@ export function OrderOptionsPanel({
   onCustomerSearchChange,
   customerResults,
   onSelectCustomer,
+  customerGroups,
+  customerGroupId,
+  onCustomerGroupChange,
+  billingMode,
+  onBillingModeChange,
+  coverCount,
+  onCoverCountChange,
+  perCoverRules,
+  perCoverPriceRuleId,
+  onPerCoverPriceRuleChange,
 }: Props) {
   return (
     <div className="bg-surface border-b border-border px-4 py-3 space-y-3">
@@ -151,7 +171,7 @@ export function OrderOptionsPanel({
                       {c.name}
                     </p>
                     <p className="text-xs text-text-disabled">
-                      {c.phone} · {c.loyaltyPoints} pts
+                      {c.phone || c.email || "No contact"}{c.loyaltyTier?.name ? ` · ${c.loyaltyTier.name}` : ""}
                     </p>
                   </button>
                 ))}
@@ -160,6 +180,61 @@ export function OrderOptionsPanel({
           </div>
         )}
       </div>
+
+      {/* Phase G: explicit group-pricing context and buffet billing mode. */}
+      <div className="grid gap-2 md:grid-cols-2">
+        <label className="text-xs font-medium text-text-secondary">
+          Customer group pricing
+          <select
+            className="mt-1 w-full rounded-xl border border-border bg-surface-secondary px-3 py-2 text-sm text-text-primary"
+            value={customerGroupId}
+            onChange={(event) => onCustomerGroupChange(event.target.value)}
+          >
+            <option value="">No customer group</option>
+            {customerGroups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}
+          </select>
+        </label>
+        <label className="text-xs font-medium text-text-secondary">
+          Billing mode
+          <select
+            className="mt-1 w-full rounded-xl border border-border bg-surface-secondary px-3 py-2 text-sm text-text-primary"
+            value={billingMode}
+            onChange={(event) => onBillingModeChange(event.target.value as "LINE_ITEMS" | "PER_COVER")}
+          >
+            <option value="LINE_ITEMS">Line items</option>
+            <option value="PER_COVER" disabled={!perCoverRules.length}>Per cover / buffet</option>
+          </select>
+        </label>
+      </div>
+      {billingMode === "PER_COVER" && (
+        <div className="grid grid-cols-2 gap-2 rounded-xl border border-primary-border bg-primary-surface p-3">
+          <label className="text-xs font-medium text-text-secondary">
+            Covers
+            <input
+              type="number" min={1} step={1}
+              value={coverCount}
+              onChange={(event) => onCoverCountChange(Math.max(1, Number(event.target.value) || 1))}
+              className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="text-xs font-medium text-text-secondary">
+            Per-cover rate
+            <select
+              value={perCoverPriceRuleId}
+              onChange={(event) => onPerCoverPriceRuleChange(event.target.value)}
+              className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm"
+            >
+              <option value="">Select a rate…</option>
+              {perCoverRules.map((rule) => (
+                <option key={rule.id} value={rule.id}>
+                  {rule.coverTier ? `${rule.coverTier.charAt(0)}${rule.coverTier.slice(1).toLowerCase()} cover` : "Any cover"} · ₹{Number(rule.price ?? 0).toFixed(2)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <p className="col-span-2 text-xs text-text-secondary">Items still fire to the kitchen and consume inventory; billing is cover-based.</p>
+        </div>
+      )}
     </div>
   );
 }

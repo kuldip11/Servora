@@ -6,7 +6,11 @@ import {
 } from "./menu-authorization";
 
 function permissionFor(pathname: string, method: string): MenuPermission {
+  // Manual availability overrides are operational updates even though clearing
+  // one uses DELETE semantics; do not accidentally require menu:delete.
+  if (/\/manual-override$/.test(pathname)) return "menu:update";
   if (/\/publish$|\/unpublish$/.test(pathname)) return "menu:publish";
+  if (pathname.startsWith("/api/menu/price-rules") && method !== "GET") return "menu:pricing:write";
   if (method === "GET") return "menu:read";
   if (method === "POST") return "menu:create";
   if (method === "DELETE") return "menu:delete";

@@ -9,6 +9,7 @@ describe("waiter storage keys", () => {
       "waiter_name",
       "waiter_tenant",
       "waiter_branch",
+      "waiter_permissions",
     ]);
   });
 });

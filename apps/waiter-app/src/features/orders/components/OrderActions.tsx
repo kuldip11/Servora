@@ -12,6 +12,9 @@ interface Props {
   onRequestBill: () => void;
   onAddItems: () => void;
   onCancel: () => void;
+  onTransfer?: (() => void) | undefined;
+  onSplit?: (() => void) | undefined;
+  onMerge?: (() => void) | undefined;
 }
 
 export function OrderActions({
@@ -24,6 +27,9 @@ export function OrderActions({
   onRequestBill,
   onAddItems,
   onCancel,
+  onTransfer,
+  onSplit,
+  onMerge,
 }: Props) {
   if (!canRequestBill && !canAddItems && !canCancel) return null;
 
@@ -69,6 +75,17 @@ export function OrderActions({
           Add More Items
         </Button>
       )}
+      {onTransfer && (
+        <Button onClick={onTransfer} variant="secondary" size="lg" className="w-full rounded-2xl">
+          Transfer Table
+        </Button>
+      )}
+      {onSplit && (
+        <Button onClick={onSplit} variant="secondary" size="lg" className="w-full rounded-2xl">
+          Split Bill
+        </Button>
+      )}
+      {onMerge && <Button onClick={onMerge} variant="secondary" size="lg" className="w-full rounded-2xl">Merge Table</Button>}
       {/* **Flagged, not silent — no matching `Button` variant:** the
           original is an unfilled red-outline button (`text-red-500
           border-red-100`), not `Button`'s solid `danger` (filled

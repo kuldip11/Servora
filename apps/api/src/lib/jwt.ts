@@ -42,10 +42,6 @@ export interface JwtPayload {
   email: string;
   roles: string[];
   permissions: string[];
-  /** Legacy claims accepted only to force a one-time refresh after deployment. */
-  tenantId?: string;
-  membershipId?: string;
-  branchId?: string | null;
   iat?: number;
   exp?: number;
 }

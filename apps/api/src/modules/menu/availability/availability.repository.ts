@@ -14,20 +14,175 @@ import type { MenuItemStatus, MenuItemScheduleType } from "@pos/types";
 import { db } from "../../../db";
 import {
   menuItems,
+  menuItemVariants,
   menuItemBranchOverrides,
+  menuItemChannelOverrides,
   menuItemSchedules,
   holidays,
   branches,
+  modifierOptions,
+  menuItemModifierGroups,
 } from "../../../db/schema";
 import { compact } from "../../../lib/object-utils";
 
 export const availabilityRepository = {
+  async listDashboardItems(tenantId: string) {
+    return db.query.menuItems.findMany({
+      where: and(
+        eq(menuItems.tenantId, tenantId),
+        isNull(menuItems.deletedAt),
+        eq(menuItems.isPublished, true),
+      ),
+      columns: { id: true, name: true, branchId: true },
+      with: {
+        variants: true,
+        modifierGroupLinks: {
+          with: { group: { with: { options: true } } },
+        },
+      },
+      orderBy: (item, { asc }) => [asc(item.name)],
+    });
+  },
+  async setManualStockCount(
+    tenantId: string,
+    itemId: string,
+    count: number | null,
+    variantId?: string | null,
+  ) {
+    if (variantId) {
+      const variant = await db.query.menuItemVariants.findFirst({
+        where: eq(menuItemVariants.id, variantId),
+        with: { menuItem: true },
+      });
+      if (
+        !variant ||
+        variant.menuItemId !== itemId ||
+        variant.menuItem.tenantId !== tenantId
+      )
+        return null;
+      const [row] = await db
+        .update(menuItemVariants)
+        .set({ manualStockCount: count, manualStockCountUpdatedAt: new Date() })
+        .where(eq(menuItemVariants.id, variantId))
+        .returning();
+      return { ...row!, menuItemId: itemId, entityType: "VARIANT" as const };
+    }
+    const [row] = await db
+      .update(menuItems)
+      .set({
+        manualStockCount: count,
+        manualStockCountUpdatedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)))
+      .returning();
+    return row
+      ? { ...row, menuItemId: itemId, entityType: "ITEM" as const }
+      : null;
+  },
+
+  async findVariant(variantId: string) {
+    return db.query.menuItemVariants.findFirst({
+      where: eq(menuItemVariants.id, variantId),
+      with: { menuItem: true },
+    });
+  },
+  async setVariantOverride(
+    variantId: string,
+    status: MenuItemStatus | null,
+    reason: string | null,
+  ) {
+    const [row] = await db
+      .update(menuItemVariants)
+      .set({ manualOverrideStatus: status, manualOverrideReason: reason })
+      .where(eq(menuItemVariants.id, variantId))
+      .returning();
+    return row;
+  },
+
+  async setComputedItemStatus(
+    tenantId: string,
+    itemId: string,
+    status: "ACTIVE" | "OUT_OF_STOCK",
+    reason: string | null,
+  ) {
+    const [row] = await db
+      .update(menuItems)
+      .set({
+        status,
+        availabilityReason: reason,
+        statusChangedAt: new Date(),
+        isAvailable: status === "ACTIVE",
+        updatedAt: new Date(),
+      })
+      .where(and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)))
+      .returning();
+    return row;
+  },
+
+  async setComputedVariantStatus(
+    variantId: string,
+    status: "ACTIVE" | "OUT_OF_STOCK",
+  ) {
+    const [row] = await db
+      .update(menuItemVariants)
+      .set({ status })
+      .where(eq(menuItemVariants.id, variantId))
+      .returning();
+    return row;
+  },
+
+  async findModifierOptionForItem(
+    tenantId: string,
+    menuItemId: string,
+    optionId: string,
+  ) {
+    const [row] = await db
+      .select({
+        id: modifierOptions.id,
+        computedAvailability: modifierOptions.computedAvailability,
+        manualOverrideAvailability: modifierOptions.manualOverrideAvailability,
+        isAvailable: modifierOptions.isAvailable,
+      })
+      .from(modifierOptions)
+      .innerJoin(
+        menuItemModifierGroups,
+        eq(
+          menuItemModifierGroups.modifierGroupId,
+          modifierOptions.modifierGroupId,
+        ),
+      )
+      .innerJoin(menuItems, eq(menuItems.id, menuItemModifierGroups.menuItemId))
+      .where(
+        and(
+          eq(menuItems.tenantId, tenantId),
+          eq(menuItems.id, menuItemId),
+          eq(modifierOptions.id, optionId),
+        ),
+      )
+      .limit(1);
+    return row ?? null;
+  },
+
+  async setComputedModifierAvailability(
+    optionId: string,
+    computedAvailability: boolean,
+    effectiveAvailability: boolean,
+  ) {
+    const [row] = await db
+      .update(modifierOptions)
+      .set({ computedAvailability, isAvailable: effectiveAvailability })
+      .where(eq(modifierOptions.id, optionId))
+      .returning();
+    return row;
+  },
   // ─── Order-time pricing (moved from menu/repository.ts) ────────────────────
 
   async findByIds(
     tenantId: string,
     ids: string[],
-    branchId?: string | undefined,
+    branchId: string | undefined,
+    asOf: Date,
   ) {
     const items = await db.query.menuItems.findMany({
       where: and(
@@ -35,54 +190,118 @@ export const availabilityRepository = {
         inArray(menuItems.id, ids),
         isNull(menuItems.deletedAt),
         eq(menuItems.isPublished, true), // a draft item is never orderable, regardless of status
+        or(isNull(menuItems.effectiveFrom), lte(menuItems.effectiveFrom, asOf)),
         branchId
           ? or(eq(menuItems.branchId, branchId), isNull(menuItems.branchId))
           : undefined,
       ),
       with: {
         variants: true,
-        modifierGroupLinks: { with: { group: { with: { options: true } } } },
+        modifierGroupLinks: {
+          with: {
+            group: { with: { options: { with: { variantPrices: true } } } },
+          },
+        },
       },
     });
 
-    // Order pricing (resolveItems in orders/order-pricing.ts) reads
-    // menuItem.basePrice and menuItem.taxRate directly — overlaying both
-    // branch override fields here, rather than making every pricing
-    // call-site check for overrides separately, is the one place that
-    // needs to know about overrides. Variant prices are untouched: a
-    // variant's price replaces basePrice outright, and branch overrides
-    // don't extend to per-variant pricing in this phase.
-    if (branchId) {
-      const tenantWideIds = items
-        .filter((i) => i.branchId === null)
-        .map((i) => i.id);
-      if (tenantWideIds.length) {
-        const overrides = await db.query.menuItemBranchOverrides.findMany({
-          where: and(
-            eq(menuItemBranchOverrides.branchId, branchId),
-            inArray(menuItemBranchOverrides.menuItemId, tenantWideIds),
-          ),
-        });
-        const priceByItemId = new Map(
-          overrides
-            .filter((o) => o.price != null)
-            .map((o) => [o.menuItemId, o.price as string]),
-        );
-        const taxByItemId = new Map(
-          overrides
-            .filter((o) => o.taxRate != null)
-            .map((o) => [o.menuItemId, o.taxRate as string]),
-        );
-        for (const item of items) {
-          const overridePrice = priceByItemId.get(item.id);
-          if (overridePrice != null) item.basePrice = overridePrice;
-          const overrideTax = taxByItemId.get(item.id);
-          if (overrideTax != null) item.taxRate = overrideTax;
-        }
-      }
-    }
+    // Pricing is intentionally not overlaid here. A4 moves authoritative
+    // branch price/tax resolution into PricingPipeline so availability data
+    // stays unmutated and every order price passes through one staged path.
 
     return items;
+  },
+
+  async findPricingOverrides(
+    tenantId: string,
+    menuItemIds: string[],
+    branchId: string,
+  ) {
+    if (menuItemIds.length === 0) return [];
+    return db.query.menuItemBranchOverrides.findMany({
+      where: and(
+        eq(menuItemBranchOverrides.tenantId, tenantId),
+        eq(menuItemBranchOverrides.branchId, branchId),
+        inArray(menuItemBranchOverrides.menuItemId, menuItemIds),
+      ),
+    });
+  },
+  async listChannelOverrides(tenantId: string, itemId: string) {
+    return db.query.menuItemChannelOverrides.findMany({
+      where: and(
+        eq(menuItemChannelOverrides.tenantId, tenantId),
+        eq(menuItemChannelOverrides.menuItemId, itemId),
+      ),
+    });
+  },
+  async getChannelOverride(
+    tenantId: string,
+    itemId: string,
+    channel: string,
+    fulfillmentType: string,
+  ) {
+    const rows = await db.query.menuItemChannelOverrides.findMany({
+      where: and(
+        eq(menuItemChannelOverrides.tenantId, tenantId),
+        eq(menuItemChannelOverrides.menuItemId, itemId),
+        eq(menuItemChannelOverrides.channel, channel),
+        or(
+          eq(menuItemChannelOverrides.fulfillmentType, fulfillmentType),
+          isNull(menuItemChannelOverrides.fulfillmentType),
+        ),
+      ),
+    });
+    return (
+      rows.find((row) => row.fulfillmentType === fulfillmentType) ??
+      rows.find((row) => row.fulfillmentType === null)
+    );
+  },
+  async upsertChannelOverride(
+    tenantId: string,
+    itemId: string,
+    channel: string,
+    fulfillmentType: string | null,
+    data: {
+      status?: MenuItemStatus | null;
+      isHidden?: boolean;
+      availabilityReason?: string | null;
+    },
+  ) {
+    const existing = (
+      await availabilityRepository.listChannelOverrides(tenantId, itemId)
+    ).find(
+      (row) =>
+        row.channel === channel && row.fulfillmentType === fulfillmentType,
+    );
+    if (existing) {
+      const [updated] = await db
+        .update(menuItemChannelOverrides)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(menuItemChannelOverrides.id, existing.id))
+        .returning();
+      return updated!;
+    }
+    const [created] = await db
+      .insert(menuItemChannelOverrides)
+      .values({
+        tenantId,
+        menuItemId: itemId,
+        channel,
+        fulfillmentType,
+        ...data,
+      })
+      .returning();
+    return created!;
+  },
+  async deleteChannelOverride(tenantId: string, id: string) {
+    await db
+      .delete(menuItemChannelOverrides)
+      .where(
+        and(
+          eq(menuItemChannelOverrides.tenantId, tenantId),
+          eq(menuItemChannelOverrides.id, id),
+        ),
+      );
   },
 
   // ─── Schedules ───────────────────────────────────────────────────────────
@@ -90,7 +309,18 @@ export const availabilityRepository = {
   async findItemBasics(tenantId: string, itemId: string) {
     return db.query.menuItems.findFirst({
       where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)),
-      columns: { id: true, status: true, branchId: true },
+      columns: {
+        id: true,
+        status: true,
+        branchId: true,
+        availabilityReason: true,
+        manualOverrideStatus: true,
+        manualOverrideReason: true,
+        manualOverrideSetBy: true,
+        manualOverrideSetAt: true,
+        manualStockCount: true,
+        manualStockCountUpdatedAt: true,
+      },
     });
   },
 
@@ -269,6 +499,54 @@ export const availabilityRepository = {
     await db
       .delete(holidays)
       .where(and(eq(holidays.id, holidayId), eq(holidays.tenantId, tenantId)));
+  },
+
+  async setManualOverride(
+    tenantId: string,
+    itemId: string,
+    status: MenuItemStatus,
+    reason: string,
+    userId: string,
+  ) {
+    const [row] = await db
+      .update(menuItems)
+      .set({
+        manualOverrideStatus: status,
+        manualOverrideReason: reason,
+        manualOverrideSetBy: userId,
+        manualOverrideSetAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(menuItems.id, itemId),
+          eq(menuItems.tenantId, tenantId),
+          isNull(menuItems.deletedAt),
+        ),
+      )
+      .returning();
+    return row;
+  },
+
+  async clearManualOverride(tenantId: string, itemId: string) {
+    const [row] = await db
+      .update(menuItems)
+      .set({
+        manualOverrideStatus: null,
+        manualOverrideReason: null,
+        manualOverrideSetBy: null,
+        manualOverrideSetAt: null,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(menuItems.id, itemId),
+          eq(menuItems.tenantId, tenantId),
+          isNull(menuItems.deletedAt),
+        ),
+      )
+      .returning();
+    return row;
   },
 
   // ─── Branch overrides ────────────────────────────────────────────────────

@@ -5,6 +5,9 @@ import {
   createInventoryItemBody,
   updateStockBody,
   inventoryItemIdParams,
+  logWasteBody,
+  createWasteReasonBody,
+  updateWasteReasonBody,
 } from "./inventory.validator";
 
 export const inventoryRouter = new Elysia()
@@ -35,4 +38,30 @@ export const inventoryRouter = new Elysia()
   )
   .get("/api/inventory/transactions", ({ auth }) =>
     inventoryController.recentTransactions(auth),
+  )
+  .get(
+    "/api/inventory/items/:id/recipe-impact",
+    ({ auth, params }) => inventoryController.recipeImpact(auth, params.id),
+    { params: inventoryItemIdParams },
+  )
+  .get("/api/inventory/waste-reasons", ({ auth, query }) =>
+    inventoryController.listWasteReasons(auth, query.includeInactive === "true"),
+  )
+  .post(
+    "/api/inventory/waste-reasons",
+    ({ auth, body, set }) => {
+      set.status = 201;
+      return inventoryController.createWasteReason(auth, body);
+    },
+    { body: createWasteReasonBody },
+  )
+  .patch(
+    "/api/inventory/waste-reasons/:id",
+    ({ auth, params, body }) => inventoryController.updateWasteReason(auth, params.id, body),
+    { params: inventoryItemIdParams, body: updateWasteReasonBody },
+  )
+  .post(
+    "/api/inventory/items/:id/waste",
+    ({ auth, params, body }) => inventoryController.logWaste(auth, params.id, body),
+    { params: inventoryItemIdParams, body: logWasteBody },
   );

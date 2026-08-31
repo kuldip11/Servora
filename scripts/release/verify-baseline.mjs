@@ -22,6 +22,26 @@ const steps = [
     command: ["bun", "run", "validate:env"],
   },
   {
+    id: "a-h-remediation",
+    label: "A-H audited remediation contracts",
+    command: ["bun", "run", "verify:a-h:remediation"],
+  },
+  {
+    id: "phase-g-acceptance",
+    label: "Phase G advanced restaurant model acceptance",
+    command: ["bun", "run", "verify:phase-g"],
+  },
+  {
+    id: "phase-h-acceptance",
+    label: "Phase H differentiators acceptance",
+    command: ["bun", "run", "verify:phase-h"],
+  },
+  {
+    id: "rbac-audit",
+    label: "RBAC static audit",
+    command: ["bun", "run", "audit:rbac"],
+  },
+  {
     id: "lint",
     label: "Monorepo lint",
     command: ["bun", "run", "lint"],

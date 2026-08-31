@@ -15,6 +15,15 @@ if (!names.length) {
 const numbers = names.map((name) => Number(name.slice(0, 4)));
 const errors = [];
 
+const journalPath = resolve(folder, "meta/_journal.json");
+let journalTags = [];
+try {
+  const journal = JSON.parse(readFileSync(journalPath, "utf8"));
+  journalTags = (journal.entries ?? []).map((entry) => entry.tag);
+} catch (error) {
+  errors.push(`Unable to read migration journal: ${error instanceof Error ? error.message : String(error)}`);
+}
+
 for (let i = 0; i < numbers.length; i += 1) {
   if (numbers[i] !== i) {
     errors.push(
@@ -22,6 +31,14 @@ for (let i = 0; i < numbers.length; i += 1) {
     );
     break;
   }
+}
+
+const expectedTags = names.map((name) => name.replace(/\.sql$/, ""));
+for (const tag of expectedTags) {
+  if (!journalTags.includes(tag)) errors.push(`Migration journal is missing ${tag}`);
+}
+for (const tag of journalTags) {
+  if (!expectedTags.includes(tag)) errors.push(`Migration journal references missing SQL migration ${tag}`);
 }
 
 const seen = new Set();

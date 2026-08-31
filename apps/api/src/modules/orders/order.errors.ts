@@ -77,3 +77,27 @@ export function orderNotOpen(currentStatus: string): DomainRuleError {
     },
   );
 }
+
+export function orderItemNotFound(id: string): NotFoundError {
+  return new NotFoundError("Order item", id);
+}
+
+export function orderItemCannotBeVoided(reason: string): ConflictError {
+  return new ConflictError(reason, { reason: "ORDER_ITEM_NOT_VOIDABLE" });
+}
+
+export function orderItemCannotBeComped(reason: string): ConflictError {
+  return new ConflictError(reason, { reason: "ORDER_ITEM_NOT_COMPABLE" });
+}
+
+export function orderItemCannotBeRefired(reason: string): ConflictError {
+  return new ConflictError(reason, { reason: "ORDER_ITEM_NOT_REFIREABLE" });
+}
+
+export function orderCannotTransferTable(reason: string): ConflictError {
+  return new ConflictError(reason, { reason: "ORDER_TABLE_TRANSFER_FAILED" });
+}
+
+export function orderCannotMerge(reason: string): ConflictError {
+  return new ConflictError(reason, { reason: "ORDER_MERGE_FAILED" });
+}

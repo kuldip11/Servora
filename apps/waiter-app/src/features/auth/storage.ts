@@ -21,6 +21,19 @@ export function saveContext(franchiseId: string, branchId: string | null) {
 
 export function saveProfile(user: User) {
   localStorage.setItem(STORAGE_KEYS.name, `${user.firstName} ${user.lastName}`);
+  localStorage.setItem(
+    STORAGE_KEYS.permissions,
+    JSON.stringify(Array.from(new Set((user.roles ?? []).flatMap((role) => role.permissions.map((permission) => permission.key))))),
+  );
+}
+
+export function hasPermission(permission: string): boolean {
+  try {
+    return (JSON.parse(localStorage.getItem(STORAGE_KEYS.permissions) ?? "[]") as string[])
+      .includes(permission);
+  } catch {
+    return false;
+  }
 }
 
 export function getToken(): string | null {

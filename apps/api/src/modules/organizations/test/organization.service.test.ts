@@ -7,11 +7,20 @@ const repository = vi.hoisted(() => ({
   findMembership: vi.fn(),
   create: vi.fn(),
   update: vi.fn(),
+  findTenant: vi.fn(),
+  listTenants: vi.fn(),
+  listMenus: vi.fn(),
+  createMenu: vi.fn(),
+  updateMenu: vi.fn(),
+  deleteMenu: vi.fn(),
 }));
 
 vi.mock("../organization.repository", () => ({
   organizationRepository: repository,
 }));
+
+const { writeAudit } = vi.hoisted(() => ({ writeAudit: vi.fn() }));
+vi.mock("../../../core/audit", () => ({ writeAudit }));
 
 import { organizationService } from "../organization.service";
 
@@ -80,5 +89,50 @@ describe("organizationService", () => {
       organizationService.archive(auth, "org-missing"),
     ).rejects.toEqual(organizationNotFound("org-missing"));
     expect(repository.update).not.toHaveBeenCalled();
+  });
+});
+
+describe("G7 organization inheritance authorization", () => {
+  const orgAuth = {
+    ...auth,
+    tenantId: "tenant-1",
+    roles: ["MANAGER"],
+    permissions: ["organization:manage"],
+  };
+
+  beforeEach(() => {
+    repository.findMembership.mockResolvedValue({ id: "membership-1", organizationId: "org-1", status: "ACTIVE" });
+    repository.findTenant.mockResolvedValue({ id: "tenant-1", organizationId: "org-1" });
+    writeAudit.mockResolvedValue(undefined);
+  });
+
+  it("requires organization:manage even for an active organization member", async () => {
+    await expect(organizationService.listMenus({ ...orgAuth, permissions: [] }, "org-1"))
+      .rejects.toBeInstanceOf(ForbiddenError);
+    expect(repository.listMenus).not.toHaveBeenCalled();
+  });
+
+  it("does not allow a member to manage an organization outside the active tenant boundary", async () => {
+    repository.findTenant.mockResolvedValue({ id: "tenant-1", organizationId: "org-2" });
+    await expect(organizationService.listMenus(orgAuth, "org-1"))
+      .rejects.toEqual(organizationNotFound("org-1"));
+    expect(repository.listMenus).not.toHaveBeenCalled();
+  });
+
+  it("creates an organization menu by stable SKU and writes an audit record", async () => {
+    repository.createMenu.mockResolvedValue({ id: "menu-org", status: "PUBLISHED", organizationItems: [{ itemSku: "PIZZA-1" }] });
+    await expect(organizationService.createMenu(orgAuth, "org-1", {
+      name: "Group menu",
+      status: "PUBLISHED",
+      items: [{ itemSku: " PIZZA-1 " }],
+    })).resolves.toMatchObject({ id: "menu-org" });
+    expect(repository.createMenu).toHaveBeenCalledWith(expect.objectContaining({
+      organizationId: "org-1",
+      items: [expect.objectContaining({ itemSku: "PIZZA-1" })],
+    }));
+    expect(writeAudit).toHaveBeenCalledWith(expect.objectContaining({
+      action: "ORGANIZATION_MENU_CREATED",
+      metadata: expect.objectContaining({ organizationId: "org-1" }),
+    }));
   });
 });

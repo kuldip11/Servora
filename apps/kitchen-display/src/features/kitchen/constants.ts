@@ -44,6 +44,12 @@ export const STATUS_CONFIG = {
     badgeTextClass: "text-amber-400",
     btn: "",
   },
+  HELD: {
+    label: "Held", next: "FIRED", nextLabel: "Fire Course",
+    border: "border-text-disabled/40", badgeTone: "neutral" as StatusTone,
+    badgeTextClass: "text-text-secondary",
+    btn: "bg-primary hover:opacity-90 text-primary-foreground",
+  },
   FIRED: {
     label: "Waiting",
     next: "PREPARING",
@@ -86,7 +92,8 @@ export const BOARD_COLUMNS: Array<{
   status: KitchenTicketStatus;
   color: string;
 }> = [
-  { title: "New Tickets", status: "FIRED", color: "text-blue-400" },
+  { title: "Held", status: "HELD", color: "text-text-secondary" },
+  { title: "New", status: "FIRED", color: "text-blue-400" },
   { title: "In Prep", status: "PREPARING", color: "text-amber-400" },
   { title: "Ready", status: "READY", color: "text-emerald-400" },
 ];

@@ -29,6 +29,7 @@ export const STATUS_CONFIG = {
 } satisfies Record<string, { label: string; color: string; bg: string }>;
 
 export const TICKET_STATUS_LABEL: Record<string, string> = {
+  HELD: "Held",
   FIRED: "Waiting",
   PREPARING: "Cooking",
   READY: "Ready",

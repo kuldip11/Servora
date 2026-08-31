@@ -12,9 +12,18 @@ import {
   updateHolidayBody,
   holidayIdParams,
   upsertOverrideBody,
+  manualOverrideBody,
 } from "../availability.validator";
 
 describe("availability.validator validators", () => {
+  it("requires a status and non-empty reason for manual overrides", () => {
+    expect(
+      Value.Check(manualOverrideBody, { status: "OUT_OF_STOCK", reason: "Sold out" }),
+    ).toBe(true);
+    expect(
+      Value.Check(manualOverrideBody, { status: "OUT_OF_STOCK", reason: "" }),
+    ).toBe(false);
+  });
   it("requires scheduleType for schedule creation", () => {
     expect(Value.Check(createScheduleBody, {})).toBe(false);
     expect(Value.Check(createScheduleBody, { scheduleType: "DAILY" })).toBe(

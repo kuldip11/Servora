@@ -16,14 +16,19 @@ import {
   modifierGroupNotFound,
   modifierOptionNotFound,
 } from "./modifier.errors";
+import { buildDiff, menuChangeLog } from "../change-log/menu-change-log";
 
 type SelectionType = "SINGLE" | "MULTIPLE";
 
 export interface ModifierOptionInput {
+  id?: string | undefined;
   name: string;
   additionalPrice: number;
   isAvailable?: boolean | undefined;
   maxQuantity?: number | undefined;
+  isDefault?: boolean | undefined;
+  replacesDefaultComponent?: string | undefined;
+  variantPrices?: Array<{ variantId: string; additionalPrice: number }> | undefined;
 }
 
 export interface CreateModifierGroupInput {
@@ -33,6 +38,8 @@ export interface CreateModifierGroupInput {
   maxSelections?: number | undefined;
   branchId?: string | undefined;
   options?: ModifierOptionInput[] | undefined;
+  dependsOnOptionId?: string | null | undefined;
+  groupType?: "ADDON" | "SUBSTITUTION" | undefined;
 }
 
 export interface UpdateModifierGroupInput {
@@ -41,6 +48,8 @@ export interface UpdateModifierGroupInput {
   minSelections?: number | undefined;
   maxSelections?: number | null | undefined;
   options?: ModifierOptionInput[] | undefined;
+  dependsOnOptionId?: string | null | undefined;
+  groupType?: "ADDON" | "SUBSTITUTION" | undefined;
 }
 
 export interface CreateTagInput {
@@ -51,10 +60,49 @@ export interface CreateTagInput {
 // Converts the wire-shape `additionalPrice: number` into the string
 // Drizzle's `numeric` column type expects — same conversion the legacy
 // controller did inline at both the create and update/options call sites.
-function withStringPrice<T extends { additionalPrice: number }>(
-  option: T,
-): Omit<T, "additionalPrice"> & { additionalPrice: string } {
-  return { ...option, additionalPrice: String(option.additionalPrice) };
+
+async function assertNoCircularDependency(
+  tenantId: string,
+  groupId: string,
+  dependsOnOptionId: string | null | undefined,
+) {
+  if (!dependsOnOptionId) return;
+
+  const visitedGroupIds = new Set<string>([groupId]);
+  let prerequisiteOptionId: string | null | undefined = dependsOnOptionId;
+
+  while (prerequisiteOptionId) {
+    const prerequisite = await modifierRepository.findModifierOption(
+      tenantId,
+      prerequisiteOptionId,
+    );
+    if (!prerequisite) throw modifierOptionNotFound(prerequisiteOptionId);
+
+    if (visitedGroupIds.has(prerequisite.modifierGroupId)) {
+      throw new Error("Circular modifier group dependency");
+    }
+    visitedGroupIds.add(prerequisite.modifierGroupId);
+
+    const prerequisiteGroup = await modifierRepository.findModifierGroup(
+      tenantId,
+      prerequisite.modifierGroupId,
+    );
+    prerequisiteOptionId = prerequisiteGroup?.dependsOnOptionId ?? null;
+  }
+}
+
+function withStringPrice(option: ModifierOptionInput): Omit<ModifierOptionInput, "additionalPrice" | "variantPrices"> & {
+  additionalPrice: string;
+  variantPrices?: Array<{ variantId: string; additionalPrice: string }> | undefined;
+} {
+  const { additionalPrice, variantPrices, ...rest } = option;
+  return {
+    ...rest,
+    additionalPrice: String(additionalPrice),
+    ...(variantPrices !== undefined
+      ? { variantPrices: variantPrices.map((price) => ({ ...price, additionalPrice: String(price.additionalPrice) })) }
+      : {}),
+  };
 }
 
 export const modifierService = {
@@ -74,12 +122,19 @@ export const modifierService = {
   async createGroup(auth: AuthContext, input: CreateModifierGroupInput) {
     requirePermission(auth, "menu:create");
     const branchId = resolveMenuBranch(auth, input.branchId);
-    return modifierRepository.createModifierGroup({
+    if ((input.groupType ?? "ADDON") === "ADDON" && input.options?.some((option) => option.additionalPrice < 0)) throw new Error("Addon modifier prices cannot be negative");
+    if (input.options?.some((option) => option.variantPrices?.length)) {
+      throw new Error("Create the modifier group first, attach it to an item, then configure variant-specific prices");
+    }
+    const created = await modifierRepository.createModifierGroup({
       ...input,
       tenantId: auth.tenantId,
       branchId,
       options: input.options?.map(withStringPrice),
     });
+    if (!created) throw new Error("Modifier group could not be created");
+    await menuChangeLog.record(auth, "MODIFIER_GROUP", created.id, "CREATED", buildDiff(null, created));
+    return created;
   },
 
   async updateGroup(
@@ -94,7 +149,30 @@ export const modifierService = {
     );
     if (!existing) throw modifierGroupNotFound(groupId);
     assertMenuResourceBranch(auth, existing.branchId);
+    if (input.dependsOnOptionId !== undefined) {
+      await assertNoCircularDependency(
+        auth.tenantId,
+        groupId,
+        input.dependsOnOptionId,
+      );
+    }
     const { options, ...groupFields } = input;
+    if ((input.groupType ?? existing.groupType ?? "ADDON") === "ADDON" && options?.some((option) => option.additionalPrice < 0)) throw new Error("Addon modifier prices cannot be negative");
+    if ((input.groupType ?? existing.groupType ?? "ADDON") === "ADDON" && options?.some((option) => option.variantPrices?.some((price) => price.additionalPrice < 0))) {
+      throw new Error("Addon variant-specific modifier prices cannot be negative");
+    }
+    for (const option of options ?? []) {
+      const ids = option.variantPrices?.map((price) => price.variantId) ?? [];
+      if (new Set(ids).size !== ids.length) throw new Error("A modifier option can have only one price override per variant");
+    }
+    if (options?.some((option) => option.variantPrices?.length)) {
+      const variantIds = [...new Set(options.flatMap((option) => option.variantPrices?.map((price) => price.variantId) ?? []))];
+      const eligible = await modifierRepository.findEligibleVariantIdsForGroup(auth.tenantId, groupId, variantIds);
+      const invalid = variantIds.filter((variantId) => !eligible.has(variantId));
+      if (invalid.length) {
+        throw new Error("Variant-specific modifier prices can only target variants of tenant items that use this modifier group");
+      }
+    }
     const group = await modifierRepository.updateModifierGroup(
       auth.tenantId,
       groupId,
@@ -108,6 +186,8 @@ export const modifierService = {
         options.map(withStringPrice),
       );
     }
+
+    await menuChangeLog.record(auth, "MODIFIER_GROUP", groupId, "UPDATED", buildDiff(existing, { ...group, options }));
 
     return group;
   },
@@ -124,6 +204,7 @@ export const modifierService = {
     if (!existing) return;
     assertMenuResourceBranch(auth, existing.branchId);
     await modifierRepository.deleteModifierGroup(auth.tenantId, groupId);
+    await menuChangeLog.record(auth, "MODIFIER_GROUP", groupId, "DELETED", buildDiff(existing, null));
   },
 
   async setOptionAvailability(
@@ -144,6 +225,7 @@ export const modifierService = {
       isAvailable,
     );
     if (!updated) throw modifierOptionNotFound(optionId);
+    await menuChangeLog.record(auth, "MODIFIER_OPTION", optionId, "UPDATED", buildDiff(existing, updated));
     return updated;
   },
 
@@ -156,13 +238,16 @@ export const modifierService = {
 
   async createTag(auth: AuthContext, input: CreateTagInput) {
     requirePermission(auth, "menu:create");
-    return modifierRepository.createTag(auth.tenantId, input.name, input.color);
+    const created = await modifierRepository.createTag(auth.tenantId, input.name, input.color);
+    await menuChangeLog.record(auth, "TAG", created.id, "CREATED", buildDiff(null, created));
+    return created;
   },
 
   // Same as deleteGroup — no not-found check, matching the legacy route.
   async deleteTag(auth: AuthContext, tagId: string) {
     requirePermission(auth, "menu:delete");
     await modifierRepository.deleteTag(auth.tenantId, tagId);
+    await menuChangeLog.record(auth, "TAG", tagId, "DELETED", {});
   },
 
   // ─── Allergens (fixed, seeded list — no tenant scoping) ────────────────────

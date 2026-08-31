@@ -2,6 +2,7 @@ import type { TableStatus } from "@pos/types";
 
 export interface RestaurantTable {
   id: string;
+  branchId: string;
   name: string;
   capacity: number;
   section: string | null;

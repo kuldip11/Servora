@@ -9,20 +9,20 @@ vi.mock("elysia", async (importOriginal) => {
     use(plugin: any) {
       return this;
     }
-    get(path: string) {
-      this.routes.push({ method: "GET", path });
+    get(path: string, handler?: unknown) {
+      this.routes.push({ method: "GET", path, handler });
       return this;
     }
-    post(path: string) {
-      this.routes.push({ method: "POST", path });
+    post(path: string, handler?: unknown) {
+      this.routes.push({ method: "POST", path, handler });
       return this;
     }
     put(path: string) {
       this.routes.push({ method: "PUT", path });
       return this;
     }
-    patch(path: string) {
-      this.routes.push({ method: "PATCH", path });
+    patch(path: string, handler?: unknown) {
+      this.routes.push({ method: "PATCH", path, handler });
       return this;
     }
     delete(path: string) {
@@ -38,13 +38,14 @@ vi.mock("elysia", async (importOriginal) => {
 });
 vi.mock("../../../core/auth", () => ({ requireAuthPlugin: () => ({}) }));
 import { describe, expect, it, vi } from "vitest";
-const { list, create, updateStock, lowStockAlerts, recentTransactions } =
+const { list, create, updateStock, lowStockAlerts, recentTransactions, logWaste } =
   vi.hoisted(() => ({
     list: vi.fn(),
     create: vi.fn(),
     updateStock: vi.fn(),
     lowStockAlerts: vi.fn(),
     recentTransactions: vi.fn(),
+    logWaste: vi.fn(),
   }));
 vi.mock("../inventory.controller", () => ({
   inventoryController: {
@@ -53,6 +54,7 @@ vi.mock("../inventory.controller", () => ({
     updateStock,
     lowStockAlerts,
     recentTransactions,
+    logWaste,
   },
 }));
 import { inventoryRouter } from "../inventory.route";
@@ -80,7 +82,32 @@ describe("inventory routes", () => {
           method: "GET",
           path: "/api/inventory/transactions",
         }),
+        expect.objectContaining({
+          method: "GET",
+          path: "/api/inventory/items/:id/recipe-impact",
+        }),
+        expect.objectContaining({
+          method: "POST",
+          path: "/api/inventory/items/:id/waste",
+        }),
       ]),
+    );
+  });
+
+  it("forwards the reason-coded waste payload through the HTTP endpoint", async () => {
+    logWaste.mockResolvedValue({ success: true, data: { transaction: { wasteReasonId: "wr1" } } });
+    const route = (inventoryRouter as { routes: Array<{ method: string; path: string; handler?: (context: unknown) => unknown }> }).routes.find(
+      (candidate) => candidate.method === "POST" && candidate.path === "/api/inventory/items/:id/waste",
+    );
+    expect(route?.handler).toBeTypeOf("function");
+
+    const body = { quantity: 2, wasteReasonId: "wr1", notes: "Trim loss" };
+    await route!.handler!({ auth: { tenantId: "t1" }, params: { id: "i1" }, body });
+
+    expect(logWaste).toHaveBeenCalledWith(
+      { tenantId: "t1" },
+      "i1",
+      body,
     );
   });
 });

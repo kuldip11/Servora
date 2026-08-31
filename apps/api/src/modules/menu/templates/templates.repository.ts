@@ -64,7 +64,16 @@ export const templatesRepository = {
       name: string;
       description: string | null;
       basePrice: string;
+      pricingMode: "FIXED" | "WEIGHT_BASED" | "OPEN";
+      weightUnit: "G" | "KG" | "LB" | "OZ" | null;
+      openPriceMin: string | null;
+      openPriceMax: string | null;
+      supportsZones: boolean;
+      zonePricingRule: "AVERAGE" | "HIGHER" | "SUM_HALF";
+      manualStockCount: number | null;
+      manualStockCountUpdatedAt: Date | null;
       taxRate: string;
+      taxMode: "INCLUSIVE" | "EXCLUSIVE" | null;
       foodType: FoodType;
       spiceLevel: SpiceLevel | null;
       prepTimeMinutes: number | null;
@@ -89,7 +98,16 @@ export const templatesRepository = {
             name: it.name,
             description: it.description,
             basePrice: it.basePrice,
+            pricingMode: it.pricingMode,
+            weightUnit: it.weightUnit,
+            openPriceMin: it.openPriceMin,
+            openPriceMax: it.openPriceMax,
+            supportsZones: it.supportsZones,
+            zonePricingRule: it.zonePricingRule,
+            manualStockCount: it.manualStockCount,
+            manualStockCountUpdatedAt: it.manualStockCountUpdatedAt,
             taxRate: it.taxRate,
+            taxMode: it.taxMode,
             foodType: it.foodType,
             spiceLevel: it.spiceLevel,
             prepTimeMinutes: it.prepTimeMinutes,
@@ -133,7 +151,16 @@ export const templatesRepository = {
         name: string;
         description: string | null;
         basePrice: string;
+        pricingMode: "FIXED" | "WEIGHT_BASED" | "OPEN";
+        weightUnit: "G" | "KG" | "LB" | "OZ" | null;
+        openPriceMin: string | null;
+        openPriceMax: string | null;
+        supportsZones: boolean;
+        zonePricingRule: "AVERAGE" | "HIGHER" | "SUM_HALF";
+        manualStockCount: number | null;
+        manualStockCountUpdatedAt: Date | null;
         taxRate: string;
+        taxMode: "INCLUSIVE" | "EXCLUSIVE" | null;
         foodType: FoodType;
         spiceLevel: SpiceLevel | null;
         prepTimeMinutes: number | null;
@@ -169,7 +196,16 @@ export const templatesRepository = {
                 name: ti.name,
                 description: ti.description,
                 basePrice: ti.basePrice,
+                pricingMode: ti.pricingMode,
+                weightUnit: ti.weightUnit,
+                openPriceMin: ti.openPriceMin,
+                openPriceMax: ti.openPriceMax,
+                supportsZones: ti.supportsZones,
+                zonePricingRule: ti.zonePricingRule,
+                manualStockCount: ti.manualStockCount,
+                manualStockCountUpdatedAt: ti.manualStockCountUpdatedAt,
                 taxRate: ti.taxRate,
+                taxMode: ti.taxMode,
                 foodType: ti.foodType,
                 spiceLevel: ti.spiceLevel,
                 prepTimeMinutes: ti.prepTimeMinutes,

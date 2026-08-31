@@ -10,6 +10,7 @@ interface Props {
   item: MenuItem;
   existingCartItem?: CartItem;
   onConfirm: (item: CartItem) => void;
+  courseMode?: boolean;
   onClose: () => void;
 }
 
@@ -61,6 +62,7 @@ export function ItemCustomizerModal({
   existingCartItem,
   onConfirm,
   onClose,
+  courseMode = false,
 }: Props) {
   const hasVariants = item.variants?.length > 0;
   const groups: ModifierGroup[] = (item.modifierGroupLinks ?? []).map(
@@ -81,7 +83,9 @@ export function ItemCustomizerModal({
     return initial;
   });
   const [chefNotes, setChefNotes] = useState(existingCartItem?.chefNotes ?? "");
+  const [seatLabel, setSeatLabel] = useState(existingCartItem?.seatLabel ?? "");
   const [quantity, setQuantity] = useState(existingCartItem?.quantity ?? 1);
+  const [courseNumber, setCourseNumber] = useState(existingCartItem?.courseNumber ?? 1);
   const [validationError, setValidationError] = useState("");
 
   const basePrice = Number(item.basePrice);
@@ -178,6 +182,7 @@ export function ItemCustomizerModal({
       ...(variantId && { variantId }),
       quantity,
       chefNotes,
+      seatLabel,
       selectedOptions: allSelectedModifiers.map((m) => ({
         optionId: m.optionId,
         quantity: m.quantity,
@@ -200,7 +205,9 @@ export function ItemCustomizerModal({
       }),
       modifiers: allSelectedModifiers,
       chefNotes,
+      seatLabel,
       quantity,
+      ...(courseMode ? { courseNumber } : {}),
       unitPrice,
     });
     onClose();
@@ -231,6 +238,11 @@ export function ItemCustomizerModal({
       }
     >
       <div className="space-y-5">
+        {courseMode && <label className="block text-sm font-medium text-text-primary">Course
+          <select className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2" value={courseNumber} onChange={(event) => setCourseNumber(Number(event.target.value))}>
+            {[1,2,3,4,5].map((course) => <option key={course} value={course}>Course {course}</option>)}
+          </select>
+        </label>}
         {/* Live price — see file-level doc comment on why this isn't in
             the Dialog header. */}
         <p className="text-sm text-primary font-semibold -mt-1">
@@ -272,8 +284,9 @@ export function ItemCustomizerModal({
               {item.variants.map((v) => (
                 <button
                   key={v.id}
+                  disabled={(v.manualOverrideStatus ?? v.status ?? "ACTIVE") !== "ACTIVE"}
                   onClick={() => setVariantId(v.id)}
-                  className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl border-2 transition-all ${
+                  className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl border-2 transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
                     variantId === v.id
                       ? "border-primary bg-primary-surface"
                       : "border-border"
@@ -292,7 +305,7 @@ export function ItemCustomizerModal({
                       )}
                     </div>
                     <span className="text-sm font-medium text-text-primary">
-                      {v.name}
+                      {v.name}{(v.manualOverrideStatus ?? v.status ?? "ACTIVE") !== "ACTIVE" ? " — 86'd" : ""}
                     </span>
                   </div>
                   <span className="text-sm text-text-secondary">
@@ -305,7 +318,7 @@ export function ItemCustomizerModal({
         )}
 
         {/* Modifier groups */}
-        {groups.map((group) => {
+        {groups.filter((group) => !group.dependsOnOptionId || Object.values(selections).flat().some((option) => option.optionId === group.dependsOnOptionId)).map((group) => {
           const picked = selections[group.id] ?? [];
           const atCap =
             group.maxSelections != null && picked.length >= group.maxSelections;
@@ -432,6 +445,12 @@ export function ItemCustomizerModal({
         )}
 
         {/* Chef note — genuine TextInput drop-in, see file-level doc comment. */}
+        <TextInput
+          label="Seat / diner (optional)"
+          placeholder="e.g. Seat 1 or Priya"
+          value={seatLabel}
+          onChange={(e) => setSeatLabel(e.target.value)}
+        />
         <TextInput
           label="Note for Chef"
           placeholder="e.g. no onion, extra spicy, gluten-free…"

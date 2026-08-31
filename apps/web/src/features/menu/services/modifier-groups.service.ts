@@ -4,9 +4,11 @@ import type { ModifierGroup } from "@pos/types";
 export interface ModifierGroupPayload {
   name: string;
   selectionType: "SINGLE" | "MULTIPLE";
+  groupType?: "ADDON" | "SUBSTITUTION";
+  dependsOnOptionId?: string | null;
   minSelections: number;
   maxSelections?: number;
-  options: { name: string; additionalPrice: number; maxQuantity: number }[];
+  options: { name: string; additionalPrice: number; maxQuantity: number; isDefault?: boolean; replacesDefaultComponent?: string }[];
 }
 
 export const modifierGroupsService = {

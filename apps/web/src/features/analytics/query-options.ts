@@ -9,3 +9,12 @@ export function dashboardStatsQuery(refetchInterval: number | false = 30_000) {
     refetchInterval,
   });
 }
+
+
+export function costMarginQuery(categoryId?: string, enabled = true) {
+  return queryOptions({
+    queryKey: analyticsKeys.costMargin(categoryId),
+    queryFn: () => analyticsService.costMargin(categoryId),
+    enabled,
+  });
+}

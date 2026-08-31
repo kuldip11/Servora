@@ -12,6 +12,7 @@ import {
   assertMenuResourceBranch,
   resolveMenuBranch,
 } from "../menu-authorization";
+import { buildDiff, menuChangeLog } from "../change-log/menu-change-log";
 
 export interface CreateCategoryInput {
   name: string;
@@ -47,11 +48,13 @@ export const categoryService = {
   async create(auth: AuthContext, input: CreateCategoryInput) {
     requirePermission(auth, "menu:create");
     const branchId = resolveMenuBranch(auth, input.branchId);
-    return categoryRepository.create({
+    const created = await categoryRepository.create({
       tenantId: auth.tenantId,
       ...input,
       branchId,
     });
+    await menuChangeLog.record(auth, "CATEGORY", created.id, "CREATED", buildDiff(null, created));
+    return created;
   },
 
   async update(
@@ -72,6 +75,7 @@ export const categoryService = {
       input,
     );
     if (!updated) throw categoryNotFound(categoryId);
+    await menuChangeLog.record(auth, "CATEGORY", categoryId, "UPDATED", buildDiff(existing, updated));
     return updated;
   },
 
@@ -96,6 +100,7 @@ export const categoryService = {
       isActive: false,
     });
     if (!updated) throw categoryNotFound(categoryId);
+    await menuChangeLog.record(auth, "CATEGORY", categoryId, "ARCHIVED", buildDiff(existing, updated));
     return updated;
   },
 };

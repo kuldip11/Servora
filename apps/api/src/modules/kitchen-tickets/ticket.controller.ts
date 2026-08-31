@@ -14,9 +14,13 @@ import { ticketService } from "./ticket.service";
 import type { KitchenTicketStatus } from "@pos/types";
 
 export const ticketController = {
-  async getQueue(auth: AuthContext) {
-    const queue = await ticketService.getQueueForCurrentBranch(auth);
+  async getQueue(auth: AuthContext, stationId?: string) {
+    const queue = await ticketService.getQueueForCurrentBranch(auth, stationId);
     return successResponse(queue);
+  },
+
+  async listStations(auth: AuthContext) {
+    return successResponse(await ticketService.listStationsForCurrentBranch(auth));
   },
 
   async updateStatus(

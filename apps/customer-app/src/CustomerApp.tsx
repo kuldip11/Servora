@@ -26,6 +26,7 @@ import {
   initiateTakeawayPayment,
   type CustomerMenu,
   type CustomerMenuItem,
+  type CustomerCombo,
   type CustomerOrder,
   type CustomerRequestType,
 } from "./api";
@@ -47,7 +48,9 @@ import {
   normalizeSelectedOptions,
 } from "./features/cart/configuration";
 import { createOrderPayload } from "./features/order/payload";
+import { comboLineKey, estimateComboLine, type ComboCartLine, type CustomerComboSelection } from "./features/cart/combo";
 import { ItemCustomization } from "./features/menu/ItemCustomization";
+import { ComboCustomization } from "./features/menu/ComboCustomization";
 import { MenuCard } from "./features/menu/MenuCard";
 import { OrderStatus } from "./features/ordering/OrderStatus";
 import { useCustomerOrderRealtime } from "./features/ordering/useCustomerOrderRealtime";
@@ -120,6 +123,12 @@ export function CustomerApp() {
     estimatedTime: string;
   } | null>(null);
   const [menu, setMenu] = useState<CustomerMenuItem[]>([]);
+  const [combos, setCombos] = useState<CustomerCombo[]>([]);
+  const [comboCart, setComboCart] = useState<ComboCartLine[]>([]);
+  const [couponCode, setCouponCode] = useState("");
+  const [loyaltyPhone, setLoyaltyPhone] = useState("");
+  const [selectedCombo, setSelectedCombo] = useState<CustomerCombo | null>(null);
+  const [comboSelections, setComboSelections] = useState<CustomerComboSelection[]>([]);
   const [categories, setCategories] = useState<
     Array<{ id: string; name: string }>
   >([]);
@@ -158,6 +167,7 @@ export function CustomerApp() {
         estimatedTime: fixtureRestaurant.estimatedTime,
       });
       setMenu(fixtureMenu.map(fixtureToCustomerItem));
+      setCombos([]);
       setCategories(fixtureCategories.map((name) => ({ id: name, name })));
       setLoading(false);
       setCartHydrated(true);
@@ -234,6 +244,7 @@ export function CustomerApp() {
         };
         setSession(resolvedSession);
         setMenu(menuResponse.items);
+        setCombos(menuResponse.combos ?? []);
         setCategories([
           { id: "popular", name: "Popular" },
           ...menuResponse.categories.map((c) => ({ id: c.id, name: c.name })),
@@ -299,10 +310,14 @@ export function CustomerApp() {
   const handleRealtimeOrder = useCallback((order: CustomerOrder) => {
     setPlacedOrder(order);
   }, []);
+  const handleRealtimeMenuAvailability = useCallback(() => {
+    setBootstrapAttempt((attempt) => attempt + 1);
+  }, []);
   const live = useCustomerOrderRealtime(
     session?.token,
     placedOrder?.id,
     handleRealtimeOrder,
+    handleRealtimeMenuAvailability,
   );
 
   useEffect(() => {
@@ -350,6 +365,11 @@ export function CustomerApp() {
     [placedOrder?.id, session],
   );
 
+  const menuById = useMemo(
+    () => new Map(menu.map((item) => [item.id, item] as const)),
+    [menu],
+  );
+
   const visibleItems = useMemo(() => {
     const query = search.trim().toLowerCase();
     const selectedCategory = categories.find((item) => item.name === category);
@@ -374,8 +394,24 @@ export function CustomerApp() {
 
   const { subtotal, tax, total, itemCount } = useMemo(() => {
     const summary = getCartSummary(cart);
-    return summary;
-  }, [cart]);
+    const comboSummary = comboCart.reduce(
+      (current, line) => {
+        const estimate = estimateComboLine(line, menuById);
+        current.subtotal += estimate.subtotal;
+        current.tax += estimate.tax;
+        current.total += estimate.total;
+        current.itemCount += line.quantity;
+        return current;
+      },
+      { subtotal: 0, tax: 0, total: 0, itemCount: 0 },
+    );
+    return {
+      subtotal: summary.subtotal + comboSummary.subtotal,
+      tax: summary.tax + comboSummary.tax,
+      total: summary.total + comboSummary.total,
+      itemCount: summary.itemCount + comboSummary.itemCount,
+    };
+  }, [cart, comboCart, menuById]);
 
   const openItem = useCallback((item: CustomerMenuItem) => {
     setSelected(item);
@@ -397,44 +433,44 @@ export function CustomerApp() {
   }, []);
 
   const toggleOption = useCallback(
-    (optionId: string, groupId: string) => {
+    (optionId: string, groupId: string, zoneLabel?: "LEFT" | "RIGHT" | "WHOLE") => {
       const group = selected?.modifierGroupLinks.find(
         ({ group: value }) => value.id === groupId,
       )?.group;
       if (!group) return;
       setSelectedOptions((current) => {
         const existing = current.find(
-          (selection) => selection.optionId === optionId,
+          (selection) => selection.optionId === optionId && (selection.zoneLabel ?? "WHOLE") === (zoneLabel ?? "WHOLE"),
         );
         if (existing)
-          return current.filter((selection) => selection.optionId !== optionId);
+          return current.filter((selection) => !(selection.optionId === optionId && (selection.zoneLabel ?? "WHOLE") === (zoneLabel ?? "WHOLE")));
         if (group.selectionType === "SINGLE") {
           return [
             ...current.filter(
               (selection) =>
-                !group.options.some(
+                !(group.options.some(
                   (option) => option.id === selection.optionId,
-                ),
+                ) && (selection.zoneLabel ?? "WHOLE") === (zoneLabel ?? "WHOLE")),
             ),
-            { optionId, quantity: 1 },
+            { optionId, quantity: 1, ...(zoneLabel ? { zoneLabel } : {}) },
           ];
         }
         const selectedCount = current.filter((selection) =>
-          group.options.some((option) => option.id === selection.optionId),
+          group.options.some((option) => option.id === selection.optionId) && (selection.zoneLabel ?? "WHOLE") === (zoneLabel ?? "WHOLE"),
         ).length;
         if (group.maxSelections != null && selectedCount >= group.maxSelections)
           return current;
-        return [...current, { optionId, quantity: 1 }];
+        return [...current, { optionId, quantity: 1, ...(zoneLabel ? { zoneLabel } : {}) }];
       });
     },
     [selected],
   );
 
   const changeOptionQuantity = useCallback(
-    (optionId: string, delta: number) => {
+    (optionId: string, delta: number, zoneLabel?: "LEFT" | "RIGHT" | "WHOLE") => {
       setSelectedOptions((current) =>
         current.flatMap((selection) => {
-          if (selection.optionId !== optionId) return [selection];
+          if (selection.optionId !== optionId || (selection.zoneLabel ?? "WHOLE") !== (zoneLabel ?? "WHOLE")) return [selection];
           const option = selected?.modifierGroupLinks
             .flatMap(({ group }) => group.options)
             .find((value) => value.id === optionId);
@@ -479,6 +515,60 @@ export function CustomerApp() {
     },
     [canAddSelectedItem, selectedOptions, selectedVariantId, closeItem],
   );
+
+  const openCombo = useCallback((combo: CustomerCombo) => {
+    setSelectedCombo(combo);
+    setComboSelections(combo.slots.map((slot) => ({
+      slotId: slot.id,
+      optionIds: slot.minSelections === 1 && slot.maxSelections === 1 && slot.options.length === 1
+        ? [slot.options[0]!.id]
+        : [],
+    })));
+    setError(null);
+  }, []);
+
+  const toggleComboOption = useCallback(
+    (slotId: string, optionId: string) => {
+      if (!selectedCombo) return;
+      const slot = selectedCombo.slots.find((value) => value.id === slotId);
+      if (!slot) return;
+      setComboSelections((current) => current.map((selection) => {
+        if (selection.slotId !== slotId) return selection;
+        const selected = selection.optionIds.includes(optionId);
+        if (selected) {
+          return { ...selection, optionIds: selection.optionIds.filter((id) => id !== optionId) };
+        }
+        if (slot.maxSelections === 1) return { ...selection, optionIds: [optionId] };
+        if (selection.optionIds.length >= slot.maxSelections) return selection;
+        return { ...selection, optionIds: [...selection.optionIds, optionId] };
+      }));
+    },
+    [selectedCombo],
+  );
+
+  const addSelectedCombo = useCallback(() => {
+    if (!selectedCombo) return;
+    const valid = selectedCombo.slots.every((slot) => {
+      const count = comboSelections.find((value) => value.slotId === slot.id)?.optionIds.length ?? 0;
+      return count >= slot.minSelections && count <= slot.maxSelections;
+    });
+    if (!valid) return;
+    const newLine: ComboCartLine = { combo: selectedCombo, quantity: 1, selections: comboSelections };
+    const key = comboLineKey(newLine);
+    setComboCart((current) => {
+      const index = current.findIndex((line) => comboLineKey(line) === key);
+      if (index === -1) return [...current, newLine];
+      return current.map((line, i) => i === index ? { ...line, quantity: line.quantity + 1 } : line);
+    });
+    setSelectedCombo(null);
+    setComboSelections([]);
+  }, [selectedCombo, comboSelections]);
+
+  const changeComboQuantity = useCallback((index: number, delta: number) => {
+    setComboCart((current) => current.flatMap((line, i) =>
+      i !== index ? [line] : line.quantity + delta > 0 ? [{ ...line, quantity: line.quantity + delta }] : [],
+    ));
+  }, []);
 
   const changeQuantity = useCallback((index: number, delta: number) => {
     setCart((current) =>
@@ -585,6 +675,7 @@ export function CustomerApp() {
       await startTakeawayPayment(placedOrder);
       if (storageScope) clearPersistedCart(storageScope);
       setCart([]);
+      setComboCart([]);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Payment was not completed",
@@ -595,7 +686,7 @@ export function CustomerApp() {
   }, [placedOrder, session?.mode, loading, startTakeawayPayment, storageScope]);
 
   const placeOrder = useCallback(async () => {
-    if (!session || cart.length === 0 || loading) return;
+    if (!session || (cart.length === 0 && comboCart.length === 0) || loading) return;
     try {
       setLoading(true);
       setError(null);
@@ -605,6 +696,9 @@ export function CustomerApp() {
           status: "OPEN",
           subtotal: subtotal.toFixed(2),
           taxAmount: tax.toFixed(2),
+          discountAmount: "0.00",
+          serviceChargeAmount: "0.00",
+          roundingAdjustment: "0.00",
           totalAmount: total.toFixed(2),
           items: [],
           createdAt: new Date().toISOString(),
@@ -618,6 +712,7 @@ export function CustomerApp() {
           clearPersistedCart(storageScope);
         }
         setCart([]);
+        setComboCart([]);
         setView("order");
         return;
       }
@@ -626,10 +721,21 @@ export function CustomerApp() {
       // order and appends later submissions as new kitchen rounds on that
       // same order. Dine-in ordering does not start payment here; the bill is
       // settled once the customer is finished.
-      const order = await createCustomerOrder(
-        session.token,
-        createOrderPayload(cart),
-      );
+      const regularPayload = createOrderPayload(cart);
+      const order = await createCustomerOrder(session.token, {
+        ...regularPayload,
+        ...(comboCart.length
+          ? {
+              combos: comboCart.map((line) => ({
+                comboId: line.combo.id,
+                quantity: line.quantity,
+                selections: line.selections,
+              })),
+            }
+          : {}),
+        ...(couponCode.trim() ? { couponCode: couponCode.trim() } : {}),
+        ...(loyaltyPhone.trim() ? { loyaltyPhone: loyaltyPhone.trim() } : {}),
+      });
       setPlacedOrder(order);
       if (storageScope) savePersistedOrderId(storageScope, order.id);
 
@@ -641,13 +747,15 @@ export function CustomerApp() {
 
       if (storageScope) clearPersistedCart(storageScope);
       setCart([]);
+      setComboCart([]);
+      setCouponCode("");
       setView("order");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to place order");
     } finally {
       setLoading(false);
     }
-  }, [cart, loading, session, subtotal, tax, total, startTakeawayPayment]);
+  }, [cart, comboCart, couponCode, loyaltyPhone, loading, session, subtotal, tax, total, startTakeawayPayment]);
 
   const handleAddSelectedItem = useCallback(() => {
     if (selected) addItem(selected);
@@ -836,6 +944,36 @@ export function CustomerApp() {
             {visibleItems.length} items
           </span>
         </div>
+        {combos.length > 0 && !search && (
+          <section className="mb-6">
+            <div className="mb-3 flex items-end justify-between">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.14em] text-text-secondary">Set meals</p>
+                <h3 className="mt-1 text-lg font-semibold text-text-primary">Combos</h3>
+              </div>
+              <span className="text-xs text-text-secondary">Built step by step</span>
+            </div>
+            <div className="space-y-2">
+              {combos.map((combo) => (
+                <button key={combo.id} type="button" onClick={() => openCombo(combo)} className="w-full text-left">
+                  <Card padding="md" className="transition-colors hover:border-primary">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="font-semibold text-text-primary">{combo.name}</p>
+                        <p className="mt-1 text-sm text-text-secondary">{combo.description ?? `${combo.slots.length} guided choice${combo.slots.length === 1 ? "" : "s"}`}</p>
+                      </div>
+                      <span className="shrink-0 text-sm font-semibold text-primary">
+                        {combo.pricePolicy === "FIXED"
+                          ? `${formatMoney(Number(combo.fixedPrice ?? 0))}+`
+                          : `${Number(combo.percentOff ?? 0)}% off`}
+                      </span>
+                    </div>
+                  </Card>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
         <div className="space-y-3">
           {visibleItems.map((item) => (
             <MenuCard key={item.id} item={item} onSelect={openItem} />
@@ -883,6 +1021,17 @@ export function CustomerApp() {
         </div>
       )}
 
+      {selectedCombo && (
+        <ComboCustomization
+          combo={selectedCombo}
+          menuById={menuById}
+          selections={comboSelections}
+          onToggle={toggleComboOption}
+          onClose={() => { setSelectedCombo(null); setComboSelections([]); }}
+          onAdd={addSelectedCombo}
+        />
+      )}
+
       {selected && (
         <ItemCustomization
           allowMixedFulfillment={session?.mode === "DINE_IN"}
@@ -901,6 +1050,7 @@ export function CustomerApp() {
       {view === "cart" && (
         <CartView
           cart={cart}
+          combos={comboCart}
           subtotal={subtotal}
           tax={tax}
           total={total}
@@ -908,8 +1058,13 @@ export function CustomerApp() {
           mode={session.mode}
           onBack={handleMenu}
           onChange={changeQuantity}
+          onComboChange={changeComboQuantity}
           onFulfillmentChange={changeFulfillment}
           onPlace={placeOrder}
+          couponCode={couponCode}
+          onCouponCodeChange={setCouponCode}
+          loyaltyPhone={loyaltyPhone}
+          onLoyaltyPhoneChange={setLoyaltyPhone}
           loading={loading}
         />
       )}

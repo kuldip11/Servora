@@ -21,15 +21,32 @@ const customerOrderItem = t.Object({
       t.Object({
         optionId: t.String({ minLength: 1 }),
         quantity: t.Optional(t.Number({ minimum: 1, maximum: 20 })),
+        zoneLabel: t.Optional(t.String({ minLength: 1, maxLength: 30 })),
       }),
       { maxItems: 50 },
     ),
   ),
 });
 
+
+const customerComboOrder = t.Object({
+  comboId: t.String({ format: "uuid" }),
+  quantity: t.Optional(t.Number({ minimum: 1, maximum: 50 })),
+  selections: t.Array(
+    t.Object({
+      slotId: t.String({ format: "uuid" }),
+      optionIds: t.Array(t.String({ format: "uuid" }), { minItems: 1 }),
+    }),
+    { minItems: 1 },
+  ),
+});
+
 export const createCustomerOrderBody = t.Object({
-  items: t.Array(customerOrderItem, { minItems: 1, maxItems: 100 }),
+  items: t.Optional(t.Array(customerOrderItem, { minItems: 1, maxItems: 100 })),
+  combos: t.Optional(t.Array(customerComboOrder, { minItems: 1, maxItems: 50 })),
   notes: t.Optional(t.String({ maxLength: 1000 })),
+  couponCode: t.Optional(t.String({ minLength: 1, maxLength: 50 })),
+  loyaltyPhone: t.Optional(t.String({ minLength: 3, maxLength: 40 })),
 });
 
 export const customerOrderIdParams = t.Object({
@@ -38,6 +55,7 @@ export const customerOrderIdParams = t.Object({
 
 export const customerCheckoutBody = t.Object({
   method: t.Literal("CASH"),
+  billId: t.Optional(t.String({ minLength: 1 })),
 });
 
 export const takeawayPaymentVerificationBody = t.Object({

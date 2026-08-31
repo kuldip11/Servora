@@ -22,6 +22,7 @@ import {
   emptyImportFile,
   importValidationFailed,
 } from "./import-export.errors";
+import { menuChangeLog } from "../change-log/menu-change-log";
 
 export type ExportFormat = "csv" | "xlsx";
 
@@ -107,7 +108,7 @@ export const importExportService = {
     );
     const rows = rows_.map((r) => ({
       menuItem: r.menuItem.name,
-      ingredient: r.inventoryItem.name,
+      ingredient: r.inventoryItem?.name ?? r.subRecipe?.name ?? "",
       quantityRequired: r.quantityRequired,
       unit: r.unit,
       isOptional: r.isOptional,
@@ -203,13 +204,20 @@ export const importExportService = {
 
     requirePermission(auth, "menu:create");
     const effectiveBranchId = resolveMenuBranch(auth);
-    const { inserted, updated } = valid.length
+    const { inserted, updated, touched = [] } = valid.length
       ? await importExportRepository.commitRows(
           auth.tenantId,
           effectiveBranchId,
           valid.map((r) => ({ action: r.action, data: r.data })),
         )
-      : { inserted: 0, updated: 0 };
+      : { inserted: 0, updated: 0, touched: [] };
+
+    await menuChangeLog.recordMany(auth, touched.map((row) => ({
+      entityType: "MENU_ITEM",
+      entityId: row.id,
+      changeType: row.action === "insert" ? "CREATED" : "UPDATED",
+      diff: { source: "IMPORT", ...row.data },
+    })));
 
     if (errors.length && inserted === 0 && updated === 0) {
       throw importValidationFailed({ inserted, updated, errors });

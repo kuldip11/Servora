@@ -10,6 +10,10 @@ import { db } from "../../../db";
 import {
   modifierGroups,
   modifierOptions,
+  modifierOptionVariantPrices,
+  menuItemVariants,
+  menuItems,
+  menuItemModifierGroups,
   menuTags,
   menuAllergens,
 } from "../../../db/schema";
@@ -30,7 +34,7 @@ export const modifierRepository = {
           : undefined,
       ),
       orderBy: asc(modifierGroups.sortOrder),
-      with: { options: { orderBy: (t, { asc }) => [asc(t.sortOrder)] } },
+      with: { options: { orderBy: (t, { asc }) => [asc(t.sortOrder)], with: { variantPrices: true } } },
     });
   },
 
@@ -40,7 +44,7 @@ export const modifierRepository = {
         eq(modifierGroups.id, groupId),
         eq(modifierGroups.tenantId, tenantId),
       ),
-      columns: { id: true, branchId: true },
+      columns: { id: true, branchId: true, dependsOnOptionId: true, groupType: true },
     });
   },
 
@@ -92,8 +96,11 @@ export const modifierRepository = {
           name: string;
           additionalPrice: string;
           maxQuantity?: number | undefined;
+          variantPrices?: Array<{ variantId: string; additionalPrice: string }> | undefined;
         }>
       | undefined;
+    dependsOnOptionId?: string | null | undefined;
+    groupType?: "ADDON" | "SUBSTITUTION" | undefined;
   }) {
     return db.transaction(async (tx) => {
       const [group] = await tx
@@ -105,17 +112,23 @@ export const modifierRepository = {
           selectionType: data.selectionType ?? "SINGLE",
           minSelections: data.minSelections ?? 0,
           maxSelections: data.maxSelections ?? null,
+          dependsOnOptionId: data.dependsOnOptionId ?? null,
+          groupType: data.groupType ?? "ADDON",
         })
         .returning();
 
       if (data.options?.length) {
-        await tx
-          .insert(modifierOptions)
-          .values(
-            data.options.map((o, i) =>
-              compact({ modifierGroupId: group!.id, sortOrder: i, ...o }),
-            ) as (typeof modifierOptions.$inferInsert)[],
-          );
+        for (const [sortOrder, raw] of data.options.entries()) {
+          const { variantPrices, ...option } = raw;
+          const [createdOption] = await tx.insert(modifierOptions).values(
+            compact({ modifierGroupId: group!.id, sortOrder, ...option }) as typeof modifierOptions.$inferInsert,
+          ).returning({ id: modifierOptions.id });
+          if (variantPrices?.length && createdOption) {
+            await tx.insert(modifierOptionVariantPrices).values(variantPrices.map((price) => ({
+              modifierOptionId: createdOption.id, variantId: price.variantId, additionalPrice: price.additionalPrice,
+            })));
+          }
+        }
       }
 
       return tx.query.modifierGroups.findFirst({
@@ -133,6 +146,8 @@ export const modifierRepository = {
       selectionType?: "SINGLE" | "MULTIPLE" | undefined;
       minSelections?: number | undefined;
       maxSelections?: number | null | undefined;
+      dependsOnOptionId?: string | null | undefined;
+      groupType?: "ADDON" | "SUBSTITUTION" | undefined;
     },
   ) {
     const [updated] = await db
@@ -159,7 +174,9 @@ export const modifierRepository = {
       );
   },
 
-  // Full replace of a group's options — same "form sends the whole set" pattern.
+  // Reconcile a group's submitted option set without replacing stable option
+  // IDs. E1 recipe rows can FK to modifier_options, so delete-and-reinsert would
+  // cascade-delete modifier-scoped recipes on an ordinary group edit.
   async setModifierGroupOptions(
     groupId: string,
     options: Array<{
@@ -168,23 +185,109 @@ export const modifierRepository = {
       additionalPrice: string;
       isAvailable?: boolean | undefined;
       maxQuantity?: number | undefined;
+      isDefault?: boolean | undefined;
+      replacesDefaultComponent?: string | undefined;
+      variantPrices?: Array<{ variantId: string; additionalPrice: string }> | undefined;
     }>,
   ) {
-    await db
-      .delete(modifierOptions)
-      .where(eq(modifierOptions.modifierGroupId, groupId));
-    if (options.length) {
-      await db.insert(modifierOptions).values(
-        options.map((o, i) => ({
+    await db.transaction(async (tx) => {
+      const existing = await tx.query.modifierOptions.findMany({
+        where: eq(modifierOptions.modifierGroupId, groupId),
+      });
+      const existingById = new Map(existing.map((option) => [option.id, option]));
+      const retainedIds = new Set(options.flatMap((option) => option.id ? [option.id] : []));
+
+      for (const id of retainedIds) {
+        if (!existingById.has(id)) {
+          throw new Error(`Modifier option ${id} does not belong to group ${groupId}`);
+        }
+      }
+
+      const removedIds = existing
+        .map((option) => option.id)
+        .filter((id) => !retainedIds.has(id));
+      if (removedIds.length) {
+        await tx.delete(modifierOptions).where(inArray(modifierOptions.id, removedIds));
+      }
+
+      for (const [sortOrder, option] of options.entries()) {
+        const variantPrices = option.variantPrices;
+        if (option.id) {
+          const previous = existingById.get(option.id)!;
+          const availabilityPatch = option.isAvailable === undefined
+            ? {}
+            : option.isAvailable
+              ? {
+                  manualOverrideAvailability: null,
+                  isAvailable: previous.computedAvailability,
+                }
+              : {
+                  manualOverrideAvailability: false,
+                  isAvailable: false,
+                };
+          await tx
+            .update(modifierOptions)
+            .set({
+              name: option.name,
+              additionalPrice: option.additionalPrice,
+              maxQuantity: option.maxQuantity ?? previous.maxQuantity,
+              isDefault: option.isDefault ?? previous.isDefault,
+              replacesDefaultComponent:
+                option.replacesDefaultComponent === undefined
+                  ? previous.replacesDefaultComponent
+                  : option.replacesDefaultComponent || null,
+              sortOrder,
+              ...availabilityPatch,
+            })
+            .where(eq(modifierOptions.id, option.id));
+          if (variantPrices !== undefined) {
+            await tx.delete(modifierOptionVariantPrices).where(eq(modifierOptionVariantPrices.modifierOptionId, option.id));
+            if (variantPrices.length) await tx.insert(modifierOptionVariantPrices).values(variantPrices.map((price) => ({ modifierOptionId: option.id!, variantId: price.variantId, additionalPrice: price.additionalPrice })));
+          }
+          continue;
+        }
+
+        const [createdOption] = await tx.insert(modifierOptions).values({
           modifierGroupId: groupId,
-          name: o.name,
-          additionalPrice: o.additionalPrice,
-          isAvailable: o.isAvailable ?? true,
-          maxQuantity: o.maxQuantity ?? 1,
-          sortOrder: i,
-        })),
+          name: option.name,
+          additionalPrice: option.additionalPrice,
+          isAvailable: option.isAvailable ?? true,
+          computedAvailability: true,
+          manualOverrideAvailability: option.isAvailable === false ? false : null,
+          maxQuantity: option.maxQuantity ?? 1,
+          isDefault: option.isDefault ?? false,
+          replacesDefaultComponent: option.replacesDefaultComponent || null,
+          sortOrder,
+        }).returning({ id: modifierOptions.id });
+        if (createdOption && variantPrices?.length) await tx.insert(modifierOptionVariantPrices).values(variantPrices.map((price) => ({ modifierOptionId: createdOption.id, variantId: price.variantId, additionalPrice: price.additionalPrice })));
+      }
+    });
+  },
+
+  async findEligibleVariantIdsForGroup(
+    tenantId: string,
+    groupId: string,
+    variantIds: string[],
+  ) {
+    if (!variantIds.length) return new Set<string>();
+    const rows = await db
+      .select({ id: menuItemVariants.id })
+      .from(menuItemVariants)
+      .innerJoin(menuItems, eq(menuItemVariants.menuItemId, menuItems.id))
+      .innerJoin(
+        menuItemModifierGroups,
+        and(
+          eq(menuItemModifierGroups.menuItemId, menuItems.id),
+          eq(menuItemModifierGroups.modifierGroupId, groupId),
+        ),
+      )
+      .where(
+        and(
+          eq(menuItems.tenantId, tenantId),
+          inArray(menuItemVariants.id, variantIds),
+        ),
       );
-    }
+    return new Set(rows.map((row) => row.id));
   },
 
   async findModifierOption(tenantId: string, optionId: string) {
@@ -193,7 +296,7 @@ export const modifierRepository = {
       with: { group: true },
     });
     if (!option || option.group.tenantId !== tenantId) return null;
-    return { id: option.id, branchId: option.group.branchId };
+    return { id: option.id, branchId: option.group.branchId, modifierGroupId: option.modifierGroupId };
   },
 
   async setOptionAvailability(
@@ -207,9 +310,19 @@ export const modifierRepository = {
       with: { group: true },
     });
     if (!option || option.group.tenantId !== tenantId) return null;
+    // `false` is a manual hold. Setting the option back to available clears
+    // that hold and exposes the current computed ingredient signal instead
+    // of forcing availability over an E4 out-of-stock state.
+    const manualOverrideAvailability = isAvailable ? null : false;
+    const effectiveAvailability = isAvailable
+      ? option.computedAvailability
+      : false;
     const [updated] = await db
       .update(modifierOptions)
-      .set({ isAvailable })
+      .set({
+        manualOverrideAvailability,
+        isAvailable: effectiveAvailability,
+      })
       .where(eq(modifierOptions.id, optionId))
       .returning();
     return updated;

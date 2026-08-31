@@ -18,7 +18,14 @@ export const tenantController = {
   async update(
     auth: AuthContext,
     tenantId: string,
-    changes: { name?: string },
+    changes: {
+      name?: string;
+      serviceChargePercent?: number | null;
+      serviceChargeTaxable?: boolean;
+      roundingPolicy?: "NONE" | "NEAREST_1" | "NEAREST_5" | "NEAREST_10";
+      defaultTaxMode?: "INCLUSIVE" | "EXCLUSIVE";
+      courseSequencingEnabled?: boolean;
+    },
   ) {
     return successResponse(await tenantService.update(auth, tenantId, changes));
   },

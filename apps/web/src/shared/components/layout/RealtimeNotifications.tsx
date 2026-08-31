@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { toast } from "@pos/ui";
 import { useRealtimeEvent } from "../../lib/realtime";
+import { queryClient } from "../../lib/query-client";
 
 export function RealtimeNotifications() {
   const seen = useRef(new Set<string>());
@@ -16,6 +17,13 @@ export function RealtimeNotifications() {
       tone: "warning",
       duration: 4500,
     });
+  });
+
+
+  useRealtimeEvent("menu.availability.updated", () => {
+    void queryClient.invalidateQueries({ queryKey: ["menu"] });
+    void queryClient.invalidateQueries({ queryKey: ["analytics"] });
+    void queryClient.invalidateQueries({ queryKey: ["inventory"] });
   });
 
   useRealtimeEvent("customer.request.created", (event) => {

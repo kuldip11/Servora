@@ -207,6 +207,17 @@ const dashboardRoute = createRoute({
   ),
 });
 
+const menuEngineeringRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/menu-engineering",
+  beforeLoad: requirePermission("analytics:read"),
+  component: lazyPage(() =>
+    import("../features/analytics/pages/MenuEngineeringPage").then((m) => ({
+      default: m.MenuEngineeringPage,
+    })),
+  ),
+});
+
 const ordersRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: "/orders",
@@ -236,6 +247,17 @@ const menuRoute = createRoute({
   component: lazyPage(() =>
     import("../features/menu/pages/MenuPage").then((m) => ({
       default: m.MenuPage,
+    })),
+  ),
+});
+
+const availabilityDashboardRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/availability",
+  beforeLoad: requirePermission("menu:read"),
+  component: lazyPage(() =>
+    import("../features/availability/pages/AvailabilityDashboardPage").then((m) => ({
+      default: m.AvailabilityDashboardPage,
     })),
   ),
 });
@@ -305,6 +327,17 @@ const settingsRoute = createRoute({
   ),
 });
 
+const differentiatorsRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/phase-h",
+  beforeLoad: requirePermission("analytics:read"),
+  component: lazyPage(() =>
+    import("../features/differentiators/pages/DifferentiatorsPage").then(
+      (m) => ({ default: m.DifferentiatorsPage }),
+    ),
+  ),
+});
+
 const branchesRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: "/branches",
@@ -342,9 +375,11 @@ const routeTree = rootRoute.addChildren([
     contextRoute,
     forbiddenRoute,
     dashboardRoute,
+    menuEngineeringRoute,
     ordersRoute,
     orderDetailRoute,
     menuRoute,
+    availabilityDashboardRoute,
     tablesRoute,
     inventoryRoute,
     staffRoute,
@@ -352,6 +387,7 @@ const routeTree = rootRoute.addChildren([
     auditRoute,
     settingsRoute,
     branchesRoute,
+    differentiatorsRoute,
   ]),
 ]);
 

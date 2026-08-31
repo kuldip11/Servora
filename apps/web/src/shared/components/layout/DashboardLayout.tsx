@@ -19,6 +19,7 @@ import {
   Bell,
   Building2,
   Menu as MenuIcon,
+  Sparkles,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "../../../store/auth";
@@ -39,6 +40,12 @@ const navItems = [
     permission: "analytics:read",
   },
   {
+    to: "/menu-engineering",
+    label: "Menu Engineering",
+    icon: Sparkles,
+    permission: "analytics:read",
+  },
+  {
     to: "/orders",
     label: "Orders",
     icon: ShoppingBag,
@@ -48,6 +55,12 @@ const navItems = [
     to: "/menu",
     label: "Menu",
     icon: UtensilsCrossed,
+    permission: "menu:read",
+  },
+  {
+    to: "/availability",
+    label: "Availability",
+    icon: Bell,
     permission: "menu:read",
   },
   {

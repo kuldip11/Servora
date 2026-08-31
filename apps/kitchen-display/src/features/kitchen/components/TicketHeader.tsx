@@ -33,7 +33,9 @@ export function TicketHeader({
             : isTakeaway
               ? "Takeaway"
               : orderTypeLabel}
-          {ticket.ticketNumber > 1 && (
+          {ticket.course ? (
+            <span className="ml-2 text-xs font-semibold text-text-secondary">Course {ticket.course.courseNumber}{ticket.course.name ? ` · ${ticket.course.name}` : ""}</span>
+          ) : ticket.ticketNumber > 1 && (
             <span className="ml-2 text-xs font-semibold text-text-secondary">
               Round {ticket.ticketNumber}
             </span>
@@ -63,7 +65,7 @@ export function TicketHeader({
           dot={false}
           className={statusTextClass}
         />
-        <Timer firedAt={ticket.firedAt} />
+        {ticket.status !== "HELD" && <Timer firedAt={ticket.firedAt} />}
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Modal } from "@pos/ui";
 import { MenuPicker } from "./create-order/MenuPicker";
 import { OrderCart } from "./create-order/OrderCart";
@@ -11,6 +12,8 @@ import { cartItemKey, type CartItem } from "../utils/cartTypes";
 import type { FoodType, MenuItem } from "@pos/types";
 import { createOrderSchema } from "@pos/validation";
 import { useBranches } from "../../branches/hooks/useBranches";
+import { apiClient } from "../../../shared/lib/api-client";
+import { useCourseSequencingEnabled } from "../hooks/useCourseSequencingEnabled";
 
 const ALL_ORDER_TYPES = [
   {
@@ -41,6 +44,9 @@ export function CreateOrderModal({ onClose }: { onClose: () => void }) {
     null,
   );
   const [validationError, setValidationError] = useState("");
+  const [selectedMenuId, setSelectedMenuId] = useState("");
+  const [courseMode, setCourseMode] = useState(false);
+  const courseSequencingAvailable = useCourseSequencingEnabled();
 
   // Fetches data for the server-issued active branch context. If the
   // owner/manager is viewing "All Branches" this comes back as more than
@@ -70,6 +76,17 @@ export function CreateOrderModal({ onClose }: { onClose: () => void }) {
   }, [currentBranch?.id]);
 
   const { data: categories } = useMenuCategories();
+  const { data: activeMenus = [] } = useQuery<any[]>({
+    queryKey: ["menus", "active", orderType],
+    queryFn: async () => (await apiClient.get("/menu/menus/active", { params: { channel: "STAFF", fulfillmentType: orderType } })).data.data,
+  });
+  useEffect(() => {
+    if (!activeMenus.some((menu) => menu.id === selectedMenuId)) setSelectedMenuId(activeMenus[0]?.id ?? "");
+  }, [activeMenus, selectedMenuId]);
+  const visibleItemIds = new Set(
+    activeMenus.filter((menu) => !selectedMenuId || menu.id === selectedMenuId).flatMap((menu) => menu.memberships.map((membership: any) => membership.menuItemId)),
+  );
+  const scopedCategories = categories?.map((category: any) => ({ ...category, menuItems: (category.menuItems ?? []).filter((item: any) => visibleItemIds.has(item.id)) })).filter((category: any) => category.menuItems.length > 0);
 
   const { data: tables } = useTables({
     enabled: orderType === "DINE_IN" && tablesEnabled,
@@ -91,7 +108,9 @@ export function CreateOrderModal({ onClose }: { onClose: () => void }) {
       basePrice: Number(menuItem.basePrice),
       modifiers: [],
       chefNotes: "",
+      seatLabel: "",
       quantity: 1,
+      ...(courseMode ? { courseNumber: 1 } : {}),
       unitPrice: Number(menuItem.basePrice),
     });
   }
@@ -109,6 +128,10 @@ export function CreateOrderModal({ onClose }: { onClose: () => void }) {
       }
       return [...prev, newItem];
     });
+  }
+
+  function updateCourse(key: string, courseNumber: number) {
+    setItems((prev) => prev.map((item) => cartItemKey(item) === key ? { ...item, courseNumber } : item));
   }
 
   function updateQty(key: string, delta: number) {
@@ -147,10 +170,11 @@ export function CreateOrderModal({ onClose }: { onClose: () => void }) {
         customerId: parsed.data.customerId,
       }),
       ...(parsed.data.notes !== undefined && { notes: parsed.data.notes }),
-      items: parsed.data.items.map((item) => ({
+      items: (parsed.data.items ?? []).map((item) => ({
         ...item,
         ...(item.variantId !== undefined && { variantId: item.variantId }),
         ...(item.chefNotes !== undefined && { chefNotes: item.chefNotes }),
+        ...(item.seatLabel && { seatLabel: item.seatLabel }),
         selectedOptions: (item.selectedOptions ?? []).map((option) => ({
           optionId: option.optionId,
           quantity: option.quantity ?? 1,
@@ -162,13 +186,16 @@ export function CreateOrderModal({ onClose }: { onClose: () => void }) {
 
   return (
     <Modal open title="New Order" onClose={onClose} size="xl">
+      {courseSequencingAvailable && <label className="mb-4 flex items-center gap-2 rounded-md border border-border bg-surface-secondary px-3 py-2 text-sm text-text-secondary"><input type="checkbox" checked={courseMode} onChange={(event) => { const enabled = event.target.checked; setCourseMode(enabled); setItems((current) => current.map((item) => enabled ? { ...item, courseNumber: item.courseNumber ?? 1 } : (({ courseNumber: _courseNumber, ...rest }) => rest)(item))); }} /><span><strong className="text-text-primary">Course mode</strong> — assign lines to courses; later courses are held until fired.</span></label>}
       <div className="grid grid-cols-2 gap-6">
+        <div className="space-y-3">
+          {activeMenus.length > 1 && <label className="block text-sm font-medium">Menu<select className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2" value={selectedMenuId} onChange={(event) => setSelectedMenuId(event.target.value)}>{activeMenus.map((menu) => <option key={menu.id} value={menu.id}>{menu.name}</option>)}</select></label>}
         <MenuPicker
           orderType={orderType}
           tableId={tableId}
           tablesEnabled={tablesEnabled}
           tables={tables}
-          categories={categories}
+          categories={scopedCategories}
           filter={foodTypeFilter}
           availableOrderTypes={availableOrderTypes}
           onOrderTypeChange={(v) => {
@@ -179,6 +206,7 @@ export function CreateOrderModal({ onClose }: { onClose: () => void }) {
           onFilterChange={setFoodTypeFilter}
           onItemClick={handleItemClick}
         />
+        </div>
         <OrderCart
           items={items}
           notes={notes}
@@ -190,7 +218,9 @@ export function CreateOrderModal({ onClose }: { onClose: () => void }) {
             !(orderType === "DINE_IN" && !tableId)
           }
           validationError={validationError}
+          courseMode={courseMode}
           onQty={updateQty}
+          onCourse={updateCourse}
           onNotes={setNotes}
           onSubmit={handleSubmit}
         />
@@ -199,6 +229,7 @@ export function CreateOrderModal({ onClose }: { onClose: () => void }) {
       {customising && (
         <ItemCustomizerModal
           item={customising.item}
+          courseMode={courseMode}
           onConfirm={addOrIncrementItem}
           onClose={() => setCustomising(null)}
         />

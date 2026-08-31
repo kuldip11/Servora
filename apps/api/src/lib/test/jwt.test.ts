@@ -22,7 +22,7 @@ describe("jwt helpers", () => {
       roles: ["OWNER"],
       permissions: ["tenant:read"],
     });
-    expect(payload.tenantId).toBeUndefined();
+    expect((payload as unknown as Record<string, unknown>).tenantId).toBeUndefined();
   });
   it("signs and verifies refresh tokens", () => {
     const token = jwt.signRefreshToken("u1");

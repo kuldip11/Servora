@@ -110,6 +110,16 @@ describe("menu presentational components", () => {
         onCustomerSearchChange={vi.fn()}
         customerResults={[]}
         onSelectCustomer={vi.fn()}
+        customerGroups={[]}
+        customerGroupId=""
+        onCustomerGroupChange={vi.fn()}
+        billingMode="LINE_ITEMS"
+        onBillingModeChange={vi.fn()}
+        coverCount={1}
+        onCoverCountChange={vi.fn()}
+        perCoverRules={[]}
+        perCoverPriceRuleId=""
+        onPerCoverPriceRuleChange={vi.fn()}
       />,
     );
     expect(html).toContain("Dine In");

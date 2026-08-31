@@ -218,9 +218,12 @@ export function OrderStatus({
               <span>{formatMoney(Number(order.subtotal))}</span>
             </div>
             <div className="mt-2 flex justify-between">
-              <span className="text-text-secondary">Tax</span>
+              <span className="text-text-secondary">{order.items.some((item) => item.taxMode === "INCLUSIVE") ? (order.items.some((item) => item.taxMode === "EXCLUSIVE") ? "Tax (mixed included/exclusive)" : "Tax included") : "Tax"}</span>
               <span>{formatMoney(Number(order.taxAmount))}</span>
             </div>
+            {Number(order.discountAmount) > 0 && <div className="mt-2 flex justify-between text-success"><span>Discount</span><span>-{formatMoney(Number(order.discountAmount))}</span></div>}
+            {Number(order.serviceChargeAmount ?? 0) > 0 && <div className="mt-2 flex justify-between"><span className="text-text-secondary">Service charge</span><span>{formatMoney(Number(order.serviceChargeAmount))}</span></div>}
+            {Math.abs(Number(order.roundingAdjustment ?? 0)) >= 0.005 && <div className="mt-2 flex justify-between"><span className="text-text-secondary">Rounding</span><span>{formatMoney(Number(order.roundingAdjustment))}</span></div>}
             <div className="mt-2 flex justify-between text-base font-semibold">
               <span>Total</span>
               <span>{formatMoney(Number(order.totalAmount))}</span>

@@ -34,22 +34,12 @@ export function SignupPage() {
   async function handleSignup(form: SignupFormValues) {
     setLoading(true);
     try {
-      await authService.signup(
-        form.tenantName
-          ? {
-              firstName: form.firstName,
-              lastName: form.lastName,
-              email: form.email,
-              password: form.password,
-              tenantName: form.tenantName,
-            }
-          : {
-              firstName: form.firstName,
-              lastName: form.lastName,
-              email: form.email,
-              password: form.password,
-            },
-      );
+      await authService.signup({
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+        password: form.password,
+      });
       // Signup creates the identity only; authenticate next so the user can create/select a business.
       const login = await authService.login({
         email: form.email,

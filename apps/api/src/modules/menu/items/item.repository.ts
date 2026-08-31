@@ -13,7 +13,7 @@
  * would touch a working, already-migrated integration point for no
  * behavioral benefit.
  */
-import { eq, and, isNull, or, inArray } from "drizzle-orm";
+import { eq, and, isNull, or, inArray, asc } from "drizzle-orm";
 import type { FoodType, MenuItemStatus, SpiceLevel } from "@pos/types";
 import { db } from "../../../db";
 import {
@@ -23,9 +23,12 @@ import {
   menuItemTags,
   menuItemAllergens,
   menuItemImages,
+  modifierOptions,
   menuCategories,
   menuItemSchedules,
   recipes,
+  menus,
+  menuMemberships,
 } from "../../../db/schema";
 
 // Full relation tree for a menu item — used wherever the frontend needs to
@@ -37,14 +40,16 @@ import {
 // needs the exact same shape for its nested `menuItems` join — better to
 // share one definition than maintain a third copy alongside this one and
 // the original still in the legacy `menu/repository.ts`.
-export const ITEM_DETAIL_RELATIONS = {
+type MenuItemDetailRelations = NonNullable<NonNullable<Parameters<typeof db.query.menuItems.findFirst>[0]>["with"]>;
+
+export const ITEM_DETAIL_RELATIONS: MenuItemDetailRelations = {
   variants: true,
-  images: { orderBy: (t: any, { asc }: any) => [asc(t.sortOrder)] },
+  images: { orderBy: [asc(menuItemImages.sortOrder)] },
   modifierGroupLinks: {
     with: {
       group: {
         with: {
-          options: { orderBy: (t: any, { asc }: any) => [asc(t.sortOrder)] },
+          options: { orderBy: [asc(modifierOptions.sortOrder)], with: { variantPrices: true } },
         },
       },
     },
@@ -52,7 +57,8 @@ export const ITEM_DETAIL_RELATIONS = {
   tagLinks: { with: { tag: true } },
   allergenLinks: { with: { allergen: true } },
   recipeLinks: { with: { inventoryItem: true } },
-} as const;
+  menuMemberships: { with: { menu: true, category: true } },
+};
 
 export const itemRepository = {
   async findCategory(tenantId: string, categoryId: string) {
@@ -63,6 +69,31 @@ export const itemRepository = {
       ),
       columns: { id: true, branchId: true },
     });
+  },
+
+  async findIdsByCategory(tenantId: string, categoryId: string) {
+    const rows = await db.query.menuItems.findMany({
+      where: and(
+        eq(menuItems.tenantId, tenantId),
+        eq(menuItems.categoryId, categoryId),
+        isNull(menuItems.deletedAt),
+      ),
+      columns: { id: true },
+    });
+    return rows.map((row) => row.id);
+  },
+
+  async findIdsByMenu(tenantId: string, menuId: string) {
+    const menu = await db.query.menus.findFirst({
+      where: and(eq(menus.id, menuId), eq(menus.tenantId, tenantId)),
+      columns: { id: true },
+    });
+    if (!menu) return null;
+    const rows = await db.query.menuMemberships.findMany({
+      where: eq(menuMemberships.menuId, menuId),
+      columns: { menuItemId: true },
+    });
+    return rows.map((row) => row.menuItemId);
   },
 
   async findById(tenantId: string, itemId: string) {
@@ -79,7 +110,15 @@ export const itemRepository = {
     name: string;
     description?: string | undefined;
     basePrice: string;
+    pricingMode?: "FIXED" | "WEIGHT_BASED" | "OPEN" | undefined;
+    weightUnit?: "G" | "KG" | "LB" | "OZ" | undefined;
+    openPriceMin?: string | undefined;
+    openPriceMax?: string | undefined;
+    supportsZones?: boolean | undefined;
+    zonePricingRule?: "AVERAGE" | "HIGHER" | "SUM_HALF" | undefined;
+    manualStockCount?: number | undefined;
     taxRate?: string | undefined;
+    taxMode?: "INCLUSIVE" | "EXCLUSIVE" | undefined;
     foodType?: FoodType | undefined;
     spiceLevel?: SpiceLevel | undefined;
     sku?: string | undefined;
@@ -89,6 +128,8 @@ export const itemRepository = {
     status?: MenuItemStatus | undefined;
     enableRecipeDeduction?: boolean | undefined;
     isPublished?: boolean | undefined;
+    displayMode?: "STANDARD" | "GUIDED_BUILDER" | undefined;
+    effectiveFrom?: Date | undefined;
     variants?: Array<{ name: string; price: string }> | undefined;
     modifierGroupIds?: string[] | undefined;
     tagIds?: string[] | undefined;
@@ -105,7 +146,16 @@ export const itemRepository = {
           name: data.name,
           description: data.description ?? null,
           basePrice: data.basePrice,
+          pricingMode: data.pricingMode ?? "FIXED",
+          weightUnit: data.weightUnit ?? null,
+          openPriceMin: data.openPriceMin ?? null,
+          openPriceMax: data.openPriceMax ?? null,
+          supportsZones: data.supportsZones ?? false,
+          zonePricingRule: data.zonePricingRule ?? "HIGHER",
+          manualStockCount: data.manualStockCount ?? null,
+          manualStockCountUpdatedAt: data.manualStockCount === undefined ? null : new Date(),
           taxRate: data.taxRate ?? "0",
+          taxMode: data.taxMode ?? null,
           foodType: data.foodType ?? "VEG",
           spiceLevel: data.spiceLevel ?? null,
           sku: data.sku ?? null,
@@ -116,6 +166,8 @@ export const itemRepository = {
           isAvailable: (data.status ?? "ACTIVE") === "ACTIVE",
           enableRecipeDeduction: data.enableRecipeDeduction ?? true,
           isPublished: data.isPublished ?? true,
+          displayMode: data.displayMode ?? "STANDARD",
+          effectiveFrom: data.effectiveFrom ?? null,
           publishedAt: (data.isPublished ?? true) ? new Date() : null,
         })
         .returning();
@@ -124,6 +176,19 @@ export const itemRepository = {
         await tx
           .insert(menuItemVariants)
           .values(data.variants.map((v) => ({ menuItemId: item!.id, ...v })));
+      }
+
+      const defaultMenu = await tx.query.menus.findFirst({
+        where: and(eq(menus.tenantId, data.tenantId), eq(menus.isDefault, true)),
+        columns: { id: true },
+      });
+      if (defaultMenu) {
+        await tx.insert(menuMemberships).values({
+          menuId: defaultMenu.id,
+          menuItemId: item!.id,
+          categoryId: data.categoryId,
+          sortOrder: data.sortOrder ?? 0,
+        });
       }
 
       if (data.modifierGroupIds?.length) {
@@ -177,7 +242,16 @@ export const itemRepository = {
       name?: string | undefined;
       description?: string | undefined;
       basePrice?: string | undefined;
+      pricingMode?: "FIXED" | "WEIGHT_BASED" | "OPEN" | undefined;
+      weightUnit?: "G" | "KG" | "LB" | "OZ" | null | undefined;
+      openPriceMin?: string | null | undefined;
+      openPriceMax?: string | null | undefined;
+      supportsZones?: boolean | undefined;
+      zonePricingRule?: "AVERAGE" | "HIGHER" | "SUM_HALF" | undefined;
+      manualStockCount?: number | null | undefined;
+      manualStockCountUpdatedAt?: Date | undefined;
       taxRate?: string | undefined;
+      taxMode?: "INCLUSIVE" | "EXCLUSIVE" | null | undefined;
       isAvailable?: boolean | undefined;
       foodType?: FoodType | undefined;
       spiceLevel?: SpiceLevel | null | undefined;
@@ -188,6 +262,8 @@ export const itemRepository = {
       status?: MenuItemStatus | undefined;
       availabilityReason?: string | null | undefined;
       enableRecipeDeduction?: boolean | undefined;
+      displayMode?: "STANDARD" | "GUIDED_BUILDER" | undefined;
+      effectiveFrom?: Date | null | undefined;
     },
   ) {
     // `isAvailable` is a derived flag the waiter-app ordering views read
@@ -257,7 +333,16 @@ export const itemRepository = {
           name: options.name?.trim() || `${source.name} (Copy)`,
           description: source.description,
           basePrice: source.basePrice,
+          pricingMode: source.pricingMode,
+          weightUnit: source.weightUnit,
+          openPriceMin: source.openPriceMin,
+          openPriceMax: source.openPriceMax,
+          supportsZones: source.supportsZones,
+          zonePricingRule: source.zonePricingRule,
+          manualStockCount: source.manualStockCount,
+          manualStockCountUpdatedAt: source.manualStockCountUpdatedAt,
           taxRate: source.taxRate,
+          taxMode: source.taxMode,
           foodType: source.foodType,
           spiceLevel: source.spiceLevel,
           sku: null, // SKUs are meant to be unique — never duplicate one verbatim

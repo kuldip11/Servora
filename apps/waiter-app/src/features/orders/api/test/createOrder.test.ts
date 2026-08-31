@@ -20,8 +20,24 @@ describe("createOrder", () => {
     };
     vi.mocked(apiClient.post).mockResolvedValue({
       data: { data: { id: "o1" } },
-    } as any);
+    });
     await expect(createOrder(input)).resolves.toEqual({ id: "o1" });
+    expect(apiClient.post).toHaveBeenCalledWith("/orders", input);
+  });
+
+  it("sends combo selections through the normal create-order endpoint", async () => {
+    const input = {
+      type: "TAKEAWAY" as const,
+      combos: [{
+        comboId: "550e8400-e29b-41d4-a716-446655440000",
+        selections: [{
+          slotId: "550e8400-e29b-41d4-a716-446655440001",
+          optionIds: ["550e8400-e29b-41d4-a716-446655440002"],
+        }],
+      }],
+    };
+    vi.mocked(apiClient.post).mockResolvedValue({ data: { data: { id: "combo-order" } } });
+    await expect(createOrder(input)).resolves.toEqual({ id: "combo-order" });
     expect(apiClient.post).toHaveBeenCalledWith("/orders", input);
   });
 

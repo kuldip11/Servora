@@ -4,9 +4,9 @@
  * rules live in `recipes.service.ts`.
  */
 import type { AuthContext } from "../../../core/auth";
-import type { InventoryUnit } from "@pos/types";
 import { successResponse } from "../../../core/response";
-import { recipesService, type RecipeIngredientInput } from "./recipes.service";
+import type { RecipeIngredientInput } from "@pos/types";
+import { recipesService } from "./recipes.service";
 
 export const recipesController = {
   async getItemRecipe(auth: AuthContext, itemId: string) {
@@ -25,38 +25,5 @@ export const recipesController = {
       ingredients,
     );
     return successResponse(recipe);
-  },
-
-  async deleteRecipeIngredient(
-    auth: AuthContext,
-    itemId: string,
-    inventoryItemId: string,
-  ) {
-    await recipesService.deleteRecipeIngredient(auth, itemId, inventoryItemId);
-    return successResponse(null);
-  },
-
-  async upsertRecipeIngredient(
-    auth: AuthContext,
-    itemId: string,
-    inventoryItemId: string,
-    quantity: number,
-    unit: InventoryUnit,
-    isOptional: boolean,
-  ) {
-    const row = await recipesService.upsertRecipeIngredient(
-      auth,
-      itemId,
-      inventoryItemId,
-      quantity,
-      unit,
-      isOptional,
-    );
-    return successResponse(row);
-  },
-
-  async checkCanOrder(auth: AuthContext, itemId: string) {
-    const result = await recipesService.checkCanOrder(auth, itemId);
-    return successResponse(result);
   },
 };

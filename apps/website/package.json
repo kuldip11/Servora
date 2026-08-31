@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 3001",
     "build": "next build",
     "validate:production-env": "node scripts/validate-production-env.mjs",
-    "start": "next start",
+    "start": "next start --port 3001",
     "typecheck": "tsc --noEmit",
     "lint": "eslint 'app/**/*.{ts,tsx}' 'components/**/*.{ts,tsx}' 'content/**/*.{ts,tsx}' 'lib/**/*.{ts,tsx}'",
     "test": "vitest run",

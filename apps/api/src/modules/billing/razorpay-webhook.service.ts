@@ -1,6 +1,6 @@
 import { and, eq, sql } from "drizzle-orm";
 import { createHmac, timingSafeEqual } from "node:crypto";
-import type { Order } from "@pos/types";
+import type { KitchenTicket, Order } from "@pos/types";
 import { db } from "../../db";
 import {
   paymentWebhookEvents,
@@ -150,7 +150,7 @@ export const razorpayWebhookService = {
                 eq(kitchenTickets.orderId, current.orderId),
                 eq(kitchenTickets.status, "PENDING_PAYMENT"),
               ),
-              columns: { id: true },
+              with: { course: true },
             });
             await tx
               .update(payments)
@@ -162,18 +162,17 @@ export const razorpayWebhookService = {
                 updatedAt: new Date(),
               })
               .where(eq(payments.id, payment.id));
-            if (pending.length) {
-              await tx
-                .update(kitchenTickets)
-                .set({ status: "FIRED", updatedAt: new Date() })
-                .where(
-                  and(
-                    eq(kitchenTickets.orderId, current.orderId),
-                    eq(kitchenTickets.status, "PENDING_PAYMENT"),
-                  ),
-                );
+            const firedIds: string[] = [];
+            for (const ticket of pending) {
+              const status = ticket.course && ticket.course.courseNumber > 1 ? "HELD" : "FIRED";
+              await tx.update(kitchenTickets).set({
+                status,
+                firedAt: status === "FIRED" ? new Date() : null,
+                updatedAt: new Date(),
+              }).where(eq(kitchenTickets.id, ticket.id));
+              if (status === "FIRED") firedIds.push(ticket.id);
             }
-            return pending.map((ticket) => ticket.id);
+            return firedIds;
           });
 
           if (releasedTicketIds.length) {
@@ -184,17 +183,26 @@ export const razorpayWebhookService = {
             if (order) {
               for (const ticketId of releasedTicketIds) {
                 const ticketItems = order.items.filter(
-                  (item: any) => item.kitchenTicketId === ticketId,
+                  (item) => item.kitchenTicketId === ticketId,
                 );
                 const result = await inventoryService.deductForOrderItems(
                   payment.order.tenantId,
                   payment.order.branchId,
                   payment.orderId,
                   ticketId,
-                  ticketItems.map((item) => ({
-                    menuItemId: item.menuItemId,
-                    quantity: item.quantity,
-                  })),
+                  ticketItems.flatMap((item) =>
+                    item.menuItemId == null
+                      ? []
+                      : [{
+                          orderItemId: item.id,
+                          menuItemId: item.menuItemId,
+                          variantId: item.variantId,
+                          quantity: item.quantity,
+                          selectedOptions: item.modifiers.flatMap((modifier) =>
+                            modifier.modifierId == null ? [] : [{ optionId: modifier.modifierId, quantity: modifier.quantity }],
+                          ),
+                        }],
+                  ),
                   null,
                 );
                 if (result.short.length)
@@ -218,10 +226,10 @@ export const razorpayWebhookService = {
                   payment.order.branchId,
                 );
                 for (const ticket of updated.kitchenTickets.filter(
-                  (candidate: any) => releasedTicketIds.includes(candidate.id),
+                  (candidate) => releasedTicketIds.includes(candidate.id),
                 )) {
                   await eventBus.publish(
-                    { type: "kitchen.ticket.created", payload: ticket as any },
+                    { type: "kitchen.ticket.created", payload: ticket as unknown as KitchenTicket },
                     payment.order.tenantId,
                     payment.order.branchId,
                   );

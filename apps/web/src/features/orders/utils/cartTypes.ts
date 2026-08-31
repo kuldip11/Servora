@@ -22,6 +22,8 @@ export interface CartItem {
   modifiers: SelectedModifier[];
   quantity: number;
   chefNotes: string;
+  seatLabel?: string;
+  courseNumber?: number;
   unitPrice: number;
 }
 
@@ -29,7 +31,7 @@ export interface CartItem {
 // creating a new line) only if item + variant + exact modifier selection
 // all match.
 export function cartItemKey(item: CartItem): string {
-  return `${item.menuItemId}__${item.variantId ?? ""}__${item.modifiers
+  return `${item.menuItemId}__${item.variantId ?? ""}__${item.seatLabel ?? ""}__${item.modifiers
     .map((m) => `${m.optionId}x${m.quantity}`)
     .sort()
     .join(",")}`;

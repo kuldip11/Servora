@@ -6,6 +6,7 @@ if (!redisUrl) {
 }
 
 const redisOptions = {
+  lazyConnect: process.env["NODE_ENV"] === "test",
   maxRetriesPerRequest: 3,
   enableReadyCheck: true,
   retryStrategy: (times: number) => Math.min(times * 100, 3000),

@@ -40,10 +40,18 @@ export interface Permission {
   module: string;
 }
 
+export type RoundingPolicy = "NONE" | "NEAREST_1" | "NEAREST_5" | "NEAREST_10";
+export type TaxMode = "INCLUSIVE" | "EXCLUSIVE";
+
 export interface Tenant {
   id: string;
   name: string;
   plan: string;
+  serviceChargePercent?: string | null;
+  serviceChargeTaxable?: boolean;
+  roundingPolicy?: RoundingPolicy;
+  defaultTaxMode?: TaxMode;
+  courseSequencingEnabled?: boolean;
   createdAt: string;
 }
 

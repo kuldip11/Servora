@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+cd "$ROOT"
+
+fail=0
+require_pattern() {
+  local file="$1" pattern="$2" label="$3"
+  if ! grep -Fq "$pattern" "$file"; then
+    echo "RBAC FAIL: $label ($file missing: $pattern)" >&2
+    fail=1
+  fi
+}
+
+# Phase-D money-management surfaces must remain behind explicit permissions.
+require_pattern apps/api/src/modules/menu/pricing/price-rule.service.ts 'requirePermission(auth, "menu:read")' 'PriceRule reads require menu:read'
+require_pattern apps/api/src/modules/menu/pricing/price-rule.service.ts 'requirePermission(auth, "menu:pricing:write")' 'PriceRule writes require menu:pricing:write'
+require_pattern apps/api/src/db/migrations/0073_menu_pricing_permission.sql "'menu:pricing:write'" 'Pricing permission is seeded'
+require_pattern apps/api/src/modules/menu/promotions/promotion.service.ts 'requirePermission(auth, "menu:read")' 'Promotion reads require menu:read'
+require_pattern apps/api/src/modules/menu/promotions/promotion.service.ts 'requirePermission(auth, "menu:pricing:write")' 'Promotion writes require menu:pricing:write'
+require_pattern apps/api/src/modules/loyalty/loyalty.service.ts 'requirePermission(auth, "menu:read")' 'Loyalty reads require menu:read'
+require_pattern apps/api/src/modules/loyalty/loyalty.service.ts 'requirePermission(auth, "menu:update")' 'Loyalty writes require menu:update'
+require_pattern apps/api/src/modules/tenants/tenant.service.ts 'requirePermission(auth, "tenant:update")' 'Pricing/tax tenant settings require tenant:update'
+require_pattern apps/api/src/modules/orders/order.service.ts 'requireOrdersPermission(auth, "orders:create")' 'Order creation requires orders:create'
+require_pattern apps/api/src/modules/orders/order.service.ts 'requireOrdersPermission(auth, "orders:update")' 'Later-round fire requires orders:update'
+require_pattern apps/api/src/modules/orders/order.service.ts 'requireOrdersPermission(auth, "orders:void")' 'Voids require orders:void'
+require_pattern apps/api/src/modules/orders/order.service.ts 'requireOrdersPermission(auth, "orders:comp")' 'Comps require orders:comp'
+
+# Phase-E inventory-intelligence surfaces. Route authentication is supplied by
+# requireAuthPlugin; service-level checks pin the actual permissions.
+require_pattern apps/api/src/modules/menu/recipes/recipes.service.ts 'requirePermission(auth, "menu:read")' 'Recipe reads require menu:read'
+require_pattern apps/api/src/modules/menu/recipes/recipes.service.ts 'requirePermission(auth, "menu:update")' 'Recipe writes require menu:update'
+require_pattern apps/api/src/modules/menu/sub-recipes/sub-recipe.service.ts 'requirePermission(auth, "menu:read")' 'Sub-recipe reads require menu:read'
+require_pattern apps/api/src/modules/menu/sub-recipes/sub-recipe.service.ts 'requirePermission(auth, "menu:update")' 'Sub-recipe writes require menu:update'
+require_pattern apps/api/src/modules/inventory/inventory.service.ts 'requireInventoryPermission(auth, "inventory:read")' 'Recipe-impact/waste-reason reads require inventory:read'
+require_pattern apps/api/src/modules/inventory/inventory.service.ts 'requireInventoryPermission(auth, "inventory:update")' 'Waste and inventory writes require inventory:update'
+require_pattern apps/api/src/modules/inventory/inventory.service.ts 'requireInventoryTransactionPermission(auth, input.transactionType)' 'Waste stock transactions use transaction RBAC'
+
+# Phase-F kitchen operations surfaces.
+require_pattern apps/api/src/modules/kitchen-tickets/ticket.service.ts 'requireKitchenPermission(auth, "kitchen:read")' 'Station-filtered KDS reads require kitchen:read'
+require_pattern apps/api/src/modules/kitchen-tickets/ticket.service.ts 'requireKitchenPermission(auth, "kitchen:update")' 'Kitchen status/course fire requires kitchen:update'
+require_pattern apps/api/src/modules/orders/order.service.ts 'requireOrdersPermission(auth, "orders:update")' 'Refire and later-round course writes require orders:update'
+require_pattern apps/api/src/modules/orders/order.service.ts 'if (alsoCompOriginal) requireOrdersPermission(auth, "orders:comp")' 'Refire comp-original path requires orders:comp'
+require_pattern apps/api/src/modules/tenants/tenant.service.ts 'requirePermission(auth, "tenant:update")' 'Course sequencing tenant setting requires tenant:update'
+
+# Phase-G advanced restaurant model surfaces.
+require_pattern apps/api/src/modules/organizations/organization.service.ts 'requirePermission(auth, "organization:manage")' 'Organization inheritance administration requires organization:manage'
+require_pattern apps/api/src/modules/menu/pricing/price-rule.service.ts 'requirePermission(auth, "organization:manage")' 'Organization-scoped price rules require organization:manage'
+require_pattern apps/api/src/modules/customer-groups/customer-group.service.ts 'requirePermission(auth, "menu:pricing:write")' 'Customer-group pricing administration requires menu:pricing:write'
+require_pattern apps/api/src/modules/menu/availability/availability.controller.ts 'requirePermission(auth, "menu:update")' 'Manual stock-count adjustment requires menu:update'
+require_pattern apps/api/src/modules/billing/billing.service.ts 'requireBillingPermission(auth, "billing:create")' 'Fractional seat-share writes require billing:create'
+require_pattern apps/api/src/modules/orders/order.service.ts 'async refillItem' 'Unlimited-refill operation exists on order service'
+require_pattern apps/api/src/modules/orders/order.service.ts 'requireOrdersPermission(auth, "orders:update")' 'Unlimited-refill/order mutation requires orders:update'
+require_pattern apps/api/src/db/migrations/0082_phase_g_advanced_restaurant_models.sql "'organization:manage'" 'Organization permission is seeded'
+
+if (( fail )); then exit 1; fi
+echo "RBAC static audit OK: Phase-D, Phase-E, Phase-F, and Phase-G protected surfaces have explicit permission gates."

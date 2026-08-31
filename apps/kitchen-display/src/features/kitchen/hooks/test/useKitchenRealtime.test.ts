@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   setQueryData: vi.fn(),
@@ -16,8 +16,16 @@ vi.mock("../../../../shared/lib/realtime", () => ({
     mocks.handlers.push([type, handler]),
 }));
 
-import { useKitchenRealtime } from "../useKitchenRealtime";
-import { KITCHEN_TICKETS_QUERY_KEY } from "../useKitchenTickets";
+import { createRealtimeClient } from "@pos/realtime";
+import type { RealtimeEvent, KitchenTicket } from "@pos/types";
+import { useKitchenRealtime, mergeKitchenTicketIntoQueue } from "../useKitchenRealtime";
+import { KITCHEN_TICKETS_QUERY_KEY, kitchenTicketsQueryKey } from "../useKitchenTickets";
+
+beforeEach(() => {
+  mocks.handlers.length = 0;
+  mocks.setQueryData.mockClear();
+  mocks.useQueryClient.mockReturnValue({ setQueryData: mocks.setQueryData });
+});
 
 describe("useKitchenRealtime", () => {
   it("upserts full ticket payloads directly into the KDS cache", () => {
@@ -25,6 +33,7 @@ describe("useKitchenRealtime", () => {
     expect(mocks.handlers.map(([type]) => type)).toEqual([
       "kitchen.ticket.created",
       "kitchen.ticket.updated",
+      "order.item.voided",
     ]);
     const ticket = {
       id: "t1",
@@ -54,5 +63,85 @@ describe("useKitchenRealtime", () => {
       return mocks.setQueryData.mock.calls.at(-1)![1];
     };
     expect(updaterCall()([{ id: "t1", status: "READY" }])).toEqual([]);
+  });
+  it("projects a void event onto the assigned station immediately without polling", () => {
+    useKitchenRealtime("grill");
+    const voidHandler = mocks.handlers.find(([type]) => type === "order.item.voided")?.[1];
+    expect(voidHandler).toBeDefined();
+    const incoming = {
+      id: "t-void",
+      status: "PREPARING",
+      firedAt: "2026-08-27T10:00:00.000Z",
+      items: [
+        { id: "grill-line", menuItemId: "m1", stationId: "grill", itemStatus: "VOIDED" },
+        { id: "cold-line", menuItemId: "m2", stationId: "cold", itemStatus: "ACTIVE" },
+        { id: "fallback", menuItemId: "m3", stationId: null, itemStatus: "ACTIVE" },
+      ],
+    };
+    const started = performance.now();
+    voidHandler?.({ type: "order.item.voided", payload: incoming });
+    const elapsed = performance.now() - started;
+    expect(elapsed).toBeLessThan(50);
+    expect(mocks.setQueryData).toHaveBeenCalledWith(kitchenTicketsQueryKey("grill"), expect.any(Function));
+    const updater = mocks.setQueryData.mock.calls.at(-1)?.[1];
+    expect(updater([])[0].items.map((item: { id: string }) => item.id)).toEqual(["grill-line", "fallback"]);
+  });
+
+});
+
+
+class PhaseFRealtimeSocket {
+  static instances: PhaseFRealtimeSocket[] = [];
+  static CONNECTING = 0;
+  static OPEN = 1;
+  readyState = PhaseFRealtimeSocket.CONNECTING;
+  onopen: (() => void) | null = null;
+  onmessage: ((event: { data: string }) => void) | null = null;
+  onclose: (() => void) | null = null;
+  onerror: (() => void) | null = null;
+  constructor(public url: string) { PhaseFRealtimeSocket.instances.push(this); }
+  close() { this.onclose?.(); }
+  message(payload: unknown) { this.onmessage?.({ data: JSON.stringify(payload) }); }
+}
+
+describe("Phase F void realtime transport benchmark", () => {
+  it("delivers void-to-KDS state through the real shared WebSocket decoder within the created-event latency bound", () => {
+    PhaseFRealtimeSocket.instances = [];
+    vi.stubGlobal("WebSocket", PhaseFRealtimeSocket);
+    const client = createRealtimeClient<RealtimeEvent>({
+      url: "wss://servora.test/ws/events",
+      getAccessToken: () => "token",
+      getTenantId: () => "t1",
+      getBranchId: () => "b1",
+    });
+    let state: KitchenTicket[] = [];
+    client.subscribe((event) => {
+      if (event.type === "order.item.voided" || event.type === "kitchen.ticket.created") {
+        state = mergeKitchenTicketIntoQueue(state, event.payload, "grill");
+      }
+    });
+    const socket = PhaseFRealtimeSocket.instances[0]!;
+    const base = {
+      id: "ticket-transport", tenantId: "t1", branchId: "b1", orderId: "o1", ticketNumber: 1,
+      status: "PREPARING", courseId: null, notes: null, firedAt: "2026-08-30T10:00:00.000Z",
+      readyAt: null, servedAt: null, createdAt: "2026-08-30T10:00:00.000Z", updatedAt: "2026-08-30T10:00:00.000Z",
+      items: [
+        { id: "grill", orderId: "o1", menuItemId: "m1", menuItemName: "Steak", variantId: null, variantName: null, quantity: 1, unitPrice: 10, subtotal: 10, taxRate: 0, taxMode: "EXCLUSIVE", pricingAttribution: null, chefNotes: null, fulfillmentType: "DINE_IN", stationId: "grill", menuChangeEventId: null, itemStatus: "ACTIVE", refiresOrderItemId: null, refireReason: null, refiredBy: null, refiredAt: null, voidedReason: null, voidedBy: null, voidedAt: null, voidedReasonId: null, compedReason: null, compedBy: null, compedAt: null, compedReasonId: null, modifiers: [] },
+      ],
+    } as unknown as KitchenTicket;
+
+    const createdStart = performance.now();
+    socket.message({ type: "kitchen.ticket.created", payload: base });
+    const createdElapsed = performance.now() - createdStart;
+    expect(state).toHaveLength(1);
+
+    const voided = { ...base, items: base.items.map((item) => ({ ...item, itemStatus: "VOIDED" as const, voidedReason: "guest changed mind" })) };
+    const voidStart = performance.now();
+    socket.message({ type: "order.item.voided", payload: voided });
+    const voidElapsed = performance.now() - voidStart;
+    expect(state[0]?.items[0]?.itemStatus).toBe("VOIDED");
+    // Both messages take the exact same socket decode + subscriber + queue-reducer path.
+    // Allow scheduler noise while ensuring void propagation remains in the same bound.
+    expect(voidElapsed).toBeLessThanOrEqual(Math.max(50, createdElapsed * 5 + 5));
   });
 });

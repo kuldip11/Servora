@@ -49,7 +49,8 @@ export const MenuItemCard = memo(function MenuItemCard({
   onQtyChange,
 }: Props) {
   const hasOptions =
-    item.variants?.length > 0 || item.modifierGroupLinks?.length > 0;
+    item.variants?.length > 0 || item.modifierGroupLinks?.length > 0 ||
+    item.supportsZones === true || item.pricingMode === "WEIGHT_BASED" || item.pricingMode === "OPEN";
   const foodTypeClasses =
     FOOD_TYPE_DOT_CLASSES[
       item.foodType as keyof typeof FOOD_TYPE_DOT_CLASSES
@@ -82,6 +83,9 @@ export const MenuItemCard = memo(function MenuItemCard({
           )}
           {hasOptions && (
             <p className="text-xs text-text-disabled">Options ▾</p>
+          )}
+          {item.manualStockCount != null && item.manualStockCount <= 5 && (
+            <p className="text-xs font-semibold text-warning">{item.manualStockCount} left</p>
           )}
         </div>
       </div>

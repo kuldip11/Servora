@@ -1,12 +1,6 @@
 ALTER TABLE "audit_logs" ADD COLUMN IF NOT EXISTS "branch_id" uuid;
 ALTER TABLE "audit_logs" ADD COLUMN IF NOT EXISTS "request_id" varchar(64);
 
--- Backfill branch IDs captured in legacy JSON metadata when present and valid.
-UPDATE "audit_logs"
-SET "branch_id" = (("metadata"::jsonb ->> 'branchId')::uuid)
-WHERE "branch_id" IS NULL
-  AND "metadata" IS NOT NULL
-  AND ("metadata"::jsonb ->> 'branchId') ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$';
 
 ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_branch_tenant_fk"
   FOREIGN KEY ("branch_id", "tenant_id") REFERENCES "branches"("id", "tenant_id") ON DELETE NO ACTION;

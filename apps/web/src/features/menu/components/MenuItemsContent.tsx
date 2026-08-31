@@ -20,6 +20,8 @@ import {
   SearchInput,
   SelectMenu,
   FilterBar,
+  Modal,
+  Input,
 } from "@pos/ui";
 import { formatCurrency } from "../../../shared/utils";
 import { FoodTypeDot } from "../components/FoodTypeDot";
@@ -33,7 +35,7 @@ import type {
   MenuCategory,
   MenuTag,
 } from "@pos/types";
-import type { Dispatch, SetStateAction } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 const FOOD_TYPE_FILTERS: { value: FoodType | "ALL"; label: string }[] = [
   { value: "ALL", label: "All" },
   { value: "VEG", label: "Veg" },
@@ -63,7 +65,7 @@ export interface MenuItemsContentProps {
     v: { categoryId: string; item: MenuItem | null } | null,
   ) => void;
   toggleAvailMutation: {
-    mutate: (v: { id: string; isAvailable: boolean }) => void;
+    mutate: (v: { id: string; isAvailable: boolean; reason?: string }) => void;
   };
   deleteItemMutation: { mutate: (id: string) => void };
   duplicateItemMutation: {
@@ -95,6 +97,9 @@ export function MenuItemsContent({
   duplicateItemMutation,
   publishMutation,
 }: MenuItemsContentProps) {
+  const [manualOverrideItem, setManualOverrideItem] = useState<MenuItem | null>(null);
+  const [manualOverrideReason, setManualOverrideReason] = useState("");
+
   const priceDisplay = (item: MenuItem) => {
     if (!item.variants?.length) return formatCurrency(Number(item.basePrice));
     const prices = item.variants.map((v) => Number(v.price));
@@ -343,21 +348,26 @@ export function MenuItemsContent({
                                 <IconButton
                                   size="sm"
                                   aria-label={
-                                    item.status === "ACTIVE"
-                                      ? "Mark out of stock"
-                                      : "Mark active"
+                                    item.manualOverrideStatus
+                                      ? "Clear manual availability override"
+                                      : "Manually mark out of stock"
                                   }
-                                  onClick={() =>
-                                    toggleAvailMutation.mutate({
-                                      id: item.id,
-                                      isAvailable: item.status !== "ACTIVE",
-                                    })
-                                  }
+                                  onClick={() => {
+                                    if (item.manualOverrideStatus) {
+                                      toggleAvailMutation.mutate({
+                                        id: item.id,
+                                        isAvailable: true,
+                                      });
+                                      return;
+                                    }
+                                    setManualOverrideReason("");
+                                    setManualOverrideItem(item);
+                                  }}
                                   icon={() =>
-                                    item.status === "ACTIVE" ? (
-                                      <ToggleRight className="w-5 h-5 text-success" />
+                                    item.manualOverrideStatus ? (
+                                      <ToggleLeft className="w-5 h-5 text-danger" />
                                     ) : (
-                                      <ToggleLeft className="w-5 h-5" />
+                                      <ToggleRight className="w-5 h-5 text-success" />
                                     )
                                   }
                                 />
@@ -389,9 +399,14 @@ export function MenuItemsContent({
                           <div className="mb-2">
                             <PublishBadge isPublished={item.isPublished} />
                             <StatusBadge status={item.status} />
-                            {item.availabilityReason && (
+                            {item.manualOverrideStatus && (
+                              <span className="ml-1.5 rounded-full bg-danger/10 px-2 py-0.5 text-[11px] font-medium text-danger">
+                                Manual override
+                              </span>
+                            )}
+                            {(item.manualOverrideReason ?? item.availabilityReason) && (
                               <span className="ml-1.5 text-[11px] text-text-disabled">
-                                {item.availabilityReason}
+                                {item.manualOverrideReason ?? item.availabilityReason}
                               </span>
                             )}
                           </div>
@@ -432,6 +447,46 @@ export function MenuItemsContent({
             );
           })}
         </div>
+      )}
+
+      {manualOverrideItem && (
+        <Modal
+          open
+          onClose={() => setManualOverrideItem(null)}
+          title={`Manually 86 ${manualOverrideItem.name}`}
+          size="sm"
+        >
+          <div className="space-y-4">
+            <p className="text-sm text-text-secondary">
+              This manual override stays in effect even if inventory or a schedule
+              would otherwise make the item available.
+            </p>
+            <Input
+              aria-label="Manual override reason"
+              value={manualOverrideReason}
+              onChange={(event) => setManualOverrideReason(event.target.value)}
+              placeholder="Reason (required)"
+            />
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => setManualOverrideItem(null)}>
+                Cancel
+              </Button>
+              <Button
+                disabled={!manualOverrideReason.trim()}
+                onClick={() => {
+                  toggleAvailMutation.mutate({
+                    id: manualOverrideItem.id,
+                    isAvailable: false,
+                    reason: manualOverrideReason.trim(),
+                  });
+                  setManualOverrideItem(null);
+                }}
+              >
+                Mark out of stock
+              </Button>
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   );

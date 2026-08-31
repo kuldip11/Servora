@@ -11,6 +11,8 @@ import {
   menuCategories,
   modifierGroups,
   recipes,
+  menus,
+  menuMemberships,
 } from "../../../db/schema";
 import type { MenuItemStatus, FoodType, SpiceLevel } from "@pos/types";
 
@@ -69,6 +71,7 @@ export const importExportRepository = {
           columns: { id: true, name: true, tenantId: true, branchId: true },
         },
         inventoryItem: { columns: { id: true, name: true } },
+        subRecipe: { columns: { id: true, name: true } },
       },
     });
     return rows.filter(
@@ -130,9 +133,10 @@ export const importExportRepository = {
     tenantId: string,
     branchId: string | undefined,
     rows: Array<{ action: "insert" | "update"; data: CommitRowData }>,
-  ): Promise<{ inserted: number; updated: number }> {
+  ): Promise<{ inserted: number; updated: number; touched: Array<{ id: string; action: "insert" | "update"; data: CommitRowData }> }> {
     let inserted = 0;
     let updated = 0;
+    const touched: Array<{ id: string; action: "insert" | "update"; data: CommitRowData }> = [];
 
     await db.transaction(async (tx) => {
       for (const r of rows) {
@@ -161,8 +165,9 @@ export const importExportRepository = {
               ),
             );
           updated++;
+          touched.push({ id: r.data.id, action: "update", data: r.data });
         } else {
-          await tx.insert(menuItems).values({
+          const [created] = await tx.insert(menuItems).values({
             tenantId,
             branchId: branchId ?? null,
             categoryId: r.data.categoryId,
@@ -179,12 +184,24 @@ export const importExportRepository = {
             prepTimeMinutes: r.data.prepTimeMinutes,
             sortOrder: 0,
             enableRecipeDeduction: true,
-          });
+          }).returning({ id: menuItems.id });
+          if (created) {
+            const defaultMenu = await tx.query.menus.findFirst({
+              where: and(eq(menus.tenantId, tenantId), eq(menus.isDefault, true)),
+              columns: { id: true },
+            });
+            if (defaultMenu) await tx.insert(menuMemberships).values({
+              menuId: defaultMenu.id,
+              menuItemId: created.id,
+              categoryId: r.data.categoryId,
+            });
+            touched.push({ id: created.id, action: "insert", data: r.data });
+          }
           inserted++;
         }
       }
     });
 
-    return { inserted, updated };
+    return { inserted, updated, touched };
   },
 };

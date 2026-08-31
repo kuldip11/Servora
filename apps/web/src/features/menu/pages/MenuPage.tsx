@@ -21,13 +21,30 @@ import { useDeleteMenuItem } from "../hooks/useDeleteMenuItem";
 import { useDuplicateMenuItem } from "../hooks/useDuplicateMenuItem";
 import { useSetItemPublished } from "../hooks/useSetItemPublished";
 import type { MenuItem, FoodType, MenuItemStatus } from "@pos/types";
+import { MenusSection } from "../components/MenusSection";
+import { KitchenStationsSection } from "../components/KitchenStationsSection";
+import { CombosSection } from "../components/CombosSection";
+import { PromotionsSection } from "../components/PromotionsSection";
+import { LoyaltySection } from "../components/LoyaltySection";
+import { HappyHourSection } from "../components/HappyHourSection";
+import { CustomerGroupsSection } from "../components/CustomerGroupsSection";
+import { BuffetPricingSection } from "../components/BuffetPricingSection";
+import { OrganizationManagementSection } from "../components/OrganizationManagementSection";
+import { GuidedComboPromotionBuilder } from "../components/GuidedComboPromotionBuilder";
 
 const TABS = [
   { id: "items", label: "Items" },
+  { id: "menus", label: "Menus" },
+  { id: "combos", label: "Combos" },
+  { id: "promotions", label: "Promotions" },
+  { id: "loyalty", label: "Loyalty" },
+  { id: "happy-hour", label: "Happy Hour" },
+  { id: "advanced", label: "Advanced Models" },
   { id: "categories", label: "Categories" },
   { id: "modifiers", label: "Modifiers" },
   { id: "recipes", label: "Recipes" },
   { id: "availability", label: "Availability" },
+  { id: "stations", label: "Stations" },
   { id: "tools", label: "Tools" },
 ] as const;
 
@@ -117,6 +134,13 @@ export function MenuPage() {
 
   const tabItems: TabItem[] = [
     { value: "items", label: "Items", content: itemsContent },
+    { value: "menus", label: "Menus", content: <MenusSection /> },
+    { value: "guided-builder", label: "Guided Builder", content: <GuidedComboPromotionBuilder /> },
+    { value: "combos", label: "Combos", content: <CombosSection /> },
+    { value: "promotions", label: "Promotions", content: <PromotionsSection /> },
+    { value: "loyalty", label: "Loyalty", content: <LoyaltySection /> },
+    { value: "happy-hour", label: "Happy Hour", content: <HappyHourSection /> },
+    { value: "advanced", label: "Advanced Models", content: <div className="space-y-10"><CustomerGroupsSection /><BuffetPricingSection /><OrganizationManagementSection /></div> },
     {
       value: "categories",
       label: "Categories",
@@ -137,6 +161,7 @@ export function MenuPage() {
       label: "Availability",
       content: <MenuSpecializedSection mode="availability" />,
     },
+    { value: "stations", label: "Stations", content: <KitchenStationsSection /> },
     { value: "tools", label: "Tools", content: toolsContent },
   ];
 

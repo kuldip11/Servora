@@ -6,6 +6,7 @@ import {
   paymentRefunds,
   paymentMethodEnum,
   paymentStatusEnum,
+  billOrderItems,
 } from "../billing.schema";
 function expectTable(table: any, name: string, columns: string[]) {
   const actual = Object.keys(table[Symbol.for("drizzle:Columns")]);
@@ -17,6 +18,7 @@ describe("billing.schema.ts", () => {
     expectTable(bills, "bills", [
       "id",
       "orderId",
+      "splitLabel",
       "subtotal",
       "taxAmount",
       "discountAmount",
@@ -39,6 +41,10 @@ describe("billing.schema.ts", () => {
       "createdAt",
       "updatedAt",
     ]));
+  it("assigns every order item to at most one bill", () => {
+    expectTable(billOrderItems, "bill_order_items", ["id", "billId", "orderItemId"]);
+    expect(getTableConfig(billOrderItems).indexes.some((index) => index.config.unique)).toBe(true);
+  });
   it("defines payment_refunds", () =>
     expectTable(paymentRefunds, "payment_refunds", [
       "id",

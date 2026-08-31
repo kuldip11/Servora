@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ChefHat,
   RefreshCw,
@@ -18,13 +18,14 @@ import {
   Popover,
   ThemeSwitcher,
 } from "@pos/ui";
-import { useKitchenTickets } from "../hooks/useKitchenTickets";
+import { useKitchenStations, useKitchenTickets } from "../hooks/useKitchenTickets";
 import { useUpdateTicketStatus } from "../hooks/useUpdateTicketStatus";
 import { useKitchenRealtime } from "../hooks/useKitchenRealtime";
 import { groupTicketsByStatus, isUrgent } from "../utils/ticket";
 import { BOARD_COLUMNS } from "../constants";
 import { TicketCard } from "../components/TicketCard";
 import { useKitchenAttention } from "../hooks/useKitchenAttention";
+import { getTerminalStationId, getVoidAlertsEnabled, setTerminalStationId, setVoidAlertsEnabled } from "../terminal-storage";
 
 interface Props {
   onLogout: () => void;
@@ -44,10 +45,15 @@ interface Props {
 // checked against that fix since `KitchenBoard` wasn't touched until
 // now.
 export function KitchenBoard({ onLogout }: Props) {
-  const { data: tickets, isLoading, refetch, isFetching } = useKitchenTickets();
+  const [stationId, setStationId] = useState<string | undefined>(() => new URLSearchParams(window.location.search).get("stationId") ?? getTerminalStationId());
+  const [voidAlerts, setVoidAlerts] = useState(() => getVoidAlertsEnabled());
+  const { data: stations } = useKitchenStations();
+  const { data: tickets, isLoading, refetch, isFetching } = useKitchenTickets(stationId);
   const updateMutation = useUpdateTicketStatus();
-  const { connected } = useKitchenRealtime();
-  useKitchenAttention();
+  const { connected } = useKitchenRealtime(stationId);
+  useKitchenAttention(stationId);
+
+  useEffect(() => { setTerminalStationId(stationId); }, [stationId]);
 
   // Phase 14 memoization-audit finding, not just a perf nit: a single
   // `useUpdateTicketStatus()` instance backs the whole board, so
@@ -111,6 +117,16 @@ export function KitchenBoard({ onLogout }: Props) {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <label className="flex items-center gap-2 text-xs text-text-secondary">
+            Station
+            <select aria-label="KDS station" className="rounded-md border border-border bg-surface-secondary px-2 py-1 text-text-primary" value={stationId ?? ""} onChange={(event) => setStationId(event.target.value || undefined)}>
+              <option value="">All / unassigned</option>
+              {(stations ?? []).map((station) => <option key={station.id} value={station.id}>{station.name}</option>)}
+            </select>
+          </label>
+          <label className="flex items-center gap-1 text-xs text-text-secondary">
+            <input type="checkbox" checked={voidAlerts} onChange={(event) => { setVoidAlerts(event.target.checked); setVoidAlertsEnabled(event.target.checked); }} /> Void alerts
+          </label>
           {/* `IconButton` (Phase 3) for refresh/logout. Its default
               `ghost` variant adds a `hover:bg-surface-secondary`
               affordance neither original button had (they only
@@ -206,7 +222,7 @@ export function KitchenBoard({ onLogout }: Props) {
           `twMerge` technique used throughout this migration, not an
           oversight. */}
       <Grid
-        columns={{ base: 1, sm: 2, lg: 3 }}
+        columns={{ base: 1, sm: 2, lg: 4 }}
         gap="none"
         className="flex-1 gap-px bg-border overflow-hidden"
       >

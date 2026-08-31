@@ -9,6 +9,7 @@ import { ItemCustomizerModal } from "./ItemCustomizerModal";
 import { cartItemKey, type CartItem } from "../utils/cartTypes";
 import type { FoodType, MenuCategory, MenuItem } from "@pos/types";
 import { addOrderItemsSchema } from "@pos/validation";
+import { useCourseSequencingEnabled } from "../hooks/useCourseSequencingEnabled";
 
 const FOOD_TYPE_FILTERS: { value: FoodType | "ALL"; label: string }[] = [
   { value: "ALL", label: "All" },
@@ -41,6 +42,9 @@ export function AddItemsModal({
     null,
   );
   const [validationError, setValidationError] = useState("");
+  const [assignCourse, setAssignCourse] = useState(false);
+  const [roundCourseNumber, setRoundCourseNumber] = useState(1);
+  const courseSequencingAvailable = useCourseSequencingEnabled();
 
   const { data: categories } = useMenuCategories();
 
@@ -60,6 +64,7 @@ export function AddItemsModal({
       basePrice: Number(menuItem.basePrice),
       modifiers: [],
       chefNotes: "",
+      seatLabel: "",
       quantity: 1,
       unitPrice: Number(menuItem.basePrice),
     });
@@ -103,7 +108,7 @@ export function AddItemsModal({
   function handleSubmit() {
     const parsed = addOrderItemsSchema.safeParse({
       ...(notes && { notes }),
-      items: items.map(toCartItemPayload),
+      items: items.map((item) => ({ ...toCartItemPayload(item), ...(assignCourse ? { courseNumber: roundCourseNumber } : {}) })),
     });
     if (!parsed.success) {
       setValidationError(
@@ -117,10 +122,11 @@ export function AddItemsModal({
     // Normalize at the boundary instead of weakening the service contract.
     const payload = {
       ...(parsed.data.notes !== undefined && { notes: parsed.data.notes }),
-      items: parsed.data.items.map((item) => ({
+      items: (parsed.data.items ?? []).map((item) => ({
         ...item,
         ...(item.variantId !== undefined && { variantId: item.variantId }),
         ...(item.chefNotes !== undefined && { chefNotes: item.chefNotes }),
+        ...(item.seatLabel && { seatLabel: item.seatLabel }),
         selectedOptions: (item.selectedOptions ?? []).map((option) => ({
           optionId: option.optionId,
           quantity: option.quantity ?? 1,
@@ -135,6 +141,7 @@ export function AddItemsModal({
       <p className="text-xs text-text-disabled -mt-2 mb-4">
         These items will be fired to the kitchen as a new round.
       </p>
+      {courseSequencingAvailable && <div className="mb-4 flex items-center gap-3 rounded-md border border-border bg-surface-secondary px-3 py-2 text-sm"><label className="flex items-center gap-2 text-text-secondary"><input type="checkbox" checked={assignCourse} onChange={(event) => setAssignCourse(event.target.checked)} /> Assign this round to a course</label>{assignCourse && <select className="rounded border border-border bg-surface px-2 py-1" value={roundCourseNumber} onChange={(event) => setRoundCourseNumber(Number(event.target.value))}>{[1,2,3,4,5].map((course) => <option key={course} value={course}>Course {course}</option>)}</select>}</div>}
       <div className="grid grid-cols-2 gap-6">
         {/* Left: Menu */}
         <div>
