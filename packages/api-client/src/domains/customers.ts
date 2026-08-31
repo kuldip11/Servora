@@ -1,3 +1,4 @@
+import { voidDomainRequest } from "./shared";
 import type { CustomerGroup, LoyaltyCustomer } from "@pos/types";
 import { getDomainData, patchDomainData, postDomainData, type DomainHttpClient } from "./shared";
 
@@ -38,10 +39,10 @@ export function createCustomersApi(client: DomainHttpClient) {
       return patchDomainData<CustomerGroup>(client, `/customer-groups/${id}`, input);
     },
     deleteGroup(id: string): Promise<void> {
-      return client.delete(`/customer-groups/${id}`).then(() => undefined);
+      return voidDomainRequest(client.delete(`/customer-groups/${id}`));
     },
     resolveRequest(id: string): Promise<void> {
-      return client.patch(`/customer/requests/${id}`, { status: "RESOLVED" }).then(() => undefined);
+      return voidDomainRequest(client.patch(`/customer/requests/${id}`, { status: "RESOLVED" }));
     },
     listRequests<T>(): Promise<T[]> {
       return getDomainData<T[]>(client, "/customer/requests");

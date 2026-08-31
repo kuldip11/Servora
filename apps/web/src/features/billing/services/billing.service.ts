@@ -14,10 +14,10 @@ export const billingService = {
   async collectPayment(orderId: string, input: CollectPaymentInput): Promise<void> {
     await billingApi.collectPayment({
       orderId,
-      billId: input.billId,
       method: input.method,
       amount: input.amount,
-      reference: input.reference || undefined,
+      ...(input.billId !== undefined && { billId: input.billId }),
+      ...(input.reference !== undefined && { reference: input.reference }),
     });
   },
   getOrderBills: billingApi.getOrderBills,

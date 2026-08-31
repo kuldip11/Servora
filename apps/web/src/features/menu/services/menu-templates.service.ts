@@ -17,14 +17,14 @@ export const menuTemplatesService = {
   remove: menuApi.removeTemplate,
   async apply(templateId: string, input: ApplyTemplateInput): Promise<void> {
     await menuApi.applyTemplate(templateId, {
-      branchId: input.branchId || undefined,
-      categoryName: input.categoryName || undefined,
+      ...(input.branchId !== undefined && { branchId: input.branchId }),
+      ...(input.categoryName !== undefined && { categoryName: input.categoryName }),
     });
   },
   async saveFromCategory(categoryId: string, input: SaveTemplateInput) {
     return menuApi.saveTemplateFromCategory(categoryId, {
       name: input.name,
-      description: input.description || undefined,
+      ...(input.description !== undefined && { description: input.description }),
     });
   },
 };

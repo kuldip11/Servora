@@ -11,12 +11,9 @@ import { useEffect, useState } from "react";
 import { useRealtimeEvent } from "../../../shared/lib/realtime";
 import { createCustomersApi } from "@pos/api-client";
 import { apiClient } from "../../../shared/lib/api-client";
-
-const customersApi = createCustomersApi(apiClient);
-import { createCustomersApi } from "@pos/api-client";
-
-const customersApi = createCustomersApi(apiClient);
 import { Card } from "@pos/ui";
+
+const customersApi = createCustomersApi(apiClient);
 import { useOrders } from "../../orders/hooks/useOrders";
 import { OrderCard } from "../../orders/components/OrderCard";
 

@@ -3,6 +3,7 @@ import { cors } from "@elysiajs/cors";
 import { swagger } from "@elysiajs/swagger";
 
 import { requestContextPlugin } from "./core/context";
+import type { RequestContext } from "./core/context/request-context";
 import { securityHeadersPlugin, rateLimitPlugin } from "./core/security";
 import { metrics, metricsRouter, requestLoggingPlugin } from "./core/observability";
 import { AppError } from "./core/errors";
@@ -147,9 +148,10 @@ let app = new Elysia()
       };
     }
     return { status: "ready", checks, timestamp: new Date().toISOString() };
-  }) as WidenedElysia;
+  }) as unknown as WidenedElysia;
 
-// Routers
+// Routers — checkpoint the Elysia type between bounded groups so TypeScript
+// does not attempt to instantiate the complete 40-router intersection at once.
 app = app
   .use(authRouter)
   .use(authMeRouter)
@@ -159,7 +161,9 @@ app = app
   .use(tablesRouter)
   .use(ordersRouter)
   .use(cancellationReasonsRouter)
-  .use(kitchenTicketsRouter)
+  .use(kitchenTicketsRouter) as unknown as WidenedElysia;
+
+app = app
   .use(menuAuthorizationPlugin())
   .use(menuItemsRouter)
   .use(menusRouter)
@@ -174,7 +178,9 @@ app = app
   .use(menuRecipesRouter)
   .use(subRecipesRouter)
   .use(menuImportExportRouter)
-  .use(menuTemplatesRouter)
+  .use(menuTemplatesRouter) as unknown as WidenedElysia;
+
+app = app
   .use(promotionsRouter)
   .use(loyaltyRouter)
   .use(approvalsRouter)
@@ -185,16 +191,23 @@ app = app
   .use(staffRouter)
   .use(rolesRouter)
   .use(permissionsRouter)
-  .use(analyticsRouter)
+  .use(analyticsRouter) as unknown as WidenedElysia;
+
+app = app
   .use(auditRouter)
   .use(customerRouter)
   .use(customerRequestRouter)
   .use(razorpayWebhookRouter)
   .use(realtimeRouter)
-  .use(customerRealtimeRouter) as WidenedElysia;
+  .use(customerRealtimeRouter) as unknown as WidenedElysia;
 
 // Global error handler
-app = app.onError(({ code, error, set, requestContext }) => {
+app = app.onError((context) => {
+  const { code, error, set } = context;
+  const requestContext =
+    "requestContext" in context
+      ? (context as unknown as { requestContext?: RequestContext }).requestContext
+      : undefined;
   // Domain/request failures have one authoritative typed error contract.
   if (AppError.isAppError(error)) {
     rootLogger.warn(`API Error: ${error.code}`, {
@@ -255,7 +268,7 @@ app = app.onError(({ code, error, set, requestContext }) => {
     code: "INTERNAL_ERROR",
     message: "Internal server error",
   };
-});
+}) as unknown as WidenedElysia;
 
 const port = env.PORT;
 

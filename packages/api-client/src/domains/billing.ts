@@ -1,3 +1,4 @@
+import { voidDomainRequest } from "./shared";
 import { getDomainData, postDomainData, type DomainHttpClient } from "./shared";
 
 export interface CollectPaymentInput {
@@ -20,7 +21,7 @@ export type SeatSplitResult =
 export function createBillingApi(client: DomainHttpClient) {
   return {
     collectPayment(input: CollectPaymentInput): Promise<void> {
-      return client.post("/payments", input).then(() => undefined);
+      return voidDomainRequest(client.post("/payments", input));
     },
     getOrderBills<T = unknown[]>(orderId: string): Promise<T> {
       return getDomainData<T>(client, `/orders/${orderId}/bills`);

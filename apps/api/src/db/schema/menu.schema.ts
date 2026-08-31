@@ -675,8 +675,8 @@ export const menuItemChannelOverrides = pgTable(
   (t) => ({
     itemChannelIdx: index("menu_item_channel_overrides_item_channel_idx").on(t.menuItemId, t.channel),
     scopeUnique: uniqueIndex("menu_item_channel_overrides_scope_unique").on(
-      t.menuItemId,
-      t.channel,
+      sql`${t.menuItemId}`,
+      sql`${t.channel}`,
       sql`COALESCE(${t.fulfillmentType}, '')`,
     ),
   }),

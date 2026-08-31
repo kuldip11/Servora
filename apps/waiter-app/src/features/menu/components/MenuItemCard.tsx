@@ -50,7 +50,7 @@ export const MenuItemCard = memo(function MenuItemCard({
         )}
         <div className="flex items-center gap-2 mt-1">
           <p className="text-sm font-bold text-primary">{priceLabel(item)}</p>
-          {item.prepTimeMinutes > 0 && (
+          {item.prepTimeMinutes != null && item.prepTimeMinutes > 0 && (
             <p className="text-xs text-text-disabled">
               ~{item.prepTimeMinutes}m
             </p>

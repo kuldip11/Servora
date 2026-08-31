@@ -1,3 +1,4 @@
+import { voidDomainRequest } from "./shared";
 import type { TableStatus } from "@pos/types";
 import { getDomainData, patchDomainData, postDomainData, type DomainHttpClient } from "./shared";
 
@@ -42,7 +43,7 @@ export function createTablesApi(client: DomainHttpClient) {
       return patchDomainData<RestaurantTableDto>(client, `/tables/${id}/status`, { status });
     },
     remove(id: string): Promise<void> {
-      return client.delete(`/tables/${id}`).then(() => undefined);
+      return voidDomainRequest(client.delete(`/tables/${id}`));
     },
     regenerateQr(id: string): Promise<RestaurantTableDto> {
       return postDomainData<RestaurantTableDto>(client, `/tables/${id}/qr/regenerate`);

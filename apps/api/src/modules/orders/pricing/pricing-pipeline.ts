@@ -23,6 +23,7 @@ import type {
   PricingAttribution,
   PricingContext,
   PricingReplayEvidence,
+  PricingReplayPriceRule,
   PricingResult,
 } from "./pricing.types";
 export type {

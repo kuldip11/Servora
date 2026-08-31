@@ -37,6 +37,7 @@ const authApi = createAuthApi(apiClient);
 
 type ActiveMenu = {
   id: string;
+  name: string;
   memberships: Array<{ menuItemId: string }>;
 };
 
@@ -178,13 +179,13 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
     addOrIncrementItem({
       menuItemId: item.id,
       name: item.name,
-      basePrice: parseFloat(item.basePrice),
+      basePrice: Number(item.basePrice),
       modifiers: [],
       chefNotes: "",
       seatLabel: "",
       ...(courseMode ? { course: 1 } : {}),
       quantity: 1,
-      unitPrice: parseFloat(item.basePrice),
+      unitPrice: Number(item.basePrice),
     });
   }
 
@@ -380,14 +381,12 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
   const allItems = scopedCategories?.flatMap((c: WaiterMenuCategory) => c.menuItems ?? []) ?? [];
   const activeItems: OrderableMenuItem[] = (
     menuSearch.length >= 2
-      ? allItems.filter(
-          (i) =>
-            i.isAvailable &&
-            i.name.toLowerCase().includes(menuSearch.toLowerCase()),
+      ? allItems.filter((i) =>
+          i.name.toLowerCase().includes(menuSearch.toLowerCase()),
         )
       : (scopedCategories
           ?.find((c) => c.id === activeCategory)
-          ?.menuItems?.filter((i) => i.isAvailable) ?? [])
+          ?.menuItems ?? [])
   ).filter(
     (i) => foodTypeFilter === "ALL" || i.foodType === foodTypeFilter,
   );

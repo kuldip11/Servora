@@ -119,6 +119,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 describe("availabilityService deterministic asOf handling", () => {
@@ -348,7 +349,7 @@ describe("availabilityService inventory-computed availability ownership", () => 
       "tenant-1", "branch-1", "item-1", "opt-1", true,
     );
 
-    expect(setComputedModifierAvailability).toHaveBeenCalledWith("opt-1", true, false);
+    expect(setComputedModifierAvailability).toHaveBeenCalledWith("opt-1", true);
     expect(publish).toHaveBeenCalledWith(
       expect.objectContaining({
         type: "menu.availability.updated",
@@ -455,122 +456,8 @@ describe("G4 manual stock-count availability", () => {
 });
 
 
-describe("H2 cross-channel availability dashboard", () => {
-  it("evaluates every branch/channel/fulfillment scope and includes item, variant, and modifier causes", async () => {
-    listDashboardItems.mockResolvedValue([
-      {
-        id: "item-1",
-        name: "Burger",
-        branchId: null,
-        variants: [{ id: "variant-1", name: "Large" }],
-        modifierGroupLinks: [
-          {
-            group: {
-              name: "Extras",
-              options: [
-                {
-                  id: "option-1",
-                  name: "Avocado",
-                  manualOverrideAvailability: false,
-                  computedAvailability: true,
-                },
-              ],
-            },
-          },
-        ],
-      },
-    ]);
-
-    const itemSpy = vi
-      .spyOn(availabilityService, "getEffectiveItem")
-      .mockImplementation(async (_tenantId, _itemId, _branchId, context) => ({
-        effectiveStatus:
-          context.channel === "CUSTOMER_QR" ? "OUT_OF_STOCK" : "ACTIVE",
-        isHidden: false,
-        availabilityReason:
-          context.channel === "CUSTOMER_QR" ? "Customer channel disabled" : null,
-        availabilityCause: "CHANNEL_OVERRIDE",
-      } as never));
-    const variantSpy = vi
-      .spyOn(availabilityService, "getEffectiveVariant")
-      .mockResolvedValue({
-        effectiveStatus: "OUT_OF_STOCK",
-        availabilityReason: "Manual stock count depleted",
-        manualOverrideStatus: null,
-        manualStockCount: 0,
-      } as never);
-
-    const result = await availabilityService.getUnavailableDashboard(
-      "tenant-1",
-      ["branch-1", "branch-2"],
-      {},
-      localDate(12, 0, 0),
-    );
-
-    expect(itemSpy).toHaveBeenCalledTimes(16);
-    expect(result.branches).toEqual(["branch-1", "branch-2"]);
-    expect(result.channels).toEqual(["STAFF", "CUSTOMER_QR"]);
-    expect(result.fulfillmentTypes).toEqual([
-      "DINE_IN",
-      "TAKEAWAY",
-      "DELIVERY",
-      "ONLINE",
-    ]);
-    expect(result.rows).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          entityType: "ITEM",
-          branchId: "branch-1",
-          channel: "CUSTOMER_QR",
-          cause: "CHANNEL_OVERRIDE",
-        }),
-        expect.objectContaining({
-          entityType: "VARIANT",
-          branchId: "branch-2",
-          cause: "MANUAL_COUNT",
-        }),
-        expect.objectContaining({
-          entityType: "MODIFIER_OPTION",
-          entityId: "option-1",
-          cause: "MANUAL_OVERRIDE",
-        }),
-      ]),
-    );
-
-    itemSpy.mockRestore();
-    variantSpy.mockRestore();
-  });
-
-  it("filters by the resolver's structured cause rather than reason text", async () => {
-    listDashboardItems.mockResolvedValue([
-      {
-        id: "item-1",
-        name: "Burger",
-        branchId: null,
-        variants: [],
-        modifierGroupLinks: [],
-      },
-    ]);
-    const itemSpy = vi
-      .spyOn(availabilityService, "getEffectiveItem")
-      .mockResolvedValue({
-        effectiveStatus: "OUT_OF_STOCK",
-        isHidden: false,
-        availabilityReason: "Contains words that should not drive filtering",
-        availabilityCause: "RECIPE_DRIVEN",
-      } as never);
-
-    const result = await availabilityService.getUnavailableDashboard(
-      "tenant-1",
-      ["branch-1"],
-      { channel: "STAFF", fulfillmentType: "DINE_IN", cause: "MANUAL_OVERRIDE" },
-      localDate(12, 0, 0),
-    );
-
-    expect(result.rows).toHaveLength(0);
-    itemSpy.mockRestore();
-  });
-});
+// Cross-channel dashboard behavior is covered in availability-dashboard.test.ts,
+// where the batched repository boundary is mocked directly.
 
 describe("H1 deterministic AvailabilityResolver replay", () => {
   it("replays the exact precedence resolver from fire-time evidence without reading current menu state", async () => {

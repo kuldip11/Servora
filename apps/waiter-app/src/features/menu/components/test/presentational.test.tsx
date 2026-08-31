@@ -23,7 +23,17 @@ describe("menu presentational components", () => {
         <CategoryTabs
           foodTypeFilter="ALL"
           onFoodTypeChange={vi.fn()}
-          categories={[{ id: "c1", name: "Starters" }]}
+          categories={[
+            {
+              id: "c1",
+              name: "Starters",
+              tenantId: "t1",
+              branchId: null,
+              description: null,
+              isActive: true,
+              sortOrder: 0,
+            },
+          ]}
           activeCategory="c1"
           onCategoryChange={vi.fn()}
           menuSearch=""
@@ -35,7 +45,17 @@ describe("menu presentational components", () => {
         <CategoryTabs
           foodTypeFilter="VEG"
           onFoodTypeChange={vi.fn()}
-          categories={[{ id: "c1", name: "Starters" }]}
+          categories={[
+            {
+              id: "c1",
+              name: "Starters",
+              tenantId: "t1",
+              branchId: null,
+              description: null,
+              isActive: true,
+              sortOrder: 0,
+            },
+          ]}
           activeCategory={null}
           onCategoryChange={vi.fn()}
           menuSearch="burger"

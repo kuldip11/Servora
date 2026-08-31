@@ -154,7 +154,7 @@ export function forwardTenantRealtimeMessage(
     try {
       ws.send(message);
     } catch {
-      if (tenantClients === clients) removeClient(event.tenantId, ws);
+      if (tenantClients === clients) removeClient(event.tenantId, ws as RealtimeSocket);
     }
   }
 }

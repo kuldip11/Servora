@@ -12,7 +12,7 @@ describe("storage", () => {
   beforeEach(() => sessionStorage.clear());
 
   it("saves and clears tokens", () => {
-    saveTokens("a", "r");
+    saveTokens("a");
     expect(getToken()).toBe("a");
     clearTokens();
     expect(getToken()).toBeNull();

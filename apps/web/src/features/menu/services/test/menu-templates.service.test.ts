@@ -24,10 +24,7 @@ describe("menuTemplatesService", () => {
 
   it("omits optional apply values when they are not supplied", async () => {
     await menuTemplatesService.apply("tpl-1", {});
-    expect(api.post).toHaveBeenCalledWith("/menu/templates/tpl-1/apply", {
-      branchId: undefined,
-      categoryName: undefined,
-    });
+    expect(api.post).toHaveBeenCalledWith("/menu/templates/tpl-1/apply", {});
   });
 
   it("saves a template from a category", async () => {
@@ -43,7 +40,7 @@ describe("menuTemplatesService", () => {
       "/menu/templates/from-category/cat-1",
       {
         name: "Lunch",
-        description: undefined,
+        description: "",
       },
     );
   });

@@ -50,7 +50,7 @@ describe("ordersService", () => {
   it("lists without filters", async () => {
     api.get.mockResolvedValue({ data: { data: [] } });
     await ordersService.list({});
-    expect(api.get).toHaveBeenCalledWith("/orders", { params: {} });
+    expect(api.get).toHaveBeenCalledWith("/orders");
   });
   it("handles detail, create, add-items, status, and ticket status", async () => {
     api.get.mockResolvedValue({ data: { data: { id: "o1" } } });

@@ -141,7 +141,7 @@ export const importExportService = {
           selectionType: g.selectionType,
           option: o.name,
           additionalPrice: o.additionalPrice,
-          isAvailable: o.isAvailable,
+          isAvailable: o.manualOverrideAvailability ?? o.computedAvailability,
         });
       }
     }

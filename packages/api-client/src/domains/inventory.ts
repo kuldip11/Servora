@@ -1,3 +1,4 @@
+import { voidDomainRequest } from "./shared";
 import type { InventoryItem, InventoryRecipeImpact, InventoryTransaction, WasteReason } from "@pos/types";
 import type { CreateInventoryItemInput, UpdateInventoryStockInput } from "@pos/validation";
 import { getDomainData, postDomainData, type DomainHttpClient } from "./shared";
@@ -23,7 +24,7 @@ export function createInventoryApi(client: DomainHttpClient) {
       return getDomainData<InventoryTransaction[]>(client, "/inventory/transactions");
     },
     updateStock(itemId: string, input: UpdateInventoryStockInput & { wasteReasonId?: string }): Promise<void> {
-      return client.patch(`/inventory/items/${itemId}/stock`, input).then(() => undefined);
+      return voidDomainRequest(client.patch(`/inventory/items/${itemId}/stock`, input));
     },
     wasteReasons(): Promise<WasteReason[]> {
       return getDomainData<WasteReason[]>(client, "/inventory/waste-reasons");
@@ -32,7 +33,7 @@ export function createInventoryApi(client: DomainHttpClient) {
       return postDomainData<WasteReason>(client, "/inventory/waste-reasons", { label });
     },
     logWaste(itemId: string, input: LogWasteInput): Promise<void> {
-      return client.post(`/inventory/items/${itemId}/waste`, input).then(() => undefined);
+      return voidDomainRequest(client.post(`/inventory/items/${itemId}/waste`, input));
     },
   };
 }

@@ -47,7 +47,11 @@ export const rateLimitPlugin = () =>
       const pathname = new URL(request.url).pathname;
       if (isRateLimitExempt(pathname)) return;
 
-      const ip = requestIp(headers as Record<string, string | undefined>);
+      const directIp = server?.requestIP(request)?.address;
+      const ip = requestIp(
+        headers as Record<string, string | undefined>,
+        directIp,
+      );
       const bucket = Math.floor(
         Date.now() / (env.RATE_LIMIT_WINDOW_SECONDS * 1000),
       );

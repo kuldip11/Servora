@@ -24,7 +24,9 @@ describe("orders API", () => {
   });
 
   it("validates mutation payloads before calling the API", async () => {
-    vi.mocked(apiClient.patch).mockResolvedValue({} as any);
+    vi.mocked(apiClient.patch).mockResolvedValue({
+      data: { data: { id: "o1", status: "PAID" } },
+    } as any);
     vi.mocked(apiClient.post).mockResolvedValue({
       data: { data: { id: "o1" } },
     } as any);

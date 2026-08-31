@@ -1,3 +1,4 @@
+import { voidDomainRequest } from "./shared";
 import type { Branch } from "@pos/types";
 import { getDomainData, patchDomainData, postDomainData, type DomainHttpClient } from "./shared";
 
@@ -27,7 +28,7 @@ export function createBranchesApi(client: DomainHttpClient) {
       return patchDomainData<Branch>(client, `/branches/${id}`, input);
     },
     deactivate(id: string): Promise<void> {
-      return client.delete(`/branches/${id}`).then(() => undefined);
+      return voidDomainRequest(client.delete(`/branches/${id}`));
     },
   };
 }

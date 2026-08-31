@@ -289,7 +289,9 @@ describe("G4 atomic manual-stock depletion", () => {
     await expect(orderRepository.create({
       tenantId: "t1", branchId: "b1", createdBy: "u1", type: "TAKEAWAY",
       items: [item], subtotal: 10, taxAmount: 1.5, totalAmount: 11.5,
-    })).rejects.toThrow("MANUAL_STOCK_DEPLETED");
+    })).rejects.toMatchObject({
+      details: { reason: "MANUAL_STOCK_DEPLETED" },
+    });
     expect(tx.insert).not.toHaveBeenCalled();
   });
 });

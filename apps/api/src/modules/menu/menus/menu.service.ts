@@ -108,7 +108,18 @@ export const menuService = {
     if (input.scheduleType === "WEEKLY" && input.dayOfWeek == null) throw new ValidationError("Weekly schedules require a day");
     if (input.scheduleType === "SPECIFIC_DATE" && !input.startDate) throw new ValidationError("Date schedules require a start date");
     if (input.scheduleType === "HOLIDAY" && !input.holidayName) throw new ValidationError("Holiday schedules require a holiday name");
-    return menuRepository.createSchedule({ tenantId: auth.tenantId, menuId, ...input });
+    return menuRepository.createSchedule({
+      tenantId: auth.tenantId,
+      menuId,
+      scheduleType: input.scheduleType,
+      ...(input.startTime !== undefined ? { startTime: input.startTime } : {}),
+      ...(input.endTime !== undefined ? { endTime: input.endTime } : {}),
+      ...(input.dayOfWeek !== undefined ? { dayOfWeek: input.dayOfWeek } : {}),
+      ...(input.startDate !== undefined ? { startDate: input.startDate } : {}),
+      ...(input.endDate !== undefined ? { endDate: input.endDate } : {}),
+      ...(input.holidayName !== undefined ? { holidayName: input.holidayName } : {}),
+      ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
+    });
   },
   async deleteSchedule(auth: AuthContext, id: string) {
     return menuRepository.deleteSchedule(auth.tenantId, id);

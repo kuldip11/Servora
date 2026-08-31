@@ -3,6 +3,10 @@ import type { ApiResponse } from "@pos/types";
 
 export type DomainHttpClient = Pick<AxiosInstance, "get" | "post" | "put" | "patch" | "delete">;
 
+export async function voidDomainRequest(request: unknown): Promise<void> {
+  await request;
+}
+
 function unwrap<T>(response: AxiosResponse<ApiResponse<T>>): T {
   return response.data.data;
 }
@@ -12,7 +16,11 @@ export async function getDomainData<T>(
   url: string,
   config?: AxiosRequestConfig,
 ): Promise<T> {
-  return unwrap(await client.get<ApiResponse<T>>(url, config));
+  return unwrap(
+    config === undefined
+      ? await client.get<ApiResponse<T>>(url)
+      : await client.get<ApiResponse<T>>(url, config),
+  );
 }
 
 export async function postDomainData<T>(
@@ -21,7 +29,14 @@ export async function postDomainData<T>(
   body?: unknown,
   config?: AxiosRequestConfig,
 ): Promise<T> {
-  return unwrap(await client.post<ApiResponse<T>>(url, body, config));
+  if (config !== undefined) {
+    return unwrap(await client.post<ApiResponse<T>>(url, body, config));
+  }
+  return unwrap(
+    body === undefined
+      ? await client.post<ApiResponse<T>>(url)
+      : await client.post<ApiResponse<T>>(url, body),
+  );
 }
 
 export async function putDomainData<T>(
@@ -30,7 +45,14 @@ export async function putDomainData<T>(
   body?: unknown,
   config?: AxiosRequestConfig,
 ): Promise<T> {
-  return unwrap(await client.put<ApiResponse<T>>(url, body, config));
+  if (config !== undefined) {
+    return unwrap(await client.put<ApiResponse<T>>(url, body, config));
+  }
+  return unwrap(
+    body === undefined
+      ? await client.put<ApiResponse<T>>(url)
+      : await client.put<ApiResponse<T>>(url, body),
+  );
 }
 
 export async function patchDomainData<T>(
@@ -39,7 +61,14 @@ export async function patchDomainData<T>(
   body?: unknown,
   config?: AxiosRequestConfig,
 ): Promise<T> {
-  return unwrap(await client.patch<ApiResponse<T>>(url, body, config));
+  if (config !== undefined) {
+    return unwrap(await client.patch<ApiResponse<T>>(url, body, config));
+  }
+  return unwrap(
+    body === undefined
+      ? await client.patch<ApiResponse<T>>(url)
+      : await client.patch<ApiResponse<T>>(url, body),
+  );
 }
 
 export async function deleteDomainData<T>(
@@ -47,5 +76,9 @@ export async function deleteDomainData<T>(
   url: string,
   config?: AxiosRequestConfig,
 ): Promise<T> {
-  return unwrap(await client.delete<ApiResponse<T>>(url, config));
+  return unwrap(
+    config === undefined
+      ? await client.delete<ApiResponse<T>>(url)
+      : await client.delete<ApiResponse<T>>(url, config),
+  );
 }

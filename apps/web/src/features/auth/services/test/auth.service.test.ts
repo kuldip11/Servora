@@ -44,7 +44,7 @@ describe("authService", () => {
     const data = { accessToken: "a2", expiresIn: 60, user };
     api.post.mockResolvedValue({ data: { data } });
     await expect(authService.refresh()).resolves.toEqual(data);
-    expect(api.post).toHaveBeenCalledWith("/auth/refresh", undefined);
+    expect(api.post).toHaveBeenCalledWith("/auth/refresh");
   });
 
   it("loads organizations and memberships, creates a tenant under an organization, and loads the current user", async () => {

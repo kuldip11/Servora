@@ -1,10 +1,11 @@
-import { createOrdersApi } from "@pos/api-client";
+import { createOrdersApi, type OrdersListFilters } from "@pos/api-client";
 import type { CreateOrderInput as ValidatedCreateOrderInput } from "@pos/validation";
 import { apiClient } from "../../../shared/lib/api-client";
 import type { Order } from "@pos/types";
 import type { CartItem } from "../utils/cartTypes";
 
 export type CreateOrderInput = ValidatedCreateOrderInput;
+export type { OrdersListFilters };
 
 export interface AddOrderItemsInput {
   notes?: string | undefined;

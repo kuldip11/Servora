@@ -77,9 +77,13 @@ async function runMigrations() {
 
 runMigrations().catch((err: unknown) => {
   console.error("❌ Migration failed:", err);
+  const code =
+    typeof err === "object" && err !== null && "code" in err
+      ? (err as { code?: unknown }).code
+      : undefined;
   if (
     process.env["NODE_ENV"] !== "production" &&
-    (err?.code === "42710" || err?.code === "42P07")
+    (code === "42710" || code === "42P07")
   ) {
     console.error("");
     console.error(

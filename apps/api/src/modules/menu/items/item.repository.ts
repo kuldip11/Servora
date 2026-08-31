@@ -32,7 +32,7 @@ import {
 // the item repository remains the single data-access boundary for this query.
 type MenuItemDetailRelations = NonNullable<NonNullable<Parameters<typeof db.query.menuItems.findFirst>[0]>["with"]>;
 
-export const ITEM_DETAIL_RELATIONS: MenuItemDetailRelations = {
+export const ITEM_DETAIL_RELATIONS = {
   variants: true,
   images: { orderBy: [asc(menuItemImages.sortOrder)] },
   modifierGroupLinks: {
@@ -48,7 +48,7 @@ export const ITEM_DETAIL_RELATIONS: MenuItemDetailRelations = {
   allergenLinks: { with: { allergen: true } },
   recipeLinks: { with: { inventoryItem: true } },
   menuMemberships: { with: { menu: true, category: true } },
-};
+} satisfies MenuItemDetailRelations;
 
 function withItemReadModel<T extends {
   status: MenuItemStatus | string;

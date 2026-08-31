@@ -1,3 +1,4 @@
+import { voidDomainRequest } from "./shared";
 import type { Holiday, ItemStationRoute, KitchenStation, Menu, MenuCategory, MenuItem, MenuItemBranchOverride, MenuItemSchedule, MenuItemScheduleType, MenuItemStatus, MenuTag, MenuTemplate, ModifierGroup, OrderableMenuCategory, SubRecipe, SubRecipeInput } from "@pos/types";
 import { getDomainData, patchDomainData, postDomainData, putDomainData, type DomainHttpClient } from "./shared";
 
@@ -84,7 +85,7 @@ export function createMenuApi(client: DomainHttpClient) {
       return patchDomainData<MenuCategory>(client, `/menu/categories/${id}`, { name });
     },
     deleteCategory(id: string): Promise<void> {
-      return client.delete(`/menu/categories/${id}`).then(() => undefined);
+      return voidDomainRequest(client.delete(`/menu/categories/${id}`));
     },
     createItem(input: SaveMenuItemInput): Promise<MenuItem> {
       return postDomainData<MenuItem>(client, "/menu/items", input);
@@ -93,22 +94,22 @@ export function createMenuApi(client: DomainHttpClient) {
       return patchDomainData<MenuItem>(client, `/menu/items/${id}`, input);
     },
     setManualStockCount(id: string, count: number | null, variantId?: string): Promise<void> {
-      return client.post(`/menu/items/${id}/stock-count`, { count, ...(variantId ? { variantId } : {}) }).then(() => undefined);
+      return voidDomainRequest(client.post(`/menu/items/${id}/stock-count`, { count, ...(variantId ? { variantId } : {}) }));
     },
     setManualAvailabilityOverride(id: string, status: MenuItemStatus, reason: string): Promise<void> {
-      return client.put(`/menu/items/${id}/manual-override`, { status, reason }).then(() => undefined);
+      return voidDomainRequest(client.put(`/menu/items/${id}/manual-override`, { status, reason }));
     },
     clearManualAvailabilityOverride(id: string): Promise<void> {
-      return client.delete(`/menu/items/${id}/manual-override`).then(() => undefined);
+      return voidDomainRequest(client.delete(`/menu/items/${id}/manual-override`));
     },
     deleteItem(id: string): Promise<void> {
-      return client.delete(`/menu/items/${id}`).then(() => undefined);
+      return voidDomainRequest(client.delete(`/menu/items/${id}`));
     },
     duplicateItem(id: string): Promise<MenuItem> {
       return postDomainData<MenuItem>(client, `/menu/items/${id}/duplicate`);
     },
     setPublished(id: string, publish: boolean): Promise<void> {
-      return client.patch(`/menu/items/${id}/${publish ? "publish" : "unpublish"}`).then(() => undefined);
+      return voidDomainRequest(client.patch(`/menu/items/${id}/${publish ? "publish" : "unpublish"}`));
     },
     bulkSetStatus(itemIds: string[], status: MenuItemStatus, reason?: string): Promise<{ updated: number }> {
       return postDomainData<{ updated: number }>(client, "/menu/items/bulk/status", { itemIds, status, reason });
@@ -141,13 +142,13 @@ export function createMenuApi(client: DomainHttpClient) {
       return postDomainData<Menu>(client, `/menu/menus/${id}/unpublish`);
     },
     removeMenu(id: string): Promise<void> {
-      return client.delete(`/menu/menus/${id}`).then(() => undefined);
+      return voidDomainRequest(client.delete(`/menu/menus/${id}`));
     },
     assignItemToMenu(itemId: string, input: { menuId: string; categoryId: string; sortOrder?: number }): Promise<void> {
-      return client.post(`/menu/items/${itemId}/memberships`, input).then(() => undefined);
+      return voidDomainRequest(client.post(`/menu/items/${itemId}/memberships`, input));
     },
     removeItemFromMenu(itemId: string, menuId: string): Promise<void> {
-      return client.delete(`/menu/items/${itemId}/memberships/${menuId}`).then(() => undefined);
+      return voidDomainRequest(client.delete(`/menu/items/${itemId}/memberships/${menuId}`));
     },
     listKitchenStations(): Promise<KitchenStation[]> {
       return getDomainData<KitchenStation[]>(client, "/kitchen/stations");
@@ -156,7 +157,7 @@ export function createMenuApi(client: DomainHttpClient) {
       return postDomainData<KitchenStation>(client, "/kitchen/stations", input);
     },
     removeKitchenStation(id: string): Promise<void> {
-      return client.delete(`/kitchen/stations/${id}`).then(() => undefined);
+      return voidDomainRequest(client.delete(`/kitchen/stations/${id}`));
     },
     listStationRoutes(itemId: string): Promise<ItemStationRoute[]> {
       return getDomainData<ItemStationRoute[]>(client, `/kitchen/stations/routes/${itemId}`);
@@ -165,7 +166,7 @@ export function createMenuApi(client: DomainHttpClient) {
       return client.put(`/kitchen/stations/routes/${itemId}`, { stationId, modifierOptionId: modifierOptionId ?? null }).then((response) => response.data.data as ItemStationRoute);
     },
     removeStationRoute(itemId: string, modifierOptionId?: string | null): Promise<void> {
-      return client.delete(`/kitchen/stations/routes/${itemId}`, { params: modifierOptionId ? { modifierOptionId } : {} }).then(() => undefined);
+      return voidDomainRequest(client.delete(`/kitchen/stations/routes/${itemId}`, { params: modifierOptionId ? { modifierOptionId } : {} }));
     },
     listModifierGroups(): Promise<ModifierGroup[]> {
       return getDomainData<ModifierGroup[]>(client, "/menu/modifier-groups");
@@ -176,16 +177,16 @@ export function createMenuApi(client: DomainHttpClient) {
         : postDomainData<ModifierGroup>(client, "/menu/modifier-groups", payload);
     },
     removeModifierGroup(id: string): Promise<void> {
-      return client.delete(`/menu/modifier-groups/${id}`).then(() => undefined);
+      return voidDomainRequest(client.delete(`/menu/modifier-groups/${id}`));
     },
     listTemplates(): Promise<MenuTemplate[]> {
       return getDomainData<MenuTemplate[]>(client, "/menu/templates");
     },
     removeTemplate(id: string): Promise<void> {
-      return client.delete(`/menu/templates/${id}`).then(() => undefined);
+      return voidDomainRequest(client.delete(`/menu/templates/${id}`));
     },
     applyTemplate(templateId: string, input: { branchId?: string; categoryName?: string }): Promise<void> {
-      return client.post(`/menu/templates/${templateId}/apply`, input).then(() => undefined);
+      return voidDomainRequest(client.post(`/menu/templates/${templateId}/apply`, input));
     },
     saveTemplateFromCategory(categoryId: string, input: { name: string; description?: string }): Promise<MenuTemplate> {
       return postDomainData<MenuTemplate>(client, `/menu/templates/from-category/${categoryId}`, input);
@@ -200,7 +201,7 @@ export function createMenuApi(client: DomainHttpClient) {
       return client.put(`/menu/sub-recipes/${id}`, input).then((response) => response.data.data as SubRecipe);
     },
     removeSubRecipe(id: string): Promise<void> {
-      return client.delete(`/menu/sub-recipes/${id}`).then(() => undefined);
+      return voidDomainRequest(client.delete(`/menu/sub-recipes/${id}`));
     },
     listTags(): Promise<MenuTag[]> {
       return getDomainData<MenuTag[]>(client, "/menu/tags");
@@ -209,7 +210,7 @@ export function createMenuApi(client: DomainHttpClient) {
       return postDomainData<MenuTag>(client, "/menu/tags", { name, color });
     },
     removeTag(id: string): Promise<void> {
-      return client.delete(`/menu/tags/${id}`).then(() => undefined);
+      return voidDomainRequest(client.delete(`/menu/tags/${id}`));
     },
     listSchedules(itemId: string): Promise<MenuItemSchedule[]> {
       return getDomainData<MenuItemSchedule[]>(client, `/menu/items/${itemId}/schedules`);
@@ -223,7 +224,7 @@ export function createMenuApi(client: DomainHttpClient) {
       return postDomainData<MenuItemSchedule>(client, `/menu/items/${itemId}/schedules`, payload);
     },
     removeSchedule(scheduleId: string): Promise<void> {
-      return client.delete(`/menu/items/schedules/${scheduleId}`).then(() => undefined);
+      return voidDomainRequest(client.delete(`/menu/items/schedules/${scheduleId}`));
     },
     listHolidays(): Promise<Holiday[]> {
       return getDomainData<Holiday[]>(client, "/menu/holidays");
@@ -232,16 +233,16 @@ export function createMenuApi(client: DomainHttpClient) {
       return postDomainData<Holiday>(client, "/menu/holidays", input);
     },
     removeHoliday(id: string): Promise<void> {
-      return client.delete(`/menu/holidays/${id}`).then(() => undefined);
+      return voidDomainRequest(client.delete(`/menu/holidays/${id}`));
     },
     listBranchOverrides(itemId: string): Promise<MenuItemBranchOverride[]> {
       return getDomainData<MenuItemBranchOverride[]>(client, `/menu/items/${itemId}/branches`);
     },
     saveBranchOverride(itemId: string, branchId: string, input: BranchOverrideInput): Promise<void> {
-      return client.put(`/menu/items/${itemId}/branch/${branchId}`, input).then(() => undefined);
+      return voidDomainRequest(client.put(`/menu/items/${itemId}/branch/${branchId}`, input));
     },
     resetBranchOverride(itemId: string, branchId: string): Promise<void> {
-      return client.delete(`/menu/items/${itemId}/branch/${branchId}`).then(() => undefined);
+      return voidDomainRequest(client.delete(`/menu/items/${itemId}/branch/${branchId}`));
     },
     listActiveMenus<T>(fulfillmentType: string): Promise<T[]> {
       return getDomainData<T[]>(client, "/menu/menus/active", { params: { channel: "STAFF", fulfillmentType } });
@@ -257,7 +258,7 @@ export function createMenuApi(client: DomainHttpClient) {
     },
     listAllergens<T>(): Promise<T[]> { return getDomainData<T[]>(client, "/menu/allergens"); },
     getItemRecipes<T>(itemId: string): Promise<T[]> { return getDomainData<T[]>(client, `/menu/items/${itemId}/recipes`); },
-    saveItemRecipes(itemId: string, ingredients: unknown[]): Promise<void> { return client.post(`/menu/items/${itemId}/recipes`, { ingredients }).then(() => undefined); },
+    saveItemRecipes(itemId: string, ingredients: unknown[]): Promise<void> { return voidDomainRequest(client.post(`/menu/items/${itemId}/recipes`, { ingredients })); },
     async downloadImportTemplate(format: "csv" | "xlsx"): Promise<Blob> {
       const response = await client.get<Blob>("/menu/import/items/template", { params: { format }, responseType: "blob" });
       return response.data;
@@ -272,23 +273,23 @@ export function createMenuApi(client: DomainHttpClient) {
     promotionStats<T>(id: string): Promise<T> { return getDomainData<T>(client, `/menu/promotions/${id}/stats`); },
     createPromotion<T>(input: Record<string, unknown>): Promise<T> { return postDomainData<T>(client, "/menu/promotions", input); },
     updatePromotion<T>(id: string, patch: Record<string, unknown>): Promise<T> { return patchDomainData<T>(client, `/menu/promotions/${id}`, patch); },
-    removePromotion(id: string): Promise<void> { return client.delete(`/menu/promotions/${id}`).then(() => undefined); },
+    removePromotion(id: string): Promise<void> { return voidDomainRequest(client.delete(`/menu/promotions/${id}`)); },
     previewPromotion<T>(input: Record<string, unknown>): Promise<T> { return postDomainData<T>(client, "/menu/promotions/preview", input); },
     createCombo<T>(input: Record<string, unknown>): Promise<T> { return postDomainData<T>(client, "/menu/combos", input); },
     previewCombo<T>(input: Record<string, unknown>): Promise<T> { return postDomainData<T>(client, "/menu/combos/preview", input); },
     listChannelOverrides<T>(itemId: string): Promise<T[]> { return getDomainData<T[]>(client, `/menu/items/${itemId}/channel-overrides`); },
     saveChannelOverride<T>(itemId: string, input: Record<string, unknown>): Promise<T> { return putDomainData<T>(client, `/menu/items/${itemId}/channel-overrides`, input); },
-    removeChannelOverride(id: string): Promise<void> { return client.delete(`/menu/items/channel-overrides/${id}`).then(() => undefined); },
+    removeChannelOverride(id: string): Promise<void> { return voidDomainRequest(client.delete(`/menu/items/channel-overrides/${id}`)); },
     listPriceRulesFor<T>(params: Record<string, string | undefined> = {}): Promise<T[]> { return getDomainData<T[]>(client, "/menu/price-rules", { params }); },
     createPriceRule<T>(input: Record<string, unknown>): Promise<T> { return postDomainData<T>(client, "/menu/price-rules", input); },
-    removePriceRule(id: string): Promise<void> { return client.delete(`/menu/price-rules/${id}`).then(() => undefined); },
+    removePriceRule(id: string): Promise<void> { return voidDomainRequest(client.delete(`/menu/price-rules/${id}`)); },
     createHappyHourRule<T>(input: Record<string, unknown>): Promise<T> { return postDomainData<T>(client, "/menu/price-rules/happy-hour", input); },
     listLoyaltyTiers<T>(): Promise<T[]> { return getDomainData<T[]>(client, "/loyalty/tiers"); },
     createLoyaltyTier<T>(input: Record<string, unknown>): Promise<T> { return postDomainData<T>(client, "/loyalty/tiers", input); },
-    removeLoyaltyTier(id: string): Promise<void> { return client.delete(`/loyalty/tiers/${id}`).then(() => undefined); },
+    removeLoyaltyTier(id: string): Promise<void> { return voidDomainRequest(client.delete(`/loyalty/tiers/${id}`)); },
     listMenuSchedules<T>(menuId: string): Promise<T[]> { return getDomainData<T[]>(client, `/menu/menus/${menuId}/schedules`); },
     createMenuSchedule<T>(menuId: string, input: Record<string, unknown>): Promise<T> { return postDomainData<T>(client, `/menu/menus/${menuId}/schedules`, input); },
-    removeMenuSchedule(id: string): Promise<void> { return client.delete(`/menu/menus/schedules/${id}`).then(() => undefined); },
+    removeMenuSchedule(id: string): Promise<void> { return voidDomainRequest(client.delete(`/menu/menus/schedules/${id}`)); },
     updateVariantAvailability<T>(variantId: string, input: { status: string | null; reason: string | null }): Promise<T> { return putDomainData<T>(client, `/menu/variants/${variantId}/availability`, input); },
     updateModifierGroup<T>(groupId: string, patch: Record<string, unknown>): Promise<T> { return patchDomainData<T>(client, `/menu/modifier-groups/${groupId}`, patch); },
   };

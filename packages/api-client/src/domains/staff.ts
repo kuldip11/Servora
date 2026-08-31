@@ -1,3 +1,4 @@
+import { voidDomainRequest } from "./shared";
 import { getDomainData, patchDomainData, postDomainData, type DomainHttpClient } from "./shared";
 
 export interface PermissionDto {
@@ -55,16 +56,16 @@ export function createStaffApi(client: DomainHttpClient) {
       return getDomainData<StaffRowDto[]>(client, "/staff");
     },
     addStaff(input: AddStaffInput): Promise<void> {
-      return client.post("/staff", input).then(() => undefined);
+      return voidDomainRequest(client.post("/staff", input));
     },
     removeStaff(id: string): Promise<void> {
-      return client.delete(`/staff/${id}`).then(() => undefined);
+      return voidDomainRequest(client.delete(`/staff/${id}`));
     },
     updateStaffStatus(id: string, status: string): Promise<void> {
-      return client.patch(`/staff/${id}`, { status }).then(() => undefined);
+      return voidDomainRequest(client.patch(`/staff/${id}`, { status }));
     },
     updateStaff(id: string, input: UpdateStaffInput): Promise<void> {
-      return client.patch(`/staff/${id}`, input).then(() => undefined);
+      return voidDomainRequest(client.patch(`/staff/${id}`, input));
     },
     listRoles(): Promise<RoleDto[]> {
       return getDomainData<RoleDto[]>(client, "/roles");
@@ -76,7 +77,7 @@ export function createStaffApi(client: DomainHttpClient) {
       return patchDomainData<RoleDto>(client, `/roles/${id}`, input);
     },
     archiveRole(id: string): Promise<void> {
-      return client.delete(`/roles/${id}`).then(() => undefined);
+      return voidDomainRequest(client.delete(`/roles/${id}`));
     },
     listPermissions(): Promise<PermissionDto[]> {
       return getDomainData<PermissionDto[]>(client, "/permissions");
@@ -85,7 +86,7 @@ export function createStaffApi(client: DomainHttpClient) {
       return getDomainData<PermissionDto[]>(client, `/roles/${roleId}/permissions`);
     },
     setPermissionsForRole(roleId: string, permissionIds: string[]): Promise<void> {
-      return client.put(`/roles/${roleId}/permissions`, { permissionIds }).then(() => undefined);
+      return voidDomainRequest(client.put(`/roles/${roleId}/permissions`, { permissionIds }));
     },
   };
 }

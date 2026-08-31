@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ForbiddenError } from "../../../core/errors";
 
 const { resolveMembership } = vi.hoisted(() => ({
   resolveMembership: vi.fn(),

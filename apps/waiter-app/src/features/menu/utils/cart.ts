@@ -6,10 +6,10 @@ import type { CartItem } from "../types";
 // price when the price is actually variant-driven is misleading.
 export function priceLabel(item: OrderableMenuItem): string {
   if (item.pricingMode === "OPEN") return "Open price";
-  if (item.pricingMode === "WEIGHT_BASED") return `₹${parseFloat(item.basePrice).toFixed(2)}/${String(item.weightUnit ?? "unit").toLowerCase()}`;
+  if (item.pricingMode === "WEIGHT_BASED") return `₹${Number(item.basePrice).toFixed(2)}/${String(item.weightUnit ?? "unit").toLowerCase()}`;
   if (!item.variants?.length)
-    return `₹${parseFloat(item.basePrice).toFixed(2)}`;
-  const prices = item.variants.map((v) => parseFloat(v.price));
+    return `₹${Number(item.basePrice).toFixed(2)}`;
+  const prices = item.variants.map((v) => Number(v.price));
   const min = Math.min(...prices);
   const max = Math.max(...prices);
   return min === max

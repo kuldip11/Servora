@@ -55,7 +55,7 @@ export const roles = pgTable(
       .on(sql`lower(${t.name})`, t.scope)
       .where(sql`${t.tenantId} IS NULL`),
     tenantNameScopeUnique: uniqueIndex("roles_tenant_name_scope_uniq")
-      .on(t.tenantId, sql`lower(${t.name})`, t.scope)
+      .on(sql`${t.tenantId}`, sql`lower(${t.name})`, sql`${t.scope}`)
       .where(sql`${t.tenantId} IS NOT NULL`),
     customScopeCheck: check(
       "roles_custom_scope_check",

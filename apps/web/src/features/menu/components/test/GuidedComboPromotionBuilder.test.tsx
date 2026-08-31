@@ -51,7 +51,7 @@ describe("GuidedComboPromotionBuilder", () => {
     fireEvent.click(screen.getByRole("button", { name: "Preview authoritative price" }));
     expect(await screen.findByText("Resolved total: ₹299.00")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Create combo" }));
-    await waitFor(() => expect(api.post).toHaveBeenCalledWith("/menu/combos/", expect.objectContaining({ name: "Lunch combo" })));
+    await waitFor(() => expect(api.post).toHaveBeenCalledWith("/menu/combos", expect.objectContaining({ name: "Lunch combo" })));
 
     fireEvent.click(screen.getByRole("button", { name: "Create promotion" }));
     fireEvent.change(screen.getByLabelText("Promotion name"), { target: { value: "Weekday special" } });

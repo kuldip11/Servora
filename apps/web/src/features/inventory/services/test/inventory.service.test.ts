@@ -15,7 +15,7 @@ describe("inventoryService", () => {
     expect(api.get).toHaveBeenCalledWith("/inventory/items/i1/recipe-impact");
   });
   it("normalizes numeric fields when adding", async () => {
-    api.post.mockResolvedValue({});
+    api.post.mockResolvedValue({ data: { data: { id: "i1" } } });
     await inventoryService.add({
       name: "Rice",
       unit: "kg",
@@ -32,7 +32,6 @@ describe("inventoryService", () => {
       minimumStock: 2,
       reorderPoint: 4.5,
       costPerUnit: 30,
-      branchId: undefined,
     });
   });
   it("updates stock with parsed quantity and optional notes", async () => {
@@ -45,7 +44,6 @@ describe("inventoryService", () => {
     expect(api.patch).toHaveBeenCalledWith("/inventory/items/i1/stock", {
       quantity: 3.5,
       transactionType: "ADD",
-      notes: undefined,
     });
   });
 });

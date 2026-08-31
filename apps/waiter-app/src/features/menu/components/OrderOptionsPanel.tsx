@@ -1,13 +1,14 @@
 import { X, Table2, UserCircle } from "lucide-react";
 import { ALL_ORDER_TYPES } from "../constants";
-import type { LoyaltyCustomer, RestaurantTable } from "@pos/types";
+import type { LoyaltyCustomer } from "@pos/types";
+import type { RestaurantTableDto } from "@pos/api-client";
 
 interface Props {
   availableOrderTypes: typeof ALL_ORDER_TYPES;
   orderType: "DINE_IN" | "TAKEAWAY" | "DELIVERY";
   onOrderTypeChange: (type: "DINE_IN" | "TAKEAWAY" | "DELIVERY") => void;
   tablesEnabled: boolean;
-  tables: RestaurantTable[] | undefined;
+  tables: RestaurantTableDto[] | undefined;
   tableId: string;
   onTableChange: (id: string) => void;
   customerId: string;

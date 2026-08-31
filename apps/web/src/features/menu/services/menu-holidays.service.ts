@@ -11,6 +11,12 @@ export interface HolidayFormInput {
 
 export const menuHolidaysService = {
   list: menuApi.listHolidays,
-  add: menuApi.addHoliday,
+  add(input: HolidayFormInput) {
+    return menuApi.addHoliday({
+      name: input.name,
+      holidayDate: input.holidayDate,
+      ...(input.region !== undefined && { region: input.region }),
+    });
+  },
   remove: menuApi.removeHoliday,
 };

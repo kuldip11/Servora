@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ForbiddenError } from "../../errors";
+import type { Database } from "../../../db";
 import {
   hasPermission,
   requireBranchAccess,
@@ -24,7 +25,7 @@ const makeDb = (
       innerJoin: vi.fn(() => ({ where: vi.fn().mockResolvedValue(rows) })),
     })),
   })),
-});
+}) as unknown as Database;
 
 const membership = {
   id: "m1",
@@ -35,7 +36,7 @@ const membership = {
 describe("authorization", () => {
   it("does not query PostgreSQL for an empty tenant id", async () => {
     const db = { query: { tenantMemberships: { findFirst: vi.fn() } } };
-    expect(await resolveMembership(db, "u1", "")).toBeUndefined();
+    expect(await resolveMembership(db as unknown as Database, "u1", "")).toBeUndefined();
     expect(db.query.tenantMemberships.findFirst).not.toHaveBeenCalled();
   });
   it("resolves membership authorization and permissions", async () => {

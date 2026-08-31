@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import type { Database } from "../../../db";
 import {
   listUserMemberships,
   resolveActiveBranch,
@@ -45,7 +46,7 @@ describe("membership context", () => {
         },
       },
     };
-    await expect(listUserMemberships(db, "u1")).resolves.toEqual([
+    await expect(listUserMemberships(db as unknown as Database, "u1")).resolves.toEqual([
       {
         membershipId: "m1",
         isGlobalOwner: true,
@@ -73,7 +74,7 @@ describe("membership context", () => {
     };
     await expect(
       resolveActiveBranch(
-        db,
+        db as unknown as Database,
         { userId: "u1", membershipId: "other", tenantId: "t1", branchId: null },
         "b1",
       ),
@@ -94,7 +95,7 @@ describe("membership context", () => {
     };
     await expect(
       resolveActiveBranch(
-        db,
+        db as unknown as Database,
         { userId: "u1", membershipId: "m1", tenantId: "t1", branchId: null },
         "b1",
       ),
@@ -123,7 +124,7 @@ describe("membership context", () => {
     };
     await expect(
       resolveActiveBranch(
-        db,
+        db as unknown as Database,
         { userId: "u1", membershipId: "m1", tenantId: "t1", branchId: null },
         "b1",
       ),

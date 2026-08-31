@@ -65,6 +65,7 @@ export function useCustomerSession() {
     }
 
     let cancelled = false;
+    const token = qrToken;
     async function bootstrap() {
       try {
         setLoading(true);
@@ -84,7 +85,7 @@ export function useCustomerSession() {
           }
         }
         if (!menuResponse) {
-          created = await createCustomerSession(qrToken);
+          created = await createCustomerSession(token);
           sessionToken = created.sessionToken;
           menuResponse = await getCustomerMenu(sessionToken);
         }
