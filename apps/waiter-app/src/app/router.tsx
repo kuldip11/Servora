@@ -4,7 +4,7 @@ import {
   createRouter,
 } from "@tanstack/react-router";
 import { Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { Home, ClipboardList, Plus, LogOut, Settings } from "lucide-react";
 import { IconButton } from "@pos/ui";
@@ -14,6 +14,7 @@ import {
   getWaiterName,
   logout,
   logoutSession,
+  restoreSession,
 } from "@/features/auth";
 import { HomePage } from "@/features/home/pages/HomePage";
 import { OrdersPage } from "@/features/orders/pages/OrdersPage";
@@ -24,7 +25,27 @@ import { useWaiterAttention } from "@/features/orders/hooks/useWaiterAttention";
 import { useConnectionStatus } from "@/shared/lib/realtime";
 
 const AuthBoundary = () => {
-  const [loggedIn, setLoggedIn] = useState(() => !!getToken());
+  const [loggedIn, setLoggedIn] = useState<boolean | null>(() =>
+    getToken() ? true : null,
+  );
+
+  useEffect(() => {
+    if (loggedIn !== null) return;
+    restoreSession()
+      .then(() => setLoggedIn(true))
+      .catch(() => {
+        logout();
+        setLoggedIn(false);
+      });
+  }, [loggedIn]);
+
+  if (loggedIn === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-text-secondary">
+        Restoring session…
+      </div>
+    );
+  }
 
   if (!loggedIn) {
     return <LoginPage onLogin={() => setLoggedIn(true)} />;

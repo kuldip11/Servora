@@ -21,6 +21,7 @@ const JWT_EXPIRES_IN = (process.env["JWT_EXPIRES_IN"] ?? "15m") as NonNullable<
 
 export interface JwtPayload {
   sub: string;
+  app: "web" | "kitchen" | "waiter";
   email: string;
   roles: string[];
   permissions: string[];
@@ -30,6 +31,7 @@ export interface JwtPayload {
 
 export const signAccessToken = (
   user: Pick<User, "id" | "email" | "roles">,
+  app: JwtPayload["app"] = "web",
 ): string => {
   const permissions = Array.from(
     new Set(user.roles.flatMap((r) => r.permissions.map((p) => p.key))),
@@ -37,6 +39,7 @@ export const signAccessToken = (
   return sign(
     {
       sub: user.id,
+      app,
       email: user.email,
       roles: user.roles.map((r) => r.name),
       permissions,

@@ -7,6 +7,7 @@ import { authService } from "@/features/auth/services/auth.service";
 import { useAuthStore } from "@/store/auth";
 import { cn } from "@/shared/utils";
 import { extractApiError } from "@/shared/lib/api-client";
+import { activateMembershipContext } from "@/shared/auth/active-context";
 
 export const TenantSwitcher = () => {
   const router = useRouter();
@@ -21,9 +22,7 @@ export const TenantSwitcher = () => {
 
   const canRead = items.length > 0;
 
-  const canCreate =
-    items.some((membership) => membership.isGlobalOwner) ||
-    user?.roles?.some((role) => role.name === "OWNER");
+  const canCreate = user?.roles?.some((role) => role.name === "OWNER");
   const current = items.find(
     (membership) => membership.membershipId === membershipId,
   );
@@ -69,17 +68,7 @@ export const TenantSwitcher = () => {
 
     setSwitching(true);
     try {
-      const branchId =
-        membership.isGlobalOwner ||
-        membership.roles.some((role) => role.scope === "TENANT")
-          ? null
-          : (membership.branches[0]?.id ?? null);
-      setContext({
-        membershipId: membership.membershipId,
-        franchiseId: membership.tenant.id,
-        memberships: items,
-        branchId,
-      });
+      await activateMembershipContext(membership, items);
       setOpen(false);
       router.navigate({ to: "/dashboard" });
     } finally {
@@ -100,13 +89,12 @@ export const TenantSwitcher = () => {
       const created = await authService.createTenant(name, organization.id);
       const next = await authService.memberships();
       setItems(next);
-      setContext({
-        membershipId: created.membershipId,
-        organizationId: organization.id,
-        franchiseId: created.tenant.id,
-        memberships: next,
-        branchId: null,
-      });
+      const membership = next.find(
+        (item) => item.membershipId === created.membershipId,
+      );
+      if (!membership)
+        throw new Error("Created franchise membership not found");
+      await activateMembershipContext(membership, next, organization.id);
 
       toast({
         title: "Franchise created. Add a branch to get started.",
@@ -198,11 +186,7 @@ export const TenantSwitcher = () => {
                         {membership.tenant.name}
                       </span>
                       <span className="block text-xs text-text-secondary truncate">
-                        {membership.isGlobalOwner
-                          ? "OWNER"
-                          : membership.roles
-                              .map((role) => role.name)
-                              .join(", ")}
+                        {membership.roles.map((role) => role.name).join(", ")}
                       </span>
                     </span>
                     {membership.membershipId === membershipId && (

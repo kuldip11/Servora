@@ -109,8 +109,7 @@ export const tenantService = {
         tenant.organizationId,
       );
     if (!organizationMembership) throw tenantNotFound(tenantId);
-    if (!auth.roles.includes("OWNER") && tenantId !== auth.tenantId)
-      throw tenantNotFound(tenantId);
+    if (tenantId !== auth.tenantId) throw tenantNotFound(tenantId);
     if (
       changes.serviceChargePercent !== undefined &&
       changes.serviceChargePercent !== null &&
@@ -170,8 +169,7 @@ export const tenantService = {
         tenant.organizationId,
       );
     if (!organizationMembership) throw tenantNotFound(tenantId);
-    if (!auth.roles.includes("OWNER") && tenantId !== auth.tenantId)
-      throw tenantNotFound(tenantId);
+    if (tenantId !== auth.tenantId) throw tenantNotFound(tenantId);
     const updated = await tenantRepository.update(tenantId, {
       isActive: false,
     });

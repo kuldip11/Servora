@@ -77,13 +77,19 @@ describe("createApiClient request interceptor", () => {
     expect(axios.create).toHaveBeenCalledTimes(2);
     expect(axios.create).toHaveBeenNthCalledWith(1, {
       baseURL: "https://api.example.com",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-Servora-App": "web",
+      },
       timeout: 5000,
       withCredentials: true,
     });
     expect(axios.create).toHaveBeenNthCalledWith(2, {
       baseURL: "https://api.example.com",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-Servora-App": "web",
+      },
       timeout: 5000,
       withCredentials: true,
     });
@@ -119,6 +125,27 @@ describe("createApiClient request interceptor", () => {
 });
 
 describe("createApiClient response interceptor", () => {
+  it("binds requests and refreshes to the configured Servora application", () => {
+    createApiClient({
+      app: "kitchen",
+      baseURL: "https://api.example.com",
+      timeout: 5000,
+      storage: storage(),
+      onRefreshFailure: vi.fn(),
+    });
+
+    expect(axios.create).toHaveBeenNthCalledWith(1,
+      expect.objectContaining({
+        headers: expect.objectContaining({ "X-Servora-App": "kitchen" }),
+      }),
+    );
+    expect(axios.create).toHaveBeenNthCalledWith(2,
+      expect.objectContaining({
+        headers: expect.objectContaining({ "X-Servora-App": "kitchen" }),
+      }),
+    );
+  });
+
   it("rejects non-401 errors without attempting refresh", async () => {
     const harness = makeClientHarness();
     const failure = vi.fn();
@@ -217,7 +244,10 @@ describe("createApiClient response interceptor", () => {
 
     expect(axios.create).toHaveBeenNthCalledWith(2, {
       baseURL: "https://api.example.com/api",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-Servora-App": "web",
+      },
       timeout: 4321,
       withCredentials: true,
     });

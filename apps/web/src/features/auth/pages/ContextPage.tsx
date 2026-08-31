@@ -7,6 +7,7 @@ import type { AvailableMembership, OrganizationSummary } from "@pos/types";
 import { extractApiError } from "@/shared/lib/api-client";
 import { useAuthStore } from "@/store/auth";
 import { authService } from "@/features/auth/services/auth.service";
+import { activateMembershipContext } from "@/shared/auth/active-context";
 
 export const ContextPage = () => {
   const router = useRouter();
@@ -43,19 +44,13 @@ export const ContextPage = () => {
       .finally(() => setLoading(false));
   }, [memberships]);
 
-  const activate = (membership: AvailableMembership) => {
-    const branchId =
-      membership.isGlobalOwner ||
-      membership.roles.some((role) => role.scope === "TENANT")
-        ? null
-        : (membership.branches[0]?.id ?? null);
-    setContext({
-      membershipId: membership.membershipId,
-      franchiseId: membership.tenant.id,
-      memberships: items,
-      branchId,
-    });
-    router.navigate({ to: "/dashboard" });
+  const activate = async (membership: AvailableMembership) => {
+    try {
+      await activateMembershipContext(membership, items);
+      router.navigate({ to: "/dashboard" });
+    } catch (err: unknown) {
+      toast({ title: extractApiError(err), tone: "danger" });
+    }
   };
 
   const createOrganization = async () => {
@@ -87,13 +82,11 @@ export const ContextPage = () => {
     try {
       const created = await authService.createTenant(name, organizationId);
       const next = await authService.memberships();
-      setContext({
-        membershipId: created.membershipId,
-        organizationId,
-        franchiseId: created.tenant.id,
-        memberships: next,
-        branchId: null,
-      });
+      const membership = next.find(
+        (item) => item.membershipId === created.membershipId,
+      );
+      if (!membership) throw new Error("Created franchise membership not found");
+      await activateMembershipContext(membership, next, organizationId);
       toast({
         title: "Franchise created. Add a branch to get started.",
         tone: "success",
@@ -132,7 +125,7 @@ export const ContextPage = () => {
             {items.map((membership) => (
               <button
                 key={membership.membershipId}
-                onClick={() => activate(membership)}
+                onClick={() => void activate(membership)}
                 className="w-full flex items-center gap-4 p-4 border border-border rounded-lg text-left hover:border-primary transition-colors"
               >
                 <Building2 className="w-5 h-5 text-primary" />

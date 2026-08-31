@@ -6,6 +6,7 @@ import {
 } from "@pos/realtime";
 import type { RealtimeEvent } from "@pos/types";
 import { STORAGE_KEYS } from "@/shared/constants/storage-keys";
+import { getToken } from "@/features/auth/storage";
 
 const proto = window.location.protocol === "https:" ? "wss" : "ws";
 const wsUrl =
@@ -14,7 +15,7 @@ const wsUrl =
 
 const client = createRealtimeClient<RealtimeEvent>({
   url: wsUrl,
-  getAccessToken: () => localStorage.getItem(STORAGE_KEYS.token),
+  getAccessToken: getToken,
   getTenantId: () => localStorage.getItem(STORAGE_KEYS.tenant),
   getBranchId: () => localStorage.getItem(STORAGE_KEYS.branch),
 });

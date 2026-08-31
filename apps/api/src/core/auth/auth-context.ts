@@ -3,8 +3,6 @@ import type { RoleName } from "@pos/types";
 import { verifyAccessToken, type JwtPayload } from "@/lib/jwt";
 import { db } from "@/db";
 import { resolveAuthorization, resolveMembership } from "./authorization";
-import { globalUserRoles } from "@/db/schema";
-import { eq } from "drizzle-orm";
 import { resolveActiveBranch } from "./membership-context";
 import {
   UnauthorizedError,
@@ -13,9 +11,17 @@ import {
 } from "@/core/errors";
 import { createLogger, type Logger } from "@/core/logger";
 import { requestContextPlugin } from "@/core/context";
+import {
+  AUTH_APP_HEADER,
+  assertAppRoleAccess,
+  assertTokenApp,
+  parseAuthApp,
+  type AuthApp,
+} from "@/modules/auth/auth-app";
 
 export interface AuthContext {
   userId: string;
+  app?: AuthApp;
   tenantId: string;
 
   membershipId?: string;
@@ -55,6 +61,9 @@ export const requireAuthPlugin = () =>
           throw new UnauthorizedError("Invalid or expired token");
         }
 
+        const requestApp = parseAuthApp(headers[AUTH_APP_HEADER]);
+        assertTokenApp(payload.app, requestApp);
+
         const requestedTenant = headers["x-tenant-id"]?.trim() ?? "";
         const requestedBranch = headers["x-branch-id"]?.trim() ?? "";
 
@@ -65,6 +74,7 @@ export const requireAuthPlugin = () =>
 
           const auth: AuthContext = {
             userId: payload.sub,
+            app: requestApp,
             tenantId: "",
             branchId: null,
             email: payload.email,
@@ -91,6 +101,11 @@ export const requireAuthPlugin = () =>
         if (!membership) {
           throw new ForbiddenError("Franchise access denied");
         }
+
+        assertAppRoleAccess(
+          requestApp,
+          membership.roles.map((item) => item.role?.name ?? item.roleId),
+        );
 
         const baseContext = {
           userId: payload.sub,
@@ -121,19 +136,15 @@ export const requireAuthPlugin = () =>
           throw new ForbiddenError("Franchise access denied");
         }
 
-        const globalRoles = await db.query.globalUserRoles.findMany({
-          where: eq(globalUserRoles.userId, payload.sub),
-          with: { role: true },
-        });
         const roles = [
-          ...new Set([
-            ...globalRoles.map((item) => item.role?.name ?? item.roleId),
-            ...membership.roles.map((item) => item.role?.name ?? item.roleId),
-          ]),
+          ...new Set(
+            membership.roles.map((item) => item.role?.name ?? item.roleId),
+          ),
         ] as RoleName[];
 
         const auth: AuthContext = {
           userId: payload.sub,
+          app: requestApp,
           tenantId: membership.tenantId,
           membershipId: membership.id,
           branchId,
@@ -178,7 +189,6 @@ export const requirePermission = (
     throw new ForbiddenError("Tenant context required");
   }
 
-  if (auth.roles.includes("OWNER")) return;
 
   if (!auth.permissions.includes(permission)) {
     throw new ForbiddenError("Insufficient permissions", {

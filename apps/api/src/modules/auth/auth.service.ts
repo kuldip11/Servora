@@ -5,6 +5,7 @@ import { listUserMemberships } from "@/core/auth/membership-context";
 import { db } from "@/db";
 import { ConflictError, ForbiddenError } from "@/core/errors";
 import { signAccessToken } from "@/lib/jwt";
+import { hasAppRoleAccess, type AuthApp } from "./auth-app";
 import type { SignupInput, LoginInput } from "@pos/validation";
 import {
   invalidCredentials,
@@ -16,6 +17,23 @@ import {
 
 const hashToken = (token: string): string => {
   return crypto.createHash("sha256").update(token).digest("hex");
+};
+
+const assertUserAppAccess = async (
+  user: NonNullable<Awaited<ReturnType<typeof authRepository.findUserById>>>,
+  app: AuthApp,
+): Promise<void> => {
+  const globalRoleNames = user.globalUserRoles.map((item) => item.role.name);
+  const memberships = await listUserMemberships(db, user.id);
+  const membershipRoleNames = memberships.flatMap((membership) =>
+    membership.roles.map((role) => role.name),
+  );
+  if (
+    !hasAppRoleAccess(app, globalRoleNames) &&
+    !hasAppRoleAccess(app, membershipRoleNames)
+  ) {
+    throw new ForbiddenError("Account does not have access to this application");
+  }
 };
 
 export const authService = {
@@ -58,7 +76,7 @@ export const authService = {
     };
   },
 
-  async login(input: LoginInput) {
+  async login(input: LoginInput, app: AuthApp = "web") {
     const users = await authRepository.findUsersByEmail(input.email);
     if (users.length !== 1) throw invalidCredentials();
 
@@ -89,8 +107,9 @@ export const authService = {
       throw invalidCredentials();
     }
 
+    await assertUserAppAccess(user, app);
     await authRepository.resetLoginFailures(user.id);
-    return authService._issueTokens(user);
+    return authService._issueTokens(user, app);
   },
 
   async logout(tokenValue: string) {
@@ -101,7 +120,8 @@ export const authService = {
     return { loggedOut: true };
   },
 
-  async refresh(tokenValue: string) {
+  async refresh(tokenValue: string, app: AuthApp = "web") {
+    if (!tokenValue.startsWith(`${app}.`)) throw invalidRefreshToken();
     const tokenHash = hashToken(tokenValue);
 
     const stored = await authRepository.consumeRefreshToken(tokenHash);
@@ -116,7 +136,8 @@ export const authService = {
     if (!session || session.revokedAt || session.expiresAt <= new Date())
       throw invalidRefreshToken();
 
-    return authService._issueTokens(user, stored.sessionId);
+    await assertUserAppAccess(user, app);
+    return authService._issueTokens(user, app, stored.sessionId);
   },
 
   async sessions(userId: string) {
@@ -146,8 +167,14 @@ export const authService = {
     return { user, membership };
   },
 
-  async memberships(userId: string) {
-    return listUserMemberships(db, userId);
+  async memberships(userId: string, app: AuthApp = "web") {
+    const memberships = await listUserMemberships(db, userId);
+    return memberships.filter((membership) =>
+      hasAppRoleAccess(
+        app,
+        membership.roles.map((role) => role.name),
+      ),
+    );
   },
 
   async updateProfile(
@@ -166,6 +193,7 @@ export const authService = {
 
   async _issueTokens(
     user: Awaited<ReturnType<typeof authRepository.findUserById>>,
+    app: AuthApp = "web",
     existingSessionId?: string,
   ) {
     if (!user) throw new Error("User not found");
@@ -177,13 +205,16 @@ export const authService = {
       permissions: ur.role.rolePermissions.map((rp) => rp.permission),
     }));
 
-    const accessToken = signAccessToken({
-      id: user.id,
-      email: user.email,
-      roles: globalRoles,
-    });
+    const accessToken = signAccessToken(
+      {
+        id: user.id,
+        email: user.email,
+        roles: globalRoles,
+      },
+      app,
+    );
 
-    const refreshTokenValue = crypto.randomBytes(64).toString("hex");
+    const refreshTokenValue = `${app}.${crypto.randomBytes(64).toString("hex")}`;
     const tokenHash = hashToken(refreshTokenValue);
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     let sessionId = existingSessionId;

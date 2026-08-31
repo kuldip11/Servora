@@ -51,7 +51,6 @@ describe("membership context", () => {
     ).resolves.toEqual([
       {
         membershipId: "m1",
-        isGlobalOwner: true,
         tenant: { id: "t1", name: "Restaurant" },
         roles: [{ id: "r1", name: "MANAGER", scope: "TENANT" }],
         branches: [

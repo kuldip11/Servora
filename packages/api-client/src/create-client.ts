@@ -5,8 +5,11 @@ import axios, {
 } from "axios";
 import type { TokenStorageAdapter } from "./types";
 
+export type ServoraApp = "web" | "kitchen" | "waiter";
+
 export interface ApiClientConfig {
   baseURL: string;
+  app?: ServoraApp;
 
   timeout: number;
   storage: TokenStorageAdapter;
@@ -16,10 +19,14 @@ export interface ApiClientConfig {
 
 export const createApiClient = (config: ApiClientConfig): AxiosInstance => {
   const { baseURL, timeout, storage, onRefreshFailure } = config;
+  const app = config.app ?? "web";
 
   const clientConfig = {
     baseURL,
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-Servora-App": app,
+    },
     timeout,
     withCredentials: true,
   };

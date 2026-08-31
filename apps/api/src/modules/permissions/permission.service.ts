@@ -5,7 +5,7 @@ import { writeAudit } from "@/core/audit";
 import { permissionRepository } from "./permission.repository";
 
 const requireTenantWide = (auth: AuthContext) => {
-  if (!auth.tenantWide && !auth.roles.includes("OWNER"))
+  if (!auth.tenantWide)
     throw new ForbiddenError(
       "Tenant-wide access is required to manage role permissions",
     );

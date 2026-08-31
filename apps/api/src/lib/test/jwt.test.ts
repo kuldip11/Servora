@@ -18,6 +18,7 @@ describe("jwt helpers", () => {
     const payload = jwt.verifyAccessToken(token);
     expect(payload).toMatchObject({
       sub: "u1",
+      app: "web",
       email: "u@example.com",
       roles: ["OWNER"],
       permissions: ["tenant:read"],

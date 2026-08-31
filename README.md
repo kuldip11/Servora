@@ -1,18 +1,14 @@
 # Servora
 
-Servora is a pre-production, multi-tenant restaurant operating platform built as a TypeScript monorepo. It combines POS/admin workflows, waiter operations, kitchen display, customer QR ordering, menu/pricing, billing/payments, inventory/recipes, analytics, realtime updates, RBAC, and a public website.
+Servora is a pre-production, multi-tenant restaurant operating platform built as a TypeScript monorepo. It combines POS/admin workflows, waiter operations, kitchen display, customer QR ordering, menu and pricing, billing and payments, inventory and recipes, analytics, realtime updates, RBAC, and a public website.
 
-> **Current status: pre-release / not deployed.**
+> **Current status: pre-production / not yet released.**
 >
-> There are no live users or production data to preserve. The repository should therefore favor a clean v1 architecture over backward-compatibility, phased-rollout, backfill, or legacy-client machinery.
+> There are no live users or production data to preserve. The repository should favor a clean v1 architecture over backward-compatibility, phased-rollout, backfill, or legacy-client machinery that has never been required in production.
 
-## Engineering review
+## Product roadmap
 
-The current senior-engineering audit, identified pre-v1 cleanup work, architectural risks, and release priorities are maintained in:
-
-**[`PRE_V1_ENGINEERING_REVIEW.md`](./PRE_V1_ENGINEERING_REVIEW.md)**
-
-That document is the authoritative consolidation plan before the first production release.
+Future product opportunities are captured in [`PRODUCT_FEATURE_ROADMAP.md`](./PRODUCT_FEATURE_ROADMAP.md). Security findings, remediation history, and remaining production-certification work are tracked in [`SECURITY_AUDIT.md`](./SECURITY_AUDIT.md).
 
 ## Applications
 
@@ -72,7 +68,8 @@ That document is the authoritative consolidation plan before the first productio
 ├── package.json
 ├── bun.lock
 ├── README.md
-└── PRE_V1_ENGINEERING_REVIEW.md
+├── PRODUCT_FEATURE_ROADMAP.md
+└── SECURITY_AUDIT.md
 ```
 
 ## Local setup
@@ -112,13 +109,11 @@ bun run dev
 
 ## Database state
 
-The current pre-v1 repository contains **87 ordered SQL migrations, `0000` through `0086`**.
+The current pre-v1 repository contains **78 ordered SQL migrations, `0000` through `0077`**.
 
-The current Drizzle metadata is not fully synchronized: `_journal.json` contains all 87 migration entries, while snapshots currently exist only for `0000` through `0020`. This must be corrected as part of the pre-v1 migration-baseline consolidation; do not retroactively invent snapshots for the historical chain.
+Because Servora has not been released and has no production data, schema changes should continue to target the clean intended v1 model rather than adding compatibility backfills or phased migration machinery for historical production states that do not exist.
 
-After the canonical baseline is rebuilt, **every migration must keep the Drizzle schema, SQL migration, `_journal.json`, and matching `NNNN_snapshot.json` synchronized in the same change**. A migration is not complete until all four agree and it has been verified from an empty database.
-
-The engineering review recommends replacing the accumulated development-history chain with a clean canonical v1 baseline before the first production deployment. See `PRE_V1_ENGINEERING_REVIEW.md` for the migration acceptance checklist and remediation plan.
+Migration integrity is verified by the repository's migration verification tooling. A schema change is not complete until the application schema, SQL migration, migration metadata/snapshots used by the project, and verification checks agree.
 
 ## Verification
 
@@ -151,22 +146,24 @@ Static/source verifiers are architecture guards only. They do not replace TypeSc
 
 ## Architecture principles
 
-Servora should converge on these rules before v1:
-
-1. Server-authoritative tenant, branch, permission, pricing, order, and inventory decisions.
-2. One canonical database model with direct final constraints for the unreleased product.
-3. Immutable order/pricing/inventory evidence where historical correctness matters.
-4. No compatibility paths for users, data, tokens, APIs, or schema versions that have never existed in production.
-5. Shared typed contracts from API through clients and applications.
-6. Business logic in domain services/pure engines; persistence in repositories; thin routes/controllers.
-7. Development previews, fixtures, demo paths, and roadmap terminology must not ship as production product behavior.
-8. Critical restaurant flows require vertical browser/integration coverage, not only source-string verification.
+1. Keep tenant, branch, permission, pricing, order, inventory, and payment decisions server-authoritative.
+2. Maintain one canonical database model with direct final constraints while the product remains unreleased.
+3. Preserve immutable order, pricing, payment, and inventory evidence where historical correctness matters.
+4. Do not add compatibility paths for users, data, tokens, APIs, or schema versions that have never existed in production.
+5. Keep shared contracts typed from API through clients and applications.
+6. Keep business logic in domain services/pure engines, persistence in repositories, and routes/controllers thin.
+7. Use feature-level structure consistently (`components`, `constants`, `hooks`, `pages`, `services`, `types`, `utils`, and tests only where needed).
+8. Prefer the configured `@/...` aliases over parent-relative application imports.
+9. Keep reusable static feature configuration in feature-level `constants` modules rather than embedding it in UI components.
+10. Treat realtime connectivity, failure handling, permissions, and cross-tenant isolation as product-critical behavior.
+11. Critical restaurant workflows require vertical integration/browser coverage, not only unit or source-verification tests.
 
 ## Documentation policy
 
-To avoid conflicting implementation-history documentation, the repository intentionally maintains only:
+The active repository intentionally keeps only two Markdown documents:
 
-- `README.md` — project entry point and development commands.
-- `PRE_V1_ENGINEERING_REVIEW.md` — current technical review and consolidation plan.
+- `README.md` — project entry point, architecture conventions, setup, and verification commands.
+- `PRODUCT_FEATURE_ROADMAP.md` — product ideas reserved for later prioritization.
+- `SECURITY_AUDIT.md` — security findings, remediation status, and production-certification follow-up.
 
-Historical phase plans, completion reports, verification notes, and website planning documents are intentionally not retained in the active repository.
+Historical engineering reviews, implementation-status reports, phase plans, runbooks, completion notes, and audit commentary are not retained in the active source tree. Operational runbook content that becomes necessary for production should be represented by executable scripts/configuration or reintroduced only when it is an active release requirement.

@@ -43,14 +43,10 @@ const canManageTarget = (auth: AuthContext, membership: StaffMembership) => {
 const validateRole = async (auth: AuthContext, roleId: string) => {
   const role = await staffRepository.findRoleById(roleId, auth.tenantId);
   if (!role) throw new ValidationError("Invalid role");
-  if (role.name === "OWNER" && !auth.roles.includes("OWNER")) {
-    throw new ForbiddenError("Only an Owner can assign the Owner role");
+  if (role.scope === "GLOBAL") {
+    throw new ForbiddenError("Global roles cannot be assigned from a franchise");
   }
-  if (
-    (role.scope === "GLOBAL" || role.scope === "TENANT") &&
-    !auth.roles.includes("OWNER") &&
-    !auth.tenantWide
-  ) {
+  if (role.scope === "TENANT" && !auth.tenantWide) {
     throw new ForbiddenError(
       "Branch-scoped memberships cannot assign tenant-wide roles",
     );
@@ -259,9 +255,8 @@ export const staffService = {
     const roles = await staffRepository.findAllRoles(auth.tenantId);
     return roles.filter(
       (role) =>
-        auth.roles.includes("OWNER") ||
-        auth.tenantWide ||
-        role.scope === "BRANCH",
+        role.scope !== "GLOBAL" &&
+        (auth.tenantWide || role.scope === "BRANCH"),
     );
   },
 };

@@ -10,6 +10,7 @@ import {
 import { shouldDeliverRealtimeEvent } from "./delivery-scope";
 import { customerService } from "@/modules/customer/customer.service";
 import { metrics } from "@/core/observability/metrics";
+import { REALTIME_AUTH_TIMEOUT_MS } from "./constants";
 
 interface RealtimeSocket {
   send(message: string): unknown;
@@ -96,6 +97,22 @@ const staffScopeBySocket = new WeakMap<
 >();
 let staffConnectionCount = 0;
 let customerConnectionCount = 0;
+const authTimerBySocket = new WeakMap<object, ReturnType<typeof setTimeout>>();
+
+const startAuthTimer = (ws: RealtimeSocket): void => {
+  const timer = setTimeout(() => {
+    authTimerBySocket.delete(ws as object);
+    ws.send(JSON.stringify({ type: "error", code: "AUTH_TIMEOUT" }));
+    ws.close();
+  }, REALTIME_AUTH_TIMEOUT_MS);
+  authTimerBySocket.set(ws as object, timer);
+};
+
+const clearAuthTimer = (ws: RealtimeSocket): void => {
+  const timer = authTimerBySocket.get(ws as object);
+  if (timer) clearTimeout(timer);
+  authTimerBySocket.delete(ws as object);
+};
 
 const addClient = (tenantId: string, ws: RealtimeSocket) => {
   if (!clients.has(tenantId)) {
@@ -230,21 +247,37 @@ const startRedisSubscription = async () => {
 startRedisSubscription().catch(console.error);
 
 export const realtimeRouter = new Elysia({ prefix: "/ws" }).ws("/events", {
-  async open(ws) {
-    const token = ws.data.query["token"] as string;
-    if (!token) {
-      ws.send(JSON.stringify({ type: "error", code: "AUTH_MISSING_TOKEN" }));
-      ws.close();
+  open(ws) {
+    startAuthTimer(ws);
+  },
+
+  async message(ws, message) {
+    if (message === "ping") {
+      if (!staffScopeBySocket.has(ws)) {
+        ws.send(JSON.stringify({ type: "error", code: "AUTH_REQUIRED" }));
+        ws.close();
+        return;
+      }
+      ws.send("pong");
       return;
     }
+    if (staffScopeBySocket.has(ws)) return;
 
     try {
-      const payload = verifyAccessToken(token);
-      const tenantId = String(ws.data.query["tenantId"] ?? "");
-      const branchId = ws.data.query["branchId"]
-        ? String(ws.data.query["branchId"])
-        : undefined;
-      const context = await resolveRealtimeContext(payload, tenantId, branchId);
+      const payload =
+        typeof message === "string" ? JSON.parse(message) : message;
+      if (!payload || payload.type !== "auth" || !payload.token) {
+        throw new Error("Missing realtime auth payload");
+      }
+      const tokenPayload = verifyAccessToken(String(payload.token));
+      const tenantId = String(payload.tenantId ?? "");
+      const branchId = payload.branchId ? String(payload.branchId) : undefined;
+      const context = await resolveRealtimeContext(
+        tokenPayload,
+        tenantId,
+        branchId,
+      );
+      clearAuthTimer(ws);
       staffScopeBySocket.set(ws, {
         tenantId: context.tenantId,
         branchId: context.branchId,
@@ -258,16 +291,14 @@ export const realtimeRouter = new Elysia({ prefix: "/ws" }).ws("/events", {
         JSON.stringify({ type: "connected", tenantId: context.tenantId }),
       );
     } catch {
+      clearAuthTimer(ws);
       ws.send(JSON.stringify({ type: "error", code: "AUTH_INVALID_TOKEN" }));
       ws.close();
     }
   },
 
-  message(ws, message) {
-    if (message === "ping") ws.send("pong");
-  },
-
   close(ws) {
+    clearAuthTimer(ws);
     const scope = staffScopeBySocket.get(ws);
     if (scope) {
       removeClient(scope.tenantId, ws);
@@ -283,17 +314,30 @@ export const realtimeRouter = new Elysia({ prefix: "/ws" }).ws("/events", {
 export const customerRealtimeRouter = new Elysia({ prefix: "/ws/customer" }).ws(
   "/events",
   {
-    async open(ws) {
-      const token = String(ws.data.query["session"] ?? "");
-      if (!token) {
-        ws.send(
-          JSON.stringify({ type: "error", code: "CUSTOMER_SESSION_REQUIRED" }),
-        );
-        ws.close();
+    open(ws) {
+      startAuthTimer(ws);
+    },
+    async message(ws, message) {
+      if (message === "ping") {
+        if (!customerSessionBySocket.has(ws)) {
+          ws.send(JSON.stringify({ type: "error", code: "AUTH_REQUIRED" }));
+          ws.close();
+          return;
+        }
+        ws.send("pong");
         return;
       }
+      if (customerSessionBySocket.has(ws)) return;
+
       try {
+        const payload =
+          typeof message === "string" ? JSON.parse(message) : message;
+        const token = String(payload?.session ?? "");
+        if (!payload || payload.type !== "auth" || !token) {
+          throw new Error("Missing customer realtime auth payload");
+        }
         const session = await customerService.getSession(token);
+        clearAuthTimer(ws);
         customerSessionBySocket.set(ws, session.id);
         customerScopeBySocket.set(ws, {
           tenantId: session.tenantId,
@@ -309,16 +353,15 @@ export const customerRealtimeRouter = new Elysia({ prefix: "/ws/customer" }).ws(
         );
         ws.send(JSON.stringify({ type: "connected", sessionId: session.id }));
       } catch {
+        clearAuthTimer(ws);
         ws.send(
           JSON.stringify({ type: "error", code: "CUSTOMER_SESSION_INVALID" }),
         );
         ws.close();
       }
     },
-    message(ws, message) {
-      if (message === "ping") ws.send("pong");
-    },
     close(ws) {
+      clearAuthTimer(ws);
       const id = customerSessionBySocket.get(ws);
       const scope = customerScopeBySocket.get(ws);
       if (id) {

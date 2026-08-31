@@ -9,6 +9,8 @@ import {
   readRefreshCookie,
   serializeRefreshCookie,
 } from "./auth-cookie";
+import { AUTH_APP_HEADER, parseAuthApp } from "./auth-app";
+import { assertTrustedAuthOrigin } from "./auth-origin";
 import {
   signupBody,
   loginBody,
@@ -22,25 +24,31 @@ export const authRouter = new Elysia()
   })
   .post(
     "/api/auth/login",
-    async ({ body, set }) => {
-      const { refreshToken, ...result } = await authService.login(body);
-      set.headers["set-cookie"] = serializeRefreshCookie(refreshToken);
+    async ({ body, headers, set }) => {
+      assertTrustedAuthOrigin(headers.origin);
+      const app = parseAuthApp(headers[AUTH_APP_HEADER]);
+      const { refreshToken, ...result } = await authService.login(body, app);
+      set.headers["set-cookie"] = serializeRefreshCookie(refreshToken, app);
       return successResponse(result);
     },
     { body: loginBody },
   )
   .post("/api/auth/refresh", async ({ headers, set }) => {
-    const refreshToken = readRefreshCookie(headers.cookie);
+    assertTrustedAuthOrigin(headers.origin);
+    const app = parseAuthApp(headers[AUTH_APP_HEADER]);
+    const refreshToken = readRefreshCookie(headers.cookie, app);
     if (!refreshToken) throw invalidRefreshToken();
     const { refreshToken: nextRefreshToken, ...result } =
-      await authService.refresh(refreshToken);
-    set.headers["set-cookie"] = serializeRefreshCookie(nextRefreshToken);
+      await authService.refresh(refreshToken, app);
+    set.headers["set-cookie"] = serializeRefreshCookie(nextRefreshToken, app);
     return successResponse(result);
   })
   .post("/api/auth/logout", async ({ headers, set }) => {
-    const refreshToken = readRefreshCookie(headers.cookie);
+    assertTrustedAuthOrigin(headers.origin);
+    const app = parseAuthApp(headers[AUTH_APP_HEADER]);
+    const refreshToken = readRefreshCookie(headers.cookie, app);
     if (refreshToken) await authService.logout(refreshToken);
-    set.headers["set-cookie"] = clearRefreshCookie();
+    set.headers["set-cookie"] = clearRefreshCookie(app);
     return successResponse({ loggedOut: true });
   });
 

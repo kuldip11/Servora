@@ -61,7 +61,12 @@ describe("auth controller", () => {
       data: [{ id: "m1" }],
     });
     const result: any = await authController.me(auth);
-    expect(result.data.roles).toHaveLength(2);
+    expect(result.data.roles).toEqual([
+      expect.objectContaining({ id: "r2", name: "MANAGER" }),
+    ]);
+    expect(
+      result.data.roles.map((role: { name: string }) => role.name),
+    ).not.toContain("OWNER");
     expect(result.data.permissions).toEqual(["x"]);
     expect(result.data.tenantId).toBe("t1");
   });

@@ -19,6 +19,7 @@ const webStorageAdapter: TokenStorageAdapter = {
 };
 
 export const apiClient = createApiClient({
+  app: "web",
   baseURL: import.meta.env["VITE_API_URL"] ?? "/api",
   timeout: 30_000,
   storage: webStorageAdapter,

@@ -1,12 +1,14 @@
 import { STORAGE_KEYS } from "@/shared/constants/storage-keys";
 import type { User } from "@pos/types";
 
-export const saveTokens = (accessToken: string) => {
-  localStorage.setItem(STORAGE_KEYS.token, accessToken);
+let accessToken: string | null = null;
+
+export const saveTokens = (token: string) => {
+  accessToken = token;
 };
 
 export const clearTokens = () => {
-  localStorage.removeItem(STORAGE_KEYS.token);
+  accessToken = null;
   localStorage.removeItem(STORAGE_KEYS.tenant);
   localStorage.removeItem(STORAGE_KEYS.branch);
 };
@@ -45,14 +47,13 @@ export const hasPermission = (permission: string): boolean => {
   }
 };
 
-export const getToken = (): string | null => {
-  return localStorage.getItem(STORAGE_KEYS.token);
-};
+export const getToken = (): string | null => accessToken;
 
 export const getWaiterName = (): string => {
   return localStorage.getItem(STORAGE_KEYS.name) ?? "Waiter";
 };
 
 export const logout = () => {
+  accessToken = null;
   Object.values(STORAGE_KEYS).forEach((key) => localStorage.removeItem(key));
 };

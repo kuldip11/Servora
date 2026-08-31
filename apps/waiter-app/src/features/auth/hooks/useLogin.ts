@@ -2,7 +2,11 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "@pos/ui";
 import { extractApiError } from "@pos/api-client";
-import { login, fetchMemberships } from "@/features/auth/api/login";
+import {
+  login,
+  fetchMemberships,
+  fetchMe,
+} from "@/features/auth/api/login";
 import {
   saveTokens,
   saveProfile,
@@ -40,6 +44,8 @@ export const useLogin = (onLogin: () => void): UseLoginResult => {
       ? null
       : (membership.branches[0]?.id ?? null);
     saveContext(membership.tenant.id, branchId);
+    const activeUser = await fetchMe();
+    saveProfile(activeUser);
     if (branchId || membership.roles.some((role) => role.scope === "TENANT")) {
       onLogin();
       return;
@@ -81,7 +87,14 @@ export const useLogin = (onLogin: () => void): UseLoginResult => {
     selectBranchForMembership: (id) => {
       if (!activeMembership) return;
       saveContext(activeMembership.tenant.id, id);
-      onLogin();
+      void fetchMe()
+        .then((activeUser) => {
+          saveProfile(activeUser);
+          onLogin();
+        })
+        .catch((err: unknown) =>
+          toast({ title: extractApiError(err), tone: "danger" }),
+        );
     },
     isLoading: mutation.isPending,
     resetToCredentials: () => {

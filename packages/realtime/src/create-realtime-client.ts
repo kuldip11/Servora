@@ -28,7 +28,7 @@ export function createRealtimeClient<E extends { type: string }>(
   function setConnected(value: boolean) {
     if (connected === value) return;
     connected = value;
-    connectionListeners.forEach((l) => l(value));
+    connectionListeners.forEach((listener) => listener(value));
   }
 
   function connect(token: string) {
@@ -39,19 +39,29 @@ export function createRealtimeClient<E extends { type: string }>(
     )
       return;
 
-    const params = new URLSearchParams({ token });
-    const tenantId = getTenantId?.();
-    const branchId = getBranchId?.();
-    if (tenantId) params.set("tenantId", tenantId);
-    if (branchId) params.set("branchId", branchId);
-    ws = new WebSocket(`${url}?${params.toString()}`);
+    const tenantId = getTenantId?.() ?? null;
+    const branchId = getBranchId?.() ?? null;
+    ws = new WebSocket(url);
 
-    ws.onopen = () => setConnected(true);
+    ws.onopen = () => {
+      ws?.send(
+        JSON.stringify({
+          type: "auth",
+          token,
+          tenantId,
+          branchId,
+        }),
+      );
+    };
 
-    ws.onmessage = (e) => {
+    ws.onmessage = (event) => {
       try {
-        const event = JSON.parse(e.data) as E;
-        handlers.forEach((h) => h(event));
+        const message = JSON.parse(event.data) as E & { type: string };
+        if (message.type === "connected") {
+          setConnected(true);
+          return;
+        }
+        handlers.forEach((handler) => handler(message));
       } catch {}
     };
 

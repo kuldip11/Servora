@@ -59,16 +59,12 @@ export const useCustomerOrderRealtime = (
     const connect = () => {
       if (stopped) return;
       clearTimers();
-      socket = new WebSocket(
-        `${wsBase}/customer/events?session=${encodeURIComponent(sessionToken)}`,
-      );
+      socket = new WebSocket(`${wsBase}/customer/events`);
 
       socket.onopen = () => {
-        reconnectAttempt.current = 0;
-        setLive(true);
-        pingTimer.current = window.setInterval(() => {
-          if (socket?.readyState === WebSocket.OPEN) socket.send("ping");
-        }, 25_000);
+        socket?.send(
+          JSON.stringify({ type: "auth", session: sessionToken }),
+        );
       };
 
       socket.onmessage = (event) => {
@@ -77,7 +73,16 @@ export const useCustomerOrderRealtime = (
             type?: string;
             payload?: CustomerOrder & { id?: string };
           };
-          if (
+          if (message.type === "connected") {
+            reconnectAttempt.current = 0;
+            setLive(true);
+            if (pingTimer.current !== undefined) {
+              window.clearInterval(pingTimer.current);
+            }
+            pingTimer.current = window.setInterval(() => {
+              if (socket?.readyState === WebSocket.OPEN) socket.send("ping");
+            }, 25_000);
+          } else if (
             message.type === "order.updated" &&
             orderId &&
             message.payload?.id === orderId

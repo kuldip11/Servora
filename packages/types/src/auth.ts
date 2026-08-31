@@ -80,7 +80,6 @@ export interface OrganizationSummary {
 export interface AvailableMembership {
   membershipId: string;
 
-  isGlobalOwner?: boolean;
   tenant: Pick<Tenant, "id" | "name">;
   roles: Array<{
     id: string;

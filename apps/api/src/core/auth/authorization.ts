@@ -3,7 +3,6 @@ import { and, eq, inArray } from "drizzle-orm";
 import {
   membershipBranches,
   membershipRoles,
-  globalUserRoles,
   permissions,
   rolePermissions,
   roles,
@@ -72,23 +71,10 @@ export const resolveAuthorization = async (
     };
   }
 
-  const globalRoles = await db.query.globalUserRoles.findMany({
-    where: eq(globalUserRoles.userId, context.userId),
-    with: {
-      role: { with: { rolePermissions: { with: { permission: true } } } },
-    },
-  });
-
-  const roleIds = [
-    ...new Set([
-      ...membership.roles.map((item) => item.roleId),
-      ...globalRoles.map((item) => item.roleId),
-    ]),
-  ];
-  const tenantWide =
-    membership.roles.some(
-      (item) => item.role?.scope === "GLOBAL" || item.role?.scope === "TENANT",
-    ) || globalRoles.some((item) => item.role?.scope === "GLOBAL");
+  const roleIds = [...new Set(membership.roles.map((item) => item.roleId))];
+  const tenantWide = membership.roles.some(
+    (item) => item.role?.scope === "TENANT",
+  );
   const branchIds = membership.branches.map((item) => item.branchId);
 
   if (context.branchId) {
@@ -129,15 +115,7 @@ export const resolveAuthorization = async (
     .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
     .where(inArray(rolePermissions.roleId, roleIds));
 
-  const permissionKeys = new Set<string>(rows.map((row) => row.key));
-  for (const globalRole of globalRoles) {
-    for (const rolePermission of globalRole.role?.rolePermissions ?? []) {
-      if (rolePermission.permission?.key)
-        permissionKeys.add(rolePermission.permission.key);
-    }
-  }
-
-  const resolvedPermissionKeys: string[] = [...permissionKeys];
+  const resolvedPermissionKeys: string[] = [...new Set(rows.map((row) => row.key))];
 
   return {
     allowed: true,

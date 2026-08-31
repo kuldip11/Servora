@@ -82,6 +82,7 @@ const user: any = {
 };
 beforeEach(() => {
   vi.clearAllMocks();
+  listUserMemberships.mockResolvedValue([]);
   createSession.mockResolvedValue({ id: "session-1" });
   touchSession.mockResolvedValue(undefined);
 });
@@ -187,6 +188,48 @@ describe("auth service", () => {
     expect(resetLoginFailures).toHaveBeenCalledWith("u1");
   });
 
+
+  it("rejects a Chef account from the Web application", async () => {
+    const bcrypt = await import("bcryptjs");
+    const hash = await bcrypt.hash("secret", 1);
+    findUsersByEmail.mockResolvedValue([
+      { ...user, passwordHash: hash, globalUserRoles: [] },
+    ]);
+    listUserMemberships.mockResolvedValue([
+      { roles: [{ name: "CHEF" }] },
+    ]);
+
+    await expect(
+      authService.login(
+        { email: "a@example.com", password: "secret" } as any,
+        "web",
+      ),
+    ).rejects.toThrow("Account does not have access to this application");
+  });
+
+  it("allows the same Chef account to authenticate to Kitchen", async () => {
+    const bcrypt = await import("bcryptjs");
+    const hash = await bcrypt.hash("secret", 1);
+    findUsersByEmail.mockResolvedValue([
+      { ...user, passwordHash: hash, globalUserRoles: [] },
+    ]);
+    listUserMemberships.mockResolvedValue([
+      { roles: [{ name: "CHEF" }] },
+    ]);
+    saveRefreshToken.mockResolvedValue({});
+
+    await expect(
+      authService.login(
+        { email: "a@example.com", password: "secret" } as any,
+        "kitchen",
+      ),
+    ).resolves.toMatchObject({ accessToken: "access" });
+    expect(signAccessToken).toHaveBeenCalledWith(
+      expect.any(Object),
+      "kitchen",
+    );
+  });
+
   it("revokes the refresh token on logout", async () => {
     revokeRefreshToken.mockResolvedValue({
       id: "rt1",
@@ -198,6 +241,29 @@ describe("auth service", () => {
       loggedOut: true,
     });
     expect(revokeRefreshToken).toHaveBeenCalledWith(expect.any(String));
+  });
+
+  it("binds refresh tokens to their issuing application", async () => {
+    await expect(authService.refresh("kitchen.token", "web")).rejects.toThrow(
+      "Invalid refresh token",
+    );
+    expect(consumeRefreshToken).not.toHaveBeenCalled();
+
+    consumeRefreshToken.mockResolvedValue({
+      userId: "u1",
+      sessionId: "session-1",
+    });
+    findSession.mockResolvedValue({
+      id: "session-1",
+      revokedAt: null,
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+    findUserById.mockResolvedValue(user);
+    saveRefreshToken.mockResolvedValue({});
+
+    const result = await authService.refresh("kitchen.token", "kitchen");
+    expect(result.refreshToken).toMatch(/^kitchen\./);
+    expect(signAccessToken).toHaveBeenCalledWith(expect.any(Object), "kitchen");
   });
 
   it("consumes refresh tokens atomically and rejects invalid users/tokens", async () => {
@@ -237,9 +303,11 @@ describe("auth service", () => {
     await expect(authService.me("u1", "m1")).resolves.toMatchObject({
       membership: { id: "m1" },
     });
-    listUserMemberships.mockResolvedValue([{ id: "m1" }]);
+    listUserMemberships.mockResolvedValue([
+      { id: "m1", roles: [{ name: "FRANCHISE_ADMIN" }] },
+    ]);
     await expect(authService.memberships("u1")).resolves.toEqual([
-      { id: "m1" },
+      { id: "m1", roles: [{ name: "FRANCHISE_ADMIN" }] },
     ]);
   });
 });

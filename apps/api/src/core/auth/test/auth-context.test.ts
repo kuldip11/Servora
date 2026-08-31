@@ -21,13 +21,13 @@ describe("auth context guards", () => {
       ForbiddenError,
     );
   });
-  it("allows owner to bypass individual permissions", () => {
+  it("requires explicit permissions even when a global OWNER role is present", () => {
     expect(() =>
       requirePermission(
         { ...base, roles: ["OWNER"], permissions: [] } as any,
         "orders:write",
       ),
-    ).not.toThrow();
+    ).toThrow(ForbiddenError);
     expect(() => requirePermission(base as any, "orders:write")).toThrow(
       ForbiddenError,
     );

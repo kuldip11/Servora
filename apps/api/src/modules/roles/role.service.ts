@@ -15,7 +15,7 @@ const normalizeName = (name: string) => {
 
 const requireRoleAdministration = (auth: AuthContext, permission: string) => {
   requirePermission(auth, permission);
-  if (!auth.tenantWide && !auth.roles.includes("OWNER")) {
+  if (!auth.tenantWide) {
     throw new ForbiddenError("Tenant-wide access is required to manage roles");
   }
 };

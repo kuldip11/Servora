@@ -70,22 +70,39 @@ describe("authorization", () => {
       ).allowed,
     ).toBe(false);
   });
-  it("allows tenant-wide global roles without branch assignment", async () => {
+  it("does not let a global role widen an unrelated tenant membership", async () => {
     const global = [
       {
         roleId: "owner",
         role: {
           scope: "GLOBAL",
-          rolePermissions: [{ permission: { key: "orders:read" } }],
+          rolePermissions: [{ permission: { key: "orders:void" } }],
         },
       },
     ];
-    const db = makeDb({ ...membership, roles: [] }, global, { id: "b2" });
+    const db = makeDb(membership, global, { id: "b2" }, [
+      { key: "orders:read" },
+    ]);
     const decision = await resolveAuthorization(db, {
       userId: "u1",
       tenantId: "t1",
       branchId: "b2",
     });
+    expect(decision.allowed).toBe(false);
+    expect(decision.tenantWide).toBe(false);
+    expect(decision.permissionKeys).toEqual([]);
+  });
+
+  it("allows a tenant-scoped membership role across its tenant branches", async () => {
+    const tenantMembership = {
+      ...membership,
+      roles: [{ roleId: "admin", role: { scope: "TENANT" } }],
+      branches: [],
+    };
+    const decision = await resolveAuthorization(
+      makeDb(tenantMembership, [], { id: "b2" }),
+      { userId: "u1", tenantId: "t1", branchId: "b2" },
+    );
     expect(decision.allowed).toBe(true);
     expect(decision.tenantWide).toBe(true);
   });

@@ -3,4 +3,4 @@ export { useLogin } from "./hooks/useLogin";
 export { getToken, getWaiterName, logout } from "./storage";
 export type { Branch, CredentialsForm } from "./types";
 
-export { logoutSession } from "./api/login";
+export { logoutSession, restoreSession } from "./api/login";

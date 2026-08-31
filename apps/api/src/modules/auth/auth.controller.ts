@@ -10,7 +10,9 @@ export const authController = {
   },
 
   async memberships(auth: AuthContext) {
-    return successResponse(await authService.memberships(auth.userId));
+    return successResponse(
+      await authService.memberships(auth.userId, auth.app ?? "web"),
+    );
   },
 
   async sessions(auth: AuthContext) {
@@ -48,12 +50,7 @@ export const authController = {
       name: ur.role.name,
       permissions: ur.role.rolePermissions.map((rp) => rp.permission),
     }));
-    const roles = [
-      ...globalRoles,
-      ...membershipRoles.filter(
-        (role) => !globalRoles.some((globalRole) => globalRole.id === role.id),
-      ),
-    ];
+    const roles = membership ? membershipRoles : globalRoles;
 
     return successResponse({
       id: user.id,
