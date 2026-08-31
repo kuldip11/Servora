@@ -17,64 +17,34 @@ import {
 
 export type { Column, SortState, TableDensity };
 
-/**
- * Phase 7 (Part 1) — `Table`. The non-virtualized, static-height data
- * table: sortable columns, sticky header, loading/empty states, row
- * click. Deliberately **not** the phase's virtualized/bulk-select/
- * sticky-column/column-visibility component — that's `DataGrid`,
- * shipping in Part 2 (see the design-system guidance "Phase 7
- * detail" for the two-part split rationale). `Table` is for the many
- * real lists in this codebase (Tables, Staff, Branches, Inventory
- * previews, etc.) that don't need `DataGrid`'s machinery — every one
- * of those either renders `<table className="table">` by hand today
- * or would over-reach by requiring the full grid.
- *
- * Sort is controlled-with-uncontrolled-fallback, the same pattern
- * `Sidebar`'s collapsed state already established in Phase 6 (not the
- * controlled-only pattern Phase 4's selection components use — those
- * had zero existing uncontrolled precedent to match; this one has
- * `Sidebar`'s). Pass `sort`/`onSortChange` to drive it from outside
- * (e.g. for server-side sorting — omit each column's `sortValue` in
- * that case, see `Column.sortValue`'s doc comment in `shared.tsx`), or
- * leave both unset and `Table` manages its own state via `defaultSort`.
- */
-
 export interface TableProps<T> {
   columns: Column<T>[];
   data: T[];
-  /** Must return a stable, unique id — used as the row's React key. */
+
   getRowId: (row: T) => string;
   loading?: boolean | undefined;
-  /** Rows rendered by the loading skeleton. @default 5 */
+
   skeletonRows?: number | undefined;
   emptyIcon?: ComponentType<{ className?: string }> | undefined;
   emptyTitle?: string | undefined;
   emptyDescription?: string | undefined;
   emptyAction?: ReactNode;
   onRowClick?: ((row: T) => void) | undefined;
-  /** Controlled sort state. Pass alongside `onSortChange`; omit both for uncontrolled. */
+
   sort?: SortState | null | undefined;
   onSortChange?: ((sort: SortState | null) => void) | undefined;
-  /** Initial sort when uncontrolled (i.e. `sort` is not passed). */
+
   defaultSort?: SortState | null | undefined;
-  /** @default 'comfortable' */
+
   density?: TableDensity | undefined;
-  /** @default true */
+
   stickyHeader?: boolean | undefined;
-  /** Max height of the scroll container — required for `stickyHeader` to have a scroll
-   * parent of its own rather than stick relative to the page. Omit for a page that
-   * itself scrolls (sticky then activates against the nearest scrolling ancestor). */
+
   maxHeight?: string | undefined;
   className?: string | undefined;
-  /** Accessible name for the `<table>`. No default — unlike `Tabs`' required
-   * `aria-label` (a tablist pattern that doesn't work without one), a plain
-   * `<table>` is valid with no accessible name at all, so this is a pure
-   * escape hatch, not a gap that needs a fallback value. Prefer this over
-   * `aria-labelledby` when there's no existing heading to point to. */
+
   "aria-label"?: string | undefined;
-  /** Points at an existing heading/label element instead of duplicating its text
-   * via `aria-label`. Takes precedence over `aria-label` if both are passed
-   * (native `aria-labelledby`-over-`aria-label` precedence, not special-cased here). */
+
   "aria-labelledby"?: string | undefined;
 }
 

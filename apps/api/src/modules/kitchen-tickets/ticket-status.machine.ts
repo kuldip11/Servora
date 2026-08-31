@@ -1,4 +1,4 @@
-/** Single source of truth for kitchen ticket lifecycle transitions. */
+
 import type { KitchenTicketStatus } from "@pos/types";
 import { DomainRuleError } from "../../core/errors";
 

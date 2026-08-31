@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "menu_item_branch_overrides" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -18,8 +18,8 @@ CREATE TABLE "menu_item_branch_overrides" (
   CONSTRAINT "menu_item_branch_overrides_branch_id_branches_id_fk" FOREIGN KEY ("branch_id") REFERENCES "branches"("id") ON DELETE CASCADE,
   CONSTRAINT "menu_item_branch_overrides_branch_tenant_fk" FOREIGN KEY ("branch_id", "tenant_id") REFERENCES "branches"("id", "tenant_id") ON DELETE CASCADE
 );
---> statement-breakpoint
+
 CREATE INDEX "menu_item_branch_overrides_branch_idx" ON "menu_item_branch_overrides" USING btree ("tenant_id", "branch_id");
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "menu_item_branch_overrides_item_branch_unique" ON "menu_item_branch_overrides" USING btree ("menu_item_id", "branch_id");
---> statement-breakpoint
+

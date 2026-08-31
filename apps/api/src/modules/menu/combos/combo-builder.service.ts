@@ -39,12 +39,6 @@ function validatePolicy(input: ComboBuilderPreviewInput) {
   }
 }
 
-/**
- * H4 preview path. This deliberately reuses PricingPipeline stages 1-3 and
- * the exact C9 stage-4 `priceCombo` function. It contains no independent
- * price arithmetic, so an unsaved preview cannot drift from real combo
- * resolution for the same slot/option selection.
- */
 export async function previewComboConfiguration(
   context: PricingContext,
   input: ComboBuilderPreviewInput,

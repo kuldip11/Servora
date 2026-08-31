@@ -1,7 +1,5 @@
 export const COURSE_LABELS = { 1: "Starter", 2: "Main", 3: "Dessert" } as const;
 
-// Static class strings — Tailwind's JIT compiler can't detect dynamically
-// built class names like `border-${color}`, so this has to be a lookup.
 export const FOOD_TYPE_DOT_CLASSES = {
   VEG: { border: "border-emerald-600", fill: "bg-emerald-600" },
   NON_VEG: { border: "border-red-600", fill: "bg-red-600" },

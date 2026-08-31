@@ -58,10 +58,6 @@ export interface PendingPromotionRedemption {
   discountAmount: number;
 }
 
-/**
- * D3 concurrency gate. The promotion row is locked before counts are read, so
- * concurrent orders for the same promotion serialize and cannot over-redeem.
- */
 export async function assertAndInsertPromotionRedemptions(
   tx: Transaction,
   tenantId: string,
@@ -103,13 +99,6 @@ export async function assertAndInsertPromotionRedemptions(
   }
 }
 
-
-/**
- * Replaces this order's promotion ledger with the authoritative whole-order
- * result. Existing rows are updated in place (so usage count stays one), rows
- * no longer applicable are removed, and new rows are limit-checked while the
- * promotion row is locked.
- */
 export async function assertAndReplacePromotionRedemptions(
   tx: Transaction,
   tenantId: string,

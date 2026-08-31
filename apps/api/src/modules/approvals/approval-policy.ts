@@ -5,16 +5,10 @@ export interface ApprovalValueLine {
   subtotal: string | number;
 }
 
-/** H6 boundary is deliberately strict: exactly at the threshold is allowed. */
 export function isApprovalRequired(value: number, threshold: number | null | undefined) {
   return threshold !== null && threshold !== undefined && value > threshold;
 }
 
-/**
- * Void/comp acts on the complete combo group when a component is selected.
- * Approval must therefore evaluate the exact same affected set, otherwise a
- * cheap component can be used to bypass a threshold on an expensive combo.
- */
 export function approvalAdjustmentValue(
   items: ApprovalValueLine[],
   orderItemId: string,

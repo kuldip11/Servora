@@ -1,10 +1,5 @@
-/**
- * Modifier-groups/tags/allergens service — orchestrates
- * `modifier.repository.ts` and applies the input-shaping rules that used
- * to live inline in the controller: branch resolution on create, splitting
- * the "group fields" from the "options" sub-array on update, and the
- * additionalPrice number->string conversion Drizzle's numeric column needs.
- */
+
+
 import type { AuthContext } from "../../../core/auth";
 import { modifierRepository } from "./modifier.repository";
 import { requirePermission } from "../../../core/auth";
@@ -58,9 +53,6 @@ export interface CreateTagInput {
   color?: string | undefined;
 }
 
-// Convert the wire-shape `additionalPrice: number` into the string format
-// expected by Drizzle's `numeric` column type.
-
 async function assertNoCircularDependency(
   tenantId: string,
   groupId: string,
@@ -106,7 +98,6 @@ function withStringPrice(option: ModifierOptionInput): Omit<ModifierOptionInput,
 }
 
 export const modifierService = {
-  // ─── Modifier Groups ───────────────────────────────────────────────────────
 
   async listGroups(auth: AuthContext) {
     requirePermission(auth, "menu:read");
@@ -117,8 +108,6 @@ export const modifierService = {
     );
   },
 
-  // No explicit branchId in the input -> falls back to whatever branch
-  // context the request was made in, same fallback as categories/items.
   async createGroup(auth: AuthContext, input: CreateModifierGroupInput) {
     requirePermission(auth, "menu:create");
     const branchId = resolveMenuBranch(auth, input.branchId);
@@ -192,9 +181,6 @@ export const modifierService = {
     return group;
   },
 
-  // Keeps deletion idempotent by not raising a not-found error on
-  // delete of a group that's already gone — same as the original
-  // `deleteModifierGroup` route, which never checked the affected row count.
   async deleteGroup(auth: AuthContext, groupId: string) {
     requirePermission(auth, "menu:delete");
     const existing = await modifierRepository.findModifierGroup(
@@ -229,8 +215,6 @@ export const modifierService = {
     return updated;
   },
 
-  // ─── Tags ──────────────────────────────────────────────────────────────────
-
   async listTags(auth: AuthContext) {
     requirePermission(auth, "menu:read");
     return modifierRepository.findTags(auth.tenantId);
@@ -243,14 +227,11 @@ export const modifierService = {
     return created;
   },
 
-  // Same as deleteGroup: deletion is idempotent and does not require a not-found check.
   async deleteTag(auth: AuthContext, tagId: string) {
     requirePermission(auth, "menu:delete");
     await modifierRepository.deleteTag(auth.tenantId, tagId);
     await menuChangeLog.record(auth, "TAG", tagId, "DELETED", {});
   },
-
-  // ─── Allergens (fixed, seeded list — no tenant scoping) ────────────────────
 
   async listAllergens() {
     return modifierRepository.findAllergens();

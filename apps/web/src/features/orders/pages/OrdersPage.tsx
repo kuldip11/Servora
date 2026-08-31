@@ -27,60 +27,6 @@ import { useOrdersRealtimeSync } from "../hooks/useOrdersRealtimeSync";
 import { CreateOrderModal } from "../components/CreateOrderModal";
 import type { Order } from "@pos/types";
 
-/**
- * Phase 10 (the design-system contract) migration, done early as
- * Phase 7 Part 2's named exit criterion ("Admin's Orders table...
- * migrated onto DataGrid as a proof-of-concept before this phase is
- * called complete" — see README.md's "Phase 7 detail"). Orders is the
- * plan's own pick for this: richest filtering needs of any Admin list.
- *
- * This migration is scoped to what DataGrid's exit criterion actually
- * asks for — swapping the hand-rolled `<table>` + filter row onto
- * `DataGrid`/`FilterBar`/`Toolbar` — not a chance to add new product
- * behavior. Two things a first pass might reach for were deliberately
- * left out:
- *
- * - **No `selectable`/bulk actions.** There's no existing bulk
- *   operation on orders (no bulk-cancel, bulk-export, etc.) anywhere
- *   in this codebase today. Turning on `DataGrid`'s checkbox column
- *   with nothing for it to drive would just be inert UI — worth
- *   revisiting once/if a real bulk action exists.
- * - **No pagination.** `ordersService.list` (`services/orders.service.ts`)
- *   takes `status`/`type` filters but no `page`/`limit` — the API
- *   returns every matching order in one response, same as before this
- *   migration. `DataGrid`'s `pagination` prop is left unset; adding
- *   client-side pagination on top of an unpaginated API response would
- *   change what "N total orders" means (page-local vs. true total)
- *   without the backend work to back it up. Real pagination here is
- *   backend-and-frontend work together, out of scope for a
- *   component-library migration.
- *
- * **Status color, left as a flagged decision, not resolved silently:**
- * `getOrderStatusColor` (`shared/utils/order-status.ts`) renders `PAID`
- * as brand violet — the exact same "doesn't map onto any of
- * `StatusBadge`'s 5 semantic tones" situation the Phase 3 write-up
- * already flagged for the Waiter App's own order-status badge (see
- * `README.md`'s Phase 3 detail, "Not migrated, on purpose"). Rather
- * than invent a 6th tone or silently recolor `PAID` to `info`/`neutral`
- * here, every *other* status (`OPEN`/`BILL_REQUESTED`/`CLOSED`/
- * `CANCELLED`) migrates onto `StatusBadge` and `PAID` keeps its
- * original raw violet badge markup — same split, same reasoning, same
- * open product decision, now flagged in two places instead of drifting
- * out of sync between them.
- *
- * **Layout note:** this page now wraps its content in `Page`/`Card`
- * (Phase 2) instead of the hand-rolled `<div className="p-6 space-y-6">`
- * every other Admin page (Dashboard, Billing, Branches, Inventory,
- * Menu, Staff, Tables, Settings, OrderDetail) still uses today - Phase
- * 10 (the real Admin-wide migration onto layout primitives) hasn't
- * started. Orders becomes that migration's first real example ahead of
- * schedule, since it's this phase's own exit criterion; the rest of
- * Admin intentionally isn't touched here. `Page`'s `Container size="xl"`
- * wrapping is a close but not pixel-verified match for the old `p-6`'s
- * edge spacing - worth a visual check alongside every other "no dev
- * server in this pass" caveat already on this project.
- */
-
 const STATUS_TONE: Partial<
   Record<string, "info" | "warning" | "neutral" | "danger">
 > = {
@@ -88,7 +34,7 @@ const STATUS_TONE: Partial<
   BILL_REQUESTED: "warning",
   CLOSED: "neutral",
   CANCELLED: "danger",
-  // PAID intentionally omitted — see file-level doc comment.
+
 };
 
 const STATUS_OPTIONS = [
@@ -220,7 +166,7 @@ export function OrdersPage() {
         cell: (row) => {
           const tone = STATUS_TONE[row.status];
           if (!tone) {
-            // PAID — no semantic tone maps onto brand violet, see file-level doc comment.
+
             return (
               <Badge className={getOrderStatusColor(row.status)}>
                 {getOrderStatusLabel(row.status)}

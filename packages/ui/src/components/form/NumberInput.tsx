@@ -21,9 +21,9 @@ export interface NumberInputProps extends Omit<
   min?: number | undefined;
   max?: number | undefined;
   step?: number | undefined;
-  /** Called with a number (never a raw string, and never `NaN`). */
+
   onChange?: (value: number) => void;
-  /** Shows −/+ stepper buttons. @default true */
+
   showSteppers?: boolean | undefined;
 }
 
@@ -34,13 +34,6 @@ function clamp(n: number, min?: number, max?: number) {
   return v;
 }
 
-/**
- * Controlled-only numeric field (a raw string mid-edit like `"-"` or
- * `"3."` doesn't have a valid `number` value to report, so an
- * uncontrolled mode would have nothing meaningful to default to).
- * Steppers are keyboard-operable buttons, not decorative — screen
- * readers announce them via their `aria-label`.
- */
 export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
   (
     {

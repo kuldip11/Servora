@@ -9,9 +9,7 @@ import {
 } from "./table.validator";
 
 export const tablesRouter = new Elysia()
-  // Branch-locked staff see only their own branch's tables. Owner/manager can
-  // switch branches (or view "all") from the server-issued active context — handled by
-  // requireAuthPlugin resolving auth.branchId to null for "all".
+
   .use(requireAuthPlugin())
   .get("/api/tables/", ({ auth }) => tableController.list(auth))
   .post(

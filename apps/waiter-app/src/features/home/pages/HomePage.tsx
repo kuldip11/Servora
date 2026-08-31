@@ -24,15 +24,6 @@ interface Props {
   onSelectOrder: (id: string) => void;
 }
 
-// Phase 11 — `the design-system contract` names this file directly as a reference
-// example ("HomePage/OrderCard are good visual references, just need
-// to move onto shared primitives instead of one-off markup"). The
-// hero banner has no matching `packages/ui` primitive (nothing else in
-// this project renders a full-bleed colored header block like this),
-// so it stays page-specific markup — only its color literals moved
-// onto tokens, same as every Admin sprint's treatment of a
-// deliberately page-specific visual element (e.g. `DashboardPage`'s
-// quick-action tiles).
 export function HomePage({
   waiterName,
   onNewOrder,
@@ -83,7 +74,7 @@ export function HomePage({
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
-      {/* Header */}
+      {            }
       <div className="bg-primary px-5 pt-10 pb-8">
         <p className="text-primary-foreground text-xs font-medium">
           Welcome back
@@ -144,7 +135,7 @@ export function HomePage({
       )}
 
       <div className="px-4 -mt-4 space-y-3 pb-6">
-        {/* New Order CTA */}
+        {                   }
         <Card
           as="button"
           onClick={onNewOrder}
@@ -163,7 +154,7 @@ export function HomePage({
           <ChevronRight className="w-5 h-5 text-text-disabled" />
         </Card>
 
-        {/* Active orders */}
+        {                   }
         {active.length > 0 ? (
           <div>
             <div className="flex items-center justify-between mb-2 px-1">

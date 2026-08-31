@@ -59,16 +59,6 @@ import { redis, closeRedisConnections } from "./lib/redis";
 
 const corsOrigins = env.CORS_ORIGIN.split(",");
 
-// The route-mounting chain below is long (20+ `.use()` calls across every
-// module router). Elysia's context type accumulates through each `.use()`,
-// and TypeScript's checker hits its recursion limit trying to compute the
-// fully-merged type by the time `app.listen(...)` is evaluated (TS2589,
-// "Type instantiation is excessively deep and possibly infinite"). None of
-// the mounted routers depend on `app`'s own accumulated type — they're
-// already fully-typed standalone Elysia instances — so it's safe to widen
-// the working type to Elysia's public default generic shape at each checkpoint below
-// purely to keep the compiler's bookkeeping bounded; this has no effect on
-// runtime behavior, which is unchanged.
 type WidenedElysia = Elysia;
 
 let app = new Elysia()
@@ -111,7 +101,7 @@ let app = new Elysia()
   .use(rateLimitPlugin())
   .use(requestLoggingPlugin())
   .use(metricsRouter)
-  // Health check
+
   .get("/health", () => ({
     status: "ok",
     timestamp: new Date().toISOString(),
@@ -150,8 +140,6 @@ let app = new Elysia()
     return { status: "ready", checks, timestamp: new Date().toISOString() };
   }) as unknown as WidenedElysia;
 
-// Routers — checkpoint the Elysia type between bounded groups so TypeScript
-// does not attempt to instantiate the complete 40-router intersection at once.
 app = app
   .use(authRouter)
   .use(authMeRouter)
@@ -201,14 +189,13 @@ app = app
   .use(realtimeRouter)
   .use(customerRealtimeRouter) as unknown as WidenedElysia;
 
-// Global error handler
 app = app.onError((context) => {
   const { code, error, set } = context;
   const requestContext =
     "requestContext" in context
       ? (context as unknown as { requestContext?: RequestContext }).requestContext
       : undefined;
-  // Domain/request failures have one authoritative typed error contract.
+
   if (AppError.isAppError(error)) {
     rootLogger.warn(`API Error: ${error.code}`, {
       requestId: requestContext?.requestId,
@@ -243,11 +230,6 @@ app = app.onError((context) => {
     return { success: false, code: "NOT_FOUND", message: "Route not found" };
   }
 
-  // PostgreSQL uniqueness violations are expected domain conflicts, not
-  // internal server errors. This is especially important for tenant-scoped
-  // natural keys such as (tenant_id, branch_name): the database remains the
-  // final authority for concurrent requests, so the API must translate a
-  // 23505 into a stable 409 response.
   if (
     typeof error === "object" &&
     error !== null &&

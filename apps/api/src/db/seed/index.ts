@@ -1,10 +1,4 @@
-/**
- * Development/demo seed entry point.
- *
- * Required application reference data (RBAC roles, permissions, role mappings,
- * and canonical allergens) is installed by SQL migrations. Keep this command
- * and its package script in place for future demo/development data.
- */
+
 
 async function seed() {
   console.log("🌱 Demo seed is currently empty.");

@@ -12,11 +12,6 @@ export function requireOrdersPermission(
   }
 }
 
-/**
- * Orders are branch-owned resources. Tenant-wide memberships may access any
- * branch in their active tenant, while a selected branch narrows even a
- * tenant-wide membership to that branch for request-scoped operations.
- */
 export function assertOrderResourceAccess(
   auth: AuthContext,
   orderBranchId: string,

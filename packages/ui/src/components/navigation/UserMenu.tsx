@@ -5,23 +5,16 @@ import type { MenuEntry } from "../overlay/shared";
 
 export interface UserMenuProps {
   name: string;
-  /** e.g. an email or role, shown as a secondary line when `showDetails` is true. */
+
   detail?: string | undefined;
   avatarUrl?: string | undefined;
   items: MenuEntry[];
-  /** Hide the name/detail text and chevron, showing only the avatar — for a collapsed `Sidebar` or a tight `TopNav`. @default true */
+
   showDetails?: boolean | undefined;
   align?: "start" | "center" | "end" | undefined;
   className?: string | undefined;
 }
 
-/**
- * Account/profile menu (the design-system contract Phase 6) — the
- * plan calls this out as "a natural first user of the new
- * `DropdownMenu`" (Phase 5), so it's a thin composition rather than a
- * new interaction pattern: `items` is exactly `DropdownMenu`'s
- * `MenuEntry[]` shape, unchanged.
- */
 export function UserMenu({
   name,
   detail,

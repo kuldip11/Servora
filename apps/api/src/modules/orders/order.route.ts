@@ -57,7 +57,7 @@ export const ordersRouter = new Elysia()
       ),
     { params: orderIdParams, body: updateOrderStatusBody },
   )
-  // Fire a new round of items to the kitchen for an open tab.
+
   .post(
     "/api/orders/:id/items",
     ({ auth, params, body }) =>

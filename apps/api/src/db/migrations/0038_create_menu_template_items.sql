@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "menu_template_items" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -23,6 +23,6 @@ CREATE TABLE "menu_template_items" (
   "sort_order" integer DEFAULT 0 NOT NULL,
   CONSTRAINT "menu_template_items_template_id_menu_templates_id_fk" FOREIGN KEY ("template_id") REFERENCES "menu_templates"("id") ON DELETE CASCADE
 );
---> statement-breakpoint
+
 CREATE INDEX "menu_template_items_template_idx" ON "menu_template_items" USING btree ("template_id");
---> statement-breakpoint
+

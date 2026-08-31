@@ -21,20 +21,17 @@ import {
 } from "./shared";
 
 export interface AutocompleteProps {
-  /** Currently selected option, or `undefined` for none. Unlike `Combobox`/`SelectMenu`,
-   * the full option isn't guaranteed to be in `options` (the last search may not have
-   * included it), so the selected option itself is passed in rather than just its value. */
+
   value: SelectOption | undefined;
   onChange: (option: SelectOption | undefined) => void;
-  /** Options for the *current* query — typically the last `onSearch` result. */
+
   options: SelectOption[];
-  /** Called with the debounced query on every change; expected to update `options`
-   * (e.g. via a TanStack Query `queryFn`) and toggle `loading` around the request. */
+
   onSearch: (query: string) => void;
   loading?: boolean | undefined;
-  /** @default 300 */
+
   debounceMs?: number | undefined;
-  /** Minimum characters before `onSearch` fires. @default 1 */
+
   minChars?: number | undefined;
   label?: string | undefined;
   placeholder?: string | undefined;
@@ -47,18 +44,6 @@ export interface AutocompleteProps {
   maxListHeight?: number | undefined;
 }
 
-/**
- * Async, debounced search-select — for option lists too large or too
- * dynamic to hand to `Combobox` as a fixed array (e.g. searching staff
- * across a tenant, or a menu-item lookup hitting the API per keystroke).
- * The caller owns fetching: `Autocomplete` only debounces the query and
- * renders whatever `options`/`loading` it's given, the same
- * controlled-from-outside shape `TextInput`'s `loading` prop already
- * uses elsewhere in this package.
- *
- * Same Popover + virtualized-listbox foundation as the other three
- * Phase 4 components (`selection/shared.tsx`).
- */
 export function Autocomplete({
   value,
   onChange,
@@ -86,8 +71,6 @@ export function Autocomplete({
   const inputRef = useRef<HTMLInputElement>(null);
   const lastSearchedRef = useRef<string | null>(null);
 
-  // Opening an autocomplete with an already-selected label must not issue a
-  // synthetic search. Searches are driven by user-entered query changes.
   useEffect(() => {
     if (open) lastSearchedRef.current = value?.label ?? "";
   }, [open]);
@@ -98,16 +81,13 @@ export function Autocomplete({
     if (lastSearchedRef.current === debouncedQuery) return;
     lastSearchedRef.current = debouncedQuery;
     onSearch(debouncedQuery);
-    // onSearch identity isn't assumed stable; callers are expected to memoize it
+
   }, [debouncedQuery, open, minChars]);
 
   useEffect(() => {
     if (!open) setQuery(value?.label ?? "");
   }, [value, open]);
 
-  // Do not expose stale results while the user has typed fewer than the minimum
-  // required characters. The caller's previous results can otherwise make the
-  // dropdown show options instead of the explicit minimum-character guidance.
   const belowMinChars = query.length > 0 && query.length < minChars;
   const rows = buildRows(belowMinChars ? [] : options);
 
@@ -145,11 +125,7 @@ export function Autocomplete({
   };
 
   const handleBlur = () => {
-    // Closing is enough here. The controlled value is synchronized by the
-    // effect above once the popover is actually closed. Resetting the query
-    // inside the blur timer races with userEvent/portal focus transitions and
-    // can restore the selected label in the middle of a new search (for
-    // example, `b` becoming `Appleb`).
+
     window.setTimeout(() => {
       setOpen(false);
     }, 120);

@@ -11,12 +11,9 @@ import {
   tagIdParams,
 } from "./modifier.validator";
 
-// Modifier, tag, and allergen endpoints share the `/api/menu` namespace
-// and use the shared menu authorization boundary.
 export const menuModifiersRouter = new Elysia({ prefix: "/api/menu" })
   .use(requireAuthPlugin())
 
-  // ─── Modifier Groups ───────────────────────────────────────────────────────
   .get("/modifier-groups", ({ auth }) => modifierController.listGroups(auth))
   .post(
     "/modifier-groups",
@@ -32,8 +29,7 @@ export const menuModifiersRouter = new Elysia({ prefix: "/api/menu" })
       modifierController.updateGroup(auth, params.id, body),
     { params: modifierGroupIdParams, body: updateModifierGroupBody },
   )
-  // Delete rather than deactivate; referenced-item protection is not part of
-  // this endpoint contract.
+
   .delete(
     "/modifier-groups/:id",
     ({ auth, params }) => modifierController.deleteGroup(auth, params.id),
@@ -52,7 +48,6 @@ export const menuModifiersRouter = new Elysia({ prefix: "/api/menu" })
     { params: modifierOptionIdParams, body: setOptionAvailabilityBody },
   )
 
-  // ─── Tags ──────────────────────────────────────────────────────────────────
   .get("/tags", ({ auth }) => modifierController.listTags(auth))
   .post(
     "/tags",
@@ -70,5 +65,4 @@ export const menuModifiersRouter = new Elysia({ prefix: "/api/menu" })
     },
   )
 
-  // ─── Allergens (fixed, seeded list — read only) ────────────────────────────
   .get("/allergens", ({ auth }) => modifierController.listAllergens(auth));

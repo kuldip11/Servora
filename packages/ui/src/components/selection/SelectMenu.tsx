@@ -25,7 +25,7 @@ export interface SelectMenuProps {
   value: string | undefined;
   onChange: (value: string) => void;
   label?: string | undefined;
-  /** Accessible name used when the visible field label is omitted. */
+
   "aria-label"?: string | undefined;
   placeholder?: string | undefined;
   hint?: string | undefined;
@@ -34,37 +34,10 @@ export interface SelectMenuProps {
   disabled?: boolean | undefined;
   id?: string | undefined;
   className?: string | undefined;
-  /** Max height of the open listbox before it scrolls. @default 320 */
+
   maxListHeight?: number | undefined;
 }
 
-/**
- * Single-select dropdown — the plan's canonical "Select" for Phase 4
- * (the design-system contract), built on `@radix-ui/react-popover`
- * (see `selection/shared.tsx`'s doc comment for why Popover instead of
- * Radix's own `Select`). Virtualized: 10,000+ options scroll smoothly,
- * per this phase's exit criteria. Supports grouped options (`group` on
- * `SelectOption`), icons/avatars per option (`icon`/`media`), and
- * type-to-jump like a native `<select>`.
- *
- * **Deliberately not named `Select`, and not exported under that
- * name.** `@pos/ui` already exports a `Select`
- * (`components/Select.tsx`, wraps a native `<select>`) that 12 files
- * across `apps/web` depend on today via `options`/`value`/
- * `onChange={(e) => e.target.value}` — a native-event-shaped API this
- * component's `onChange(value: string)` isn't compatible with.
- * `Button`/`Input` could be "upgraded in place" in Phase 3 because
- * their DOM-event API didn't change; a Popover-backed listbox's
- * interaction model is a genuine break — exactly what
- * `the design-system audit`'s migration map flags with
- * "every call site should be re-tested... not just the visuals." That
- * re-test is real work across 12 files, best done as its own pass
- * (Phase 10-12's app migrations), not folded silently into this
- * component-library phase — so the old `Select` keeps its name and
- * behavior untouched, and this ships as `SelectMenu` until that
- * migration is scheduled explicitly. See `the design-system guidance`'s
- * Phase 4 section for the full decision record.
- */
 export function SelectMenu({
   options,
   value,
@@ -106,7 +79,7 @@ export function SelectMenu({
       (r) => r.kind === "option" && r.option.value === value,
     );
     if (selectedRow >= 0) setActiveRowIndex(selectedRow);
-    // re-sync the highlighted row to the current value every time the popover opens
+
   }, [open]);
 
   const handleTriggerKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {

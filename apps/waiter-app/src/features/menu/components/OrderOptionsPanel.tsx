@@ -30,7 +30,6 @@ interface Props {
   onPerCoverPriceRuleChange: (id: string) => void;
 }
 
-// Order context controls for fulfillment type, table, customer, and billing.
 export function OrderOptionsPanel({
   availableOrderTypes,
   orderType,
@@ -59,7 +58,7 @@ export function OrderOptionsPanel({
 }: Props) {
   return (
     <div className="bg-surface border-b border-border px-4 py-3 space-y-3">
-      {/* Type toggle */}
+      {                 }
       <div className="flex gap-2">
         {availableOrderTypes.map(({ value: t, label }) => (
           <button
@@ -82,7 +81,7 @@ export function OrderOptionsPanel({
         </p>
       )}
 
-      {/* Table */}
+      {           }
       {orderType === "DINE_IN" &&
         tablesEnabled &&
         tables &&
@@ -125,7 +124,7 @@ export function OrderOptionsPanel({
           </p>
         )}
 
-      {/* Customer */}
+      {              }
       <div className="flex items-center gap-2">
         <UserCircle className="w-4 h-4 text-text-disabled flex-shrink-0" />
         {customerId ? (
@@ -169,7 +168,7 @@ export function OrderOptionsPanel({
         )}
       </div>
 
-      {/* Explicit group-pricing context and buffet billing mode. */}
+      {                                                             }
       <div className="grid gap-2 md:grid-cols-2">
         <label className="text-xs font-medium text-text-secondary">
           Customer group pricing

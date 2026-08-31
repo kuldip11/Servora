@@ -2,25 +2,12 @@ import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 import { cn } from "../../utils/cn";
 import { IconButton } from "../IconButton";
 
-/**
- * Phase 7 (Part 1) — `Pagination`. Controlled-only (`page`/`onPageChange`),
- * matching every other controlled component in this package rather than
- * the `Table`/`Sidebar` controlled-with-fallback pattern — pagination state
- * is almost always driven by a query param or a data-fetching hook already
- * holding it, so there's no real "uncontrolled" use case the way a UI-only
- * concern like sort or sidebar-collapse has.
- *
- * `page` is 1-indexed throughout this component's public API (matches how
- * page numbers are actually displayed — `page={1}` is the first page, not
- * `page={0}`), even though most pagination *libraries* default to 0-indexed.
- */
-
 export interface PaginationProps {
-  /** 1-indexed current page. */
+
   page: number;
   pageCount: number;
   onPageChange: (page: number) => void;
-  /** Total row count, for the "Showing X–Y of Z" caption. Omit to hide the caption. */
+
   totalItems?: number | undefined;
   pageSize?: number | undefined;
   onPageSizeChange?: ((pageSize: number) => void) | undefined;
@@ -28,8 +15,6 @@ export interface PaginationProps {
   className?: string | undefined;
 }
 
-/** Builds a windowed page list with `'ellipsis'` gaps: always shows the first
- * and last page, the current page, and one neighbor on each side. */
 function buildPageWindow(
   page: number,
   pageCount: number,

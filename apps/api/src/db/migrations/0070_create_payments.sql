@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "payments" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -16,8 +16,8 @@ CREATE TABLE "payments" (
   CONSTRAINT "payments_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "orders"("id") ON DELETE CASCADE,
   CONSTRAINT "payments_bill_id_bills_id_fk" FOREIGN KEY ("bill_id") REFERENCES "bills"("id")
 );
---> statement-breakpoint
+
 CREATE INDEX "payments_order_idx" ON "payments" USING btree ("order_id");
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "payments_gateway_payment_id_unique" ON "payments" USING btree ("gateway_payment_id") WHERE "gateway_payment_id" IS NOT NULL;
---> statement-breakpoint
+

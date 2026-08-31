@@ -1,4 +1,4 @@
-/** Persistence operations for menu items. */
+
 import { eq, and, isNull, or, inArray, asc } from "drizzle-orm";
 import type { FoodType, MenuItemStatus, SpiceLevel } from "@pos/types";
 import { db } from "../../../db";
@@ -21,15 +21,6 @@ import {
   withEffectiveModifierAvailability,
 } from "../availability/availability-view";
 
-// Full relation tree for a menu item — used wherever the frontend needs to
-// render/edit everything about an item (order-time resolution just needs
-// the pricing bits, see orders/order-pricing.ts / order.service.ts, which
-// call availabilityRepository.findByIds separately).
-//
-// Exported (not just used internally) because `categories/category.repository.ts`
-// needs the exact same shape for its nested `menuItems` join — better to
-// share one definition than maintain a third copy alongside this one and
-// the item repository remains the single data-access boundary for this query.
 type MenuItemDetailRelations = NonNullable<NonNullable<Parameters<typeof db.query.menuItems.findFirst>[0]>["with"]>;
 
 export const ITEM_DETAIL_RELATIONS = {
@@ -290,15 +281,6 @@ export const itemRepository = {
     return updated ? withEffectiveMenuItemAvailability(updated) : undefined;
   },
 
-  // Copies the item plus variants/tags/allergens/modifier-group links
-  // (always — cheap and near-always wanted), and optionally
-  // recipes/schedules (opt-in, since those represent decisions specific
-  // to the original item). Never copies sales, inventory deductions, or
-  // order history — a duplicate is a brand-new item with no history.
-  //
-  // Returns `undefined` (rather than throwing) when the source item
-  // doesn't exist, so the service layer decides how to surface that —
-  // same convention as every other migrated module's repository.
   async duplicate(
     tenantId: string,
     itemId: string,
@@ -351,7 +333,7 @@ export const itemRepository = {
           taxMode: source.taxMode,
           foodType: source.foodType,
           spiceLevel: source.spiceLevel,
-          sku: null, // SKUs are meant to be unique — never duplicate one verbatim
+          sku: null,
           prepTimeMinutes: source.prepTimeMinutes,
           sortOrder: source.sortOrder,
           hsnCode: source.hsnCode,
@@ -490,8 +472,6 @@ export const itemRepository = {
     return items.map(withItemReadModel);
   },
 
-  // Full replace of an item's tag/allergen/modifier-group/image links — the
-  // edit form always sends the complete desired set, simpler than diffing.
   async setTags(tenantId: string, itemId: string, tagIds: string[]) {
     const item = await db.query.menuItems.findFirst({
       where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)),
@@ -588,9 +568,6 @@ export const itemRepository = {
     return updated;
   },
 
-  // Unpublishing doesn't touch `status` — an item can go back to draft and
-  // still remember it was e.g. OUT_OF_STOCK, so re-publishing restores the
-  // same availability state rather than resetting it.
   async unpublish(tenantId: string, itemId: string) {
     const [updated] = await db
       .update(menuItems)

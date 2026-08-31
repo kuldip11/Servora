@@ -13,14 +13,6 @@ import {
 import { ForbiddenError } from "../errors";
 import type { Database } from "../../db";
 
-/**
- * Server-authoritative membership authorization.
- *
- * Tenant and branch identifiers supplied by callers are context selectors only;
- * database membership, role, permission, and branch assignments remain the
- * authority for every access decision.
- */
-
 export type AuthorizationContext = {
   userId: string;
   tenantId: string;
@@ -41,8 +33,7 @@ export async function resolveMembership(
   userId: string,
   tenantId: string,
 ) {
-  // A newly registered identity legitimately has no tenant yet. Never pass
-  // an empty tenant selector to PostgreSQL UUID comparisons.
+
   if (!tenantId) return undefined;
 
   return db.query.tenantMemberships.findFirst({

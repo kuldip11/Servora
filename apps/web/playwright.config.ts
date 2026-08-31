@@ -1,13 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
 
-/**
- * Accessibility/runtime verification config.
- *
- * The accessibility suite contains both unauthenticated component-preview
- * fixtures and authenticated product-route fixtures. The authenticated suite
- * seeds auth state and mocks API responses so axe can inspect real application
- * screens without requiring a live backend or seeded database.
- */
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: true,

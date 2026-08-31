@@ -6,9 +6,6 @@ import {
   itemIdParams,
 } from "./recipes.validator";
 
-// Mounted at the shared `/api/menu` base prefix (this sub-domain's routes
-// live under `/items/:id/recipes`. The whole-recipe POST is the single
-// write path used by the current menu editor.
 export const menuRecipesRouter = new Elysia({ prefix: "/api/menu" })
   .use(requireAuthPlugin())
   .get(

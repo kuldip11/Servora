@@ -27,8 +27,7 @@ export function ApprovalThresholdSettingsCard() {
   const queryClient = useQueryClient();
   const queryKey = useMemo(() => ["approval-thresholds"] as const, []);
   const [drafts, setDrafts] = useState<Record<ApprovalAction, ThresholdDraft>>(DEFAULTS);
-  // Tracks which rows the person has started editing so a late-arriving
-  // fetch (or a post-save refetch) never clobbers an in-progress edit.
+
   const touchedRef = useRef<Record<ApprovalAction, boolean>>({ VOID: false, COMP: false });
 
   const { data: thresholds } = useQuery<ThresholdRow[]>({

@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "permissions" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -6,9 +6,7 @@ CREATE TABLE "permissions" (
   "module" varchar(50) NOT NULL,
   "description" text
 );
---> statement-breakpoint
 
--- Required RBAC permission catalog for a fresh v1 database.
 INSERT INTO "permissions" ("key", "module", "description") VALUES
   ('analytics:read','analytics','Read analytics'),
   ('audit:read','audit','Read tenant audit logs'),
@@ -64,4 +62,4 @@ INSERT INTO "permissions" ("key", "module", "description") VALUES
   ('tenant:manage_members','tenant','Manage tenant membership'),
   ('tenant:read','tenant','Read tenant data'),
   ('tenant:update','tenant','Update tenant settings');
---> statement-breakpoint
+

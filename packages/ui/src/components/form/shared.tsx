@@ -1,18 +1,6 @@
 import { type ReactNode, useId } from "react";
 import { cn } from "../../utils/cn";
 
-/**
- * Shared building blocks for every Phase 3 form input
- * (the design-system contract). Each input owns its own root markup
- * (they render very differently — segmented OTP boxes vs. a single
- * `<input>` vs. a `<textarea>`) but they all share the same label +
- * hint/error + char-count chrome and the same aria-describedby wiring.
- * Pulling that into one place means fixing an a11y bug here fixes it
- * for all seven inputs at once — same reasoning as `Modal` being the
- * single highest-leverage a11y fix per docs/frontend/COMPONENT_GUIDE.md.
- */
-
-/** Stable field id (respects an explicit `id` prop) + the hint/error ids derived from it. */
 export function useFieldIds(idProp?: string) {
   const autoId = useId();
   const fieldId = idProp ?? autoId;
@@ -23,7 +11,6 @@ export function useFieldIds(idProp?: string) {
   };
 }
 
-/** `aria-describedby` should point at the error when present, else the hint, else nothing. */
 export function describedBy(
   hintId: string,
   errorId: string,
@@ -107,7 +94,6 @@ export function FieldFooter({
   );
 }
 
-/** Base chrome shared by every single-line/multi-line text-entry field. */
 export function fieldBaseClasses(hasError: boolean) {
   return cn(
     "block w-full text-sm text-text-primary bg-surface border rounded-md",

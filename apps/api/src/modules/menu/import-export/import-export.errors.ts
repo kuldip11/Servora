@@ -1,4 +1,4 @@
-/** Shared typed errors for menu import/export validation failures. */
+
 import { ValidationError, DomainRuleError } from "../../../core/errors";
 import type { RowError } from "./menu-import-parser";
 

@@ -208,13 +208,6 @@ export function BillingPage() {
     );
   }
 
-  // Sort matches what was actually sortable on any other Phase 10 page so far
-  // (StaffPage/InventoryPage): the one or two columns a reasonable person
-  // would actually want to reorder by, not every column. Total is the
-  // natural default here (that's *why* someone's on this page — biggest
-  // outstanding tab first); Time gives the other common ordering (oldest
-  // bill request first). Order/Type/Items weren't sortable before and
-  // aren't made sortable now.
   const columns: Column<Order>[] = [
     {
       id: "order",
@@ -295,7 +288,7 @@ export function BillingPage() {
         />
       </Card>
 
-      {/* Payment Modal */}
+      {                   }
       <Modal
         open={!!payModal}
         onClose={() => setPayModal(null)}

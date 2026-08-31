@@ -19,11 +19,6 @@ const JWT_EXPIRES_IN = (process.env["JWT_EXPIRES_IN"] ?? "15m") as NonNullable<
   SignOptions["expiresIn"]
 >;
 
-/**
- * Authentication identity only. Franchise/branch are deliberately absent.
- * They are request context selectors and are resolved server-side on every
- * request against the authenticated user's current access.
- */
 export interface JwtPayload {
   sub: string;
   email: string;

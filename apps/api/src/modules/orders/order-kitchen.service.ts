@@ -62,12 +62,7 @@ export const orderKitchenService = {
         ? { customerGroupId: order.customerGroupId }
         : {}),
     };
-    // Re-fire is a new preparation instance of the historical line, not a
-    // brand-new menu selection. Preserve the original authoritative stage-4
-    // snapshot (especially combo allocation/group identity) and refresh only
-    // fire-time routing/version snapshots. This prevents a combo component
-    // from being repriced as a standalone dish while still honoring current
-    // station routing for the new kitchen instance.
+
     const storedSource = storedOrderLineToStage4Snapshot(
       original as StoredOrderLineForRepricing,
     );

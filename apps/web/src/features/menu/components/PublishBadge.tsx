@@ -1,7 +1,7 @@
 import { Badge } from "@pos/ui";
 
 export function PublishBadge({ isPublished }: { isPublished: boolean }) {
-  if (isPublished) return null; // published is the default, unremarkable state — only flag drafts
+  if (isPublished) return null;
   return (
     <Badge
       variant="default"

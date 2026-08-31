@@ -207,9 +207,6 @@ async function installApi(page: Page) {
       return json(route, created, 201);
     }
 
-    // Dashboard and layout queries not relevant to this critical path may
-    // safely receive empty data. Any required endpoint above has an explicit
-    // handler so the order flow cannot pass by accidentally relying on this.
     return json(route, []);
   });
 

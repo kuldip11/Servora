@@ -1,8 +1,5 @@
-/**
- * Menu availability controller — thin handlers only. Auth comes from
- * `requireAuthPlugin` (applied in `availability.route.ts`); business
- * rules live in `availability.service.ts`.
- */
+
+
 import type { AuthContext } from "../../../core/auth";
 import { successResponse, createdResponse } from "../../../core/response";
 import { requirePermission } from "../../../core/auth";

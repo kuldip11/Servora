@@ -1,8 +1,5 @@
-/**
- * Menu bulk-operations controller — thin handlers only. Auth/branch
- * resolution comes from `requireAuthPlugin` (applied in `bulk-ops.route.ts`);
- * orchestration lives in `bulk-ops.service.ts`.
- */
+
+
 import type { MenuItemStatus } from "@pos/types";
 import type { AuthContext } from "../../../core/auth";
 import { successResponse } from "../../../core/response";

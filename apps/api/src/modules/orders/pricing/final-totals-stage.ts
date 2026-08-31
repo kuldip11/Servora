@@ -41,12 +41,6 @@ export function roundTotal(preciseTotal: number, policy: RoundingPolicy) {
   };
 }
 
-/**
- * Stages 7 and 8 are intentionally coupled: a taxable service charge must be
- * folded into the stage-7 tax base, while a non-taxable charge remains a
- * separate stage-8 amount. Inclusive lines back tax out of their charged
- * price; exclusive lines add tax on top.
- */
 export function calculateTaxServiceAndRounding(
   lines: PricedLine[],
   settings: {
@@ -91,7 +85,7 @@ export function calculateTaxServiceAndRounding(
 
   const preciseCents = merchandisePayableCents + serviceChargeCents +
     (settings.serviceChargeTaxable ? serviceAllocations.reduce((sum, amount, index) => {
-      // The tax on service was added to taxCents above but not merchandise payable.
+
       return sum + Math.round(amount * (lines[index]!.taxRate / 100));
     }, 0) : 0);
   const preciseTotal = preciseCents / 100;
@@ -104,7 +98,6 @@ export function calculateTaxServiceAndRounding(
   };
 }
 
-/** Stages 5→9 orchestration, including loyalty, tax mode, service charge and rounding. */
 export async function finalizePricing(
   context: PricingContext,
   lines: PricedLine[],

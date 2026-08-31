@@ -12,7 +12,6 @@ export function requireTablesPermission(
   requirePermission(auth, permission);
 }
 
-/** Resolve a concrete table branch while enforcing membership scope. */
 export function resolveTableBranch(
   auth: AuthContext,
   requestedBranchId?: string | null,
@@ -40,7 +39,6 @@ export function resolveTableBranch(
   return requested;
 }
 
-/** Table rows are branch-owned resources; never trust the row without checking its branch scope. */
 export function assertTableResourceAccess(
   auth: AuthContext,
   resourceBranchId: string | null | undefined,
@@ -55,7 +53,6 @@ export function assertTableResourceAccess(
   }
 }
 
-/** Aggregate table listing is tenant-wide only; branch-scoped members need an active branch. */
 export function assertTableListScope(auth: AuthContext): void {
   if (!auth.branchId && !auth.tenantWide) {
     throw new ForbiddenError("Branch access denied");

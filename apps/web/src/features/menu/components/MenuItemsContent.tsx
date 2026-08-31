@@ -245,25 +245,7 @@ export function MenuItemsContent({
                       return (
                         <div
                           key={item.id}
-                          // Keyboard-operable, same tabIndex+Enter/Space
-                          // pattern as the DataGrid row fix (Phase 9,
-                          // see the design-system guidance) — kept
-                          // deliberately minimal rather than a full
-                          // rewrite to a native `<button>`, because this
-                          // card also contains four real `<IconButton>`s
-                          // (publish/availability/duplicate/delete
-                          // below); a `<button>` can't legally nest
-                          // other buttons. `role="button"` + `tabIndex`
-                          // is the documented trade-off, not an
-                          // oversight — flagged as a known limitation in
-                          // docs/accessibility/README.md: some screen
-                          // readers announce "button" nested inside
-                          // "button" awkwardly. A cleaner fix (e.g.
-                          // making just the item name a real focusable
-                          // element and leaving the rest of the card
-                          // inert) is a real UI change, out of scope for
-                          // an accessibility-only pass — left for a
-                          // follow-up.
+
                           role="button"
                           tabIndex={0}
                           aria-pressed={selectMode ? isSelected : undefined}
@@ -305,19 +287,7 @@ export function MenuItemsContent({
                                 )}
                             </div>
                             {!selectMode && (
-                              /*
-                                Not an interactive element itself — this
-                                div exists only to stop clicks/keydowns
-                                from bubbling to the card's own
-                                onClick/onKeyDown (above). Without this,
-                                pressing Enter/Space on one of the 4
-                                IconButtons below would activate it AND
-                                bubble up to re-trigger the card
-                                (open-edit / toggle-select). The 4
-                                IconButtons themselves are the real
-                                interactive controls and are each
-                                independently keyboard-reachable.
-                              */
+
                               // eslint-disable-next-line jsx-a11y/no-static-element-interactions
                               <div
                                 className="flex items-center gap-0.5"

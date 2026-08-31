@@ -1,36 +1,13 @@
 import { cn } from "../../utils/cn";
 import { CELL_PADDING, type TableDensity } from "./shared";
 
-/**
- * Phase 7 (Part 1) — Skeleton loading primitives. `Skeleton` is the base
- * shimmering rectangle; `SkeletonText`/`SkeletonTable`/`SkeletonCard` are
- * composed shapes for the loading states this phase's other components
- * need (`Table`'s `loading` prop renders `SkeletonTable` internally —
- * see `Table.tsx` — rather than duplicating this row markup there).
- *
- * Motion contract replaces plain `animate-pulse` to
- * carry with a real shimmer-sweep: a `before:` pseudo-element (a
- * semi-transparent gradient band) translated across the placeholder via
- * the `shimmer` keyframe defined in `tailwind-preset.js`. `overflow-hidden`
- * on the base element clips the band to the skeleton's own shape —
- * without it, the band would visibly spill past rounded corners on `radius`
- * values other than the default. `via-white/20` is a light highlight band
- * regardless of `data-theme` — deliberately not theme-conditional, since
- * this project's `dark`/`high-contrast` themes are chosen via the
- * `data-theme` attribute rather than Tailwind's `dark:` class strategy, so
- * a `dark:` variant class here would silently never apply; a light sweep
- * reads fine as a highlight against both light and dark base surfaces,
- * the same convention most skeleton-loader implementations converge on
- * regardless of their own theme model.
- */
-
 export interface SkeletonProps {
   className?: string | undefined;
-  /** @default '1rem' */
+
   height?: string | undefined;
-  /** @default '100%' */
+
   width?: string | undefined;
-  /** @default 'md' — matches most text/badge corners; use 'full' for avatars. */
+
   radius?: "sm" | "md" | "lg" | "full" | undefined;
 }
 
@@ -63,9 +40,9 @@ export function Skeleton({
 }
 
 export interface SkeletonTextProps {
-  /** Number of lines. @default 1 */
+
   lines?: number | undefined;
-  /** Width of the last line, so a multi-line block doesn't look like a solid bar. @default '60%' */
+
   lastLineWidth?: string | undefined;
   className?: string | undefined;
 }
@@ -90,7 +67,7 @@ export function SkeletonText({
 
 export interface SkeletonCardProps {
   className?: string | undefined;
-  /** Renders a leading avatar-shaped block above the text lines. @default false */
+
   withMedia?: boolean | undefined;
 }
 
@@ -118,13 +95,6 @@ export interface SkeletonTableProps {
   className?: string | undefined;
 }
 
-/**
- * Row/column-shaped skeleton, sized to roughly match a real `Table` row so the
- * loading→loaded transition doesn't visibly reflow. Shared by `Table`'s
- * `loading` prop and available standalone for any other data-fetch-in-progress
- * surface that isn't built on `Table` (e.g. a card grid that wants a table-like
- * loading placeholder before its first real render decides the layout).
- */
 export function SkeletonTable({
   rows = 5,
   columns = 4,

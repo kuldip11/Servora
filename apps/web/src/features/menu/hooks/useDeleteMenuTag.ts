@@ -7,8 +7,7 @@ export function useDeleteMenuTag() {
   return useMutation({
     mutationFn: (id: string) => menuTagsService.remove(id),
     onSuccess: () => {
-      // Items embed their tags, so a deleted tag can also change how
-      // categories render — invalidate both.
+
       queryClient.invalidateQueries({ queryKey: menuKeys.tags() });
       queryClient.invalidateQueries({ queryKey: menuKeys.categories() });
     },

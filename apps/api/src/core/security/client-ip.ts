@@ -1,4 +1,4 @@
-/** Resolve the client address without trusting spoofable forwarding headers by default. */
+
 export function resolveClientIp(
   headers: Record<string, string | undefined>,
   directIp: string | undefined,

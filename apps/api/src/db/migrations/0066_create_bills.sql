@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "bills" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -14,4 +14,4 @@ CREATE TABLE "bills" (
   "created_at" timestamp DEFAULT now() NOT NULL,
   CONSTRAINT "bills_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "orders"("id") ON DELETE CASCADE
 );
---> statement-breakpoint
+

@@ -11,28 +11,16 @@ export interface TabItem {
 
 export interface TabsProps {
   items: TabItem[];
-  /** Controlled active tab. Pair with `onValueChange`. */
+
   value?: string | undefined;
-  /** Uncontrolled initial tab, ignored once `value` is passed. */
+
   defaultValue?: string | undefined;
   onValueChange?: ((value: string) => void) | undefined;
   className?: string | undefined;
-  /** Accessible name for the tab list, read by screen readers before each
-   * tab (e.g. "Menu sections, tab list"). @default 'Tabs' — kept generic
-   * so an unlabeled `Tabs` still has *some* name rather than none, but a
-   * page with more than one `Tabs` (or where "Tabs" doesn't say what
-   * they're for) should pass something specific. */
+
   "aria-label"?: string | undefined;
 }
 
-/**
- * Declarative `items: TabItem[]` API (same shape convention as
- * `DropdownMenu`'s `items`, Phase 5) around
- * `@radix-ui/react-tabs` — same Radix-everywhere approach as every
- * other Phase 4/5/6 component. Radix gives roving-tabindex keyboard
- * nav (arrow keys move focus + selection between tabs, Home/End jump
- * to the first/last) for free.
- */
 export function Tabs({
   items,
   value,

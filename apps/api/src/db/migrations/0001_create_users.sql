@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "users" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -13,8 +13,8 @@ CREATE TABLE "users" (
   "created_at" timestamp DEFAULT now() NOT NULL,
   "updated_at" timestamp DEFAULT now() NOT NULL
 );
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "users_email_lower_unique" ON "users" USING btree (lower("email")) WHERE "deleted_at" IS NULL;
---> statement-breakpoint
+
 CREATE INDEX "users_locked_until_idx" ON "users" USING btree ("locked_until");
---> statement-breakpoint
+

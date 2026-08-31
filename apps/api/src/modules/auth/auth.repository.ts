@@ -1,8 +1,5 @@
 import type { RoleName } from "@pos/types";
-/**
- * Auth repository — data access only. Password hashing, token issuing,
- * and business rules live in `auth.service.ts`.
- */
+
 import { eq, and, isNull, gt, lt } from "drizzle-orm";
 import { db } from "../../db";
 import { ServiceUnavailableError } from "../../core/errors";

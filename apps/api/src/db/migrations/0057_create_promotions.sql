@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "promotions" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -38,8 +38,8 @@ CREATE TABLE "promotions" (
   CONSTRAINT "promotions_reward_menu_item_id_menu_items_id_fk" FOREIGN KEY ("reward_menu_item_id") REFERENCES "menu_items"("id") ON DELETE CASCADE,
   CONSTRAINT "promotions_reward_category_id_menu_categories_id_fk" FOREIGN KEY ("reward_category_id") REFERENCES "menu_categories"("id") ON DELETE CASCADE
 );
---> statement-breakpoint
+
 CREATE INDEX "promotions_tenant_active_idx" ON "promotions" USING btree ("tenant_id", "is_active");
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "promotions_tenant_coupon_unique" ON "promotions" USING btree ("tenant_id", "coupon_code");
---> statement-breakpoint
+

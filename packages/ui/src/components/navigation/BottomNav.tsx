@@ -6,29 +6,6 @@ export interface BottomNavProps {
   className?: string | undefined;
 }
 
-/**
- * Mobile bottom tab bar (the design-system contract Phase 6) — the
- * Waiter App's primary navigation pattern per the plan's Phase 11 note.
- * Slots into `AppShell`'s `bottombar` prop, which already applies the
- * safe-area bottom padding — this component only lays out the tab row
- * itself.
- *
- * Unlike `Sidebar`/`TopNav`, every item always shows both icon and
- * label (no collapsed/icon-only mode) — that's the standard mobile tab
- * bar convention and there's no room to abbreviate further at this
- * size, so unlike `Sidebar` there's no `Tooltip` fallback needed here.
- *
- * **No built-in responsive hiding (Session 12, docs/accessibility):**
- * this component doesn't apply its own breakpoint — pass one via
- * `className` (e.g. the existing `NavigationPreviewPage.tsx` example
- * uses `className="lg:hidden"`) matching whatever screens should show
- * the bottom bar instead of `TopNav`'s `items`. **If used alongside a
- * `TopNav` that has `items`, that breakpoint must match `TopNav`'s
- * inner nav's `hidden md:flex` exactly (i.e. use `md:hidden` here, not
- * a different one)** — see the matching note in `TopNav.tsx` for why a
- * mismatch creates a real, ambiguous double-landmark gap at whatever
- * viewport width sits between the two breakpoints.
- */
 export function BottomNav({ items, className }: BottomNavProps) {
   return (
     <nav aria-label="Primary" className={cn("flex items-stretch", className)}>

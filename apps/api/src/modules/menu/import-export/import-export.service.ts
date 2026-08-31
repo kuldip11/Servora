@@ -1,9 +1,5 @@
-/**
- * Menu import/export service — orchestrates `import-export.repository.ts`
- * (DB reads/writes) and the pure, DB-free `menu-import-parser.ts`
- * (row parsing/validation), the same split `orders/order-pricing.ts`
- * established between DB access and pure business rules.
- */
+
+
 import * as XLSX from "xlsx";
 import type { AuthContext } from "../../../core/auth";
 import { importExportRepository } from "./import-export.repository";
@@ -26,10 +22,6 @@ import { menuChangeLog } from "../change-log/menu-change-log";
 
 export type ExportFormat = "csv" | "xlsx";
 
-// Flat, spreadsheet-friendly row shapes — deliberately not the nested
-// relation trees the rest of the menu module uses internally, since these
-// are meant to open cleanly in Excel/Sheets and (for items) double as the
-// column shape the importer validates against.
 function toSheet(
   rows: Record<string, unknown>[],
   format: ExportFormat,
@@ -52,7 +44,6 @@ function toSheet(
 }
 
 export const importExportService = {
-  // ─── Export ────────────────────────────────────────────────────────────
 
   async exportItems(
     auth: AuthContext,
@@ -148,8 +139,6 @@ export const importExportService = {
     return toSheet(rows, format);
   },
 
-  // ─── Import ────────────────────────────────────────────────────────────
-
   parseFile,
   buildTemplate,
 
@@ -162,10 +151,6 @@ export const importExportService = {
     return parseFile(buffer, file.name);
   },
 
-  // Pure validation — writes nothing. Loads the tenant's categories and
-  // existing item SKUs, hands them to the pure `validateRows`, and returns
-  // a preview of what each row will do (insert/update) plus per-row
-  // errors.
   async validateItemsImport(
     auth: AuthContext,
     rows: ImportItemRow[],
@@ -194,8 +179,6 @@ export const importExportService = {
     return validateRows(rows, categoryByName, existingItemIds, skuToItemId);
   },
 
-  // Re-validates (data may have changed between preview and commit) then
-  // writes everything in one transaction via the repository.
   async commitItemsImport(
     auth: AuthContext,
     rows: ImportItemRow[],

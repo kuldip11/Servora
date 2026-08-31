@@ -1,7 +1,5 @@
-/**
- * Branch application service: capability validation, active-order guards,
- * authorization, audit logging, and branch lifecycle orchestration.
- */
+
+
 import { requirePermission } from "../../core/auth";
 import type { AuthContext } from "../../core/auth";
 import { branchRepository } from "./branch.repository";
@@ -81,9 +79,7 @@ const CAPABILITY_FIELDS = [
 ] as const;
 
 export const branchService = {
-  // Branch-locked staff → only their own branch. Owner/manager → all
-  // branches, or one specific branch from the server-issued active context (already resolved
-  // into auth.branchId by requireAuthPlugin).
+
   async list(auth: AuthContext) {
     requirePermission(auth, "branch:read");
     return branchRepository.findMany(
@@ -170,8 +166,6 @@ export const branchService = {
       const existing = await branchRepository.findById(auth.tenantId, branchId);
       if (!existing) throw branchNotFound(branchId);
 
-      // Merge the patch onto current values so we validate the resulting
-      // state, not just the fields that happen to be in this request.
       const merged = {
         dineInEnabled: changes.dineInEnabled ?? existing.dineInEnabled,
         takeawayEnabled: changes.takeawayEnabled ?? existing.takeawayEnabled,
@@ -182,9 +176,6 @@ export const branchService = {
 
       assertCapabilityProfile(merged);
 
-      // Don't let dine-in get switched off while there are open dine-in
-      // orders still running on this branch — same reasoning as the
-      // "can't delete a table with an active order" guard.
       if (changes.dineInEnabled === false && existing.dineInEnabled) {
         const hasOpenDineIn = await branchRepository.hasOpenOrdersOfType(
           auth.tenantId,
@@ -215,8 +206,6 @@ export const branchService = {
     return updated;
   },
 
-  // Soft-delete (deactivate) — not a hard delete, mirrors the original
-  // endpoint's behavior of flipping isActive rather than removing the row.
   async getTakeawayQr(auth: AuthContext, branchId: string) {
     requirePermission(auth, "branch:read");
     if (

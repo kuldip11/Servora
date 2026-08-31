@@ -1,4 +1,4 @@
-/** Persistence operations for modifier groups and options. */
+
 import { eq, and, isNull, or, asc, inArray } from "drizzle-orm";
 import { db } from "../../../db";
 import { ValidationError } from "../../../core/errors";
@@ -16,7 +16,6 @@ import { compact } from "../../../lib/object-utils";
 import { withEffectiveModifierAvailability } from "../availability/availability-view";
 
 export const modifierRepository = {
-  // ─── Modifier Groups ───────────────────────────────────────────────────────
 
   async findModifierGroups(tenantId: string, branchId?: string) {
     const groups = await db.query.modifierGroups.findMany({
@@ -48,11 +47,6 @@ export const modifierRepository = {
     });
   },
 
-  /**
-   * Validates modifier-group references before they are attached to a menu item.
-   * A group may be shared across branches (NULL branchId), but a branch-scoped
-   * group can only be attached to an item in that same branch.
-   */
   async findOwnedModifierGroupIds(
     tenantId: string,
     branchId: string | null,
@@ -177,9 +171,6 @@ export const modifierRepository = {
       );
   },
 
-  // Reconcile a group's submitted option set without replacing stable option
-  // IDs. E1 recipe rows can FK to modifier_options, so delete-and-reinsert would
-  // cascade-delete modifier-scoped recipes on an ordinary group edit.
   async setModifierGroupOptions(
     groupId: string,
     options: Array<{
@@ -300,15 +291,13 @@ export const modifierRepository = {
     optionId: string,
     isAvailable: boolean,
   ) {
-    // Scope through the group's tenantId since options don't carry one directly.
+
     const option = await db.query.modifierOptions.findFirst({
       where: eq(modifierOptions.id, optionId),
       with: { group: true },
     });
     if (!option || option.group.tenantId !== tenantId) return null;
-    // `false` is a manual hold. Setting the option back to available clears
-    // that hold and exposes the current computed ingredient signal instead
-    // of forcing availability over an E4 out-of-stock state.
+
     const manualOverrideAvailability = isAvailable ? null : false;
     const effectiveAvailability = isAvailable
       ? option.computedAvailability
@@ -324,8 +313,6 @@ export const modifierRepository = {
       ? { ...withEffectiveModifierAvailability(updated), isAvailable: effectiveAvailability }
       : undefined;
   },
-
-  // ─── Tags ──────────────────────────────────────────────────────────────────
 
   async findTags(tenantId: string) {
     return db.query.menuTags.findMany({
@@ -347,8 +334,6 @@ export const modifierRepository = {
       .delete(menuTags)
       .where(and(eq(menuTags.id, tagId), eq(menuTags.tenantId, tenantId)));
   },
-
-  // ─── Allergens (fixed, seeded list) ────────────────────────────────────────
 
   async findAllergens() {
     return db.query.menuAllergens.findMany({

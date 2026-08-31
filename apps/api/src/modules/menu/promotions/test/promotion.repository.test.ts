@@ -78,9 +78,7 @@ function createPromotionLockHarness() {
                     ).length,
                   },
                 ]).then((rows) => {
-                  // When the limit is already exhausted the production helper
-                  // throws immediately after this count. Release the fake row
-                  // lock here so the harness cannot deadlock after rejection.
+
                   if (rows[0]!.value >= (promotion.maxUsesTotal ?? Infinity)) {
                     release();
                   }

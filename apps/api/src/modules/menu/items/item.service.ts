@@ -1,10 +1,5 @@
-/**
- * Menu item service — orchestrates `item.repository.ts` and applies the
- * item business rules: branch
- * resolution on create, price-to-string conversion for Drizzle's numeric
- * columns, splitting tag/allergen/modifier-group/image links out of the
- * main item patch, and the publish/unpublish role restriction.
- */
+
+
 import type { FoodType, MenuItemStatus, SpiceLevel } from "@pos/types";
 import type { AuthContext } from "../../../core/auth";
 import { requirePermission } from "../../../core/auth";
@@ -241,10 +236,6 @@ export const itemService = {
     return result;
   },
 
-  // Soft-delete is fire-and-forget by design (matches the pre-refactor
-  // endpoint): deleting an item that doesn't exist, or that's already
-  // deleted, is a no-op rather than a 404 — the caller's intent (this item
-  // should not exist) is already satisfied either way.
   async remove(auth: AuthContext, itemId: string): Promise<void> {
     requirePermission(auth, "menu:delete");
     const existing = await itemRepository.findById(auth.tenantId, itemId);
@@ -312,8 +303,6 @@ export const itemService = {
     return item;
   },
 
-  // Shorthand for the common "just toggle it on/off" case — maps to
-  // ACTIVE <-> OUT_OF_STOCK without the caller needing to know the full enum.
   async updateAvailability(
     auth: AuthContext,
     itemId: string,

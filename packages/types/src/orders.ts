@@ -82,7 +82,7 @@ export interface KitchenTicket {
 export interface OrderItem {
   id: string;
   orderId: string;
-  /** Null for combo parent/grouping rows; component rows keep the real menu item id. */
+
   menuItemId: string | null;
   menuItemName: string;
   variantId: string | null;

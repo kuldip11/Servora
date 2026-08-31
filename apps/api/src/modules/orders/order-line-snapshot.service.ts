@@ -11,19 +11,6 @@ export interface OrderLineSnapshotContext {
   asOf: Date;
 }
 
-/**
- * Fire-time snapshot for every real menu-item order line.
- *
- * H1 deliberately captures the exact AvailabilityResolver output here while
- * the same explicit context is still in hand. Point-in-time explanation can
- * therefore prove what the resolver returned without asking today's mutable
- * menu tables to impersonate historical state. Pricing evidence is already
- * persisted on the line by PricingPipeline via pricingAttribution/PRICE_SOURCE.
- *
- * Combo parent/grouping rows intentionally have no menu item/station/version;
- * their child component rows pass through the exact same resolver as any
- * standalone dish.
- */
 export async function snapshotOrderLines(
   tenantId: string,
   lines: PricedLine[],

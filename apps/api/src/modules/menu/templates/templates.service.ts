@@ -1,9 +1,5 @@
-/**
- * Menu templates service — orchestrates `templates.repository.ts` and
- * applies template business rules while the
- * `menu/templates.service.ts`: category ownership checks on create,
- * not-found handling on get/apply/delete.
- */
+
+
 import type { AuthContext } from "../../../core/auth";
 import { templatesRepository } from "./templates.repository";
 import { requirePermission } from "../../../core/auth";
@@ -40,8 +36,6 @@ export const templatesService = {
     );
     if (!category) throw templateCategoryNotFound(categoryId);
 
-    // Branch-exclusive items are skipped — see the schema comment on
-    // menuTemplates for why. Only tenant-wide items are snapshotted.
     const items = await templatesRepository.findTenantWideCategoryItems(
       auth.tenantId,
       categoryId,

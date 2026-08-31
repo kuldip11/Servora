@@ -13,11 +13,7 @@ export function Badge({
   className,
   variant = "default",
 }: BadgeProps) {
-  // Phase 16 token audit — matches `StatusBadge`'s already-established
-  // tone→token mapping (`TONE_CLASSES` in StatusBadge.tsx) exactly, so
-  // the two components agree under dark/high-contrast instead of only
-  // `StatusBadge` repainting correctly while this one stayed pinned to
-  // fixed emerald/amber/red/blue/gray shades.
+
   const variants = {
     default: "bg-surface-secondary text-text-secondary",
     success: "bg-success-surface text-success",

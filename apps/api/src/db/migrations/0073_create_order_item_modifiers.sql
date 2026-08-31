@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "order_item_modifiers" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -12,4 +12,4 @@ CREATE TABLE "order_item_modifiers" (
   CONSTRAINT "order_item_modifiers_order_item_id_order_items_id_fk" FOREIGN KEY ("order_item_id") REFERENCES "order_items"("id") ON DELETE CASCADE,
   CONSTRAINT "order_item_modifiers_modifier_id_modifier_options_id_fk" FOREIGN KEY ("modifier_id") REFERENCES "modifier_options"("id")
 );
---> statement-breakpoint
+

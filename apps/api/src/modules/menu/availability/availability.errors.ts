@@ -1,4 +1,4 @@
-/** Menu-availability error factories for schedules, holidays, overrides, and effective-status resolution. */
+
 import { NotFoundError, ValidationError } from "../../../core/errors";
 
 export function itemNotFound(id?: string): NotFoundError {

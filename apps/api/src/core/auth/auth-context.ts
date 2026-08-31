@@ -1,12 +1,5 @@
-/**
- * Typed authentication + authorization context.
- *
- * The access token authenticates the user only. Active franchise/branch are
- * request-scoped selectors (`X-Tenant-ID` / `X-Branch-ID`) and are always
- * re-authorized against the database. This keeps authentication independent
- * from UI context switching and avoids rotating tokens when the user changes
- * franchise or branch.
- */
+
+
 import { Elysia } from "elysia";
 import type { RoleName } from "@pos/types";
 import { verifyAccessToken, type JwtPayload } from "../../lib/jwt";
@@ -29,9 +22,9 @@ import { requestContextPlugin } from "../context";
 export interface AuthContext {
   userId: string;
   tenantId: string;
-  /** Internal database access-record ID for the active franchise. */
+
   membershipId?: string;
-  /** `null` means no branch filter (tenant-wide aggregate view). */
+
   branchId: string | null;
   email: string;
   roles: RoleName[];
@@ -51,12 +44,7 @@ function parseBearerToken(authHeader: string | undefined): string {
 
 export const requireAuthPlugin = () =>
   new Elysia({ name: "require-auth" }).use(requestContextPlugin()).derive(
-    // Scoped (not global): this must stay confined to whichever router
-    // calls `.use(requireAuthPlugin())` directly. Elysia's "global" scope
-    // hoists a derive to the top-level app, so it silently applied to
-    // every router mounted after this one in apps/api/src/index.ts
-    // (e.g. the customer-facing endpoints, which are intentionally
-    // public) and forced them to require a Bearer token they never had.
+
     { as: "scoped" },
     async ({
       headers,
@@ -188,18 +176,13 @@ export function requireRoles(auth: AuthContext, allowed: RoleName[]): void {
 }
 
 export function requirePermission(auth: AuthContext, permission: string): void {
-  // A context is still required for tenant/branch data operations. This is
-  // separate from permission checking: selecting a franchise/branch never
-  // requires a permission of its own.
+
   if (!auth.tenantId) {
-    // Tenant selection/creation is intentionally usable before an active
-    // tenant context exists. All other permissions require a selected tenant.
+
     if (permission === "tenant:read" || permission === "tenant:create") return;
     throw new ForbiddenError("Tenant context required");
   }
 
-  // OWNER is the global superuser role. Business permissions are therefore
-  // derived from the role and never used to decide whether the owner may act.
   if (auth.roles.includes("OWNER")) return;
 
   if (!auth.permissions.includes(permission)) {

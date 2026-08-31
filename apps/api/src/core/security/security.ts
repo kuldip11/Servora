@@ -77,8 +77,7 @@ export const rateLimitPlugin = () =>
           };
         }
       } catch {
-        // Availability wins over rate-limit enforcement if Redis is temporarily
-        // unavailable. /health/ready will still report the dependency failure.
+
       }
 
       return undefined;

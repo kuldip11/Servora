@@ -1,29 +1,7 @@
-/**
- * Shared Tailwind preset — maps semantic design tokens (packages/ui/src/theme/tokens.css)
- * onto Tailwind's theme. Each app does `presets: [uiPreset]` in its own
- * tailwind.config.js instead of hand-defining (and drifting on) its own
- * color/radius/shadow/spacing scales.
- *
- * These resolve to CSS variables, not fixed values, so switching
- * `data-theme` (light/dark/high-contrast) repaints every class built
- * from this preset with zero component code changes.
- *
- * See the design-system guidance "Phase 1 detail".
- *
- * Phase 8 (Motion System) added `transitionDuration`/
- * `transitionTimingFunction` below, plus the `tailwindcss-animate`
- * plugin. Durations/easings are numbers/cubic-beziers, not colors, so
- * they don't fit the CSS-custom-property pattern the rest of this
- * file uses — `packages/ui/src/animations/tokens.ts` is their real
- * source of truth (JS-importable, e.g. for a component that needs the
- * raw millisecond number), and the values below are kept in sync with
- * it by hand, since this plain-JS preset can't import a `.ts` file at
- * Tailwind-config-load time. If the two ever drift, `tokens.ts` wins.
- */
+
 
 import tailwindcssAnimate from "tailwindcss-animate";
 
-/** @type {import('tailwindcss').Config} */
 export default {
   theme: {
     extend: {
@@ -41,13 +19,7 @@ export default {
         spring: "cubic-bezier(0.34, 1.56, 0.64, 1)",
       },
       keyframes: {
-        // Radix Accordion exposes its measured content height as a CSS
-        // var (`--radix-accordion-content-height`) precisely so a real
-        // height animation (not just instant show/hide) is possible —
-        // `tailwindcss-animate`'s own keyframe set doesn't include this
-        // one (it's Accordion-specific, not a generic enter/exit), so
-        // it's defined here rather than left for `Accordion.tsx` to
-        // reinvent inline.
+
         "accordion-down": {
           from: { height: "0" },
           to: { height: "var(--radix-accordion-content-height)" },
@@ -56,11 +28,7 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        // Skeleton shimmer-sweep (`SkeletonLoader.tsx`) — a highlight
-        // band translated across the placeholder via a `before:`
-        // pseudo-element, rather than `tailwindcss-animate`'s
-        // fade/zoom/slide set which is built for enter/exit, not a
-        // continuously-looping effect.
+
         shimmer: {
           from: { transform: "translateX(-100%)" },
           to: { transform: "translateX(100%)" },
@@ -87,10 +55,7 @@ export default {
           hover: "var(--primary-hover)",
           surface: "var(--primary-surface)",
           border: "var(--primary-border)",
-          // Phase 9: the text color to put ON a `bg-primary` surface — white
-          // in light/high-contrast, dark ink in dark theme (its amber
-          // primary fails AA with white). See tokens.css's `--primary-foreground`
-          // comment for the measured contrast ratios behind this.
+
           foreground: "var(--primary-foreground)",
         },
         success: {
@@ -144,12 +109,6 @@ export default {
       },
     },
   },
-  // `presets` consumers (every app's tailwind.config.js does
-  // `presets: [uiPreset]`) get this `plugins` array merged with their
-  // own automatically — Tailwind's documented preset-merging behavior,
-  // not something each app needs to repeat. `tailwindcss-animate`
-  // supplies the generic `animate-in`/`animate-out` + `fade-*`/
-  // `zoom-*`/`slide-*` utility classes every overlay component (Phase
-  // 5) keys off `data-[state=open|closed]` — see `overlay/shared.tsx`.
+
   plugins: [tailwindcssAnimate],
 };

@@ -16,10 +16,6 @@ async function runMigrations() {
     return;
   }
 
-  // Refuse to replay the canonical migration baseline on a database that already
-  // contains application tables without Drizzle migration history. Servora v1
-  // treats the migration folder as the only supported schema-installation path
-  // because required platform reference data and SQL-only invariants live there.
   const db = drizzle(migrationClient);
   const appSchemaRows = await migrationClient`
     SELECT EXISTS (

@@ -34,7 +34,6 @@ vi.mock("./sub-recipe.repository", () => ({
   },
 }));
 
-
 const { record, buildDiff } = vi.hoisted(() => ({
   record: vi.fn(),
   buildDiff: vi.fn((_before: unknown, _after: unknown) => ({})),
@@ -107,9 +106,7 @@ describe("subRecipeService graph safety", () => {
   });
 
   it("rejects a path deeper than the maximum even when a node is also reachable by a shorter path", async () => {
-    // target -> c -> d is legal at depth 3, but target -> b -> c -> d is
-    // depth 4 and must still be rejected. A global visited-set algorithm
-    // incorrectly skipped the deeper c -> d traversal.
+
     listGraph.mockResolvedValue([
       { id: "target", children: [] },
       { id: "b", children: ["c"] },

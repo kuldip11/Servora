@@ -10,8 +10,6 @@ import {
   bulkDeleteBody,
 } from "./bulk-ops.validator";
 
-// Bulk item operations use a dedicated collision-free sub-path under the
-// shared `/api/menu` namespace.
 export const menuBulkOpsRouter = new Elysia({ prefix: "/api/menu/items/bulk" })
   .use(requireAuthPlugin())
   .post(

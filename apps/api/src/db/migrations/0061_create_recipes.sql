@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "recipes" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -21,26 +21,26 @@ CREATE TABLE "recipes" (
   CONSTRAINT "recipes_variant_id_menu_item_variants_id_fk" FOREIGN KEY ("variant_id") REFERENCES "menu_item_variants"("id") ON DELETE CASCADE,
   CONSTRAINT "recipes_modifier_option_id_modifier_options_id_fk" FOREIGN KEY ("modifier_option_id") REFERENCES "modifier_options"("id") ON DELETE CASCADE
 );
---> statement-breakpoint
+
 CREATE INDEX "recipes_menu_item_idx" ON "recipes" USING btree ("menu_item_id");
---> statement-breakpoint
+
 CREATE INDEX "recipes_inventory_item_idx" ON "recipes" USING btree ("inventory_item_id");
---> statement-breakpoint
+
 CREATE INDEX "recipes_sub_recipe_idx" ON "recipes" USING btree ("sub_recipe_id");
---> statement-breakpoint
+
 CREATE INDEX "recipes_variant_idx" ON "recipes" USING btree ("variant_id");
---> statement-breakpoint
+
 CREATE INDEX "recipes_modifier_option_idx" ON "recipes" USING btree ("modifier_option_id");
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "recipes_base_inventory_unique" ON "recipes" USING btree ("menu_item_id", "inventory_item_id") WHERE "inventory_item_id" is not null and "variant_id" is null and "modifier_option_id" is null;
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "recipes_base_sub_recipe_unique" ON "recipes" USING btree ("menu_item_id", "sub_recipe_id") WHERE "sub_recipe_id" is not null and "variant_id" is null and "modifier_option_id" is null;
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "recipes_variant_inventory_unique" ON "recipes" USING btree ("menu_item_id", "variant_id", "inventory_item_id") WHERE "variant_id" is not null and "inventory_item_id" is not null;
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "recipes_variant_sub_recipe_unique" ON "recipes" USING btree ("menu_item_id", "variant_id", "sub_recipe_id") WHERE "variant_id" is not null and "sub_recipe_id" is not null;
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "recipes_modifier_inventory_unique" ON "recipes" USING btree ("menu_item_id", "modifier_option_id", "inventory_item_id") WHERE "modifier_option_id" is not null and "inventory_item_id" is not null;
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "recipes_modifier_sub_recipe_unique" ON "recipes" USING btree ("menu_item_id", "modifier_option_id", "sub_recipe_id") WHERE "modifier_option_id" is not null and "sub_recipe_id" is not null;
---> statement-breakpoint
+

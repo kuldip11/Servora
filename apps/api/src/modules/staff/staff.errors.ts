@@ -1,4 +1,4 @@
-/** Staff-domain error factories using the shared application error taxonomy. */
+
 import { NotFoundError, MissingBranchError } from "../../core/errors";
 
 export function staffNotFound(id: string): NotFoundError {

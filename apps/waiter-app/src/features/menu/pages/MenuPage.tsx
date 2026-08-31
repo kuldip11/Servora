@@ -30,7 +30,6 @@ import { STORAGE_KEYS } from "../../../shared/constants/storage-keys";
 import type { OrderableMenuItem, Tenant } from "@pos/types";
 import type { WaiterMenuCategory } from "../api/menu";
 
-
 const menuApi = createMenuApi(apiClient);
 const customersApi = createCustomersApi(apiClient);
 const authApi = createAuthApi(apiClient);
@@ -44,11 +43,10 @@ type ActiveMenu = {
 interface Props {
   onBack: () => void;
   onOrderPlaced: (orderId: string) => void;
-  /** When set, adds items to an existing order instead of creating new */
+
   existingOrderId?: string;
 }
 
-// Waiter order-entry page: menu discovery, item customization, cart, and order submission.
 export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
   const qc = useQueryClient();
   const isAddingToExisting = !!existingOrderId;
@@ -278,8 +276,6 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         quantity: i.quantity,
       };
 
-      // With exactOptionalPropertyTypes enabled, optional properties must be
-      // omitted rather than explicitly carrying `undefined`.
       if (i.variantId) item.variantId = i.variantId;
       if (i.chefNotes) item.chefNotes = i.chefNotes;
       if (i.seatLabel) item.seatLabel = i.seatLabel;
@@ -348,10 +344,7 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         toast({ title: "Please check the order details", tone: "danger" });
         return;
       }
-      // Use the strictly typed `items` built above rather than `validated.data.items`.
-      // The Zod schema permits optional fields to be `undefined`, while the
-      // API input types use `exactOptionalPropertyTypes`, which requires those
-      // fields to be omitted when they are not present.
+
       const orderInput: CreateOrderInput = {
         type: validated.data.type,
         ...(items.length ? { items } : {}),
@@ -396,7 +389,7 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
 
   return (
     <div className="flex flex-col h-screen bg-surface-secondary">
-      {/* Header */}
+      {            }
       <div className="bg-surface border-b border-border px-4 py-3 flex items-center gap-3">
         <IconButton
           icon={X}
@@ -419,7 +412,7 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         )}
       </div>
 
-      {/* Order options — new orders only */}
+      {                                     }
       {!isAddingToExisting && (
         <OrderOptionsPanel
           availableOrderTypes={availableOrderTypes}
@@ -462,7 +455,7 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         />
       )}
 
-      {/* Search + category tabs */}
+      {                            }
       <div className="bg-surface border-b border-border">
         {activeMenus.length > 1 && (
           <div className="px-4 pt-3">
@@ -515,7 +508,7 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         </section>
       )}
 
-      {/* Items */}
+      {           }
       <MenuGrid
         items={activeItems}
         cart={cart}
@@ -525,7 +518,7 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         onQtyChange={updateQty}
       />
 
-      {/* Cart strip */}
+      {                }
       {totalItems > 0 && (
         <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-border px-4 py-4">
           <button
@@ -541,7 +534,7 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         </div>
       )}
 
-      {/* Customiser modal */}
+      {                      }
       {customising && (
         <ItemCustomiser
           item={customising.item}
@@ -562,7 +555,7 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         />
       )}
 
-      {/* Cart modal */}
+      {                }
       {showCart && (
         <CartSummary
           cart={cart}

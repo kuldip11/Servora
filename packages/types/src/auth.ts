@@ -11,7 +11,6 @@ export type SystemRoleName =
   | "RECEPTIONIST"
   | "ACCOUNTANT";
 
-/** System role names plus tenant-defined custom role names. */
 export type RoleName = SystemRoleName | (string & {});
 
 export interface User {
@@ -80,7 +79,7 @@ export interface OrganizationSummary {
 
 export interface AvailableMembership {
   membershipId: string;
-  /** True when the authenticated user has a GLOBAL OWNER role. */
+
   isGlobalOwner?: boolean;
   tenant: Pick<Tenant, "id" | "name">;
   roles: Array<{

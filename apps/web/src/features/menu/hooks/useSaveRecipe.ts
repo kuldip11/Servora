@@ -13,8 +13,7 @@ export function useSaveRecipe(itemId: string) {
     onSuccess: () => {
       notifySuccess("Recipe saved");
       queryClient.invalidateQueries({ queryKey: menuKeys.itemRecipe(itemId) });
-      // Inventory items are shared with the Inventory page's own list —
-      // reuses its cache/keys rather than a duplicate ad-hoc query.
+
       queryClient.invalidateQueries({ queryKey: inventoryKeys.items() });
     },
     onError: () => notifyError(undefined, "Failed to save recipe"),

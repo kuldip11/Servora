@@ -6,12 +6,6 @@ import { ticketRepository } from "./ticket.repository";
 import { timestampFieldsFor } from "./ticket-status.machine";
 import { deductTicketWhenFired, publishDetailedTicket } from "./ticket-events";
 
-/**
- * Domain listener for a course reaching SERVED. The trigger is the same
- * `kitchen.ticket.updated` event already emitted for KDS realtime updates, so
- * course sequencing is event-driven rather than coupled to one controller or
- * status-service call path.
- */
 export const courseFireListener = {
   async onPriorCourseServed(auth: AuthContext, orderId: string) {
     const held = await ticketRepository.findAutoFireableHeldTickets(auth.tenantId, orderId);
@@ -40,7 +34,6 @@ export const courseFireListener = {
   },
 };
 
-// Importing this module from ticket.service registers the domain listener once.
 eventBus.subscribe("kitchen.ticket.updated", async ({ event, tenantId, branchId, context }) => {
   if (event.payload.status !== "SERVED") return;
   const resolvedBranchId = branchId ?? event.payload.branchId;

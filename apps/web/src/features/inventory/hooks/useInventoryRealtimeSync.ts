@@ -3,7 +3,6 @@ import { queryClient } from "../../../shared/lib/query-client";
 import { inventoryKeys } from "../query-keys";
 import type { InventoryItem } from "@pos/types";
 
-/** Apply the complete low-stock payload directly to the active cache. */
 export function useInventoryRealtimeSync() {
   useRealtimeEvent("inventory.low_stock", (event) => {
     queryClient.setQueryData<InventoryItem[]>(inventoryKeys.items(), (items) =>

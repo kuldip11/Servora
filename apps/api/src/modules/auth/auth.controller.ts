@@ -1,9 +1,5 @@
-/**
- * Auth controller — thin handlers only. `signup`/`login`/`refresh` are
- * public (no `auth` on context); `me` runs behind `requireAuthPlugin()`
- * (applied in `auth.route.ts`), so `auth` is already resolved and typed.
- * Any thrown `AppError` flows through the global handler in `src/index.ts`.
- */
+
+
 import type { AuthContext } from "../../core/auth";
 import { successResponse } from "../../core/response";
 import { authService } from "./auth.service";
@@ -14,9 +10,6 @@ export const authController = {
     const result = await authService.signup(input);
     return successResponse(result);
   },
-
-
-
 
   async memberships(auth: AuthContext) {
     return successResponse(await authService.memberships(auth.userId));

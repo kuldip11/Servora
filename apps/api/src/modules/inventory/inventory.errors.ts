@@ -1,4 +1,4 @@
-/** Inventory-domain error factories using the shared application error taxonomy. */
+
 import {
   NotFoundError,
   DomainRuleError,

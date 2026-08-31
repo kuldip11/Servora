@@ -16,7 +16,6 @@ export function requireInventoryPermission(
   requirePermission(auth, permission);
 }
 
-/** Resolve a concrete inventory branch while enforcing membership scope. */
 export function resolveInventoryBranch(
   auth: AuthContext,
   requestedBranchId?: string | null,
@@ -43,7 +42,6 @@ export function resolveInventoryBranch(
   return requested;
 }
 
-/** Inventory is always branch-owned; there are no tenant-wide inventory rows. */
 export function assertInventoryResourceBranch(
   auth: AuthContext,
   resourceBranchId: string | null | undefined,

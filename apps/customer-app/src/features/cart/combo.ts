@@ -15,10 +15,6 @@ function cents(value: number) {
   return Math.round(value * 100);
 }
 
-/**
- * UX-only estimate. The API always re-resolves component prices and combo
- * stage-4 pricing authoritatively before persisting/charging the order.
- */
 export function estimateComboLine(
   line: ComboCartLine,
   menuById: Map<string, CustomerMenuItem>,

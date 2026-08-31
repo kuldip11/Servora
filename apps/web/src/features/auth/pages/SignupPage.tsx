@@ -40,7 +40,7 @@ export function SignupPage() {
         email: form.email,
         password: form.password,
       });
-      // Signup creates the identity only; authenticate next so the user can create/select a business.
+
       const login = await authService.login({
         email: form.email,
         password: form.password,

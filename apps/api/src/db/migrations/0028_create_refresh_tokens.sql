@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "refresh_tokens" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -13,10 +13,10 @@ CREATE TABLE "refresh_tokens" (
   CONSTRAINT "refresh_tokens_membership_id_tenant_memberships_id_fk" FOREIGN KEY ("membership_id") REFERENCES "tenant_memberships"("id") ON DELETE CASCADE,
   CONSTRAINT "refresh_tokens_session_id_user_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "user_sessions"("id") ON DELETE CASCADE
 );
---> statement-breakpoint
+
 CREATE INDEX "refresh_tokens_user_idx" ON "refresh_tokens" USING btree ("user_id");
---> statement-breakpoint
+
 CREATE INDEX "refresh_tokens_session_idx" ON "refresh_tokens" USING btree ("session_id");
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "refresh_tokens_token_hash_unique" ON "refresh_tokens" USING btree ("token_hash");
---> statement-breakpoint
+

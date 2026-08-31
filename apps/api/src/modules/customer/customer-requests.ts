@@ -51,10 +51,6 @@ export const customerRequestService = {
     if (!request)
       throw new ValidationError("Unable to create customer request");
 
-    // A BILL request is a billing-state transition, not a payment. Keep the
-    // table occupied and only allow payment after the kitchen has served all
-    // outstanding tickets. If food is still being prepared, the request is
-    // still visible to staff but the tab remains OPEN until it is eligible.
     if (input.type === "BILL" && input.orderId) {
       const order = await db.query.orders.findFirst({
         where: and(

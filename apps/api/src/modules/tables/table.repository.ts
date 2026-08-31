@@ -1,7 +1,5 @@
-/**
- * Table repository — data access only. No business rules (see
- * `table.service.ts` for branch/tables-enabled/open-order checks).
- */
+
+
 import { eq, and, notInArray } from "drizzle-orm";
 import type { TableStatus } from "@pos/types";
 import { db } from "../../db";
@@ -22,7 +20,7 @@ export const tableRepository = {
         eq(restaurantTables.isActive, true),
         branchId ? eq(restaurantTables.branchId, branchId) : undefined,
       ),
-      // Only need the branch join in aggregate mode, to group/tag by branch.
+
       ...(branchId ? {} : { with: { branch: true } }),
       orderBy: restaurantTables.createdAt,
     });
@@ -103,7 +101,6 @@ export const tableRepository = {
     return updated;
   },
 
-  // Used to block deleting/deactivating a table that has an active (unclosed) order on it.
   async hasOpenOrders(tenantId: string, tableId: string) {
     const openOrder = await db.query.orders.findFirst({
       where: and(
@@ -129,8 +126,7 @@ export const tableRepository = {
     reason?: string;
   }) {
     return db.transaction(async (tx) => {
-      // The status predicate is the concurrency guard: only one transaction
-      // can claim an AVAILABLE destination. A competing transfer gets no row.
+
       const [newTable] = await tx
         .update(restaurantTables)
         .set({ status: "OCCUPIED", updatedAt: new Date() })

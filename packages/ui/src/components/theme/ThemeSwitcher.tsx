@@ -4,28 +4,6 @@ import { SelectMenu } from "../selection/SelectMenu";
 import type { SelectOption } from "../selection/shared";
 import { useTheme, type Theme } from "../../theme/ThemeProvider";
 
-/**
- * Phase 16 — shared theme switcher.
- *
- * Deliberately built on `SelectMenu` (Phase 4's canonical listbox — see
- * that file's own doc comment), not a hand-rolled `<select>` or a new
- * segmented-control component. `SelectMenu` already gives this exactly
- * what the phase's accessibility requirements ask for for free: a
- * `role="combobox"` trigger with a correct accessible name via
- * `FieldLabel`, `aria-expanded`/`aria-activedescendant`, full arrow-key/
- * Home/End/typeahead navigation, a visible focus ring from
- * `triggerBaseClasses`, and a `role="option"`/`aria-selected` listbox —
- * all wired through semantic tokens (`border-border`, `text-text-*`,
- * `bg-primary-surface`, etc.), so High Contrast and Dark both fall out
- * of the existing token system rather than needing bespoke styling here.
- *
- * This component owns no theme state or persistence of its own — both
- * come from `useTheme()`, which is the single source of truth
- * (`ThemeProvider`, `packages/ui/src/theme/ThemeProvider.tsx`) already
- * used by Admin and Waiter App. Rendering it under a `ThemeProvider` is
- * required, same as any other `useTheme()` consumer.
- */
-
 const THEME_ICONS: Record<Theme, ComponentType<{ className?: string }>> = {
   light: Sun,
   dark: Moon,
@@ -41,7 +19,7 @@ const THEME_LABELS: Record<Theme, string> = {
 const THEME_ORDER: Theme[] = ["light", "dark", "high-contrast"];
 
 export interface ThemeSwitcherProps {
-  /** @default 'Theme' */
+
   label?: string | undefined;
   id?: string | undefined;
   className?: string | undefined;

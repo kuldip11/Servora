@@ -1,8 +1,5 @@
-// This file is the central export point for the database schema. The schema
-// itself is organized by domain under this directory — see each file below.
-// Domain modules only import from each other's schema files (never from this
-// index), which keeps the dependency graph a DAG. Re-exporting everything
-// here preserves every existing import of `db/schema` unchanged.
+
+
 export * from "./organization.schema";
 export * from "./tenant.schema";
 export * from "./branch.schema";

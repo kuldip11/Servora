@@ -73,9 +73,6 @@ function customerSessionIdFromEvent(event: RealtimeEnvelope): string | undefined
   return undefined;
 }
 
-// Connected clients are grouped by tenant. Each socket also carries its
-// authorized branch scope so tenant-wide events never leak into a branch-only
-// session. A null branch means tenant-wide access.
 const clients = new Map<string, Set<RealtimeSocket>>();
 const staffScopeBySocket = new WeakMap<object, { tenantId: string; branchId: string | null }>();
 let staffConnectionCount = 0;
@@ -95,11 +92,6 @@ function removeClient(tenantId: string, ws: RealtimeSocket) {
   if (tenantClients.size === 0) clients.delete(tenantId);
 }
 
-/**
- * Resolve a WebSocket session through the same active-membership boundary as HTTP.
- * A signed JWT alone is not sufficient: tenantId/membershipId claims are treated
- * as selectors, and the database decides whether the membership is still active.
- */
 export async function resolveRealtimeContext(
   payload: JwtPayload,
   tenantId: string,
@@ -159,7 +151,6 @@ export function forwardTenantRealtimeMessage(
   }
 }
 
-// Subscribe to Redis channels and forward to WebSocket clients
 async function startRedisSubscription() {
   await subscriber.subscribe(
     REDIS_CHANNELS.ORDER_EVENTS,
@@ -210,7 +201,7 @@ startRedisSubscription().catch(console.error);
 
 export const realtimeRouter = new Elysia({ prefix: "/ws" }).ws("/events", {
   async open(ws) {
-    // Auth happens via query param token for WebSocket
+
     const token = ws.data.query["token"] as string;
     if (!token) {
       ws.send(JSON.stringify({ type: "error", code: "AUTH_MISSING_TOKEN" }));
@@ -239,7 +230,7 @@ export const realtimeRouter = new Elysia({ prefix: "/ws" }).ws("/events", {
   },
 
   message(ws, message) {
-    // Handle ping/pong keepalive
+
     if (message === "ping") ws.send("pong");
   },
 

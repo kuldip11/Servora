@@ -20,8 +20,6 @@ export const tableStatusEnum = pgEnum("table_status", [
   "RESERVED",
 ]);
 
-// ─── Tables ───────────────────────────────────────────────────────────────────
-
 export const restaurantTables = pgTable(
   "restaurant_tables",
   {

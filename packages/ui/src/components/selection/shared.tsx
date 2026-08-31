@@ -9,51 +9,26 @@ import {
 import { Check } from "lucide-react";
 import { cn } from "../../utils/cn";
 
-/**
- * Shared foundation for Phase 4 — Selection Components
- * (the design-system contract): `SelectMenu`, `MultiSelect`,
- * `Combobox`, `Autocomplete`.
- *
- * Build choice, resolved in the design-system guidance's Phase 1
- * "Open decisions": Radix UI, not built from scratch. Concretely, all
- * four components here sit on **`@radix-ui/react-popover`** for
- * positioning/portal/outside-click/Escape/focus-return — not on
- * `@radix-ui/react-select`. Radix's own `Select` renders its full
- * option list into the DOM up front and manages scroll/position
- * against real DOM measurements, which fights hand-rolled windowing
- * (a well-known limitation, not an oversight). Since this phase's
- * exit criteria requires a 10,000-option list to scroll smoothly,
- * every component needs windowing, so all four share one `Popover` +
- * `role="listbox"`/`role="option"` foundation — the same pattern
- * shadcn/ui's Combobox uses (Popover + Command) — instead of half
- * sitting on a primitive that resists it.
- */
-
 export interface SelectOption {
   value: string;
   label: string;
-  /** Secondary line rendered to the right of the label, e.g. an email or SKU. */
+
   description?: string | undefined;
   icon?: ComponentType<{ className?: string }> | undefined;
-  /** e.g. an avatar `<img>` or colored dot — takes priority over `icon`. */
+
   media?: ReactNode | undefined;
   disabled?: boolean | undefined;
-  /** Options sharing a `group` are clustered under one heading, in first-seen order. */
+
   group?: string | undefined;
 }
 
-export const ROW_HEIGHT = 40; // px — must match OptionRow/HeaderRow's fixed height below
+export const ROW_HEIGHT = 40;
 const OVERSCAN = 8;
 
 type Row =
   | { kind: "header"; key: string; label: string }
   | { kind: "option"; key: string; option: SelectOption; optionIndex: number };
 
-/** Flattens options into a render-ready row list, inserting one header row per
- * distinct `group` (in first-seen order). Headers get the same fixed row height
- * as options so the whole list stays uniformly virtualizable — see the file-level
- * doc comment on why fixed-height windowing was chosen over a variable-height
- * virtualizer for this phase. Options with no `group` render with no header. */
 export function buildRows(options: SelectOption[]): Row[] {
   const hasAnyGroup = options.some((o) => o.group);
   if (!hasAnyGroup) {
@@ -82,8 +57,6 @@ export function buildRows(options: SelectOption[]): Row[] {
   return rows;
 }
 
-/** Row indices (into `rows`) of every selectable option row, in order —
- * what keyboard nav and typeahead should move between. */
 function optionRowIndices(rows: Row[]): number[] {
   const out: number[] = [];
   rows.forEach((r, i) => {
@@ -92,10 +65,6 @@ function optionRowIndices(rows: Row[]): number[] {
   return out;
 }
 
-/** Poor-man's windowing over a fixed-height row list: renders only the rows
- * within view + overscan. Avoids pulling in `@tanstack/react-virtual` for one
- * dependency's worth of arithmetic — every row here is a single fixed-height
- * line (label + optional description), never a multi-line card. */
 export function useVirtualRows(
   count: number,
   containerRef: RefObject<HTMLElement | null>,
@@ -103,15 +72,6 @@ export function useVirtualRows(
   const [scrollTop, setScrollTop] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(0);
 
-  // Phase 14 finding: same bug as `data/shared.tsx`'s `useVirtualizedRows`
-  // (independent copy, see this hook's own doc comment for why it's not
-  // shared) — no dependency array meant the listener + `ResizeObserver`
-  // were torn down and rebuilt on every scroll-driven re-render. This is
-  // the hook behind Phase 4's own "10,000-option virtualized select scrolls
-  // smoothly" exit criterion, so it's the highest-impact of the two copies
-  // to fix. `containerRef.current` is the intentional dependency — the
-  // popover's option list only mounts once open, so the effect still needs
-  // to re-run the one time `el` appears, just not on every scroll after.
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -143,7 +103,6 @@ export function useVirtualRows(
   };
 }
 
-/** Case-insensitive substring filter shared by Combobox/Autocomplete/MultiSelect's search box. */
 export function filterOptions(
   options: SelectOption[],
   query: string,
@@ -184,8 +143,6 @@ function HeaderRow({ label }: { label: string }) {
   );
 }
 
-/** One virtualized option row. Shared by SelectMenu/Combobox/Autocomplete (single-select,
- * checkmark-on-right) and MultiSelect (checkbox-on-left via the `leading` slot). */
 function OptionRow({
   option,
   selected,
@@ -203,11 +160,7 @@ function OptionRow({
 }) {
   const Icon = option.icon;
   return (
-    // Same reasoning as CommandPalette's CommandRow: this row is a
-    // listbox `option` that's never itself DOM-focused. Keyboard
-    // selection is driven from the owning input's `onKeyDown`
-    // (ArrowUp/Down move `aria-activedescendant`, Enter selects) —
-    // `onClick` below is the pointer-only affordance.
+
     // eslint-disable-next-line jsx-a11y/click-events-have-key-events
     <li
       id={domId}
@@ -243,19 +196,6 @@ function OptionRow({
   );
 }
 
-/**
- * Renders the virtualized `<ul role="listbox">` body shared by all four
- * components. `isSelected`/`renderLeading` let `MultiSelect` swap in a
- * checkbox and multi-value selection without duplicating the windowing math.
- *
- * Purely presentational: it owns no DOM focus and no `keydown` listener.
- * Per the WAI-ARIA 1.2 combobox pattern, focus stays on whichever element
- * triggers the popup — a button for `SelectMenu`, a text input for
- * `Combobox`/`Autocomplete`/`MultiSelect` — and *that* element carries
- * `role="combobox"`, `aria-controls={listboxId}`, `aria-activedescendant`,
- * and the `onKeyDown` handler (see `useActiveRow`/`useTypeaheadBuffer`
- * above). This list only needs `id`/`role` so `aria-controls` can point at it.
- */
 export function VirtualListbox({
   rows,
   listboxId,
@@ -278,7 +218,7 @@ export function VirtualListbox({
   renderLeading?:
     ((option: SelectOption, selected: boolean) => ReactNode) | undefined;
   emptyMessage?: string | undefined;
-  /** Set `aria-multiselectable` — pass true for `MultiSelect`. */
+
   multiselectable?: boolean | undefined;
 }) {
   const { totalHeight, startIndex, endIndex, offsetY } = useVirtualRows(
@@ -327,11 +267,6 @@ export function VirtualListbox({
   );
 }
 
-/**
- * Arrow-key/Home/End/Enter navigation over the *selectable* rows of a
- * `rows` list (skips headers and disabled options), reported back as a
- * row index (so callers can look up `rows[activeRowIndex]` directly).
- */
 export function useActiveRow(
   rows: Row[],
   onCommit: (rowIndex: number) => void,
@@ -347,7 +282,7 @@ export function useActiveRow(
   useEffect(() => {
     if (!selectable.includes(activeRowIndex))
       setActiveRowIndex(selectable[0] ?? -1);
-    // re-sync whenever the filtered/virtualized row set changes shape
+
   }, [rows.length]);
 
   function move(dir: 1 | -1) {
@@ -387,7 +322,6 @@ export function useActiveRow(
     }
   }
 
-  /** Jump to the first row whose label starts with the accumulated typed prefix. */
   function typeahead(prefix: string) {
     const match = selectable.find((i) => {
       const r = rows[i];
@@ -401,8 +335,6 @@ export function useActiveRow(
   return { activeRowIndex, setActiveRowIndex, onKeyDown, typeahead };
 }
 
-/** Accumulates printable keystrokes into a short-lived prefix for single-letter-jump
- * navigation (native `<select>` behavior) — call from a listbox's `onKeyDown`. */
 export function useTypeaheadBuffer(onPrefix: (prefix: string) => void) {
   const [buffer, setBuffer] = useState("");
   useEffect(() => {
@@ -428,8 +360,6 @@ export function useTypeaheadBuffer(onPrefix: (prefix: string) => void) {
   return { onKeyDown };
 }
 
-/** Scrolls the active row into view within a virtualized container, without
- * requiring the row to already be mounted in the current window. */
 export function useScrollActiveIntoView(
   containerRef: RefObject<HTMLElement | null>,
   activeRowIndex: number,

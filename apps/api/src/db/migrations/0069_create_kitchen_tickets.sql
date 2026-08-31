@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "kitchen_tickets" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -21,14 +21,14 @@ CREATE TABLE "kitchen_tickets" (
   CONSTRAINT "kitchen_tickets_course_id_order_courses_id_fk" FOREIGN KEY ("course_id") REFERENCES "order_courses"("id") ON DELETE SET NULL,
   CONSTRAINT "kitchen_tickets_branch_tenant_fk" FOREIGN KEY ("branch_id", "tenant_id") REFERENCES "branches"("id", "tenant_id") ON DELETE CASCADE
 );
---> statement-breakpoint
+
 CREATE INDEX "kitchen_tickets_tenant_branch_idx" ON "kitchen_tickets" USING btree ("tenant_id", "branch_id");
---> statement-breakpoint
+
 CREATE INDEX "kitchen_tickets_status_idx" ON "kitchen_tickets" USING btree ("status");
---> statement-breakpoint
+
 CREATE INDEX "kitchen_tickets_order_idx" ON "kitchen_tickets" USING btree ("order_id");
---> statement-breakpoint
+
 CREATE INDEX "kitchen_tickets_course_idx" ON "kitchen_tickets" USING btree ("course_id");
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "kitchen_tickets_customer_request_unique" ON "kitchen_tickets" USING btree ("order_id", "customer_request_id");
---> statement-breakpoint
+

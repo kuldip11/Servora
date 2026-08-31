@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "branches" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -20,12 +20,12 @@ CREATE TABLE "branches" (
   "updated_at" timestamp DEFAULT now() NOT NULL,
   CONSTRAINT "branches_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE
 );
---> statement-breakpoint
+
 CREATE INDEX "branches_tenant_idx" ON "branches" USING btree ("tenant_id");
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "branches_tenant_name_uniq" ON "branches" USING btree ("tenant_id", "name");
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "branches_tenant_code_uniq" ON "branches" USING btree ("tenant_id", "code");
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "branches_id_tenant_unique_fk_target" ON "branches" USING btree ("id", "tenant_id");
---> statement-breakpoint
+

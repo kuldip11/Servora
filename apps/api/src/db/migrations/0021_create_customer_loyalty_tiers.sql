@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "customer_loyalty_tiers" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -14,8 +14,8 @@ CREATE TABLE "customer_loyalty_tiers" (
   CONSTRAINT "customer_loyalty_tiers_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE,
   CONSTRAINT "customer_loyalty_tiers_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "organizations"("id") ON DELETE CASCADE
 );
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "customer_loyalty_tiers_tenant_name_unique" ON "customer_loyalty_tiers" USING btree ("tenant_id", "name");
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "customer_loyalty_tiers_organization_name_unique" ON "customer_loyalty_tiers" USING btree ("organization_id", "name") WHERE "organization_id" IS NOT NULL;
---> statement-breakpoint
+

@@ -34,8 +34,6 @@ export const inventoryTransactionTypeEnum = pgEnum(
   ["IN", "OUT", "ADJUSTMENT", "WASTE"],
 );
 
-// ─── Inventory ────────────────────────────────────────────────────────────────
-
 export const inventoryItems = pgTable(
   "inventory_items",
   {
@@ -132,9 +130,6 @@ export const inventoryTransactions = pgTable(
   }),
 );
 
-// Per-order-item audit trail of what inventory a fired ticket actually
-// consumed — lets "why did stock X drop" be traced back to specific orders,
-// and survives the recipe itself changing later.
 export const orderInventoryDeductions = pgTable(
   "order_inventory_deductions",
   {
@@ -158,9 +153,7 @@ export const orderInventoryDeductions = pgTable(
       scale: 3,
     }).notNull(),
     unit: inventoryUnitEnum("unit").notNull(),
-    // True if the order asked for more than was in stock — the deduction
-    // still floors at 0 rather than going negative, and this flag is how
-    // that shortfall shows up in the item's inventory-impact view.
+
     wasShort: boolean("was_short").notNull().default(false),
     deductedAt: timestamp("deducted_at").notNull().defaultNow(),
     reversedAt: timestamp("reversed_at"),

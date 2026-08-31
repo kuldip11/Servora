@@ -55,10 +55,6 @@ export function comboLineKey(line: WaiterComboCartLine) {
     .join("|")}`;
 }
 
-/**
- * Presentation-only estimate. The API re-resolves component prices and applies
- * combo stage 4 authoritatively when the order is created.
- */
 export function estimateComboSubtotal(
   line: WaiterComboCartLine,
   menuById: Map<string, WaiterComboMenuItem>,

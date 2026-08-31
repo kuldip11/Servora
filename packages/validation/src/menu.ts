@@ -18,8 +18,7 @@ export const createMenuItemSchema = z.object({
     .array(
       z.object({
         name: z.string().min(1),
-        // Absolute price for the item when this variant is selected —
-        // replaces basePrice rather than adding to it.
+
         price: z.number().min(0),
       }),
     )
@@ -36,7 +35,7 @@ export const createMenuItemSchema = z.object({
 });
 
 export type CreateMenuItemInput = z.infer<typeof createMenuItemSchema>;
-/** Form-level schema for the web Menu Item dialog. String fields match HTML inputs. */
+
 export const menuItemFormSchema = z.object({
   name: z
     .string()

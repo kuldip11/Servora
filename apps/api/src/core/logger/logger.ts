@@ -1,10 +1,4 @@
-/**
- * Structured JSON logger.
- *
- * Replaces scattered `console.log`/`console.error` calls with a consistent,
- * greppable JSON line format that includes request/tenant context and
- * automatically redacts sensitive fields (passwords, tokens, secrets).
- */
+
 
 export interface LogContext {
   requestId?: string;
@@ -94,7 +88,6 @@ export class Logger {
     );
   }
 
-  /** Create a child logger that inherits context and adds/overrides fields. */
   child(context: Partial<LogContext> & { module?: string }): Logger {
     const { module, ...rest } = context;
     return new Logger(
@@ -111,5 +104,4 @@ export const createLogger = (
   isDevelopment = process.env["NODE_ENV"] !== "production",
 ): Logger => new Logger(context, module, isDevelopment);
 
-/** Process-wide default logger for use outside a request (startup, jobs, etc). */
 export const rootLogger = createLogger({}, "root");

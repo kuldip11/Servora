@@ -1,4 +1,4 @@
-/** Persistence operations for menu categories. */
+
 import { eq, and, isNull, or } from "drizzle-orm";
 import { db } from "../../../db";
 import { menuCategories, menuItems } from "../../../db/schema";
@@ -29,9 +29,7 @@ export const categoryRepository = {
       where: and(
         eq(menuCategories.tenantId, tenantId),
         eq(menuCategories.isActive, true),
-        // Show categories scoped to this branch, plus tenant-wide shared
-        // ones (branchId is null). No branch selected (aggregate view) ->
-        // show everything.
+
         branchId
           ? or(
               eq(menuCategories.branchId, branchId),

@@ -1,12 +1,5 @@
-/**
- * Order service — orchestrates repository + branch/table validation +
- * pricing (PricingPipeline) + status transitions (order-status.machine.ts)
- * + inventory deduction + event publishing. This is the module's biggest
- * service by a wide margin because order creation genuinely touches the
- * most other subsystems (menu, tables, branches, kitchen tickets,
- * inventory) — that breadth is inherent to the domain, not something a
- * file split alone fixes.
- */
+
+
 import type { KitchenTicket, Order, OrderType, RestaurantTable } from "@pos/types";
 import type { AuthContext } from "../../core/auth";
 import { requireOrdersPermission } from "./orders-authorization";
@@ -40,10 +33,6 @@ import {
   tableOccupied,
 } from "./order.errors";
 
-// Maps an order type to the branch column that gates it. The UI filters
-// the type selector to what's enabled as a convenience, but this map is
-// the actual guarantee — it's checked here regardless of what the
-// frontend sent, since someone could hit the API directly.
 const ORDER_TYPE_CAPABILITY_FIELD: Record<
   OrderType,
   "dineInEnabled" | "takeawayEnabled" | "deliveryEnabled" | "onlineEnabled"
@@ -87,8 +76,6 @@ export const createOrderService = {
       throw tableRequiredForDineIn();
     }
 
-    // Dine-in orders tied to a table: make sure the table exists, belongs to
-    // this branch, and isn't already occupied by another open order.
     if (input.type === "DINE_IN" && input.tableId) {
       const table = await tableRepository.findById(
         auth.tenantId,
@@ -188,8 +175,7 @@ export const createOrderService = {
     const regular = await pricingPipeline.price(pricingContext, regularItems);
     const combo = await priceComboOrders(pricingContext, input.combos ?? []);
     const resolved = [...regular.lines, ...combo.lines];
-    // Combo components are normal menu items, so availability is checked on
-    // the expanded component set before persistence/kitchen/inventory work.
+
     if (combo.lines.length) {
       const comboIds = combo.lines.flatMap((line) =>
         line.menuItemId === null ? [] : [line.menuItemId],
@@ -238,9 +224,7 @@ export const createOrderService = {
         modifiers: [],
         pricingAttribution: { BASE_PRICE: cover.rate, VARIANT: 0, MODIFIER: 0 },
       };
-      // G9 keeps kitchen/inventory lines intact while making them server-side
-      // non-billable. The synthetic cover line exists only inside the one
-      // pricing/finalization pipeline and is snapshotted on the order itself.
+
       billablePricing = await pricingPipeline.finalize(
         pricingContext,
         [coverLine],
@@ -328,8 +312,6 @@ export const createOrderService = {
       branchId,
     );
 
-    // Publish every initial course ticket. HELD courses are visible to KDS but
-    // deliberately do not consume inventory until they transition to FIRED.
     for (const createdTicket of fullOrder?.kitchenTickets ?? []) {
       await eventBus.publish(
         {

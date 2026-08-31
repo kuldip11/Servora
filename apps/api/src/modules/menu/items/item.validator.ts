@@ -49,8 +49,7 @@ export const createItemBody = t.Object({
   isPublished: t.Optional(t.Boolean()),
   displayMode: t.Optional(t.Union([t.Literal("STANDARD"), t.Literal("GUIDED_BUILDER")])),
   effectiveFrom: t.Optional(t.String()),
-  // Absolute price for the item when this variant is picked (e.g.
-  // "Half" -> 200, "Full" -> 400) — not an add-on to basePrice.
+
   variants: t.Optional(
     t.Array(t.Object({ name: t.String(), price: t.Number({ minimum: 0 }) })),
   ),

@@ -122,9 +122,6 @@ export function DashboardLayout() {
     requestAnimationFrame(() => mobileNavTriggerRef.current?.focus());
   }
 
-  // Only look up capability when a specific branch is selected — in "All
-  // Branches" aggregate view, hiding Tables wouldn't make sense since other
-  // branches might still use them.
   const { data: branchesInScope } = useBranches({
     enabled: !!branchId && branchId !== "all",
   });
@@ -150,9 +147,9 @@ export function DashboardLayout() {
       <SkipLink />
       <RealtimeNotifications />
 
-      {/* Sidebar */}
+      {             }
       <aside className="hidden md:flex w-64 flex-shrink-0 bg-surface border-r border-divider flex-col shadow-sm">
-        {/* Logo */}
+        {          }
         <div className="px-6 py-5 border-b border-divider">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
@@ -170,7 +167,7 @@ export function DashboardLayout() {
           </div>
         </div>
 
-        {/* Nav */}
+        {         }
         <nav
           aria-label="Main"
           className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto"
@@ -198,7 +195,7 @@ export function DashboardLayout() {
             })}
         </nav>
 
-        {/* User footer */}
+        {                 }
         <div className="p-3 border-t border-divider">
           <div className="flex items-center gap-3 px-3 py-2 rounded-md mb-1">
             <div className="w-8 h-8 bg-primary-surface rounded-full flex items-center justify-center">
@@ -264,9 +261,9 @@ export function DashboardLayout() {
         </Dialog>
       )}
 
-      {/* Main content */}
+      {                  }
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top bar */}
+        {             }
         <header className="h-20 bg-surface border-b border-divider flex items-center justify-between gap-4 px-3 md:px-6 flex-shrink-0 min-w-0 shadow-sm">
           <div className="flex items-center gap-2 min-w-0">
             <button
@@ -296,7 +293,7 @@ export function DashboardLayout() {
           </div>
         </header>
 
-        {/* Page content */}
+        {                  }
         <main
           id="main-content"
           tabIndex={-1}

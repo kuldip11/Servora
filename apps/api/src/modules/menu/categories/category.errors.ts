@@ -1,4 +1,4 @@
-/** Menu-category error factories using the shared application error taxonomy. */
+
 import { NotFoundError, ConflictError } from "../../../core/errors";
 
 export function categoryNotFound(id?: string): NotFoundError {

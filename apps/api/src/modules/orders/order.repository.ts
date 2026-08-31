@@ -1,8 +1,5 @@
-/**
- * Order repository — data access only. No business rules (branch/table
- * validation, transition enforcement, pricing — all in `order.service.ts`
- * and the extracted `order-status.machine.ts` / `pricing/pricing-pipeline.ts`).
- */
+
+
 import { eq, and, desc, asc, sql, inArray, gte, isNull } from "drizzle-orm";
 import type { OrderStatus, OrderType } from "@pos/types";
 import { db } from "../../db";
@@ -67,9 +64,7 @@ export const orderRepository = {
     resolutionAsOf?: Date;
   }) {
     return db.transaction(async (tx) => {
-      // G4: count depletion is an atomic compare-and-decrement inside the
-      // same transaction as the order write. This prevents two orders from
-      // both selling the last count-tracked unit.
+
       const stockNeeds = new Map<string, { menuItemId: string; variantId?: string; quantity: number }>();
       for (const line of data.items) {
         if (!line.menuItemId) continue;
@@ -524,8 +519,6 @@ export const orderRepository = {
     });
   },
 
-  // Fires a new round to the kitchen: a brand new ticket, not a re-use of an
-  // existing one. This is what "Add More Items" / "Send to Kitchen" does.
   async fireNewTicket(
     tenantId: string,
     branchId: string,
@@ -556,10 +549,6 @@ export const orderRepository = {
         if (existingTicket) return existingTicket;
       }
 
-      // G4: adding another round to an open order must consume finite
-      // count-tracked stock with the same atomic compare-and-decrement used
-      // during initial order creation. Otherwise the last unit can be sold
-      // once during create and again through "add items".
       const stockNeeds = new Map<string, { menuItemId: string; variantId?: string; quantity: number }>();
       for (const line of items) {
         if (!line.menuItemId) continue;
@@ -703,10 +692,7 @@ export const orderRepository = {
     promotionRedemptions?: PendingPromotionRedemption[];
   }) {
     return db.transaction(async (tx) => {
-      // Atomically claim the source line before creating a sibling. Two
-      // concurrent refire requests must never both observe ACTIVE and create
-      // two replacements for the same preparation instance. If anything
-      // after this fails the transaction rolls the claim back.
+
       let sourceAvailable = false;
       if (data.claimOriginal === false) {
         const source = await tx.query.orderItems.findFirst({

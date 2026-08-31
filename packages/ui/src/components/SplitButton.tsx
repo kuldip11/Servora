@@ -24,9 +24,9 @@ export interface SplitButtonProps {
   children: ReactNode;
   onClick: () => void;
   actions: SplitButtonAction[];
-  /** @default 'primary' */
+
   variant?: "primary" | "secondary";
-  /** @default 'md' */
+
   size?: ButtonSize;
   disabled?: boolean;
   loading?: boolean;
@@ -45,24 +45,6 @@ const DIVIDER_CLASSES = {
   secondary: "border-l border-border",
 };
 
-/**
- * Primary action button with an attached chevron trigger that opens a
- * short list of secondary actions.
- *
- * Scope note: the dropdown here is still a minimal, self-contained
- * implementation (outside-click + Escape to close, arrow-key-free),
- * not built on Radix, even though `DropdownMenu`
- * (`components/overlay/DropdownMenu.tsx`, Phase 5) now exists. Not
- * re-pointed at it in Phase 5 either: `DropdownMenu` takes a single
- * `trigger` and renders one Radix-managed popup, but `SplitButton` is
- * two adjacent buttons (a primary action button that's *not* a menu
- * trigger, plus a chevron that is) sharing one visual unit — mapping
- * that onto `DropdownMenu`'s shape means redesigning `SplitButton`'s
- * own props, not just swapping its internals, which is real, separate
- * work. Flagging it again here rather than let it go quiet a second
- * phase running; see `the design-system guidance`'s Phase 5 section
- * for the same note.
- */
 export function SplitButton({
   children,
   onClick,

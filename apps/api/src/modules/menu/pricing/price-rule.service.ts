@@ -79,7 +79,6 @@ async function validateScope(auth: AuthContext, input: PriceRuleInput) {
   }
 }
 
-/** [start, end) intervals within a single day, splitting an overnight window in two. */
 function timeIntervals(
   start: string | null,
   end: string | null,
@@ -133,12 +132,6 @@ const scopesCanOverlap = (
   );
 };
 
-/**
- * D1: two active rules for the same item/variant/branch/channel/fulfillment
- * scope, with overlapping time windows, equal specificity, and equal
- * priority resolve ambiguously (the id-based final tiebreak would decide
- * arbitrarily). Reject that configuration at write time instead.
- */
 async function assertNoAmbiguousOverlap(
   auth: AuthContext,
   candidate: MatchingPriceRule & { menuItemId: string | null; menuItemSku?: string | null; organizationId?: string | null; isPerCover?: boolean; isActive?: boolean },
@@ -238,9 +231,7 @@ export const priceRuleService = {
     requirePermission(auth, "menu:pricing:write");
     const existing = await priceRuleRepository.findById(auth.tenantId, id);
     if (!existing) throw new NotFoundError("Price rule not found");
-    // G7: an organization-scoped rule remains a cross-tenant resource even
-    // if an update attempts to move it back to tenant scope. Gate based on
-    // both the existing and requested scope before applying any mutation.
+
     if (existing.organizationId || input.organizationId) {
       requirePermission(auth, "organization:manage");
     }

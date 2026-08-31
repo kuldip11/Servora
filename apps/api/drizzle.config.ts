@@ -1,6 +1,5 @@
 import type { Config } from "drizzle-kit";
 
-// Load .env for drizzle-kit CLI (bun reads .env automatically, but drizzle-kit runs as node)
 import { existsSync, readFileSync } from "fs";
 if (existsSync(".env")) {
   const env = readFileSync(".env", "utf8");

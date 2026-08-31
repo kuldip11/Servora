@@ -6,36 +6,15 @@ import axios, {
 import type { TokenStorageAdapter } from "./types";
 
 export interface ApiClientConfig {
-  /** Passed straight to axios.create — each app resolves its own env var. */
+
   baseURL: string;
-  /** Passed straight to axios.create. */
+
   timeout: number;
   storage: TokenStorageAdapter;
-  /**
-   * Called whenever a refresh attempt fails to recover the session (no
-   * refresh token available, or the refresh request itself errors). This is
-   * where an app wires in whatever "you're logged out now" behavior it
-   * needs — calling a store's `logout()`, clearing storage keys and
-   * reloading, etc. `createApiClient` doesn't prescribe what that looks
-   * like, only that it happens.
-   */
+
   onRefreshFailure: () => void;
 }
 
-/**
- * Creates an axios instance configured with:
- *   1. A request interceptor that injects the Authorization header from
- *      the supplied storage adapter and sends active franchise/branch context
- *      as server-validated request selectors. Context is never part of the JWT.
- *   2. A response interceptor that, on a 401, attempts a single token
- *      refresh (queuing any other requests that 401 concurrently so they
- *      don't each trigger their own refresh), retries the original
- *      request, and calls `onRefreshFailure` if recovery isn't possible.
- *
- * This is a like-for-like extraction of what apps/web, apps/waiter-app, and
- * apps/kitchen-display each hand-rolled independently — behavior is
- * unchanged from all three, only where the code lives.
- */
 export function createApiClient(config: ApiClientConfig): AxiosInstance {
   const { baseURL, timeout, storage, onRefreshFailure } = config;
 
@@ -47,9 +26,7 @@ export function createApiClient(config: ApiClientConfig): AxiosInstance {
   };
 
   const apiClient = axios.create(clientConfig);
-  // Keep refresh isolated from the normal request/response interceptors so an
-  // expired access token is never attached and a refresh 401 cannot recurse.
-  // It still uses the exact same configured API origin as normal requests.
+
   const refreshClient = axios.create(clientConfig);
 
   apiClient.interceptors.request.use((requestConfig) => {
@@ -70,8 +47,6 @@ export function createApiClient(config: ApiClientConfig): AxiosInstance {
     return requestConfig;
   });
 
-  // 401 → auto refresh, with a queue so concurrent requests that 401 at the
-  // same time share a single refresh call instead of each starting their own.
   let isRefreshing = false;
   let failedQueue: Array<{
     resolve: (token: string) => void;

@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "manager_approval_tokens" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -13,6 +13,6 @@ CREATE TABLE "manager_approval_tokens" (
   CONSTRAINT "manager_approval_tokens_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE,
   CONSTRAINT "manager_approval_tokens_approved_by_users_id_fk" FOREIGN KEY ("approved_by") REFERENCES "users"("id") ON DELETE CASCADE
 );
---> statement-breakpoint
+
 CREATE INDEX "manager_approval_tokens_lookup_idx" ON "manager_approval_tokens" USING btree ("tenant_id", "order_id", "order_item_id", "action_type");
---> statement-breakpoint
+

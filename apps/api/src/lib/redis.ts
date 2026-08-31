@@ -13,13 +13,10 @@ const redisOptions = {
   retryStrategy: (times: number) => Math.min(times * 100, 3000),
 };
 
-// Main client for cache operations
 export const redis = new Redis(redisUrl, redisOptions);
 
-// Dedicated publisher (must NOT share connection with subscriber)
 export const publisher = new Redis(redisUrl, redisOptions);
 
-// Dedicated subscriber (blocks connection for pub/sub only)
 export const subscriber = new Redis(redisUrl, redisOptions);
 
 redis.on("error", (err) => {

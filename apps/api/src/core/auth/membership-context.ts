@@ -85,12 +85,6 @@ export async function listUserMemberships(
   );
 }
 
-/**
- * Resolves a requested active tenant/membership.
- *
- * A caller may request a membership by ID, but the server verifies that the
- * membership belongs to the authenticated user before activating it.
- */
 export async function resolveActiveBranch(
   db: Database,
   context: ActiveAuthContext,
@@ -114,9 +108,6 @@ export async function resolveActiveBranch(
     columns: { id: true, tenantId: true },
   });
 
-  // Defense in depth: don't rely solely on the query's `where` clause to
-  // enforce tenant isolation — explicitly reject a branch record that
-  // doesn't belong to the active tenant even if one was returned.
   if (!branch || branch.tenantId !== context.tenantId) {
     throw new ForbiddenError("Membership access denied");
   }

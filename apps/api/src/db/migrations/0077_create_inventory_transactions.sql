@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "inventory_transactions" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -17,10 +17,10 @@ CREATE TABLE "inventory_transactions" (
   CONSTRAINT "inventory_transactions_waste_reason_id_waste_reasons_id_fk" FOREIGN KEY ("waste_reason_id") REFERENCES "waste_reasons"("id") ON DELETE SET NULL,
   CONSTRAINT "inventory_transactions_reversal_of_deduction_id_order_inventory_deductions_id_fk" FOREIGN KEY ("reversal_of_deduction_id") REFERENCES "order_inventory_deductions"("id") ON DELETE SET NULL
 );
---> statement-breakpoint
+
 CREATE INDEX "inventory_transactions_item_idx" ON "inventory_transactions" USING btree ("inventory_item_id");
---> statement-breakpoint
+
 CREATE INDEX "inventory_transactions_waste_reason_idx" ON "inventory_transactions" USING btree ("waste_reason_id");
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "inventory_transactions_reversal_unique" ON "inventory_transactions" USING btree ("reversal_of_deduction_id");
---> statement-breakpoint
+

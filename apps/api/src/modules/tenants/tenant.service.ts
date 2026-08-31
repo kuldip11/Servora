@@ -8,8 +8,7 @@ import { writeAudit } from "../../core/audit";
 
 export const tenantService = {
   async list(auth: AuthContext) {
-    // Franchise selection is a context operation. Any authenticated user may
-    // list the franchises they are already authorized to access.
+
     const memberships = await tenantRepository.findMembershipsByUserId(
       auth.userId,
     );
@@ -42,8 +41,7 @@ export const tenantService = {
     auth: AuthContext,
     input: { name: string; organizationId: string },
   ) {
-    // Creating a new franchise is an ownership operation, not a generic
-    // tenant permission. Only the global OWNER can create another franchise.
+
     if (!auth.roles.includes("OWNER")) {
       throw new ForbiddenError("Only the global Owner can create tenants");
     }

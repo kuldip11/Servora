@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "menu_memberships" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -12,10 +12,10 @@ CREATE TABLE "menu_memberships" (
   CONSTRAINT "menu_memberships_menu_item_id_menu_items_id_fk" FOREIGN KEY ("menu_item_id") REFERENCES "menu_items"("id") ON DELETE CASCADE,
   CONSTRAINT "menu_memberships_category_id_menu_categories_id_fk" FOREIGN KEY ("category_id") REFERENCES "menu_categories"("id")
 );
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "menu_memberships_menu_item_unique" ON "menu_memberships" USING btree ("menu_id", "menu_item_id");
---> statement-breakpoint
+
 CREATE INDEX "menu_memberships_category_order_idx" ON "menu_memberships" USING btree ("menu_id", "category_id", "sort_order");
---> statement-breakpoint
+
 CREATE INDEX "menu_memberships_item_idx" ON "menu_memberships" USING btree ("menu_item_id");
---> statement-breakpoint
+

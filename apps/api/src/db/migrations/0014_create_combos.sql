@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "combos" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -13,4 +13,4 @@ CREATE TABLE "combos" (
   "updated_at" timestamp DEFAULT now() NOT NULL,
   CONSTRAINT "combos_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE
 );
---> statement-breakpoint
+

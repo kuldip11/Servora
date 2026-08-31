@@ -1,17 +1,10 @@
 import { create } from "zustand";
 import type { AvailableMembership, User } from "@pos/types";
 
-/**
- * Authentication/session state.
- *
- * Access tokens are memory-only. Refresh tokens are owned by the API in an
- * HttpOnly cookie and never enter JavaScript storage. Server state
- * (franchises, branches, orders, etc.) belongs in TanStack Query.
- */
 interface AuthState {
   user: User | null;
   accessToken: string | null;
-  /** Internal server access record for the active franchise. Not persisted. */
+
   membershipId: string | null;
   organizationId: string | null;
   memberships: AvailableMembership[];

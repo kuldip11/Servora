@@ -16,9 +16,9 @@ interface AccordionBaseProps {
 }
 
 interface AccordionSingleProps extends AccordionBaseProps {
-  /** @default 'single' */
+
   type?: "single";
-  /** Whether the open item can be closed by clicking it again. @default true */
+
   collapsible?: boolean | undefined;
   value?: string | undefined;
   defaultValue?: string | undefined;
@@ -34,15 +34,6 @@ interface AccordionMultipleProps extends AccordionBaseProps {
 
 export type AccordionProps = AccordionSingleProps | AccordionMultipleProps;
 
-/**
- * Declarative `items: AccordionItem[]` around
- * `@radix-ui/react-accordion` — same convention as `Tabs` above. `type`
- * mirrors Radix's own single-vs-multiple-open distinction directly
- * rather than inventing a different name for the same concept; pass
- * `type="multiple"` for several sections open at once, otherwise it
- * behaves as `type="single"` (one section open at a time, collapsible
- * by default so re-clicking the open item closes it).
- */
 export function Accordion(props: AccordionProps) {
   const { items, className } = props;
 
@@ -100,11 +91,9 @@ function AccordionRow({ item }: { item: AccordionItem }) {
           <ChevronDown className="w-4 h-4 shrink-0 text-text-secondary transition-transform duration-fast ease-standard group-data-[state=open]:rotate-180" />
         </RadixAccordion.Trigger>
       </RadixAccordion.Header>
-      {/* Phase 8: `--radix-accordion-content-height` is measured by Radix and
-          exposed as a CSS var specifically so a real height animation is
-          possible (rather than the instant show/hide this had before) — the
-          `accordion-down`/`accordion-up` keyframes reading that var are
-          defined in `tailwind-preset.js`, not redeclared here. */}
+      {
+
+                                                                  }
       <RadixAccordion.Content
         className={cn(
           "overflow-hidden text-sm text-text-secondary data-[state=open]:pb-4",

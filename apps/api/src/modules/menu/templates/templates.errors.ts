@@ -1,4 +1,4 @@
-/** Menu-template error factories using the shared application error taxonomy. */
+
 import { NotFoundError } from "../../../core/errors";
 
 export function templateNotFound(id?: string): NotFoundError {

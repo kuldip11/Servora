@@ -96,12 +96,6 @@ export function storedOrderLineToStage4Snapshot(item: StoredOrderLineForRepricin
   };
 }
 
-/**
- * Re-runs only the order-dependent stages (5–9) over the entire active order.
- * Existing lines enter as their stored stage-1–4 snapshots, so a later menu,
- * price-rule, variant, modifier, combo, or category edit can never reprice a
- * historical line. New lines have already passed stages 1–4 before arrival.
- */
 export async function finalizeWholeActiveOrder(
   context: PricingContext,
   existingItems: StoredOrderLineForRepricing[],

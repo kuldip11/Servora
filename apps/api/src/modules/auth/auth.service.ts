@@ -1,7 +1,5 @@
-/**
- * Auth service — signup/login/refresh business logic and token issuing.
- * Data access lives in `auth.repository.ts`.
- */
+
+
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { authRepository } from "./auth.repository";
@@ -27,8 +25,7 @@ function hashToken(token: string): string {
 
 export const authService = {
   async signup(input: SignupInput) {
-    // Signup creates only the authentication identity. Tenant ownership is
-    // established later through the tenant/membership flow.
+
     const normalizedEmail = input.email.trim().toLowerCase();
     const existing =
       await authRepository.findStandaloneUserByEmail(normalizedEmail);
@@ -38,8 +35,6 @@ export const authService = {
 
     const passwordHash = await bcrypt.hash(input.password, 12);
 
-    // Create the identity and bootstrap its GLOBAL OWNER role in one database
-    // transaction. If RBAC is missing, no half-created account is left behind.
     const { user } = await authRepository.createUserWithGlobalOwnerRole({
       firstName: input.firstName,
       lastName: input.lastName,
@@ -114,8 +109,7 @@ export const authService = {
 
   async refresh(tokenValue: string) {
     const tokenHash = hashToken(tokenValue);
-    // Consume first, atomically. This closes the TOCTOU window where two
-    // simultaneous refresh requests could both observe an unrevoked token.
+
     const stored = await authRepository.consumeRefreshToken(tokenHash);
     if (!stored) throw invalidRefreshToken();
 
@@ -128,9 +122,6 @@ export const authService = {
     if (!session || session.revokedAt || session.expiresAt <= new Date())
       throw invalidRefreshToken();
 
-    // Refresh restores authentication identity only. The active franchise and
-    // branch are intentionally not persisted in refresh tokens; the client
-    // sends them as request context and the server re-authorizes them.
     return authService._issueTokens(user, stored.sessionId);
   },
 

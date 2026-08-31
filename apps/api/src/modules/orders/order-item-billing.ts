@@ -4,7 +4,6 @@ export interface BillableOrderItemLike {
   billingExcluded?: boolean | null | undefined;
 }
 
-/** Single in-memory billing predicate shared by order/customer repricing. */
 export function isBillableOrderItem(item: BillableOrderItemLike): boolean {
   if (item.billingExcluded) return false;
   return item.itemStatus === "ACTIVE" ||

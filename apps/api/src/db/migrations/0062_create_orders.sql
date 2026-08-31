@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "orders" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -38,22 +38,22 @@ CREATE TABLE "orders" (
   CONSTRAINT "orders_per_cover_price_rule_id_price_rules_id_fk" FOREIGN KEY ("per_cover_price_rule_id") REFERENCES "price_rules"("id") ON DELETE SET NULL,
   CONSTRAINT "orders_branch_tenant_fk" FOREIGN KEY ("branch_id", "tenant_id") REFERENCES "branches"("id", "tenant_id") ON DELETE CASCADE
 );
---> statement-breakpoint
+
 CREATE INDEX "orders_tenant_branch_idx" ON "orders" USING btree ("tenant_id", "branch_id");
---> statement-breakpoint
+
 CREATE INDEX "orders_status_idx" ON "orders" USING btree ("status");
---> statement-breakpoint
+
 CREATE INDEX "orders_created_at_idx" ON "orders" USING btree ("created_at");
---> statement-breakpoint
+
 CREATE INDEX "orders_merged_into_idx" ON "orders" USING btree ("merged_into_order_id");
---> statement-breakpoint
+
 CREATE INDEX "orders_customer_session_idx" ON "orders" USING btree ("customer_session_id");
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "orders_customer_session_active_unique" ON "orders" USING btree ("customer_session_id") WHERE "customer_session_id" IS NOT NULL AND "status" NOT IN ('PAID', 'CLOSED', 'CANCELLED');
---> statement-breakpoint
+
 CREATE INDEX "orders_customer_group_idx" ON "orders" USING btree ("customer_group_id");
---> statement-breakpoint
+
 CREATE INDEX "orders_billing_mode_idx" ON "orders" USING btree ("tenant_id", "billing_mode");
---> statement-breakpoint
+
 CREATE INDEX "orders_resolution_as_of_idx" ON "orders" USING btree ("resolution_as_of");
---> statement-breakpoint
+

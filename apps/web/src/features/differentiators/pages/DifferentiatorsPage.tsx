@@ -55,20 +55,14 @@ export function DifferentiatorsPage() {
   const [explain, setExplain] = useState<Record<string, unknown> | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // H2 — authoritative cross-context dashboard filters. Leaving a dimension
-  // unscoped makes the API evaluate every supported value and return the
-  // affected scopes instead of silently assuming staff/dine-in.
   const [availabilityChannel, setAvailabilityChannel] = useState("UNSCOPED");
   const [availabilityFulfillment, setAvailabilityFulfillment] = useState("UNSCOPED");
   const [availabilityCause, setAvailabilityCause] = useState("");
 
-  // H3 — configurable analysis window plus manager-side filtering/sorting.
   const [windowDays, setWindowDays] = useState("90");
   const [quadrantFilter, setQuadrantFilter] = useState<"ALL" | EngineeringQuadrant>("ALL");
   const [engineeringSort, setEngineeringSort] = useState<EngineeringSort>("volume");
 
-  // H4 — task-focused common-case builder. Advanced combo/promotion editors
-  // remain available elsewhere in Menu; this flow never asks owners for UUIDs.
   const [builderKind, setBuilderKind] = useState<BuilderKind>("combo");
   const [menuChoices, setMenuChoices] = useState<MenuChoice[]>([]);
   const [comboName, setComboName] = useState("");
@@ -86,7 +80,6 @@ export function DifferentiatorsPage() {
   const [promotionPreviewItemId, setPromotionPreviewItemId] = useState("");
   const [promotionPreview, setPromotionPreview] = useState<{ subtotal: number; discountAmount: number; totalAmount: number } | null>(null);
 
-  // H6 — both the monetary threshold and required role are tenant-configurable.
   const [action, setAction] = useState<"VOID" | "COMP">("COMP");
   const [threshold, setThreshold] = useState("500");
   const [requiresRole, setRequiresRole] = useState("Manager");
@@ -134,7 +127,7 @@ export function DifferentiatorsPage() {
     void loadAvailability();
     void loadEngineering("90");
     void loadMenuChoices();
-    // Initial fetch only; controls intentionally apply on explicit refresh/change.
+
   }, []);
 
   useRealtimeEvent("menu.availability.updated", () => {
@@ -256,9 +249,7 @@ export function DifferentiatorsPage() {
     if (!promotionReady) return;
     setBusy(true);
     try {
-      // Re-resolve immediately before save. Both preview and eventual orders
-      // use the exact same PricingPipeline promotion stage; there is no UI
-      // discount arithmetic that can drift.
+
       const authoritativePreview = await getPromotionPreview();
       if (!authoritativePreview) return;
       await menuApi.createPromotion(promotionPayload);

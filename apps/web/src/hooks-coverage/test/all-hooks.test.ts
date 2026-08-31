@@ -50,7 +50,7 @@ vi.mock("../../shared/lib/realtime", () => ({
         },
       });
     } catch {
-      /* individual hooks may require richer payloads */
+
     }
   }),
   useRealtime: vi.fn(),
@@ -95,8 +95,7 @@ describe("feature hooks coverage", () => {
     expect(entries.length).toBeGreaterThan(50);
 
     for (const { path, name, fn } of entries) {
-      // Hook arguments are intentionally generic: these tests exercise the hook
-      // configuration and callback wiring, not feature-specific validation.
+
       let result: any;
       try {
         result = fn({
@@ -127,14 +126,13 @@ describe("feature hooks coverage", () => {
               : proxyData,
           );
         } catch {
-          // Service validation is outside this hook-wiring test; the function
-          // body has still been executed.
+
         }
         if (typeof result.onSuccess === "function") {
           try {
             result.onSuccess(proxyData, proxyData);
           } catch {
-            /* callback branch-specific data */
+
           }
           if (name === "useSaveMenuItem") {
             result.onSuccess(proxyData, { item: null });

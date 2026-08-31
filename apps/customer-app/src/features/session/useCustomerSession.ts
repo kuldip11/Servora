@@ -197,7 +197,7 @@ export function useCustomerSession() {
         const refreshed = await getCustomerOrder(session.token, placedOrder.id);
         if (!cancelled) handleRealtimeOrder(refreshed);
       } catch {
-        // Keep the last known order state until realtime or polling succeeds.
+
       }
     }, 15_000);
     return () => {

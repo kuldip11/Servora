@@ -66,8 +66,6 @@ import { customerSessions } from "./customer-session.schema";
 import { customerLoyaltyTiers, customers } from "./loyalty.schema";
 import { customerGroups } from "./customer-group.schema";
 
-// ─── Relations ────────────────────────────────────────────────────────────────
-
 export const organizationsRelations = relations(
   organizations,
   ({ one, many }) => ({
@@ -170,7 +168,6 @@ export const customerSessionsRelations = relations(
     orders: many(orders),
   }),
 );
-
 
 export const customerLoyaltyTiersRelations = relations(customerLoyaltyTiers, ({ one, many }) => ({
   tenant: one(tenants, { fields: [customerLoyaltyTiers.tenantId], references: [tenants.id] }),
@@ -776,7 +773,6 @@ export const menuTemplateItemsRelations = relations(
     }),
   }),
 );
-
 
 export const customerGroupsRelations = relations(customerGroups, ({ one, many }) => ({
   tenant: one(tenants, { fields: [customerGroups.tenantId], references: [tenants.id] }),

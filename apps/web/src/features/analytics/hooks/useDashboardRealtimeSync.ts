@@ -3,7 +3,6 @@ import { queryClient } from "../../../shared/lib/query-client";
 import { analyticsKeys } from "../query-keys";
 import { orderKeys } from "../../orders/query-keys";
 
-/** Keeps dashboard stats + the active-orders list fresh as orders come in. */
 export function useDashboardRealtimeSync() {
   useRealtimeEvent("order.created", () => {
     queryClient.invalidateQueries({ queryKey: analyticsKeys.dashboard() });

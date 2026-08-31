@@ -2,8 +2,6 @@ import { pgTable, uuid, timestamp, text, index } from "drizzle-orm/pg-core";
 import { users } from "./auth.schema";
 import { branches } from "./branch.schema";
 
-// ─── Staff ────────────────────────────────────────────────────────────────────
-
 export const staffShifts = pgTable(
   "staff_shifts",
   {

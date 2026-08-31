@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "sub_recipes" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -14,8 +14,8 @@ CREATE TABLE "sub_recipes" (
   CONSTRAINT "sub_recipes_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE,
   CONSTRAINT "sub_recipes_branch_id_branches_id_fk" FOREIGN KEY ("branch_id") REFERENCES "branches"("id") ON DELETE CASCADE
 );
---> statement-breakpoint
+
 CREATE INDEX "sub_recipes_tenant_idx" ON "sub_recipes" USING btree ("tenant_id");
---> statement-breakpoint
+
 CREATE INDEX "sub_recipes_tenant_branch_idx" ON "sub_recipes" USING btree ("tenant_id", "branch_id");
---> statement-breakpoint
+

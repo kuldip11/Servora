@@ -27,12 +27,6 @@ const describeRule = (rule: PriceRule) => {
   return `${scope}${window ? ` · ${window}` : ""}`;
 };
 
-/**
- * D1: authoring surface for the price_rules table — channel and time-window
- * dimensions activated for real use alongside the existing branch scope.
- * Rules resolve through the single authoritative PricingPipeline stage 1;
- * this panel only manages rows, it does not duplicate resolution logic.
- */
 export function PriceRulesPanel({ itemId, branchId }: { itemId: string; branchId?: string | null }) {
   const [channel, setChannel] = useState("");
   const [fulfillmentType, setFulfillmentType] = useState("");

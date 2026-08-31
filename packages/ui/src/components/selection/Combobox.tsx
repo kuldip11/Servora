@@ -33,22 +33,10 @@ export interface ComboboxProps {
   id?: string | undefined;
   className?: string | undefined;
   maxListHeight?: number | undefined;
-  /** Shown in the listbox when the query matches nothing. @default "No results" */
+
   emptyMessage?: string | undefined;
 }
 
-/**
- * Searchable single-select. Unlike `SelectMenu`, the trigger *is* a text
- * field — typing filters `options` client-side (see `Autocomplete` for
- * the async/server-filtered sibling). Selecting an option or blurring
- * with an unmatched query resets the visible text back to the selected
- * option's label, so this never silently commits free text as a value —
- * `onChange` only ever fires with a real `option.value`.
- *
- * Same Popover + virtualized-listbox foundation as the other three
- * Phase 4 components (`selection/shared.tsx`), and same naming
- * reasoning as `SelectMenu` for why this isn't exported as `Select`.
- */
 export function Combobox({
   options,
   value,
@@ -72,13 +60,10 @@ export function Combobox({
   const listRef = useRef<HTMLUListElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Keep the visible text in sync when `value` changes from outside (e.g. a form reset).
   useEffect(() => {
     if (!open) setQuery(selectedOption?.label ?? "");
   }, [value, open, selectedOption?.label]);
 
-  // Opening the field should expose the full option set. The selected label is
-  // display text, not an active filter; only text the user edits should filter.
   const isSelectedLabel = selectedOption?.label === query;
   const filtered = filterOptions(
     options,
@@ -103,7 +88,7 @@ export function Combobox({
 
   useEffect(() => {
     if (open) setActiveRowIndex(rows.findIndex((r) => r.kind === "option"));
-    // reset highlight to the first filtered match whenever the query changes
+
   }, [query, open]);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -121,7 +106,7 @@ export function Combobox({
   };
 
   const handleBlur = () => {
-    // Give a click on an option time to register before we snap the text back.
+
     window.setTimeout(() => {
       setOpen(false);
       setQuery(selectedOption?.label ?? "");

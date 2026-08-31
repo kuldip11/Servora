@@ -1,4 +1,4 @@
-/** Menu recipe service — tenant/branch validation plus E1/E2/E3 recipe rules. */
+
 import type { AuthContext } from "../../../core/auth";
 import type { RecipeIngredientInput } from "@pos/types";
 import { ValidationError } from "../../../core/errors";
@@ -9,7 +9,6 @@ import { itemNotFound, inventoryItemNotFound } from "./recipes.errors";
 import { menuChangeLog } from "../change-log/menu-change-log";
 import { areInventoryUnitsCompatible } from "../../inventory/inventory-units";
 import { inventoryService } from "../../inventory/inventory.service";
-
 
 async function validateRecipeRows(
   tenantId: string,

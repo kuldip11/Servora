@@ -1,8 +1,5 @@
-/**
- * Menu templates controller — thin handlers only. Auth/branch resolution
- * comes from `requireAuthPlugin` (applied in `templates.route.ts`);
- * business rules live in `templates.service.ts`.
- */
+
+
 import type { AuthContext } from "../../../core/auth";
 import { successResponse, createdResponse } from "../../../core/response";
 import { templatesService } from "./templates.service";

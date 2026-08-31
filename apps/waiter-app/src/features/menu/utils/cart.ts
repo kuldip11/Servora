@@ -1,9 +1,6 @@
 import type { OrderableMenuItem } from "@pos/types";
 import type { CartItem } from "../types";
 
-// Item's real price is either a flat base price, or — once it has variants
-// — a range across those (absolute) variant prices. Showing a flat base
-// price when the price is actually variant-driven is misleading.
 export function priceLabel(item: OrderableMenuItem): string {
   if (item.pricingMode === "OPEN") return "Open price";
   if (item.pricingMode === "WEIGHT_BASED") return `₹${Number(item.basePrice).toFixed(2)}/${String(item.weightUnit ?? "unit").toLowerCase()}`;

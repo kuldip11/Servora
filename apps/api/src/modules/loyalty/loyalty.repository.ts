@@ -120,9 +120,6 @@ export const loyaltyRepository = {
     });
     if (!tenant?.organizationId) return undefined;
 
-    // Restrict identity matching to sibling tenants in the same Organization.
-    // Phone is the explicit cross-tenant identity fallback for customers created
-    // before H5 populated organizationCustomerId.
     const candidateRows = await db
       .select({ id: customers.id })
       .from(customers)
@@ -207,10 +204,6 @@ export const loyaltyRepository = {
     });
     if (local.length || !phone) return local;
 
-    // H5 first-visit recognition: when the customer is known only at a
-    // sibling tenant, materialize a tenant-local customer row linked to the
-    // shared organization identity. Orders therefore keep tenant-local FKs
-    // while stage 6 can discover the organization tier earned elsewhere.
     const tenant = await db.query.tenants.findFirst({
       where: eq(tenants.id, tenantId),
       columns: { organizationId: true },
@@ -251,8 +244,6 @@ export const loyaltyRepository = {
         );
     }
 
-    // Re-check after the sibling lookup to avoid creating a duplicate when a
-    // concurrent request materialized this tenant-local identity first.
     const concurrentlyCreated = await db.query.customers.findMany({
       where: and(eq(customers.tenantId, tenantId), eq(customers.phone, phone)),
       with: { loyaltyTier: true },
@@ -301,9 +292,7 @@ export const loyaltyRepository = {
       .limit(1);
     if (!match) return null;
     const identityId = match.organizationCustomerId ?? match.id;
-    // H5 first-visit linking: customers may not yet have an organization identity link.
-    // Link the first matched sibling lazily so a newly-created customer at
-    // another tenant can immediately discover that sibling's org-tier assignment.
+
     if (!match.organizationCustomerId) {
       await db.update(customers)
         .set({ organizationCustomerId: identityId, updatedAt: new Date() })

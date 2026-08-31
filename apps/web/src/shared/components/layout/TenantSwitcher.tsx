@@ -19,10 +19,8 @@ export function TenantSwitcher() {
   const [switching, setSwitching] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
-  // Franchise switching is a context operation, not a permission-gated action.
-  // Access is determined by the franchises returned by the authenticated server session.
   const canRead = items.length > 0;
-  // Creating a new franchise is an ownership operation: only the global OWNER can do it.
+
   const canCreate =
     items.some((membership) => membership.isGlobalOwner) ||
     user?.roles?.some((role) => role.name === "OWNER");
@@ -61,7 +59,7 @@ export function TenantSwitcher() {
         }
       })
       .catch(() => {
-        // Keep the in-memory franchise access list if the refresh fails.
+
       });
   }, [user, canRead, membershipId, setContext]);
 
@@ -288,7 +286,7 @@ export function TenantSwitcher() {
             value={businessName}
             onChange={(e) => setBusinessName(e.target.value)}
             placeholder="e.g. Downtown Restaurant"
-            // eslint-disable-next-line jsx-a11y/no-autofocus -- intentional: this input is the sole field in a just-opened create-franchise dialog
+            // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus
             onKeyDown={(e) => {
               if (e.key === "Enter" && businessName.trim() && !creating)

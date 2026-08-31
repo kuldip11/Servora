@@ -10,14 +10,6 @@ interface Props {
   menuSearch: string;
 }
 
-// Design-system Phase 11, Sprint WA-3 — retokenized only. **Not**
-// migrated onto `Tabs` (Phase 6): both rows are horizontally-scrolling
-// filter-chip strips (`overflow-x-auto no-scrollbar`), not `Tabs`'
-// underline/segmented-bar shape, and both act as filters (food type,
-// active category) rather than switching between separate content
-// panels the way `Tabs` assumes — same "genuine shape difference, not
-// a style preference" reasoning `MenuPage` (Admin, Sprint AD-9) used
-// for its own filter-chip rows.
 export function CategoryTabs({
   foodTypeFilter,
   onFoodTypeChange,

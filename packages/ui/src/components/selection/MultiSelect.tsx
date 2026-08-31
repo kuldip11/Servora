@@ -33,21 +33,10 @@ export interface MultiSelectProps {
   id?: string | undefined;
   className?: string | undefined;
   maxListHeight?: number | undefined;
-  /** Chips shown on the trigger before collapsing into "+N more". @default 3 */
+
   maxVisibleChips?: number | undefined;
 }
 
-/**
- * Multi-select with a searchable, virtualized, checkbox-style listbox and
- * removable chips on the trigger. Same Popover + shared-listbox
- * foundation as `SelectMenu`/`Combobox` (`selection/shared.tsx`).
- *
- * Radix has no first-party multi-select primitive (`@radix-ui/react-select`
- * is single-value), so — same reasoning as `SplitButton`'s dropdown before
- * `DropdownMenu` exists in Phase 5 — this builds directly on `Popover` +
- * hand-rolled `role="listbox"`/`aria-multiselectable="true"` semantics
- * rather than reaching for a second library.
- */
 export function MultiSelect({
   options,
   value,
@@ -87,7 +76,7 @@ export function MultiSelect({
     const row = rows[rowIndex];
     if (row?.kind !== "option" || row.option.disabled) return;
     toggle(row.option.value);
-    // stays open — multi-select keeps selecting until the user dismisses it
+
   };
 
   const { activeRowIndex, setActiveRowIndex, onKeyDown } = useActiveRow(
@@ -103,12 +92,12 @@ export function MultiSelect({
     } else {
       setQuery("");
     }
-    // reset search + highlight whenever the popover opens/closes
+
   }, [open]);
 
   useEffect(() => {
     setActiveRowIndex(rows.findIndex((r) => r.kind === "option"));
-    // re-highlight the first match whenever the query narrows the list
+
   }, [query]);
 
   const handleSearchKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -155,13 +144,7 @@ export function MultiSelect({
             {selectedOptions.length === 0 ? (
               <span className="text-text-disabled">{placeholder}</span>
             ) : (
-              // Read-only summary chips. A per-chip "remove ✕" control would need to be
-              // its own focusable, keyboard-operable element, but this trigger is a
-              // native <button> — nesting interactive controls inside a <button> is
-              // invalid HTML (browsers de-nest it) and there's no way to make an inner
-              // element keyboard-reachable once that happens. Removal instead happens by
-              // clicking a checked row in the open listbox, or via "Clear all" below —
-              // both fully keyboard-operable without this trade-off.
+
               <span className="flex flex-1 flex-wrap items-center gap-1">
                 {visibleChips.map((opt) => (
                   <span

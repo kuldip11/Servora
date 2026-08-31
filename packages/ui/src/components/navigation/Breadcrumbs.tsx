@@ -5,7 +5,7 @@ import { cn } from "../../utils/cn";
 export interface BreadcrumbItem {
   label: string;
   href?: string | undefined;
-  /** Router `Link`-like component, e.g. `@tanstack/react-router`'s `Link`. Omit to render a plain `<a>`. */
+
   as?: ElementType | undefined;
   linkProps?: Record<string, unknown> | undefined;
 }
@@ -15,15 +15,6 @@ export interface BreadcrumbsProps {
   className?: string | undefined;
 }
 
-/**
- * Page hierarchy trail (the design-system contract Phase 6) — meant
- * for `PageHeader`'s `eyebrow` slot (see that Phase 2 component's doc
- * comment, which already anticipates this).
- *
- * The last item is always rendered as the current page: plain text,
- * `aria-current="page"`, no link — even if it's passed `href`/`as`,
- * since a breadcrumb never links to the page you're already on.
- */
 export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
   return (
     <nav

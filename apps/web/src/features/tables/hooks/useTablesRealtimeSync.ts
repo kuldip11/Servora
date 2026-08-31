@@ -3,7 +3,6 @@ import { queryClient } from "../../../shared/lib/query-client";
 import { tableKeys } from "../query-keys";
 import type { RestaurantTable } from "@pos/types";
 
-/** Update the table list in-place instead of refetching the whole collection. */
 export function useTablesRealtimeSync() {
   useRealtimeEvent("table.updated", (event) => {
     queryClient.setQueryData<RestaurantTable[]>(tableKeys.list(), (tables) =>

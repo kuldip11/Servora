@@ -13,8 +13,6 @@ import { taxModeEnum } from "./tax.schema";
 
 export const roundingPolicyEnum = pgEnum("rounding_policy", ["NONE", "NEAREST_1", "NEAREST_5", "NEAREST_10"]);
 
-// Tenant is the business/franchise isolation boundary. Identity is the
-// generated UUID; name is display-only and is intentionally not unique.
 export const tenants = pgTable(
   "tenants",
   {

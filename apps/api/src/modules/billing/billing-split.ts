@@ -105,10 +105,6 @@ export function validateFractionalComboAllocations(
   return { ok: true };
 }
 
-/**
- * C9/D2: combo parent + component rows are one indivisible billing unit.
- * The returned arrays preserve the original item order inside each group.
- */
 export function buildBillableItemGroups(items: BillableOrderItem[]): string[][] {
   const grouped = new Map<string, string[]>();
   for (const item of items) {
@@ -248,9 +244,7 @@ export function buildSeatAllocationPlan(
       const allocation = allocations.find((entry) => entry.label === unitLabels[0])!;
       allocation.orderItemIds.push(...unit.map((item) => item.id));
     } else {
-      // A combo is atomic for billing. A mixed-seat combo (or an unlabeled
-      // shared item) goes through the shared-item strategy instead of
-      // scattering its parent/components across receipts.
+
       sharedUnits.push({ items: unit, weight: weightOf(unit) });
     }
   }
@@ -281,8 +275,6 @@ export function buildSeatAllocationPlan(
   return { status: "complete" as const, allocations };
 }
 
-
-/** G5: seat planner that honors explicit per-item fractional shares first. */
 export function buildFractionalSeatAllocationPlan(
   items: Array<{
     id: string;
@@ -327,8 +319,6 @@ export function buildFractionalSeatAllocationPlan(
     };
   }
 
-  // Preserve B9's established whole-unit distribution for untagged lines;
-  // only explicitly seat-shared G5 lines are fractional.
   const weightForAllocation = (allocation: ItemShareAllocation) => allocation.itemShares.reduce((sum, share) => {
     const item = items.find((candidate) => candidate.id === share.orderItemId)!;
     return sum + Number(item.subtotal) * (item.taxMode === "INCLUSIVE" ? 1 : 1 + Number(item.taxRate) / 100) * share.shareRatio;

@@ -14,49 +14,6 @@ interface Props {
   onClose: () => void;
 }
 
-/**
- * Design-system Phase 10 (the design-system contract), Sprint AD-8.
- * This is one of the 4 hand-rolled `fixed inset-0` overlays the Phase 0
- * audit flagged as needing a full rewrite onto `Dialog`, not a drop-in
- * swap (`the design-system audit` §2 and the migration-map row for
- * OrdersPage/OrderDetailPage). Rewritten onto `Dialog` (Phase 5) below.
- *
- * Variant selection + modifier groups + quantity for a single menu item.
- * Mirrors apps/waiter-app/src/components/ItemCustomiser.tsx (that one is
- * Phase 11's own item in the same audit finding, untouched here — Waiter
- * App migration hasn't started) so both apps enforce the exact same
- * selection rules (min/max per group, absolute variant pricing) — the API
- * validates all of this again server-side regardless, but matching it
- * here means the price shown never lies.
- *
- * **Not migrated onto a `packages/ui` primitive, deliberately:** the
- * quantity stepper and the variant/modifier option cards are a bespoke
- * "choice chip" selection UI (bordered card that highlights on select,
- * inline +/- steppers for per-option quantity), not a dropdown/combobox
- * shape — `SelectMenu`/`MultiSelect`/`Combobox` (Phase 4) are all built
- * for a collapsed-trigger-plus-popover pattern, which this deliberately
- * isn't (every option needs to stay visible at once so the price total
- * updates live as you tap through them). Same reasoning `InventoryPage`'s
- * category icon tiles and `DashboardPage`'s quick-action tiles used for
- * "this is a real UI pattern, not an unmigrated leftover" — only the
- * color literals move onto tokens below, the interaction shape stays.
- *
- * **Chef-notes field migrated onto `TextInput`** (Phase 3) — unlike the
- * above, this one *is* a genuine drop-in: a single labeled text field is
- * exactly what `TextInput` renders.
- *
- * **Header/price display, flagged not silent:** `Dialog`'s `title` prop
- * is `string`-typed (`packages/ui/src/components/overlay/Dialog.tsx`) —
- * it doesn't accept the two-line "item name + live price" header this
- * component had before. Widening `DialogProps.title` to `ReactNode` for
- * this one call site would be a shared-package API change with no other
- * consumer asking for it (same "that's a `packages/ui` change, not this
- * page-migration sprint's scope" split Sprint AD-7 drew around
- * `StatCard`'s internals) — so `title={item.name}` stays plain text, and
- * the live unit-price/total line moves to the top of the scrollable body
- * instead of the header. Worth a look in a real browser: this is a small
- * layout change, not just a token swap.
- */
 export function ItemCustomizerModal({
   item,
   existingCartItem,
@@ -90,9 +47,7 @@ export function ItemCustomizerModal({
 
   const basePrice = Number(item.basePrice);
   const selectedVariant = item.variants?.find((v) => v.id === variantId);
-  // Variants are absolute prices — picking one REPLACES the base price,
-  // it doesn't add to it (this was bug #2: additive pricing on Half/Full
-  // style variants). Modifiers stay additive on top of whichever price wins.
+
   const priceBeforeModifiers = selectedVariant
     ? Number(selectedVariant.price)
     : basePrice;
@@ -243,14 +198,14 @@ export function ItemCustomizerModal({
             {[1,2,3,4,5].map((course) => <option key={course} value={course}>Course {course}</option>)}
           </select>
         </label>}
-        {/* Live price — see file-level doc comment on why this isn't in
-            the Dialog header. */}
+        {
+                                 }
         <p className="text-sm text-primary font-semibold -mt-1">
           {formatCurrency(unitPrice)} × {quantity} ={" "}
           {formatCurrency(unitPrice * quantity)}
         </p>
 
-        {/* Quantity */}
+        {              }
         <div>
           <p className="text-xs font-semibold text-text-secondary uppercase tracking-wide mb-2">
             Quantity
@@ -274,7 +229,7 @@ export function ItemCustomizerModal({
           </div>
         </div>
 
-        {/* Variants */}
+        {              }
         {hasVariants && (
           <div>
             <p className="text-xs font-semibold text-text-secondary uppercase tracking-wide mb-2">
@@ -317,7 +272,7 @@ export function ItemCustomizerModal({
           </div>
         )}
 
-        {/* Modifier groups */}
+        {                     }
         {groups.filter((group) => !group.dependsOnOptionId || Object.values(selections).flat().some((option) => option.optionId === group.dependsOnOptionId)).map((group) => {
           const picked = selections[group.id] ?? [];
           const atCap =
@@ -429,8 +384,8 @@ export function ItemCustomizerModal({
           );
         })}
 
-        {/* Allergens — surfaced here, not just admin-only, so whoever's
-            taking the order can flag them before confirming. */}
+        {
+                                                                }
         {(item.allergenLinks?.length ?? 0) > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {(item.allergenLinks ?? []).map((l) => (
@@ -444,7 +399,7 @@ export function ItemCustomizerModal({
           </div>
         )}
 
-        {/* Chef note — genuine TextInput drop-in, see file-level doc comment. */}
+        {                                                                        }
         <TextInput
           label="Seat / diner (optional)"
           placeholder="e.g. Seat 1 or Priya"

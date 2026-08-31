@@ -16,15 +16,6 @@ export interface ContextMenuProps {
   className?: string | undefined;
 }
 
-/**
- * Right-click menu. Same declarative `items: MenuEntry[]` shape as
- * `DropdownMenu` (`overlay/shared.tsx`) — the two Radix packages
- * expose near-identical `Item`/`Separator` primitives, so one item
- * type serves both instead of a second menu API to learn. Wraps
- * `children` directly (the area that should respond to right-click),
- * unlike `DropdownMenu`'s separate `trigger` prop — that's Radix's own
- * `ContextMenu.Trigger` shape, not a stylistic choice made here.
- */
 export function ContextMenu({
   children,
   items,

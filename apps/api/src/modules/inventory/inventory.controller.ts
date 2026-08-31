@@ -1,8 +1,5 @@
-/**
- * Inventory controller — thin handlers only. Auth/branch resolution comes
- * from `requireAuthPlugin` (applied in `inventory.route.ts`); business
- * rules live in `inventory.service.ts`.
- */
+
+
 import type { AuthContext } from "../../core/auth";
 import { successResponse, createdResponse } from "../../core/response";
 import {

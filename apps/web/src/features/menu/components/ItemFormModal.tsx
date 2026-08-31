@@ -30,7 +30,7 @@ import { advancedMenuItemPricingSchema, menuItemFormSchema, type MenuItemFormVal
 
 interface Props {
   categoryId: string;
-  item: MenuItem | null; // null = creating a new item
+  item: MenuItem | null;
   onClose: () => void;
 }
 
@@ -227,7 +227,7 @@ export function ItemFormModal({ categoryId, item, onClose }: Props) {
         {item && (
           <MenuMembershipsEditor item={item} categories={allCategories ?? []} />
         )}
-        {/* Basics */}
+        {            }
         <Input
           label="Item name"
           placeholder="Chicken Tikka"
@@ -342,7 +342,7 @@ export function ItemFormModal({ categoryId, item, onClose }: Props) {
           </div>
         </section>
 
-        {/* Food type + spice level */}
+        {                             }
         <div className="grid grid-cols-2 gap-3">
           <div>
             <span
@@ -405,7 +405,7 @@ export function ItemFormModal({ categoryId, item, onClose }: Props) {
           />
         </div>
 
-        {/* Availability status */}
+        {                         }
         <div className="grid grid-cols-2 gap-3">
           <Select
             label="Status"
@@ -471,7 +471,7 @@ export function ItemFormModal({ categoryId, item, onClose }: Props) {
           }}
         />
 
-        {/* Recipe / inventory link */}
+        {                             }
         <div>
           <label className="flex items-center gap-2 text-sm text-text-secondary mb-2">
             <input
@@ -494,7 +494,7 @@ export function ItemFormModal({ categoryId, item, onClose }: Props) {
           )}
         </div>
 
-        {/* Scheduling */}
+        {                }
         {isEdit && (
           <div>
             <ScheduleManager itemId={item!.id} />
@@ -508,8 +508,8 @@ export function ItemFormModal({ categoryId, item, onClose }: Props) {
           </div>
         )}
 
-        {/* Branch overrides — only meaningful for a tenant-wide item; a
-            branch-exclusive item already belongs to exactly one branch. */}
+        {
+                                                                           }
         {isEdit && item!.branchId === null && (
           <div>
             <BranchOverridesPanel

@@ -1,26 +1,6 @@
 import type { ReactNode, ComponentType } from "react";
 import { cn } from "../utils/cn";
 
-/**
- * Upgraded for Phase 7 (the design-system contract lists this
- * explicitly alongside `Table`/`DataGrid`/etc). Same reasoning as
- * `Card`/`Button`/`Input` in earlier phases: upgraded in place, not
- * replaced. All 7 existing call sites (`grep`-verified across
- * `apps/web` — Orders/Tables/Staff/Billing/Menu/Inventory/Branches
- * pages) use only `icon`/`title`/`description`/`action`, so swapping
- * the old hardcoded `gray-*` classes for `--text-primary`/
- * `--text-secondary`/`--surface-secondary` tokens is visually
- * identical in the light theme (the tokens were pulled 1:1 from these
- * exact classes) while now repainting correctly under
- * `data-theme="dark"`/`"high-contrast"` — the old version didn't.
- *
- * `size` is new and opt-in (`@default 'md'`, matches the old fixed
- * `py-16` unchanged): `Table`/`DataGrid` (Phase 7) render this inside
- * an already-padded container, where the old `py-16` doubles up the
- * whitespace, so `size="sm"` gives those callers a tighter variant
- * without a second component.
- */
-
 export type EmptyStateSize = "sm" | "md";
 
 const SIZE_CLASSES: Record<
@@ -36,7 +16,7 @@ export interface EmptyStateProps {
   title: string;
   description?: string | undefined;
   action?: ReactNode;
-  /** @default 'md' */
+
   size?: EmptyStateSize | undefined;
   className?: string | undefined;
 }

@@ -338,6 +338,4 @@ export const orderAdjustmentService = {
     return fullOrder;
   },
 
-  // Fires a new round ("Send to Kitchen") on an existing tab — creates a
-  // brand new kitchen ticket rather than mutating a previous one.
 };

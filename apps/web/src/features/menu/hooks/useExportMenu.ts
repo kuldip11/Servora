@@ -6,7 +6,6 @@ import {
   type MenuExportFormat,
 } from "../services/menu-export.service";
 
-/** Plain (non-react-query) hook: each call is a one-off file download, not cached state. */
 export function useExportMenu() {
   const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
 

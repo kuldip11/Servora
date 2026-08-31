@@ -1,4 +1,4 @@
-/** Branch-domain error factories using the shared application error taxonomy. */
+
 import { NotFoundError, ConflictError } from "../../core/errors";
 
 export function branchNotFound(id?: string): NotFoundError {

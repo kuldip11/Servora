@@ -14,7 +14,6 @@ interface Props {
   onQtyChange: (delta: number) => void;
 }
 
-// Memoized menu card used by the waiter order-entry grid.
 export const MenuItemCard = memo(function MenuItemCard({
   item,
   cartQty,

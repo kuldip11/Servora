@@ -117,9 +117,7 @@ export function AddItemsModal({
       return;
     }
     setValidationError("");
-    // The validation schema permits omitted option quantities, while the
-    // orders service payload requires a concrete quantity for every option.
-    // Normalize at the boundary instead of weakening the service contract.
+
     const payload = {
       ...(parsed.data.notes !== undefined && { notes: parsed.data.notes }),
       items: (parsed.data.items ?? []).map((item) => ({
@@ -143,9 +141,9 @@ export function AddItemsModal({
       </p>
       {courseSequencingAvailable && <div className="mb-4 flex items-center gap-3 rounded-md border border-border bg-surface-secondary px-3 py-2 text-sm"><label className="flex items-center gap-2 text-text-secondary"><input type="checkbox" checked={assignCourse} onChange={(event) => setAssignCourse(event.target.checked)} /> Assign this round to a course</label>{assignCourse && <select className="rounded border border-border bg-surface px-2 py-1" value={roundCourseNumber} onChange={(event) => setRoundCourseNumber(Number(event.target.value))}>{[1,2,3,4,5].map((course) => <option key={course} value={course}>Course {course}</option>)}</select>}</div>}
       <div className="grid grid-cols-2 gap-6">
-        {/* Left: Menu */}
+        {                }
         <div>
-          {/* Veg / Non-veg / Egg filter */}
+          {                                }
           <div className="flex items-center gap-2 mb-3">
             {FOOD_TYPE_FILTERS.map((f) => (
               <button
@@ -202,7 +200,7 @@ export function AddItemsModal({
           </div>
         </div>
 
-        {/* Right: Cart */}
+        {                 }
         <div className="flex flex-col">
           <p className="text-sm font-semibold text-text-primary mb-3">
             New Items ({items.length})

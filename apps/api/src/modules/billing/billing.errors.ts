@@ -1,4 +1,4 @@
-/** Billing-domain error factories using the shared application error taxonomy. */
+
 import { NotFoundError, DomainRuleError } from "../../core/errors";
 
 export function orderNotFound(id: string): NotFoundError {

@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "organization_menu_items" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -9,6 +9,6 @@ CREATE TABLE "organization_menu_items" (
   "created_at" timestamp DEFAULT now() NOT NULL,
   CONSTRAINT "organization_menu_items_menu_id_menus_id_fk" FOREIGN KEY ("menu_id") REFERENCES "menus"("id") ON DELETE CASCADE
 );
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "organization_menu_items_menu_sku_unique" ON "organization_menu_items" USING btree ("menu_id", "item_sku");
---> statement-breakpoint
+

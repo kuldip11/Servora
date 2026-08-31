@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "payment_webhook_events" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -12,8 +12,8 @@ CREATE TABLE "payment_webhook_events" (
   "next_attempt_at" timestamp,
   "error" text
 );
---> statement-breakpoint
+
 CREATE INDEX "payment_webhook_events_type_idx" ON "payment_webhook_events" USING btree ("event_type");
---> statement-breakpoint
+
 CREATE INDEX "payment_webhook_events_retry_idx" ON "payment_webhook_events" USING btree ("status", "next_attempt_at");
---> statement-breakpoint
+

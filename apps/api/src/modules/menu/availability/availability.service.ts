@@ -1,8 +1,5 @@
-/**
- * Menu availability application service: schedule/override validation,
- * persistence orchestration, inventory-driven signals, and effective-status
- * lookup. Pure precedence resolution lives in `availability-resolution.ts`.
- */
+
+
 import type {
   MenuItemStatus,
   MenuItemScheduleType,
@@ -34,11 +31,10 @@ function formatTime(d: Date) {
 function formatDate(d: Date) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
-// 'HH:MM:SS' string comparison works lexicographically for same-day ranges;
-// overnight ranges (e.g. 22:00 -> 02:00) need the OR-wrap below.
+
 function timeInRange(now: string, start: string, end: string): boolean {
   if (start <= end) return now >= start && now <= end;
-  return now >= start || now <= end; // wraps past midnight
+  return now >= start || now <= end;
 }
 
 type ScheduleRow = Awaited<
@@ -382,8 +378,6 @@ export const availabilityService = {
     return updated;
   },
 
-  // ─── Schedules ───────────────────────────────────────────────────────────
-
   async listSchedulesForItem(tenantId: string, itemId: string) {
     return availabilityRepository.listSchedulesForItem(tenantId, itemId);
   },
@@ -440,15 +434,9 @@ export const availabilityService = {
     return updated;
   },
 
-  // Fire-and-forget, same as item/table soft-deletes elsewhere: deleting a
-  // schedule that doesn't exist is a no-op, not a 404.
   async deleteSchedule(tenantId: string, scheduleId: string): Promise<void> {
     await availabilityRepository.deleteSchedule(tenantId, scheduleId);
   },
-
-  // ─── Holidays ────────────────────────────────────────────────────────────
-  // No not-found handling on update/delete in the pre-refactor endpoints —
-  // preserved as-is (a no-op on a missing holiday, not a 404).
 
   async listHolidays(
     tenantId: string,
@@ -481,8 +469,6 @@ export const availabilityService = {
     await availabilityRepository.deleteHoliday(tenantId, holidayId);
   },
 
-  // ─── Effective status ────────────────────────────────────────────────────
-
   async isScheduleActive(
     tenantId: string,
     schedule: ScheduleRow,
@@ -496,11 +482,6 @@ export const availabilityService = {
     );
   },
 
-  // Determines what an item's status actually is right now, factoring in
-  // any active schedule — falls back to the item's stored base status when
-  // nothing's currently in effect. When multiple schedules overlap, the
-  // most specific one wins (a holiday override beats a recurring weekly
-  // special, which beats a daily one).
   async getEffectiveStatus(
     tenantId: string,
     itemId: string,
@@ -510,8 +491,6 @@ export const availabilityService = {
     const item = await availabilityRepository.findItemBasics(tenantId, itemId);
     if (!item) throw itemNotFound(itemId);
 
-    // Layer 1 (highest): a human-set operational override. Short-circuit here
-    // so lower computed layers cannot accidentally supersede or clear it.
     if (item.manualOverrideStatus) {
       return {
         status: item.manualOverrideStatus,
@@ -519,10 +498,6 @@ export const availabilityService = {
       };
     }
 
-    // G4: finite batch/count stock is a computed 86 signal. It sits below
-    // the human override and above schedules/branch presentation layers so a
-    // zero count cannot be sold concurrently unless a manager explicitly
-    // overrides availability.
     if (item.manualStockCount !== null && item.manualStockCount <= 0) {
       return { status: "OUT_OF_STOCK", reason: "Manual stock count depleted" };
     }
@@ -553,8 +528,6 @@ export const availabilityService = {
     };
   },
 
-  // ─── Manual availability override ───────────────────────────────────────
-
   async setManualOverride(
     tenantId: string,
     itemId: string,
@@ -579,8 +552,6 @@ export const availabilityService = {
     if (!item) throw itemNotFound(itemId);
     return availabilityRepository.clearManualOverride(tenantId, itemId);
   },
-
-  // ─── Branch overrides ────────────────────────────────────────────────────
 
   async listOverridesForItem(tenantId: string, itemId: string) {
     return availabilityRepository.listOverridesForItem(tenantId, itemId);
@@ -642,10 +613,6 @@ export const availabilityService = {
     await availabilityRepository.deleteChannelOverride(tenantId, id);
   },
 
-  // The item as it actually appears at a given branch. Status precedence is
-  // explicit and stable: manual override > branch override > active schedule
-  // > base/computed status. Price and visibility still come from the branch
-  // override and fall back to the base item.
   async getEffectiveItemWithEvidence(
     tenantId: string,
     itemId: string,
@@ -676,8 +643,7 @@ export const availabilityService = {
           : Promise.resolve(undefined),
       ]);
       evidence = {
-        // Preserve the complete item row/relations used by the live resolver so
-        // historical replay returns the same shape without consulting today's menu.
+
         item,
         resolvedStatus,
         branchOverride: override

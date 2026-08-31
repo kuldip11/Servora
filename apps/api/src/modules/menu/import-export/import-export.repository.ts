@@ -1,4 +1,4 @@
-/** Persistence queries used by menu import/export workflows. */
+
 import { eq, and, isNull, or } from "drizzle-orm";
 import { db } from "../../../db";
 import {
@@ -27,7 +27,6 @@ export interface CommitRowData {
 }
 
 export const importExportRepository = {
-  // ─── Export reads ──────────────────────────────────────────────────────
 
   async findItemsForExport(tenantId: string, branchId?: string | undefined) {
     return db.query.menuItems.findMany({
@@ -56,9 +55,6 @@ export const importExportRepository = {
     });
   },
 
-  // recipes has no tenantId column of its own — scoped through its parent
-  // menu item, same as everywhere else recipes are read (see
-  // recipes.repository.ts#getItemRecipe).
   async findRecipesForExport(tenantId: string, branchId?: string) {
     const rows = await db.query.recipes.findMany({
       with: {
@@ -93,8 +89,6 @@ export const importExportRepository = {
     });
   },
 
-  // ─── Import reads ──────────────────────────────────────────────────────
-
   async findCategoriesForImport(tenantId: string, branchId?: string) {
     return db.query.menuCategories.findMany({
       where: and(
@@ -120,10 +114,6 @@ export const importExportRepository = {
     });
   },
 
-  // ─── Import writes ─────────────────────────────────────────────────────
-
-  // Writes every valid row in one transaction — a failure partway through
-  // rolls back the whole batch rather than leaving a half-imported menu.
   async commitRows(
     tenantId: string,
     branchId: string | undefined,

@@ -1,4 +1,4 @@
-/** Menu recipe data access. E1/E2 extend rows with scope and sub-recipe source. */
+
 import { eq, and, inArray } from "drizzle-orm";
 import { db } from "../../../db";
 import {

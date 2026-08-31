@@ -1,4 +1,4 @@
-/** Persistence operations for menu bulk workflows. */
+
 import { eq, and, inArray, isNull } from "drizzle-orm";
 import { db } from "../../../db";
 import type { MenuItemStatus } from "@pos/types";
@@ -78,8 +78,7 @@ export const bulkOpsRepository = {
     mode: BulkMode,
   ): Promise<{ updated: number }> {
     if (!itemIds.length) return { updated: 0 };
-    // Scope itemIds to this tenant first so a stray id from another tenant
-    // can't be used to tamper with unrelated link rows.
+
     const owned = await db.query.menuItems.findMany({
       where: and(
         eq(menuItems.tenantId, tenantId),
@@ -115,7 +114,7 @@ export const bulkOpsRepository = {
           .onConflictDoNothing();
       }
     } else {
-      // remove
+
       await db
         .delete(menuItemTags)
         .where(
@@ -236,10 +235,7 @@ export const bulkOpsRepository = {
     itemIds: string[],
   ): Promise<{ deleted: number; protected: number }> {
     if (!itemIds.length) return { deleted: 0, protected: 0 };
-    // "Protected" = items that are line items on any order that isn't
-    // finished (OPEN / BILL_REQUESTED) — soft-deleting those would corrupt
-    // an in-progress bill's history. Everything else (already CLOSED/PAID
-    // orders, or no orders at all) is safe to soft-delete.
+
     const protectedRows = await db
       .selectDistinct({ id: orderItems.menuItemId })
       .from(orderItems)

@@ -1,7 +1,5 @@
-/**
- * Analytics repository — data access only. Read-only aggregates for the
- * dashboard; no writes, no cross-module side effects.
- */
+
+
 import {
   eq,
   and,
@@ -18,9 +16,6 @@ import {
 import { db } from "../../db";
 import { orders, inventoryItems, orderItems, menuItems } from "../../db/schema";
 
-// Tabs that are still "in flight" — not yet paid, closed, or cancelled.
-// Kept as a named constant rather than inline so the definition of
-// "active" lives in exactly one place.
 const ACTIVE_ORDER_EXCLUDED_STATUSES = ["PAID", "CLOSED", "CANCELLED"] as const;
 
 export const analyticsRepository = {

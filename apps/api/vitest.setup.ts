@@ -1,11 +1,5 @@
-/**
- * Test environment defaults.
- *
- * Vitest does not automatically load Bun's .env files, while the API's
- * runtime Redis module requires REDIS_URL at module evaluation time.
- * Keep tests self-contained and deterministic by providing safe local
- * defaults before any test module is imported.
- */
+
+
 process.env.NODE_ENV ??= "test";
 process.env.REDIS_URL ??= "redis://localhost:6379";
 process.env.DATABASE_URL ??=

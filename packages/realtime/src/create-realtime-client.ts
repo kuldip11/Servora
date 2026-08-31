@@ -1,29 +1,14 @@
 import type { RealtimeClientConfig } from "./types";
 
 export interface RealtimeClient<E extends { type: string }> {
-  /** Subscribe to every event. Connects lazily on first subscriber, disconnects when the last one leaves. Returns an unsubscribe function. */
+
   subscribe(handler: (event: E) => void): () => void;
   isConnected(): boolean;
-  /** Fired whenever the underlying socket opens or closes. */
+
   onConnectionChange(listener: (connected: boolean) => void): () => void;
   reconnect(): void;
 }
 
-/**
- * Creates a realtime (WebSocket) client: a single connection shared by every
- * subscriber, auto-reconnecting after `reconnectDelayMs` (default 3s) any
- * time the socket closes, re-reading `getAccessToken()` at reconnect time
- * rather than reusing the token captured at the original connect call (so a
- * token refreshed while disconnected is picked up, and a logged-out app
- * naturally stops retrying once `getAccessToken()` starts returning null).
- *
- * State (the socket, the handler set, the reconnect timer) lives in this
- * factory's closure rather than module-level globals, so each call produces
- * an independent client — each app creates exactly one, but this also means
- * a test can create as many isolated instances as it needs.
- *
- * Each application owns one configured client instance while tests may create isolated instances.
- */
 export function createRealtimeClient<E extends { type: string }>(
   config: RealtimeClientConfig,
 ): RealtimeClient<E> {
@@ -69,15 +54,14 @@ export function createRealtimeClient<E extends { type: string }>(
         const event = JSON.parse(e.data) as E;
         handlers.forEach((h) => h(event));
       } catch {
-        // Malformed payload — ignore, matches original apps/web behavior.
+
       }
     };
 
     ws.onclose = () => {
       ws = null;
       setConnected(false);
-      // An intentional unsubscribe/logout must not create a new reconnect
-      // timer. Only an active subscriber keeps the connection alive.
+
       if (handlers.size === 0) return;
       if (reconnectTimer) clearTimeout(reconnectTimer);
       reconnectTimer = setTimeout(() => {

@@ -1,8 +1,5 @@
-/**
- * Menu category controller — thin handlers only. Auth/branch resolution
- * comes from `requireAuthPlugin` (applied in `category.route.ts`);
- * business rules live in `category.service.ts`.
- */
+
+
 import type { AuthContext } from "../../../core/auth";
 import { successResponse, createdResponse } from "../../../core/response";
 import {

@@ -89,7 +89,6 @@ describe("useKitchenRealtime", () => {
 
 });
 
-
 class TestRealtimeSocket {
   static instances: TestRealtimeSocket[] = [];
   static CONNECTING = 0;
@@ -140,8 +139,7 @@ describe("void realtime transport benchmark", () => {
     socket.message({ type: "order.item.voided", payload: voided });
     const voidElapsed = performance.now() - voidStart;
     expect(state[0]?.items[0]?.itemStatus).toBe("VOIDED");
-    // Both messages take the exact same socket decode + subscriber + queue-reducer path.
-    // Allow scheduler noise while ensuring void propagation remains in the same bound.
+
     expect(voidElapsed).toBeLessThanOrEqual(Math.max(50, createdElapsed * 5 + 5));
   });
 });

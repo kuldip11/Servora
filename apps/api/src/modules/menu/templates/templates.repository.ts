@@ -1,4 +1,4 @@
-/** Persistence operations for menu templates. */
+
 import { eq, and, isNull } from "drizzle-orm";
 import { db } from "../../../db";
 import {
@@ -49,8 +49,6 @@ export const templatesRepository = {
     });
   },
 
-  // Snapshots a category's tenant-wide items into a new, independent
-  // template. Editing the category afterward never touches the template.
   async createFromCategory(
     tenantId: string,
     category: { name: string },
@@ -133,11 +131,6 @@ export const templatesRepository = {
     return result.length > 0;
   },
 
-  // Instantiates a template as a brand-new category + items. Items are
-  // always created as drafts (isPublished: false) — a template's prices
-  // and details are a starting point, not a promise, so a manager reviews
-  // and publishes them rather than the branch's menu changing the instant
-  // the template is applied.
   async apply(
     tenantId: string,
     template: {
@@ -207,9 +200,9 @@ export const templatesRepository = {
                 prepTimeMinutes: ti.prepTimeMinutes,
                 hsnCode: ti.hsnCode,
                 sortOrder: ti.sortOrder,
-                sku: null, // SKUs are meant to be unique — never carried over from a template
+                sku: null,
                 status: "ACTIVE" as const,
-                isPublished: false, // draft until a manager reviews it — see function comment
+                isPublished: false,
                 publishedAt: null,
               })),
             )

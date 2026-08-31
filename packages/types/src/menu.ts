@@ -93,7 +93,6 @@ export interface LoyaltyCustomer {
   loyaltyTier?: CustomerLoyaltyTier | null;
 }
 
-
 export type MenuStatus = "DRAFT" | "PUBLISHED";
 
 export interface Menu {
@@ -313,7 +312,6 @@ export interface ModifierOption {
   }>;
 }
 
-
 export type MenuMoney = number | string;
 
 export interface OrderableMenuVariant {
@@ -346,7 +344,6 @@ export interface OrderableModifierGroup {
   options: OrderableModifierOption[];
 }
 
-/** Shared order-entry wire shape consumed by waiter/customer clients. */
 export type OrderableMenuCategory = Omit<MenuCategory, "menuItems"> & {
   menuItems?: OrderableMenuItem[];
 };

@@ -12,7 +12,6 @@ export function requireBillingPermission(
   }
 }
 
-/** Billing records belong to an order, and therefore inherit the order's branch scope. */
 export function assertBillingResourceAccess(
   auth: AuthContext,
   resourceBranchId: string,

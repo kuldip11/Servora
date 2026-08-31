@@ -34,26 +34,6 @@ import { OrderExplainDialog } from "../components/OrderExplainDialog";
 import { useRefireOrderItem } from "../hooks/useRefireOrderItem";
 import { useSetOrderItemSeatShares } from "../hooks/useSetOrderItemSeatShares";
 
-/**
- * Design-system Phase 10 (the design-system contract), Sprint AD-8.
- * Second of the 3 higher-risk Admin pages the plan itself flagged as
- * left for last (`README.md`'s "Next up" note after Sprint AD-7).
- * `OrdersPage` was already done as Phase 7's own exit criterion, so
- * this sprint covers `OrderDetailPage` plus the `ItemCustomizerModal`
- * overlay rewrite it renders through `AddItemsModal` — see that file's
- * own header comment for the overlay-specific detail.
- *
- * **Header, a real change not a mechanical one:** the old hand-rolled
- * `ArrowLeft` "Back" link is replaced with `Breadcrumbs` (Phase 6) in
- * `PageHeader`'s `eyebrow` slot — `PageHeader`'s own doc comment
- * anticipates exactly this composition, and no earlier Sprint AD page
- * needed a back-link so there was no established pattern to preserve
- * instead. Worth a look in a real browser alongside every other
- * "flagged, not silently absorbed" delta in this sprint.
- */
-
-// Tab lifecycle — billing state only. Kitchen prep state lives on kitchen
-// tickets and is shown/managed per-ticket below instead.
 const STATUS_TRANSITIONS: Record<string, { label: string; next: string }[]> = {
   OPEN: [{ label: "Cancel Order", next: "CANCELLED" }],
   BILL_REQUESTED: [{ label: "Mark Paid", next: "PAID" }],
@@ -62,12 +42,6 @@ const STATUS_TRANSITIONS: Record<string, { label: string; next: string }[]> = {
   CANCELLED: [],
 };
 
-// Same STATUS_TONE map OrdersPage's Phase 7 migration already
-// established (the design-system guidance "Phase 10 detail", Sprint
-// AD-7's file-level comment), reused rather than re-litigated so the two
-// places in Admin that render an order-status badge stay in agreement.
-// PAID intentionally omitted — no semantic tone maps onto brand violet,
-// same flagged-not-resolved product decision as OrdersPage.
 const STATUS_TONE: Partial<
   Record<string, "info" | "warning" | "neutral" | "danger">
 > = {
@@ -91,7 +65,7 @@ const TICKET_STATUS_TONE: Record<
 function OrderStatusBadge({ status }: { status: string }) {
   const tone = STATUS_TONE[status];
   if (!tone) {
-    // PAID — see STATUS_TONE's doc comment above.
+
     return (
       <Badge className={getOrderStatusColor(status)}>
         {getOrderStatusLabel(status)}
@@ -171,7 +145,7 @@ export function OrderDetailPage() {
     tickets.length > 0 && tickets.every((t) => t.status === "SERVED");
 
   const transitions = [...(STATUS_TRANSITIONS[order.status] ?? [])];
-  // Request Bill only shows once every round has actually been served.
+
   if (order.status === "OPEN" && allTicketsServed) {
     transitions.unshift({ label: "Request Bill", next: "BILL_REQUESTED" });
   }
@@ -213,7 +187,7 @@ export function OrderDetailPage() {
       )}
 
       <Grid columns={{ base: 1, lg: 3 }} gap="lg">
-        {/* Order items, grouped by kitchen ticket (round) */}
+        {                                                    }
         <div className="lg:col-span-2 space-y-4">
           {tickets.map((ticket) => (
             <Card key={ticket.id}>
@@ -394,7 +368,7 @@ export function OrderDetailPage() {
             </div>
           </Card>
 
-          {/* Status history — tab lifecycle only (OPEN/BILL_REQUESTED/PAID/CLOSED/CANCELLED) */}
+          {                                                                                     }
           <Card>
             <h2 className="text-base font-semibold text-text-primary mb-4">
               Status History
@@ -423,7 +397,7 @@ export function OrderDetailPage() {
           </Card>
         </div>
 
-        {/* Right panel */}
+        {                 }
         <div className="space-y-4">
           <Card>
             <h2 className="text-base font-semibold text-text-primary mb-3">
@@ -461,7 +435,7 @@ export function OrderDetailPage() {
             </div>
           </Card>
 
-          {/* Actions */}
+          {             }
           {(transitions.length > 0 || canAddItems) && (
             <Card>
               <h2 className="text-base font-semibold text-text-primary mb-3">

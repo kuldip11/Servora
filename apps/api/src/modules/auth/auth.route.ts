@@ -12,8 +12,6 @@ import {
   sessionIdParams,
 } from "./auth.validator";
 
-// Public endpoints — no bearer token to check yet, so this instance
-// deliberately does not mount `requireAuthPlugin()`.
 export const authRouter = new Elysia()
   .post("/api/auth/signup", ({ body }) => authController.signup(body), {
     body: signupBody,
@@ -42,9 +40,6 @@ export const authRouter = new Elysia()
     return successResponse({ loggedOut: true });
   });
 
-// `/api/auth/me` needs a resolved `auth` context, so it's a separate
-// instance mounted alongside `authRouter` (same split as
-// `staffRouter`/`rolesRouter` in `staff.route.ts`).
 export const authMeRouter = new Elysia()
   .use(requireAuthPlugin())
   .get("/api/auth/me", ({ auth }) => authController.me(auth))

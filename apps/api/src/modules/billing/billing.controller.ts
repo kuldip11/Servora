@@ -1,9 +1,5 @@
-/**
- * Billing controller — thin handlers only. Business rules live in
- * `billing.service.ts`; typed errors thrown here are caught by the global
- * `onError` handler in `src/index.ts` (no local try/catch needed, unlike
- * the pre-refactor routes).
- */
+
+
 import { successResponse, createdResponse } from "../../core/response";
 import {
   billingService,

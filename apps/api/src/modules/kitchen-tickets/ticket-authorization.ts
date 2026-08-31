@@ -14,7 +14,6 @@ export function requireKitchenPermission(
   }
 }
 
-/** Kitchen tickets are branch-owned through the order/branch that fired them. */
 export function assertKitchenTicketAccess(
   auth: AuthContext,
   resourceBranchId: string,

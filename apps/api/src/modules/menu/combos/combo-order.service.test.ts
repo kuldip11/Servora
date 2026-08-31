@@ -195,8 +195,6 @@ describe("D2 combo order integration", () => {
       },
     ]);
 
-    // The mocked authoritative component sum is 150 + 50 rather than the
-    // menu's static prices. FIXED stage 4 then applies 199 + 20 upcharge.
     expect(result.subtotal).toBe(219);
     expect(result.lines[0]!.pricingAttribution.COMBO).toBe(219);
   });

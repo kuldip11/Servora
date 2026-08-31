@@ -68,9 +68,7 @@ async function inheritedOrganizationMenus(tenantId: string, branchId: string, ch
 export const menuResolver = {
   async getActiveMenus(tenantId: string, branchId: string, channel: AvailabilityChannel, fulfillmentType: OrderType, asOf: Date) {
     const local = await activeTenantMenus(tenantId, branchId, channel, fulfillmentType, asOf);
-    // A tenant-published menu is the tenant-local override for the organization
-    // default. Otherwise the organization menu is materialized through stable
-    // SKUs into this tenant's own menu_items, preserving tenant isolation.
+
     return local.length ? local : inheritedOrganizationMenus(tenantId, branchId, channel, fulfillmentType, asOf);
   },
   async getActiveItemIds(tenantId: string, branchId: string, channel: AvailabilityChannel, fulfillmentType: OrderType, asOf: Date) {

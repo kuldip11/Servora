@@ -37,40 +37,10 @@ import {
 
 export type { Column, SortState, TableDensity };
 
-/**
- * Phase 7 (Part 2) — `DataGrid`. The virtualized, feature-complete
- * sibling to Part 1's `Table` (the design-system guidance "Phase 7
- * detail" has the split rationale): sort, bulk row selection, sticky
- * header + sticky columns, column visibility, an optional built-in
- * global search box, virtualized rows, and pass-through pagination.
- * This is the component the plan's exit criterion names directly —
- * migrating Admin's Orders table onto it (see
- * `apps/web/src/features/orders/pages/OrdersPage.tsx`) is what closes
- * Phase 7 out.
- *
- * `Table` is not superseded by this — most lists in this codebase
- * (Staff, Branches, Inventory's smaller views, `/dev/data-preview`)
- * have no virtualization or bulk-action need and should keep using the
- * simpler component. `DataGrid` is for the handful of tables where the
- * row count or the interaction surface (sort + filter + select + a
- * lot of columns) actually needs it — Orders is the plan's own example
- * of that.
- *
- * **Row virtualization requires a fixed pixel `rowHeight`** (default
- * 44) and a `maxHeight` scroll container — every row renders at
- * exactly that height, no variable-height cells. This is the same
- * fixed-height constraint `selection/shared.tsx`'s listbox windowing
- * already accepted in Phase 4 for the same reason (arithmetic that's
- * cheap enough not to need `@tanstack/react-virtual`), carried over
- * here with a parametrized height instead of Phase 4's hardcoded 40px
- * — see `useVirtualizedRows`'s doc comment in `shared.tsx`.
- */
-
 export interface DataGridProps<T> {
   columns: Column<T>[];
   data: T[];
-  /** Must return a stable, unique id — used as the row's React key and as the
-   * bulk-selection set's member type. */
+
   getRowId: (row: T) => string;
   loading?: boolean | undefined;
   skeletonRows?: number | undefined;
@@ -80,67 +50,40 @@ export interface DataGridProps<T> {
   emptyAction?: ReactNode;
   onRowClick?: ((row: T) => void) | undefined;
 
-  /** Controlled sort. Same controlled-with-uncontrolled-fallback shape as `Table`'s. */
   sort?: SortState | null | undefined;
   onSortChange?: ((sort: SortState | null) => void) | undefined;
   defaultSort?: SortState | null | undefined;
 
-  /** @default 'comfortable' */
   density?: TableDensity | undefined;
-  /** Fixed row height in px — required for virtualization math. @default 44 */
+
   rowHeight?: number | undefined;
-  /** Scroll container height. Required for both `stickyHeader` and virtualization
-   * to have a scroll parent of their own. @default '560px' */
+
   maxHeight?: string | undefined;
   className?: string | undefined;
 
-  // --- Bulk selection ---
-  /** Enables the leading checkbox column. @default false */
   selectable?: boolean | undefined;
-  /** Controlled selection. Pass alongside `onSelectedIdsChange`; omit both for uncontrolled. */
+
   selectedIds?: Set<string> | undefined;
   onSelectedIdsChange?: ((ids: Set<string>) => void) | undefined;
   defaultSelectedIds?: Set<string> | undefined;
-  /** Row ids that may not be selected — rendered with a disabled checkbox
-   * (e.g. a row already mid-action elsewhere). Omit if nothing is disabled. */
+
   disabledSelectionIds?: Set<string> | undefined;
 
-  // --- Column visibility ---
-  /** Shows a "Columns" toggle button above the grid when 2+ columns opt in via `id`.
-   * @default false */
   enableColumnVisibility?: boolean | undefined;
-  /** Controlled visibility map, keyed by `Column.id`. `true`/absent = visible,
-   * `false` = hidden. Pass alongside `onColumnVisibilityChange`; omit both for
-   * uncontrolled (grid manages its own, seeded from each column's `hidden` prop). */
+
   columnVisibility?: Record<string, boolean> | undefined;
   onColumnVisibilityChange?:
     ((visibility: Record<string, boolean>) => void) | undefined;
 
-  // --- Global search ---
-  /** Renders a built-in search box above the grid. Requires `getGlobalFilterValue`
-   * to actually filter rows client-side — without it this is just a controlled
-   * text box the caller reads via `onGlobalFilterChange` (server-side search).
-   * @default false */
   enableGlobalFilter?: boolean | undefined;
   globalFilter?: string | undefined;
   onGlobalFilterChange?: ((value: string) => void) | undefined;
-  /** Returns the text a row is matched against for the built-in global search.
-   * Omit to leave filtering entirely to the caller (server-side search — rows
-   * are trusted as already-filtered, same pattern as `Column.sortValue`'s
-   * client-vs-server split). */
+
   getGlobalFilterValue?: ((row: T) => string) | undefined;
   globalFilterPlaceholder?: string | undefined;
 
-  // --- Pagination pass-through ---
-  /** Renders `Pagination` below the grid when provided. Same props as that
-   * component — `DataGrid` doesn't paginate `data` itself either way; pass
-   * already-paged `data` for server-side paging, or slice it yourself for
-   * client-side paging before handing it to `DataGrid`. */
   pagination?: Omit<PaginationProps, "className"> | undefined;
 
-  /** Rendered top-right, alongside the global-search box and the columns
-   * toggle if either is enabled — e.g. bulk-action buttons that appear once
-   * `selectedIds` is non-empty, or a page-level "Export" button. */
   toolbarActions?: ReactNode;
 }
 
@@ -154,8 +97,6 @@ function SortIcon({ direction }: { direction: "asc" | "desc" | undefined }) {
   );
 }
 
-/** Native checkbox styled to token colors, with `indeterminate` support (not
- * expressible as a JSX prop — DOM-only — so it's set imperatively via `ref`). */
 function GridCheckbox({
   checked,
   indeterminate = false,

@@ -15,11 +15,11 @@ export interface CommandItem {
   id: string;
   label: string;
   icon?: ComponentType<{ className?: string }> | undefined;
-  /** Cluster heading, e.g. "Navigation" / "Actions". Only shown while the query is empty — see file doc comment. */
+
   group?: string | undefined;
-  /** Right-aligned hint text, e.g. a keyboard shortcut. Display only. */
+
   shortcut?: string | undefined;
-  /** Extra text matched against the query but never displayed — e.g. aliases ("bill" for "Billing"). */
+
   keywords?: string | undefined;
   onSelect: () => void;
   disabled?: boolean | undefined;
@@ -33,38 +33,6 @@ export interface CommandPaletteProps {
   emptyMessage?: string | undefined;
 }
 
-/**
- * Cmd+K command palette (the design-system contract Phase 6 exit
- * criteria: "opens from anywhere, fuzzy-searches a registered command
- * list, fully keyboard-operable"). Pair with `useCommandPaletteHotkey`
- * below to get the "opens from anywhere" part.
- *
- * Built directly on `@radix-ui/react-dialog` rather than the `Dialog`
- * component (Phase 5) — `Dialog` renders `OverlayHeader` (title row +
- * close button) and centered body padding, neither of which fits a
- * palette (search input *is* the header, results start flush beneath
- * it). Same "genuine shape difference, not a style preference" reasoning
- * `SelectMenu`/`SplitButton`'s non-merges already document elsewhere in
- * this package — reuses the primitive, not the styled wrapper.
- *
- * **Fuzzy matching, not virtualized.** Unlike Phase 4's `SelectMenu`
- * (10,000-row exit criterion), a command list is a registered set of
- * app actions/routes — realistically dozens, not thousands — so this
- * uses a plain subsequence-with-contiguity-bonus scorer (`fuzzyScore`
- * below) over the full list on every keystroke, no windowing. Matches
- * the plan's "fuzzy-searches" wording; `Combobox`/`Autocomplete`'s
- * `filterOptions` (Phase 4) is a stricter case-insensitive substring
- * match, appropriate there since it filters real data option lists,
- * not a short curated command set.
- *
- * **Grouping only applies to the empty-query state.** With no query,
- * items render clustered under their `group` heading in first-seen
- * order (same idea as `selection/shared.tsx`'s `buildRows`). Once a
- * query narrows/reorders the list by match score, results render as
- * one flat ranked list instead — regrouping a relevance-ranked list
- * would scatter each group's remaining matches non-contiguously, which
- * reads as broken rather than organized.
- */
 export function CommandPalette({
   open,
   onOpenChange,
@@ -156,21 +124,9 @@ export function CommandPalette({
             />
           </div>
 
-          {/* Session 10 fix: `aria-activedescendant` alone tells a screen
-              reader which option is current, but says nothing when the
-              *set* changes — e.g. typing narrows 12 results down to 0, or
-              down to 1. Without this, a screen reader user who types a
-              query that matches nothing gets silence, not "no matching
-              commands" (the sighted `emptyMessage` row below is visible but
-              not announced on its own). A visually-hidden `aria-live`
-              region, updated every render from `results.length`, is the
-              standard fix for a filtered-listbox pattern like this one —
-              same problem class as `Toast`'s `aria-live` fix this session,
-              different mechanism (a persistent region that changes text,
-              not a transient toast). Kept separate from the visible
-              `emptyMessage` `<li>` on purpose: that one only exists when
-              `results.length === 0`, so it can't double as the live region
-              for the "went from 0 to some" or "12 results to 3" cases. */}
+          {
+
+                                                                          }
           <div aria-live="polite" className="sr-only">
             {query.trim() &&
               (results.length === 0
@@ -214,8 +170,6 @@ function renderRows(
     ));
   }
 
-  // Empty-query state: cluster by `group` in first-seen order, same idea as
-  // `selection/shared.tsx`'s `buildRows` (see file doc comment above).
   const seenGroups = new Set<string | undefined>();
   const rows: ReactNode[] = [];
   results.forEach((command, index) => {
@@ -256,12 +210,7 @@ function CommandRow({
 }) {
   const Icon = command.icon;
   return (
-    // This row is never itself DOM-focused — keyboard selection goes
-    // through the search `<input>` above (ArrowUp/Down move
-    // `aria-activedescendant`, Enter selects; see that input's
-    // `onKeyDown`). `onClick` below is the *pointer* affordance only;
-    // a keyboard handler on the row itself would be unreachable dead
-    // code, since a keyboard user can never focus an `<li>` here.
+
     // eslint-disable-next-line jsx-a11y/click-events-have-key-events
     <li
       id={`command-item-${command.id}`}
@@ -288,10 +237,6 @@ function CommandRow({
   );
 }
 
-/** Case-insensitive subsequence match with a contiguous-run bonus so tighter
- * matches (substrings) outrank scattered ones — a lightweight fuzzy scorer,
- * not a full Levenshtein/edit-distance implementation, which this command-list
- * scale doesn't need. Returns `null` for no match. */
 function fuzzyScore(query: string, target: string): number | null {
   const q = query.toLowerCase();
   const t = target.toLowerCase();
@@ -310,24 +255,6 @@ function fuzzyScore(query: string, target: string): number | null {
   return qi === q.length ? score : null;
 }
 
-/**
- * Wires the "opens from anywhere" half of this phase's exit criteria:
- * a global `keydown` listener for Cmd+K (Mac) / Ctrl+K (Windows/Linux)
- * that toggles `open`. Call once near the app root (e.g. alongside
- * `ThemeProvider` in `main.tsx`) and pass the returned state straight
- * to `CommandPalette`:
- *
- * ```tsx
- * const { open, setOpen } = useCommandPaletteHotkey();
- * <CommandPalette open={open} onOpenChange={setOpen} items={commands} />
- * ```
- *
- * Not wired into any app's real `main.tsx` in this pass — same
- * "component exists, app wiring is separate, deliberate follow-up"
- * pattern as `ThemeProvider` (Phase 1) and `TooltipProvider`/`Toaster`
- * (Phase 5), since no app has a real registered command list yet to
- * verify this against.
- */
 export function useCommandPaletteHotkey() {
   const [open, setOpen] = useState(false);
 

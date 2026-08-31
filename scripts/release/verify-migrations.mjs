@@ -144,7 +144,6 @@ for (let i = 0; i < sqlNames.length; i += 1) {
   }
 }
 
-// Handwritten PostgreSQL invariants that Drizzle snapshots cannot represent.
 const requiredSqlOnly = [
   ["0025_create_global_user_roles.sql", "CREATE TRIGGER global_user_roles_tenant_guard"],
   ["0026_create_membership_roles.sql", "CREATE TRIGGER membership_roles_tenant_guard"],

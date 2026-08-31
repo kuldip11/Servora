@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "membership_roles" (
   "membership_id" uuid NOT NULL,
@@ -7,15 +7,13 @@ CREATE TABLE "membership_roles" (
   CONSTRAINT "membership_roles_membership_id_tenant_memberships_id_fk" FOREIGN KEY ("membership_id") REFERENCES "tenant_memberships"("id") ON DELETE CASCADE,
   CONSTRAINT "membership_roles_role_id_roles_id_fk" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE CASCADE
 );
---> statement-breakpoint
-CREATE UNIQUE INDEX "membership_roles_membership_role_uniq" ON "membership_roles" USING btree ("membership_id", "role_id");
---> statement-breakpoint
-CREATE INDEX "membership_roles_membership_idx" ON "membership_roles" USING btree ("membership_id");
---> statement-breakpoint
-CREATE INDEX "membership_roles_role_idx" ON "membership_roles" USING btree ("role_id");
---> statement-breakpoint
 
--- Enforce role scope and tenant ownership for membership role assignments.
+CREATE UNIQUE INDEX "membership_roles_membership_role_uniq" ON "membership_roles" USING btree ("membership_id", "role_id");
+
+CREATE INDEX "membership_roles_membership_idx" ON "membership_roles" USING btree ("membership_id");
+
+CREATE INDEX "membership_roles_role_idx" ON "membership_roles" USING btree ("role_id");
+
 CREATE OR REPLACE FUNCTION enforce_membership_role_tenant() RETURNS trigger AS $$
 DECLARE membership_tenant uuid; role_tenant uuid; role_scope_value text;
 BEGIN
@@ -30,7 +28,7 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
---> statement-breakpoint
+
 CREATE TRIGGER membership_roles_tenant_guard BEFORE INSERT OR UPDATE ON "membership_roles"
 FOR EACH ROW EXECUTE FUNCTION enforce_membership_role_tenant();
---> statement-breakpoint
+

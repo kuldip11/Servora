@@ -1,7 +1,5 @@
-/**
- * Stable inventory application facade. Stock administration and recipe
- * orchestration live in dedicated services behind this public contract.
- */
+
+
 import { inventoryRecipeService } from "./inventory-recipe.service";
 import { inventoryStockService } from "./inventory-stock.service";
 

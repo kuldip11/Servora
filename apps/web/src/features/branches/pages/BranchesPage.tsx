@@ -66,9 +66,6 @@ export function BranchesPage() {
     });
   }
 
-  // Dine-in and tables are presented as one combined toggle in the form —
-  // dine-in without tables is unusual, tables without dine-in doesn't make
-  // sense, so we avoid letting an owner create that mismatched state here.
   return (
     <Page>
       <PageHeader

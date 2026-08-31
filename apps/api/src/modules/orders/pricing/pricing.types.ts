@@ -2,7 +2,7 @@ import type { OrderType } from "@pos/types";
 import type { AvailabilityChannel } from "../../menu/availability/availability.service";
 
 export type PricingReplayPriceRule = Omit<MatchingPriceRule, "effectiveFrom"> & {
-  /** JSON evidence deserializes timestamps as strings; live candidates use Date. */
+
   effectiveFrom?: Date | string | null;
 };
 
@@ -22,17 +22,11 @@ export interface PricingContext {
   customerGroupId?: string | undefined;
   coverTier?: "ADULT" | "CHILD" | undefined;
   asOf: Date;
-  /** Reporting-only escape hatch. Order flows omit this and therefore keep
-   * normal availability enforcement while read-only reports can still ask
-   * the authoritative pipeline what an unavailable item would price at. */
+
   allowUnavailable?: boolean | undefined;
-  /** Read-only reporting escape hatch. When true, stage 3 still validates
-   * supplied modifiers but does not require minimum selections that only make
-   * sense during order entry. Pricing remains inside this one pipeline. */
+
   allowIncompleteModifierSelection?: boolean | undefined;
-  /** H1 read-only deterministic replay. When present, price() executes the
-   * normal stage code against the immutable fire-time inputs instead of
-   * today's mutable repositories. Only the explain path supplies this. */
+
   historicalReplay?: PricingReplayEvidence | undefined;
 }
 
@@ -131,7 +125,7 @@ export interface PricingAttribution {
   LOYALTY?: number;
   LOYALTY_DETAILS?: { tierId: string; name: string; discountAmount: number };
   TAXABLE_BASE?: number;
-  /** Category captured at stage 1 so historical promotion repricing never joins mutable menu data. */
+
   CATEGORY_ID?: string;
   PRICE_SOURCE?: {
     kind: "PRICE_RULE" | "BRANCH_OVERRIDE" | "MENU_ITEM";
@@ -141,7 +135,7 @@ export interface PricingAttribution {
 }
 
 export interface PricedLine {
-  /** Null only for a persisted combo parent/grouping line. */
+
   menuItemId: string | null;
   menuItemName: string;
   variantId?: string | undefined;

@@ -95,10 +95,6 @@ export const razorpayWebhookService = {
 
     if (inserted === "PROCESSED") return { duplicate: true, queued: false };
 
-    // DB persistence is the durable source of truth. Redis only carries the
-    // event id to a worker; if Redis is temporarily unavailable Razorpay gets
-    // a non-2xx response and retries the webhook, while an already-persisted
-    // RECEIVED event can also be re-queued by the worker/recovery loop.
     await redis.lpush(REDIS_QUEUES.RAZORPAY_WEBHOOKS, eventId);
     return { duplicate: inserted === "RETRY", queued: true };
   },

@@ -1,4 +1,4 @@
-/** Analytics service — tenant/branch scoped operational dashboard snapshot. */
+
 import type { AuthContext } from "../../core/auth";
 import type {
   CostMarginRow,

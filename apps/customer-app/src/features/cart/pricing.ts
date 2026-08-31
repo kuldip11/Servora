@@ -51,11 +51,6 @@ export type CartSummary = {
   itemCount: number;
 };
 
-/**
- * Client-side estimate. The API remains authoritative for final totals.
- * Calculate all summary values in one pass so cart changes do not traverse the
- * same line collection four times.
- */
 export function getCartSummary(cart: CartLine[]): CartSummary {
   const summary = cart.reduce(
     (result, line) => {

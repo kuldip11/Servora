@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "customer_groups" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -13,8 +13,8 @@ CREATE TABLE "customer_groups" (
   CONSTRAINT "customer_groups_discount_fixed_valid" CHECK ("discount_fixed" IS NULL OR "discount_fixed" >= 0),
   CONSTRAINT "customer_groups_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE
 );
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "customer_groups_tenant_name_unique" ON "customer_groups" USING btree ("tenant_id", "name");
---> statement-breakpoint
+
 CREATE INDEX "customer_groups_tenant_idx" ON "customer_groups" USING btree ("tenant_id");
---> statement-breakpoint
+

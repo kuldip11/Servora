@@ -16,7 +16,7 @@ export interface ComboOrderSelection {
 }
 
 export interface PricedComboOrder {
-  /** Parent combo grouping lines plus normal preparable component lines. */
+
   lines: PricedLine[];
   subtotal: number;
   taxAmount: number;
@@ -117,8 +117,6 @@ export async function priceComboOrders(
       }
     }
 
-    // Stages 1–3 are authoritative here. Stage 4 receives their resolved
-    // unit prices; it never reads menu/base prices independently.
     const priced = await pricingPipeline.price(context, componentInputs);
     let pricedIndex = 0;
     for (const slot of pricingSlots) {
@@ -155,10 +153,6 @@ export async function priceComboOrders(
       }),
     );
 
-    // C9 contract: one parent + N normal component order_items. The parent is
-    // a non-preparable grouping/receipt line. Its unitPrice snapshots the
-    // authoritative combo policy result; its zero subtotal prevents any
-    // double count because component allocations already sum exactly to it.
     const parent: PricedLine = {
       menuItemId: null,
       menuItemName: combo.name,

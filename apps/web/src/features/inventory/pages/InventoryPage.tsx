@@ -92,8 +92,6 @@ export function InventoryPage() {
     defaultValues: { quantity: 0, transactionType: "IN", notes: "" },
   });
 
-  // Same unscoped ('all') branch list the switcher and Staff page use —
-  // shares cache with them instead of a duplicate ad-hoc query.
   const { data: branches } = useBranches({ enabled: isAggregate });
 
   const { data: items, isLoading } = useInventoryItems();
@@ -313,7 +311,7 @@ export function InventoryPage() {
         )}
       </Card>
 
-      {/* Add Item Modal */}
+      {                    }
       <Modal
         open={showAdd}
         onClose={() => setShowAdd(false)}
@@ -393,7 +391,7 @@ export function InventoryPage() {
         </form>
       </Modal>
 
-      {/* Update Stock Modal */}
+      {                        }
       <Modal
         open={!!showUpdate}
         onClose={() => setShowUpdate(null)}
@@ -439,7 +437,6 @@ export function InventoryPage() {
           </div>
         </form>
       </Modal>
-
 
       <Modal
         open={!!showImpact}

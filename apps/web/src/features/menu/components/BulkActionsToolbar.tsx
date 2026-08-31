@@ -122,7 +122,7 @@ export function BulkActionsToolbar({
         </div>
       </div>
 
-      {/* Status panel */}
+      {                  }
       <Modal
         open={panel === "status"}
         onClose={() => setPanel(null)}
@@ -165,7 +165,7 @@ export function BulkActionsToolbar({
         </div>
       </Modal>
 
-      {/* Category panel */}
+      {                    }
       <Modal
         open={panel === "category"}
         onClose={() => setPanel(null)}
@@ -202,7 +202,7 @@ export function BulkActionsToolbar({
         </div>
       </Modal>
 
-      {/* Tags panel */}
+      {                }
       <Modal
         open={panel === "tags"}
         onClose={() => setPanel(null)}
@@ -262,7 +262,7 @@ export function BulkActionsToolbar({
         </div>
       </Modal>
 
-      {/* Price panel */}
+      {                 }
       <Modal
         open={panel === "price"}
         onClose={() => setPanel(null)}
@@ -313,7 +313,7 @@ export function BulkActionsToolbar({
         </div>
       </Modal>
 
-      {/* Delete confirmation */}
+      {                         }
       <Modal
         open={panel === "delete"}
         onClose={() => setPanel(null)}

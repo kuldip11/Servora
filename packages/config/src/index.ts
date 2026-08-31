@@ -15,11 +15,6 @@ export interface AppUrlEnv {
 const fallback = (value: string | undefined, fallbackValue: string) =>
   value?.trim() || fallbackValue;
 
-/**
- * Resolve the four first-class Servora application URLs from one consistent
- * configuration contract. Consumers can map their platform-specific env
- * names into this shape without duplicating URL fallback logic.
- */
 export function resolveAppUrls(env: AppUrlEnv): ServoraAppUrls {
   return {
     web: fallback(env.WEB_APP_URL, "/app"),

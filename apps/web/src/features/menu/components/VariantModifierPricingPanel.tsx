@@ -18,7 +18,6 @@ function key(optionId: string, variantId: string) {
   return `${optionId}:${variantId}`;
 }
 
-/** G1 authoring surface: optional per-variant modifier upcharges. */
 export function VariantModifierPricingPanel({ variants, groups }: Props) {
   const [prices, setPrices] = useState<Record<string, string>>({});
 

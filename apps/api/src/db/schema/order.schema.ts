@@ -24,8 +24,6 @@ import { orderSourceEnum, orderTypeEnum } from "./order-enums.schema";
 
 export { orderSourceEnum, orderTypeEnum } from "./order-enums.schema";
 
-// A tab's lifecycle — billing state only. Kitchen prep state now lives on
-// kitchen_tickets (see below), not here.
 export const orderStatusEnum = pgEnum("order_status", [
   "OPEN",
   "BILL_REQUESTED",
@@ -35,8 +33,6 @@ export const orderStatusEnum = pgEnum("order_status", [
 ]);
 
 export const billingModeEnum = pgEnum("billing_mode", ["LINE_ITEMS", "PER_COVER"]);
-
-// ─── Orders ───────────────────────────────────────────────────────────────────
 
 export const orders = pgTable(
   "orders",
@@ -88,8 +84,7 @@ export const orders = pgTable(
       .notNull()
       .default("0"),
     notes: text("notes"),
-    // Exact API-boundary timestamp used by AvailabilityResolver/PricingPipeline.
-    // Nullable only for grouping/incomplete replay rows; new real order lines snapshot the exact resolution time.
+
     resolutionAsOf: timestamp("resolution_as_of"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),

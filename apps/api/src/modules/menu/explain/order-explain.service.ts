@@ -16,12 +16,6 @@ function money(value: number) {
   return Math.round((value + Number.EPSILON) * 100) / 100;
 }
 
-/**
- * Replays persisted post-base attribution (combo/promotion/loyalty) after the
- * authoritative base PricingPipeline replay. Promotion and loyalty allocation
- * are immutable order-line snapshots, so this helper never reads mutable menu
- * state. Resolver replay evidence is mandatory for every real menu-item line.
- */
 export function replayPersistedLine(item: {
   quantity: number;
   unitPrice: string;

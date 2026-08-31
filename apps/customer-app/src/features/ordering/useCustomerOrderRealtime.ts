@@ -84,7 +84,7 @@ export function useCustomerOrderRealtime(
             onMenuAvailability?.();
           }
         } catch {
-          // Ignore malformed events. The next valid event or fallback poll remains authoritative.
+
         }
       };
 

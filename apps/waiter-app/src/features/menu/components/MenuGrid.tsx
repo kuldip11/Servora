@@ -14,7 +14,6 @@ interface Props {
   onQtyChange: (key: string, delta: number) => void;
 }
 
-// Isolate per-row callbacks so memoized item cards receive stable handlers.
 const MenuGridItem = memo(function MenuGridItem({
   item,
   cartQty,

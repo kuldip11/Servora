@@ -44,7 +44,7 @@ export function MenuEngineeringPage() {
 
   useEffect(() => {
     void load("90");
-    // Initial report only. Subsequent changes are explicit to avoid a request on every control interaction.
+
   }, []);
 
   const visibleRows = useMemo(() => {

@@ -61,7 +61,6 @@ export interface AuditInput {
   ipAddress?: string | null | undefined;
 }
 
-/** Append-only tenant-scoped security/operations audit writer. */
 export async function writeAudit(input: AuditInput) {
   const metadataBranchId =
     typeof input.metadata?.branchId === "string"

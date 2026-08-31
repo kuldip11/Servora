@@ -30,21 +30,10 @@ function getInitialTheme(defaultTheme: Theme): Theme {
 
 export interface ThemeProviderProps {
   children: ReactNode;
-  /** Used only if nothing is in localStorage yet. Defaults to 'light'. */
+
   defaultTheme?: Theme;
 }
 
-/**
- * Sets `data-theme` on <html> and persists the choice to localStorage.
- * Used by all three apps — Admin (`apps/web`), Waiter App, and, as of
- * Phase 16, Kitchen Display too. KDS renders `<ThemeProvider
- * defaultTheme="dark">` (see `apps/kitchen-display/src/main.tsx`) rather
- * than the standalone hardcoded `data-theme="dark"` its `index.html`
- * used before Phase 16 (open decision #3 in
- * the design-system guidance, now resolved) — it keeps the same dark
- * boot behavior by default but is a real, switchable participant in
- * this provider like the other two apps.
- */
 export function ThemeProvider({
   children,
   defaultTheme = "light",

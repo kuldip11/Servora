@@ -42,17 +42,6 @@ const PREVIEW_COLUMNS: Column<ValidatedRow>[] = [
   },
 ];
 
-// Three-step wizard: pick a file -> preview validation results (which rows
-// pass, which fail and why) -> commit. Nothing is written to the database
-// until the user explicitly confirms on the preview screen.
-//
-// Rewritten onto `Dialog` (Phase 5/10) — this was one of the 4 hand-rolled
-// `fixed inset-0` overlays the Phase 0 audit flagged, per
-// the design-system guidance's Phase 5 note that these are full rewrites,
-// not drop-in swaps. The step-1/step-2 flow, its state machine, and every
-// data call are unchanged — only the chrome (overlay, close button, preview
-// table) moved onto shared components. `size="xl"` matches the old
-// `max-w-2xl`; `Dialog`'s own `max-h-[85vh]` matches the old wrapper's.
 export function ImportWizard({ onClose }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -150,14 +139,9 @@ export function ImportWizard({ onClose }: Props) {
           <p className="text-sm text-text-secondary">Validating…</p>
         )}
 
-        {/* Session 13 fix: neither "Validating…" nor the post-validation
-            valid/error counts below were announced to a screen reader user —
-            both are plain visible text with no live region, so someone who
-            just picked a file and isn't looking at the screen gets silence
-            through the entire validate step and past its result. Same
-            problem class as CommandPalette's result-count fix (Session 11):
-            a persistent, visually-hidden region that changes text, not a
-            transient announcement. */}
+        {
+
+                                      }
         <div aria-live="polite" className="sr-only">
           {validateMutation.isPending
             ? "Validating file…"

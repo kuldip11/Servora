@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "tenants" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -16,6 +16,6 @@ CREATE TABLE "tenants" (
   "updated_at" timestamp DEFAULT now() NOT NULL,
   CONSTRAINT "tenants_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "organizations"("id") ON DELETE RESTRICT
 );
---> statement-breakpoint
+
 CREATE INDEX "tenants_organization_idx" ON "tenants" USING btree ("organization_id");
---> statement-breakpoint
+

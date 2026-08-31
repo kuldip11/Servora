@@ -5,7 +5,6 @@ import { ForbiddenError } from "../../core/errors";
 export type MenuPermission =
   "menu:read" | "menu:create" | "menu:update" | "menu:delete" | "menu:publish" | "menu:pricing:write";
 
-/** API-boundary authorization for all menu sub-routers. */
 export function requireMenuPermission(
   auth: AuthContext,
   permission: MenuPermission,
@@ -13,10 +12,6 @@ export function requireMenuPermission(
   requirePermission(auth, permission);
 }
 
-/**
- * Resolve a branch supplied by a menu mutation/query. Tenant-wide memberships
- * may omit it; branch-scoped memberships must operate inside an assigned branch.
- */
 export function resolveMenuBranch(
   auth: AuthContext,
   requestedBranchId?: string | null,
@@ -30,7 +25,6 @@ export function resolveMenuBranch(
   return resolved;
 }
 
-/** Resource-level check. Tenant-wide menu resources (branchId=null) are shared. */
 export function assertMenuResourceBranch(
   auth: AuthContext,
   resourceBranchId: string | null | undefined,
@@ -49,7 +43,6 @@ export function assertMenuResourceBranch(
   }
 }
 
-/** Used by list/export paths that accept an explicit branch query. */
 export function assertMenuQueryBranch(
   auth: AuthContext,
   requestedBranchId?: string | null,

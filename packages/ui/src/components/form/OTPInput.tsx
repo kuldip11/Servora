@@ -7,26 +7,19 @@ export interface OTPInputProps {
   hint?: string | undefined;
   error?: string | undefined;
   required?: boolean | undefined;
-  /** Number of digits/characters. @default 6 */
+
   length?: number;
-  /** Current code. Shorter than `length` is fine (renders as trailing empty boxes). */
+
   value: string;
   onChange: (value: string) => void;
-  /** Called once when the code reaches `length` characters. */
+
   onComplete?: (value: string) => void;
-  /** Restrict input (and paste) to digits only. @default true */
+
   numericOnly?: boolean;
   disabled?: boolean;
   className?: string;
 }
 
-/**
- * Segmented one-time-passcode field — one single-character box per
- * digit, auto-advances on type, Backspace steps back and clears,
- * arrow keys move focus, and pasting a full code distributes it across
- * every box at once. Each box is `autoComplete="one-time-code"` so
- * mobile browsers/SMS autofill can fill the whole group from one box.
- */
 export function OTPInput({
   label,
   hint,
@@ -112,9 +105,7 @@ export function OTPInput({
             }}
             value={value[i] ?? ""}
             onChange={() => {
-              /* All writes happen in onKeyDown/onPaste — this only
-                 suppresses the "missing onChange on controlled input"
-                 warning for the native change event we don't use. */
+
             }}
             onKeyDown={handleKeyDown(i)}
             onPaste={handlePaste}

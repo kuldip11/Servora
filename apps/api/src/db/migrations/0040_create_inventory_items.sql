@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "inventory_items" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -18,6 +18,6 @@ CREATE TABLE "inventory_items" (
   CONSTRAINT "inventory_items_branch_id_branches_id_fk" FOREIGN KEY ("branch_id") REFERENCES "branches"("id") ON DELETE CASCADE,
   CONSTRAINT "inventory_items_branch_tenant_fk" FOREIGN KEY ("branch_id", "tenant_id") REFERENCES "branches"("id", "tenant_id") ON DELETE CASCADE
 );
---> statement-breakpoint
+
 CREATE INDEX "inventory_tenant_branch_idx" ON "inventory_items" USING btree ("tenant_id", "branch_id");
---> statement-breakpoint
+

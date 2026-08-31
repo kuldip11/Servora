@@ -38,7 +38,7 @@ function write(storageKey: string, value: unknown) {
   try {
     localStorage.setItem(storageKey, JSON.stringify(value));
   } catch {
-    // Storage can be unavailable in private/restricted browser contexts.
+
   }
 }
 
@@ -46,7 +46,7 @@ function remove(storageKey: string) {
   try {
     localStorage.removeItem(storageKey);
   } catch {
-    // Ignore storage failures; the server remains authoritative.
+
   }
 }
 

@@ -5,14 +5,7 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Restaurant POS</title>
-    <!-- Phase 16 — theme-flash prevention. Mirrors `ThemeProvider`'s own
-         read logic (`packages/ui/src/theme/ThemeProvider.tsx`'s
-         `getInitialTheme`/`isTheme`, same `pos-theme` key) so this script
-         and the provider never disagree — it only decides the *first*
-         paint's `data-theme`; `ThemeProvider` remains the single source
-         of truth once React mounts. Falls back to `light`, matching this
-         app's `ThemeProvider` default (`src/main.tsx` renders
-         `<ThemeProvider>` with no `defaultTheme` override). -->
+
     <script>
       (function () {
         try {

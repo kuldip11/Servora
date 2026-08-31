@@ -147,13 +147,9 @@ export function SettingsPage() {
           </Card>
         )}
 
-        {/* Phase 16 — Appearance section. Same icon-box + heading shape
-            as every other card on this page; `ThemeSwitcher` (`@pos/ui`)
-            owns all the actual theme state/persistence via `useTheme()`,
-            this card just gives it a home. Changing the value here
-            updates `<html data-theme>` immediately (ThemeProvider's
-            effect) and survives reload since ThemeProvider persists to
-            localStorage — no extra plumbing needed on this page. */}
+        {
+
+                                                                    }
         <Card>
           <div className="flex items-center gap-3 mb-4">
             <div className="w-9 h-9 bg-violet-50 rounded-lg flex items-center justify-center">
@@ -219,7 +215,6 @@ export function SettingsPage() {
             </div>
           </div>
         </Card>
-
 
       </Grid>
 

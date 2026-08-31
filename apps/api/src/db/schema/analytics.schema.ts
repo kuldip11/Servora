@@ -11,8 +11,6 @@ import { tenants } from "./tenant.schema";
 import { branches } from "./branch.schema";
 import { users } from "./auth.schema";
 
-// ─── Analytics ────────────────────────────────────────────────────────────────
-
 export const auditLogs = pgTable(
   "audit_logs",
   {

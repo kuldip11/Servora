@@ -141,7 +141,6 @@ const rawRecipe = (overrides: Record<string, unknown> = {}) => {
   return next;
 };
 
-
 beforeEach(() => {
   vi.resetAllMocks();
   findAllRecipeMenuItemIds.mockResolvedValue([]);
@@ -363,8 +362,6 @@ describe("inventory service", () => {
       "u1",
     );
 
-    // Dish row: 5 / 50% = 10 prepared units. Sub-recipe batch:
-    // 10 / yieldQuantity(10) / 80% = 1.25 batches. 8kg * 1.25 = 10kg raw.
     expect(deductRecipeLines).toHaveBeenCalledWith(
       "t1", "b1", "o1", "kt1",
       [expect.objectContaining({ inventoryItemId: "i-tomato", neededQuantity: 10 })],
@@ -410,8 +407,6 @@ describe("inventory service", () => {
       "u1",
     );
 
-    // 500 g dish need = 0.5 kg of a 1 kg batch. The batch contains 800 g
-    // tomato, therefore 400 g = 0.4 kg must be deducted from KG stock.
     expect(deductRecipeLines).toHaveBeenCalledWith(
       "t1", "b1", "o1", "kt1",
       [expect.objectContaining({ inventoryItemId: "i-tomato", unit: "KG", neededQuantity: 0.4 })],
@@ -657,7 +652,6 @@ describe("inventory service", () => {
       "t1", "b1", "m1", "opt-cheese", true,
     );
   });
-
 
   it("E4 does not auto-86 variant/modifier scopes when recipe deduction is disabled", async () => {
     findAllRecipeMenuItemIds.mockResolvedValue(["m1"]);

@@ -9,9 +9,7 @@ export interface PromotionStageOptions {
   priorRedemptions?: Record<string, number> | undefined;
   excludePromotionIds?: string[] | undefined;
   skipSelectionValidation?: boolean | undefined;
-  /** H4 unsaved-preview hook: when supplied, stage 5 evaluates exactly these
-   * candidate promotions instead of reading persisted rules. The same stage
-   * arithmetic is therefore used before and after save. */
+
   candidatePromotions?: PromotionRow[] | undefined;
 }
 export interface PromotionStageResult {
@@ -98,8 +96,6 @@ export async function applyPromotionStage(
     for (const id of requestedIds) if (!excludedIds.has(id) && !matching.some((promotion) => promotion.id === id)) throw new ValidationError("Selected promotion is invalid or inactive");
   }
 
-  // Stage 1 snapshots category identity into each priced line, so promotion
-  // evaluation never reaches back into mutable menu data.
   const categoryByItem = new Map<string, string>();
   for (const line of inputLines) {
     if (line.menuItemId && line.pricingAttribution.CATEGORY_ID) {
@@ -150,8 +146,7 @@ export async function applyPromotionStage(
         Math.floor(triggerUnits / triggerQuantity),
         Math.floor(rewardUnitsAvailable / rewardQuantity),
       );
-      // Physical units cannot satisfy both sides of a BOGO pair. Reduce the
-      // group count until the overlapping pool can cover both shortfalls.
+
       while (groupCount > 0) {
         const overlapNeededForTrigger = Math.max(0, triggerQuantity * groupCount - triggerOnlyUnits);
         const overlapNeededForReward = Math.max(0, rewardQuantity * groupCount - rewardOnlyUnits);
@@ -175,9 +170,7 @@ export async function applyPromotionStage(
       });
 
       const overlapNeededForTrigger = Math.max(0, triggerQuantity * groupCount - triggerOnlyUnits);
-      // When trigger/reward pools overlap, reserve the most expensive overlap
-      // units for the trigger so the standard lowest-price reward convention
-      // remains deterministic on the disjoint remainder.
+
       const reservedForTrigger = new Set(
         allRewardUnits
           .filter((unit) => unit.overlapsTrigger)

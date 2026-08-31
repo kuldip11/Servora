@@ -12,11 +12,9 @@ function toFormat(raw: string | undefined): ExportFormat {
   return raw === "xlsx" ? "xlsx" : "csv";
 }
 
-// Import/export endpoints share the `/api/menu` namespace and delegate
-// authorization and validation to the shared menu boundary.
 export const menuImportExportRouter = new Elysia({ prefix: "/api/menu" })
   .use(requireAuthPlugin())
-  // ─── Export ────────────────────────────────────────────────────────────
+
   .get(
     "/export/items",
     ({ auth, query }) =>
@@ -45,10 +43,7 @@ export const menuImportExportRouter = new Elysia({ prefix: "/api/menu" })
       importExportController.exportModifiers(auth, toFormat(query.format)),
     { query: exportQuery },
   )
-  // ─── Import ────────────────────────────────────────────────────────────
-  // Two-step (validate -> commit): /validate writes nothing; only /commit
-  // does, and it re-validates first so nothing can slip an invalid row
-  // through between the two calls.
+
   .get(
     "/import/items/template",
     ({ query }) =>

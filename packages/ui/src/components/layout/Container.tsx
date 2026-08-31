@@ -11,13 +11,12 @@ const MAX_WIDTHS = {
 
 export interface ContainerProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
-  /** @default 'xl' */
+
   size?: keyof typeof MAX_WIDTHS;
-  /** Render as a different element, e.g. `<main>`. @default 'div' */
+
   as?: ElementType;
 }
 
-/** Centers content and caps its width. Horizontal padding scales with viewport. */
 export function Container({
   children,
   size = "xl",

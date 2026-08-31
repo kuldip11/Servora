@@ -9,7 +9,6 @@ import { inventoryService } from "../../inventory/inventory.service";
 
 const MAX_SUB_RECIPE_DEPTH = 3;
 
-
 async function validateSources(
   tenantId: string,
   branchId: string,
@@ -62,7 +61,6 @@ async function validateSources(
   }
 }
 
-
 async function assertGraphSafe(tenantId: string, targetId: string | null, children: string[]) {
   const rows = await subRecipeRepository.listGraph(tenantId);
   const graph = new Map(rows.map((row) => [row.id, row.children] as const));
@@ -70,9 +68,7 @@ async function assertGraphSafe(tenantId: string, targetId: string | null, childr
   graph.set(nodeId, children);
 
   function walk(id: string, depth: number, path: Set<string>): void {
-    // A repeated node is always a cycle, even if following that edge also
-    // pushes the path beyond the maximum depth. Report the structural defect
-    // first so callers get the correct validation reason.
+
     if (path.has(id)) {
       throw new ValidationError("Circular sub-recipe reference is not allowed");
     }
@@ -84,17 +80,14 @@ async function assertGraphSafe(tenantId: string, targetId: string | null, childr
 
     const nextPath = new Set(path);
     nextPath.add(id);
-    // Depth is path-dependent. Do not globally memoize a visited node: the
-    // same component can be legal through a short path but illegal when it
-    // is also reachable through a deeper path.
+
     for (const child of graph.get(id) ?? []) {
       walk(child, depth + 1, nextPath);
     }
   }
 
   walk(nodeId, 1, new Set());
-  // On update, the edited node can make an existing ancestor cyclic/deeper,
-  // so validate every existing root against the updated graph.
+
   if (targetId) {
     for (const id of graph.keys()) walk(id, 1, new Set());
   }

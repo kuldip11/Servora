@@ -1,19 +1,5 @@
-/**
- * Inventory repository — data access only. No business rules (see
- * `inventory.service.ts` for low-stock event logic, the recipe-deduction
- * decision of which ingredients count, and menu-availability syncing).
- *
- * The one exception worth calling out: `applyStockChange` reads the
- * item's current stock and computes+persists the new balance inside a
- * single DB transaction, using the pure `resolveStockBalance` calculator
- * from `inventory-stock.ts`. That calculator has zero DB/business
- * dependencies of its own (same DB-free shape as `order-pricing.ts`), so
- * importing it here doesn't reintroduce business rules into the
- * repository — it keeps the read-compute-write atomic, exactly as the
- * pre-refactor code did (plain read-then-update in one transaction, no
- * `SELECT ... FOR UPDATE` then either — same level of concurrency safety
- * as before, not a new guarantee).
- */
+
+
 import { eq, and, or, isNull, isNotNull, inArray, sql } from "drizzle-orm";
 import type { InventoryTransactionType, InventoryUnit } from "@pos/types";
 import { db } from "../../db";
@@ -65,9 +51,6 @@ export const inventoryRepository = {
     });
   },
 
-  // Aggregate view: every branch's stock, each item still tagged with its own
-  // branch — deliberately not summed together, since "50 units at Branch A +
-  // 30 at Branch B" isn't a meaningful single number for physical stock.
   async findAllBranches(tenantId: string) {
     return db.query.inventoryItems.findMany({
       where: and(
@@ -193,7 +176,6 @@ export const inventoryRepository = {
     });
   },
 
-
   async listWasteReasons(tenantId: string, includeInactive = false) {
     return db.query.wasteReasons.findMany({
       where: includeInactive
@@ -258,8 +240,6 @@ export const inventoryRepository = {
     );
   },
 
-  // Raw audit trail of what a specific order deducted — used by the
-  // order-detail "inventory impact" view.
   async findOrderDeductions(orderId: string) {
     return db.query.orderInventoryDeductions.findMany({
       where: eq(orderInventoryDeductions.orderId, orderId),
@@ -271,12 +251,6 @@ export const inventoryRepository = {
     });
   },
 
-  // Non-optional recipe lines for a set of menu items, joined with the
-  // current inventory stock and whether the item even has recipe
-  // deduction enabled. Shared by both `validateStock` (read-only check)
-  // and `deductForOrderItems` (the same lines, actually applied) so the
-  // "what counts as a required ingredient" query can't drift between the
-  // two call sites.
   async findRequiredRecipeLines(
     tenantId: string,
     branchId: string,
@@ -327,10 +301,6 @@ export const inventoryRepository = {
     });
   },
 
-  // Applies a batch of already-resolved deduction lines inside one
-  // transaction: floors each deduction at 0 (the order's already been
-  // placed — this is bookkeeping, not a gate), logs an inventory
-  // transaction row plus an order-inventory-deduction audit row per line.
   async deductRecipeLines(
     tenantId: string,
     branchId: string,
@@ -354,7 +324,7 @@ export const inventoryRepository = {
     let deducted = 0;
 
     await db.transaction(async (tx) => {
-      // Serialize retries for one fired round so stock cannot be consumed twice.
+
       await tx.execute(
         sql`select pg_advisory_xact_lock(hashtext(${kitchenTicketId}))`,
       );
@@ -460,10 +430,6 @@ export const inventoryRepository = {
     };
   },
 
-  // E4 recomputes recipe-derived availability from the authoritative recipe
-  // graph. We intentionally enumerate recipe-backed entities in the branch
-  // instead of only direct raw-ingredient links so sub-recipe dependencies
-  // are also refreshed after their underlying stock moves.
   async findAllRecipeMenuItemIds(tenantId: string, branchId: string) {
     const rows = await db
       .selectDistinct({ id: recipes.menuItemId })
@@ -520,7 +486,6 @@ export const inventoryRepository = {
       isAvailable: effectiveModifierAvailability(row),
     }));
   },
-
 
   async findMenuItemsForAvailability(
     tenantId: string,

@@ -81,13 +81,6 @@ function recomputeExclusiveTax(lines: PricedLine[]) {
   }, 0);
 }
 
-/**
- * Stage 5 + 6 orchestration. A promotion that opts out of loyalty stacking is
- * compared against the customer's tier as an incremental discount after any
- * stackable promotions; only the larger of those two mutually-exclusive
- * discounts is retained. This makes precedence explicit instead of relying on
- * incidental call order.
- */
 export async function applyDiscountStages(
   context: PricingContext,
   inputLines: PricedLine[],

@@ -29,8 +29,6 @@ export const membershipStatusEnum = pgEnum("membership_status", [
   "SUSPENDED",
 ]);
 
-// ─── Auth / RBAC ──────────────────────────────────────────────────────────────
-
 export const roles = pgTable(
   "roles",
   {
@@ -107,11 +105,6 @@ export const globalUserRoles = pgTable(
     ),
   }),
 );
-
-// ─── Multi-tenant memberships ─────────────────────────────────────────────────
-//
-// A user can belong to multiple tenants. Roles and branch scope are attached
-// to the membership rather than directly to the user.
 
 export const tenantMemberships = pgTable(
   "tenant_memberships",

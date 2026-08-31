@@ -1,7 +1,7 @@
 # Servora — Pre-v1 Consolidation Implementation Status
 
-**Source of truth:** `PRE_V1_ENGINEERING_REVIEW.md`  
-**Started:** 2026-08-31  
+**Source of truth:** `PRE_V1_ENGINEERING_REVIEW.md`
+**Started:** 2026-08-31
 **Product state:** Pre-production, zero live users/data.
 
 ## Status legend

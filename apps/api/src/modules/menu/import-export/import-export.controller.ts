@@ -1,14 +1,5 @@
-/**
- * Menu import/export controller — thin handlers only. Auth/branch
- * resolution comes from `requireAuthPlugin` (applied in
- * `import-export.route.ts`); business logic lives in
- * `import-export.service.ts`.
- *
- * Export/template endpoints return the file directly (a raw `Response`,
- * not the `{ success, data }` envelope every other route uses) since
- * these are downloads, not JSON API responses — same as the pre-refactor
- * controller.
- */
+
+
 import type { AuthContext } from "../../../core/auth";
 import { successResponse } from "../../../core/response";
 import {
@@ -30,7 +21,7 @@ function fileResponse(
 }
 
 export const importExportController = {
-  // ─── Export ──────────────────────────────────────────────────────────
+
   async exportItems(
     auth: AuthContext,
     format: ExportFormat,
@@ -55,7 +46,6 @@ export const importExportController = {
     return fileResponse(file, `menu-modifiers.${format}`);
   },
 
-  // ─── Import ──────────────────────────────────────────────────────────
   importTemplate(format: "csv" | "xlsx") {
     const file = importExportService.buildTemplate(format);
     return fileResponse(file, `menu-items-template.${format}`);

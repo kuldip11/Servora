@@ -19,16 +19,10 @@ export interface ComboDefinition {
   }>;
 }
 
-
 function cents(value: number) {
   return Math.round(value * 100);
 }
 
-/**
- * Allocate an authoritative combo subtotal over component lines to the cent.
- * Kept with the pure stage-4 pricing helpers so allocation tests never need to
- * import the DB-backed combo ordering service.
- */
 export function allocateComboTotal(
   lines: PricedLine[],
   total: number,
@@ -67,12 +61,6 @@ export function allocateComboTotal(
   });
 }
 
-/**
- * Pipeline stage 4 only. Component `basePrice` values passed here are already
- * authoritative outputs of stages 1–3. This function deliberately contains
- * no menu/variant/PriceRule lookup so combo pricing cannot become a second
- * pricing engine.
- */
 export function priceCombo(
   combo: ComboDefinition,
   selections: ComboSlotSelection[],

@@ -9,7 +9,6 @@ const CONFIG: Record<
   EGG: { border: "border-amber-600", fill: "bg-amber-600", label: "Egg" },
 };
 
-// The familiar square-with-dot symbol used on Indian menus/packaging.
 export function FoodTypeDot({
   type,
   size = "md",

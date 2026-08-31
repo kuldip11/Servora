@@ -1,4 +1,4 @@
-/** Order-domain error factories using the shared application error taxonomy. */
+
 import {
   NotFoundError,
   ConflictError,
@@ -55,7 +55,6 @@ export function ticketsNotServed(): ConflictError {
   );
 }
 
-/** For the "must be OPEN to fire a new ticket" guard — not a general state-machine transition, but same original status (422) as one. */
 export function orderNotOpen(currentStatus: string): DomainRuleError {
   return new DomainRuleError(
     `Cannot fire a new ticket while the tab is ${currentStatus}`,

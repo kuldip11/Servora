@@ -1,8 +1,5 @@
-/**
- * Menu recipes controller — thin handlers only. Auth/branch resolution
- * comes from `requireAuthPlugin` (applied in `recipes.route.ts`); business
- * rules live in `recipes.service.ts`.
- */
+
+
 import type { AuthContext } from "../../../core/auth";
 import { successResponse } from "../../../core/response";
 import type { RecipeIngredientInput } from "@pos/types";

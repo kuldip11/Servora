@@ -1,10 +1,4 @@
-/**
- * Authenticated authorization context.
- *
- * This is the target server-side context for a multi-tenant session.
- * It deliberately contains an active membership rather than treating a
- * tenant/branch header as authorization.
- */
+
 
 export type ActiveAuthContext = {
   userId: string;

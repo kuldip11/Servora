@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "menu_schedules" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -17,6 +17,6 @@ CREATE TABLE "menu_schedules" (
   CONSTRAINT "menu_schedules_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE,
   CONSTRAINT "menu_schedules_menu_id_menus_id_fk" FOREIGN KEY ("menu_id") REFERENCES "menus"("id") ON DELETE CASCADE
 );
---> statement-breakpoint
+
 CREATE INDEX "menu_schedules_menu_idx" ON "menu_schedules" USING btree ("menu_id");
---> statement-breakpoint
+

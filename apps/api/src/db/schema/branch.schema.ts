@@ -26,11 +26,7 @@ export const branches = pgTable(
     address: text("address").notNull(),
     phone: varchar("phone", { length: 20 }),
     isActive: boolean("is_active").notNull().default(true),
-    // Per-branch order-type + tables capability profile. Every column
-    // defaults to true so existing branches keep behaving exactly as they
-    // did before this migration ran (full-service, nothing pre-disabled).
-    // An owner narrows these down per-outlet — e.g. a cloud-kitchen branch
-    // gets dineInEnabled/tablesEnabled set to false.
+
     dineInEnabled: boolean("dine_in_enabled").notNull().default(true),
     takeawayEnabled: boolean("takeaway_enabled").notNull().default(true),
     deliveryEnabled: boolean("delivery_enabled").notNull().default(true),

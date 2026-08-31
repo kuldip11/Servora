@@ -20,12 +20,6 @@ import {
 } from "./menu.schema";
 import { inventoryItems, inventoryUnitEnum } from "./inventory.schema";
 
-/**
- * Prepared components that can be consumed by dish recipes (sauces, dough,
- * stocks, chutneys, etc.).  Yield is expressed in the inventory unit selected
- * by the tenant.  `yieldPercent` is optional:
- * null means 100% usable yield.
- */
 export const subRecipes = pgTable(
   "sub_recipes",
   {
@@ -33,7 +27,7 @@ export const subRecipes = pgTable(
     tenantId: uuid("tenant_id")
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
-    // Prepared components consume physical stock, which is branch-scoped.
+
     branchId: uuid("branch_id").notNull().references(() => branches.id, { onDelete: "cascade" }),
     name: varchar("name", { length: 200 }).notNull(),
     yieldQuantity: numeric("yield_quantity", { precision: 12, scale: 3 })
@@ -54,12 +48,6 @@ export const subRecipes = pgTable(
   }),
 );
 
-/**
- * Composition of a prepared component. A row points to exactly one raw
- * inventory item OR another prepared component. The latter enables the
- * depth-limited recursive composition required by E2; cycles are rejected by
- * the service before writes.
- */
 export const subRecipeIngredients = pgTable(
   "sub_recipe_ingredients",
   {
@@ -104,7 +92,7 @@ export const recipes = pgTable(
     menuItemId: uuid("menu_item_id")
       .notNull()
       .references(() => menuItems.id, { onDelete: "cascade" }),
-    // E2: exactly one of inventoryItemId / subRecipeId is populated.
+
     inventoryItemId: uuid("inventory_item_id").references(
       () => inventoryItems.id,
       { onDelete: "cascade" },
@@ -112,7 +100,7 @@ export const recipes = pgTable(
     subRecipeId: uuid("sub_recipe_id").references(() => subRecipes.id, {
       onDelete: "cascade",
     }),
-    // E1: null means the base item recipe; variant/modifier scopes are optional.
+
     variantId: uuid("variant_id").references(() => menuItemVariants.id, {
       onDelete: "cascade",
     }),
@@ -125,9 +113,9 @@ export const recipes = pgTable(
       scale: 3,
     }).notNull(),
     unit: inventoryUnitEnum("unit").notNull(),
-    // E3: null means 100% usable yield.
+
     yieldPercent: numeric("yield_percent", { precision: 5, scale: 2 }),
-    // Optional ingredients don't block ordering or auto-deduct.
+
     isOptional: boolean("is_optional").notNull().default(false),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },

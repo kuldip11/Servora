@@ -23,7 +23,5 @@ export function formatTime(date: string | Date): string {
     hour12: true,
   }).format(new Date(date));
 
-  // Some ICU builds render the en-IN AM/PM marker in lowercase (e.g. "01:05 pm")
-  // while others use uppercase. Normalize so output is consistent across environments.
   return formatted.replace(/\b(am|pm)\b/i, (match) => match.toUpperCase());
 }

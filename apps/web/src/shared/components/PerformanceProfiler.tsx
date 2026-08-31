@@ -22,7 +22,6 @@ const onRender: ProfilerOnRenderCallback = (
   });
 };
 
-/** Development-only commit profiling. Keep memo/useMemo decisions tied to measured slow commits. */
 export function PerformanceProfiler({
   id,
   children,

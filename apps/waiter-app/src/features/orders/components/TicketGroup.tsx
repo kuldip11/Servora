@@ -23,15 +23,6 @@ interface Props {
   replacementByOriginalId?: ReadonlyMap<string, { id: string }>;
 }
 
-// Design-system Phase 11, Sprint WA-4: the ticket-status pill now goes
-// through the shared `StatusBadge` primitive (Phase 3) with a local
-// tone map, the same "genuine 4-tone status, migrate it" reasoning
-// `TablesPage`'s table-status badge used in Sprint AD-6 — FIRED/
-// PREPARING/READY/SERVED map cleanly onto info/warning/success/neutral,
-// unlike order-level `PAID`, which still has no home in the 5-tone
-// vocabulary. `TICKET_STATUS_COLOR` (constants.ts) is retired — this
-// was its only call site (grepped repo-wide) — `TICKET_STATUS_LABEL`
-// is kept, since `StatusBadge` still needs a label string per status.
 const TICKET_STATUS_TONE: Record<string, StatusTone> = {
   HELD: "neutral",
   FIRED: "info",
@@ -42,11 +33,7 @@ const TICKET_STATUS_TONE: Record<string, StatusTone> = {
 
 export function TicketGroup({ ticket, onMarkServed, isUpdating, canVoid, canComp, onAdjust, onFireHeld, onRefire, onRefill, onSeatShares, replacementByOriginalId }: Props) {
   return (
-    // `Card` (Phase 2), `rounded-2xl` override — same technique
-    // `OrderCard`/`MenuItemCard` already use for this app's rounder
-    // mobile card radius (`--radius-lg` is 16px, this app's cards want
-    // 24px). `padding="none"` since every section below manages its
-    // own `px-4`/`py-*` rather than doubling up on Card's own padding.
+
     <Card padding="none" className="mx-4 mt-4 rounded-2xl overflow-hidden">
       <div className="px-4 py-2.5 border-b border-divider flex items-center justify-between">
         <p className="text-xs font-semibold text-text-disabled uppercase tracking-wide">
@@ -149,12 +136,9 @@ export function TicketGroup({ ticket, onMarkServed, isUpdating, canVoid, canComp
       )}
       {ticket.status === "READY" && (
         <div className="px-4 py-3 border-t border-divider">
-          {/* `Button` (Phase 3), `variant="success"` — a genuine
-              drop-in: bg-success/text-success-foreground (Phase 9's
-              contrast-safe pair) matches the old bg-emerald-600/
-              text-white exactly in meaning. `rounded-2xl` overrides
-              Button's default `rounded-md`, same override technique as
-              Card above. */}
+          {
+
+                            }
           <Button
             onClick={() => onMarkServed(ticket.id)}
             disabled={isUpdating}

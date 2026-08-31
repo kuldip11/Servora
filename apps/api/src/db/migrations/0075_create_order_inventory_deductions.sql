@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "order_inventory_deductions" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -18,12 +18,12 @@ CREATE TABLE "order_inventory_deductions" (
   CONSTRAINT "order_inventory_deductions_menu_item_id_menu_items_id_fk" FOREIGN KEY ("menu_item_id") REFERENCES "menu_items"("id") ON DELETE CASCADE,
   CONSTRAINT "order_inventory_deductions_inventory_item_id_inventory_items_id_fk" FOREIGN KEY ("inventory_item_id") REFERENCES "inventory_items"("id") ON DELETE CASCADE
 );
---> statement-breakpoint
+
 CREATE INDEX "order_inventory_deductions_order_idx" ON "order_inventory_deductions" USING btree ("order_id");
---> statement-breakpoint
+
 CREATE INDEX "order_inventory_deductions_menu_item_idx" ON "order_inventory_deductions" USING btree ("menu_item_id");
---> statement-breakpoint
+
 CREATE INDEX "order_inventory_deductions_ticket_idx" ON "order_inventory_deductions" USING btree ("kitchen_ticket_id");
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "order_inventory_deductions_ticket_recipe_unique" ON "order_inventory_deductions" USING btree ("kitchen_ticket_id", "menu_item_id", "inventory_item_id") WHERE "kitchen_ticket_id" IS NOT NULL;
---> statement-breakpoint
+

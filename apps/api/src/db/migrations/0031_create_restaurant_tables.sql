@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "restaurant_tables" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -16,8 +16,8 @@ CREATE TABLE "restaurant_tables" (
   CONSTRAINT "restaurant_tables_branch_id_branches_id_fk" FOREIGN KEY ("branch_id") REFERENCES "branches"("id") ON DELETE CASCADE,
   CONSTRAINT "restaurant_tables_branch_tenant_fk" FOREIGN KEY ("branch_id", "tenant_id") REFERENCES "branches"("id", "tenant_id") ON DELETE CASCADE
 );
---> statement-breakpoint
+
 CREATE INDEX "tables_tenant_branch_idx" ON "restaurant_tables" USING btree ("tenant_id", "branch_id");
---> statement-breakpoint
+
 CREATE UNIQUE INDEX "tables_public_qr_token_uniq" ON "restaurant_tables" USING btree ("public_qr_token");
---> statement-breakpoint
+

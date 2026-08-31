@@ -7,7 +7,6 @@ export const createTableSchema = z.object({
   branchId: z.string().uuid(),
 });
 
-/** Form-level schema for the web Add/Edit Table dialogs. */
 export const tableFormSchema = z.object({
   name: z
     .string()

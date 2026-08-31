@@ -18,7 +18,6 @@ import { apiClient } from "../../../shared/lib/api-client";
 const menuApi = createMenuApi(apiClient);
 import { useCourseSequencingEnabled } from "../hooks/useCourseSequencingEnabled";
 
-
 interface ActiveMenuSummary {
   id: string;
   name: string;
@@ -58,11 +57,6 @@ export function CreateOrderModal({ onClose }: { onClose: () => void }) {
   const [courseMode, setCourseMode] = useState(false);
   const courseSequencingAvailable = useCourseSequencingEnabled();
 
-  // Fetches data for the server-issued active branch context. If the
-  // owner/manager is viewing "All Branches" this comes back as more than
-  // one branch — in that case there's no single branch to filter against,
-  // so we fall back to showing every order type (existing behaviour) and
-  // let the backend be the enforcement point instead.
   const { data: branchesInScope } = useBranches();
 
   const currentBranch =
@@ -74,9 +68,6 @@ export function CreateOrderModal({ onClose }: { onClose: () => void }) {
 
   const tablesEnabled = currentBranch ? currentBranch.tablesEnabled : true;
 
-  // If the currently selected type falls out of what's available once we
-  // know the branch (e.g. default DINE_IN but this branch has no dine-in),
-  // snap to the first type that's actually enabled.
   useEffect(() => {
     if (!availableOrderTypes.length) return;
     if (!availableOrderTypes.some((t) => t.value === orderType)) {
@@ -169,8 +160,7 @@ export function CreateOrderModal({ onClose }: { onClose: () => void }) {
       return;
     }
     setValidationError("");
-    // Normalize the Zod output to the service payload: the form schema makes
-    // option quantity optional, but the API payload requires it.
+
     const payload = {
       type: parsed.data.type,
       ...(parsed.data.tableId !== undefined && {

@@ -1,4 +1,4 @@
-/** Thin orchestration layer for menu bulk operations. */
+
 import type { AuthContext } from "../../../core/auth";
 import {
   bulkOpsRepository,

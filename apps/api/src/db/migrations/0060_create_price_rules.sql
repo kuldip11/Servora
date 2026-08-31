@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "price_rules" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -37,10 +37,10 @@ CREATE TABLE "price_rules" (
   CONSTRAINT "price_rules_branch_id_branches_id_fk" FOREIGN KEY ("branch_id") REFERENCES "branches"("id") ON DELETE CASCADE,
   CONSTRAINT "price_rules_customer_group_id_customer_groups_id_fk" FOREIGN KEY ("customer_group_id") REFERENCES "customer_groups"("id") ON DELETE CASCADE
 );
---> statement-breakpoint
+
 CREATE INDEX "price_rules_lookup_idx" ON "price_rules" USING btree ("tenant_id", "menu_item_id", "branch_id", "channel");
---> statement-breakpoint
+
 CREATE INDEX "price_rules_organization_sku_idx" ON "price_rules" USING btree ("organization_id", "menu_item_sku");
---> statement-breakpoint
+
 CREATE INDEX "price_rules_customer_group_idx" ON "price_rules" USING btree ("customer_group_id");
---> statement-breakpoint
+

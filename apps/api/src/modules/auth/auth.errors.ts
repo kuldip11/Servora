@@ -1,11 +1,10 @@
-/** Authentication error factories with stable client-facing messages and typed status codes. */
+
 import {
   UnauthorizedError,
   NotFoundError,
   TooManyRequestsError,
 } from "../../core/errors";
 
-/** Covers both "no such user" and "wrong password" — same response either way. */
 export function invalidCredentials(): UnauthorizedError {
   return new UnauthorizedError("Invalid credentials", {
     reason: "AUTH_INVALID_CREDENTIALS",
@@ -18,7 +17,6 @@ export function userInactive(): UnauthorizedError {
   });
 }
 
-/** Covers both "token not found/expired" and "owning user no longer exists". */
 export function invalidRefreshToken(): UnauthorizedError {
   return new UnauthorizedError("Invalid refresh token", {
     reason: "AUTH_INVALID_REFRESH_TOKEN",

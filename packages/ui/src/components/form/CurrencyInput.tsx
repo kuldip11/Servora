@@ -17,20 +17,14 @@ export interface CurrencyInputProps extends Omit<
   error?: string | undefined;
   required?: boolean | undefined;
   value?: number | undefined;
-  /** Called with a number in the currency's major unit (e.g. dollars, not cents). */
+
   onChange?: (value: number) => void;
-  /** @default '$' */
+
   currencySymbol?: string | undefined;
-  /** @default 2 */
+
   decimalPlaces?: number | undefined;
 }
 
-/**
- * Controlled numeric field for money amounts — leading currency symbol,
- * formats to `decimalPlaces` on blur (`4` → `4.00`), and only ever
- * reports a plain `number` (major units) via `onChange`, never a
- * currency-formatted string, so callers don't have to re-parse it.
- */
 export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
   (
     {
@@ -50,9 +44,7 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
     ref,
   ) => {
     const { fieldId, hintId, errorId } = useFieldIds(id);
-    // Text mid-edit ("12.", "") can't always round-trip through a
-    // formatted number, so typing is tracked as a draft string and only
-    // reconciled with the numeric `value` on blur.
+
     const [draft, setDraft] = useState<string | null>(null);
     const displayValue =
       draft ?? (value !== undefined ? value.toFixed(decimalPlaces) : "");
@@ -79,7 +71,7 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
             value={displayValue}
             onChange={(e) => {
               const raw = e.target.value;
-              // Allow only digits and a single decimal point while typing.
+
               if (!/^\d*\.?\d*$/.test(raw)) return;
               setDraft(raw);
               const parsed = parseFloat(raw);

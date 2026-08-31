@@ -1,11 +1,5 @@
-/**
- * Authoritative order pricing pipeline.
- *
- * A4 centralizes the existing pricing path without changing financial
- * behaviour. The pipeline owns branch base-price/tax resolution followed by
- * variant replacement and modifier additions. Future pricing dimensions plug
- * into later stages instead of creating parallel price overlays.
- */
+
+
 import { ValidationError } from "../../../core/errors";
 import { availabilityRepository } from "../../menu/availability/availability.repository";
 import { priceRuleRepository } from "../../menu/pricing/price-rule.repository";
@@ -94,7 +88,6 @@ export function selectPriceRule(
     )[0];
 }
 
-/** Stage 1: resolve today's existing base price and tax branch override. */
 export function resolveBasePriceStage(
   item: PricableMenuItem,
   override?: BranchPricingOverride | undefined,
@@ -109,7 +102,6 @@ export function resolveBasePriceStage(
   return { price, taxRate, attribution: price };
 }
 
-/** Stage 2: a selected variant replaces the current base price. */
 export function resolveVariantStage(
   item: PricableMenuItem,
   currentPrice: number,
@@ -142,11 +134,6 @@ export function resolveVariantStage(
   };
 }
 
-/**
- * Stage 3: validate modifier selection rules and add modifier prices.
- * Validation wording and quantity clamping intentionally match pre-A4
- * resolveItems exactly so the extraction is behaviour-preserving.
- */
 export function resolveModifierStage(
   item: PricableMenuItem,
   selectedOptions: OrderItemInput["selectedOptions"],
@@ -344,10 +331,7 @@ export const pricingPipeline = {
       const effectiveOverride: BranchPricingOverride | undefined = selectedRuleWon
         ? {
             ...selectedRule!,
-            // A more-specific price rule replaces the scoped price, but a
-            // nullable taxRate means "do not override tax". Preserve the
-            // existing branch tax override as the next fallback before the
-            // menu item's own rate.
+
             taxRate: selectedRule!.taxRate ?? branchOverride?.taxRate ?? null,
           }
         : branchOverride;
@@ -362,12 +346,7 @@ export const pricingPipeline = {
       const requestedVariant = requestedLine.variantId
         ? item.variants.find((variant) => variant.id === requestedLine.variantId)
         : undefined;
-      // D4 percent-off rules are evaluated against the already-resolved line
-      // base. For a variant that is its variant price (stage 2's normal
-      // replacement); otherwise it is the branch override price when present,
-      // then the menu item's base price. This makes a category-wide happy
-      // hour actually discount variants and branch-priced items instead of
-      // falling back to sticker price.
+
       const percentOffBasePrice = selectedPercentRuleWon
         ? requestedVariant
           ? parseFloat(requestedVariant.price)
@@ -476,7 +455,7 @@ export const pricingPipeline = {
 
     return { lines, subtotal, taxAmount };
   },
-  /** G9: resolve an explicitly selected buffet cover rate through the same scoped-rule matcher. */
+
   async resolvePerCoverRate(
     context: PricingContext,
     ruleId: string,

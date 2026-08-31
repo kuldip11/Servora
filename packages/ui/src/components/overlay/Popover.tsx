@@ -13,21 +13,6 @@ export interface PopoverProps {
   className?: string | undefined;
 }
 
-/**
- * General-purpose popover for arbitrary content — a filter panel, an
- * info tooltip-with-actions, a quick-edit form — anchored to a
- * trigger element. Built on `@radix-ui/react-popover`, already a
- * dependency as of Phase 4, but this is a distinct, standalone
- * component from that phase's internal use of the same primitive:
- * `SelectMenu`/`Combobox`/etc. use `Popover` purely as unstyled
- * positioning/dismiss plumbing around a hand-rolled virtualized
- * listbox and don't expose it as something a consumer composes with
- * arbitrary children. This one does — pass any `children`.
- *
- * Supports both uncontrolled (just render it, `Popover.Trigger`
- * manages its own open state) and controlled (`open`/`onOpenChange`)
- * usage, matching Radix's own Popover API shape.
- */
 export function Popover({
   trigger,
   children,

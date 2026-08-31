@@ -5,46 +5,27 @@ import { Tooltip, TooltipProvider } from "../overlay/Tooltip";
 import { type NavItem, NavLink, navItemClasses } from "./shared";
 
 export interface SidebarSection {
-  /** Omit for an ungrouped list of items at the top of the sidebar. */
+
   title?: string | undefined;
   items: NavItem[];
 }
 
 export interface SidebarProps {
   sections: SidebarSection[];
-  /** e.g. a logo/product name, rendered above the sections. */
+
   header?: ReactNode | undefined;
-  /** e.g. a `UserMenu`, pinned to the bottom. */
+
   footer?: ReactNode | undefined;
-  /** @default true */
+
   collapsible?: boolean | undefined;
-  /** Uncontrolled initial state, ignored once `collapsed` is passed. @default false */
+
   defaultCollapsed?: boolean | undefined;
-  /** Controlled collapsed state. Pair with `onCollapsedChange`. */
+
   collapsed?: boolean | undefined;
   onCollapsedChange?: ((collapsed: boolean) => void) | undefined;
   className?: string | undefined;
 }
 
-/**
- * Desktop collapsible sidebar (the design-system contract Phase 6).
- * Slots into `AppShell`'s `sidebar` prop — this component only renders
- * the nav content, `AppShell` still owns the fixed-width `<aside>`
- * frame and the `hidden lg:block` responsive rule.
- *
- * Collapsed state is controlled/uncontrolled the same way `Combobox`
- * etc. mix both: pass `collapsed`+`onCollapsedChange` to drive it from
- * outside (e.g. persist to `localStorage`), or leave both out and let
- * the internal `useState` (seeded by `defaultCollapsed`) own it.
- *
- * When collapsed, labels hide and each item's label becomes a `Tooltip`
- * instead — which needs a `TooltipProvider` ancestor (see `overlay/
- * Tooltip.tsx`'s doc comment). Rather than require every app to wire
- * one into its root `main.tsx` before a `Sidebar` works at all, this
- * component mounts its own `TooltipProvider` scoped to just itself —
- * safe to nest multiple `TooltipProvider`s (Radix supports this), and
- * it means `Sidebar` works standalone with zero required app wiring.
- */
 export function Sidebar({
   sections,
   header,

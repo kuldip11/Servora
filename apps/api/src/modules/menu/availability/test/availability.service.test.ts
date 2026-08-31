@@ -215,7 +215,6 @@ describe("availabilityService deterministic asOf handling", () => {
   });
 });
 
-
 describe("availabilityService manual override precedence", () => {
   it("keeps a manual 86 in force while a schedule says ACTIVE", async () => {
     findItemBasics.mockResolvedValue({
@@ -310,7 +309,6 @@ describe("availabilityService manual override precedence", () => {
     expect(setManualOverride).not.toHaveBeenCalled();
   });
 });
-
 
 describe("availabilityService inventory-computed availability ownership", () => {
   it("persists item computed state and emits audit + realtime without clearing manual precedence", async () => {
@@ -454,10 +452,6 @@ describe("G4 manual stock-count availability", () => {
     expect(result.availabilityReason).toBe("Manual stock count depleted");
   });
 });
-
-
-// Cross-channel dashboard behavior is covered in availability-dashboard.test.ts,
-// where the batched repository boundary is mocked directly.
 
 describe("H1 deterministic AvailabilityResolver replay", () => {
   it("replays the exact precedence resolver from fire-time evidence without reading current menu state", async () => {

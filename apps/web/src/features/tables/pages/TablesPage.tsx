@@ -73,7 +73,6 @@ const STATUS_CARD_BORDER: Record<RestaurantTable["status"], string> = {
   RESERVED: "border-amber-200",
 };
 
-
 const emptyForm: TableFormValues = {
   name: "",
   capacity: "4",
@@ -241,8 +240,7 @@ export function TablesPage() {
           }
         />
       ) : isAggregate ? (
-        // Grouped per branch — a "Table 5" at Branch A and "Table 5" at
-        // Branch B are different physical tables, so no flat merged pool.
+
         Object.entries(
           tables.reduce<Record<string, RestaurantTable[]>>((acc, table) => {
             const key = table.branch?.name ?? "Unknown branch";

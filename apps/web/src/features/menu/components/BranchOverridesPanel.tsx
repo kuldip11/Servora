@@ -14,10 +14,8 @@ interface Props {
   basePrepTimeMinutes: number | null;
 }
 
-// One row's local edit state — undefined fields mean "not overridden, use
-// the base item's value", matching how the API stores/reads null.
 interface RowDraft {
-  price: string; // '' = no override
+  price: string;
   taxRate: string;
   prepTimeMinutes: string;
   status: MenuItemStatus | "";
@@ -43,8 +41,7 @@ export function BranchOverridesPanel({
   baseTaxRate,
   basePrepTimeMinutes,
 }: Props) {
-  // Same unscoped ('all') branch list the switcher and Staff page use —
-  // shares cache with them instead of a duplicate ad-hoc query.
+
   const { data: branches } = useBranches();
   const { data: overrides, isLoading } = useMenuItemBranchOverrides(itemId);
 

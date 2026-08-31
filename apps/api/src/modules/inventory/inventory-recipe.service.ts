@@ -1,7 +1,5 @@
-/**
- * Inventory recipe orchestration: stock validation, recipe costing, persisted
- * deductions, and recipe-derived menu availability synchronization.
- */
+
+
 import type { AuthContext } from "../../core/auth";
 import { ValidationError } from "../../core/errors";
 import { eventBus } from "../../lib/event-bus";
@@ -242,11 +240,6 @@ export const inventoryRecipeService = {
     return { inventoryItemId, inventoryItemName: inventoryItem.name, impacts };
   },
 
-  // Checks whether ONE unit of each requested item can currently be made,
-  // given its recipe and current stock — used at order-creation time as a
-  // last-second guard in addition to the item's ACTIVE/OUT_OF_STOCK status
-  // (status can lag a few seconds behind concurrent orders racing for the
-  // same stock; this catches that window).
   async validateStock(
     tenantId: string,
     branchId: string,
@@ -287,9 +280,6 @@ export const inventoryRecipeService = {
     return { valid: insufficient.length === 0, insufficient };
   },
 
-  // Read-only recipe-cost aggregation. Batch callers share one recipe-row
-  // load and one sub-recipe cache so analytics can resolve a complete menu
-  // report without issuing one recipe query per item/variant selection.
   async computeRecipeCosts(
     tenantId: string,
     branchId: string,
@@ -343,13 +333,6 @@ export const inventoryRecipeService = {
     return cost;
   },
 
-  // Called once a round is actually fired to the kitchen (new order, or a
-  // new ticket on an existing tab). Deducts every non-optional ingredient
-  // for every item in the round, floors at 0 rather than throwing on a
-  // shortfall (the order's already been placed — this is bookkeeping, not
-  // a gate), and logs each deduction against the order for the
-  // inventory-impact view. Returns which ingredients came up short so the
-  // caller can surface a warning if it wants to.
   async deductForOrderItems(
     tenantId: string,
     branchId: string,
@@ -391,8 +374,6 @@ export const inventoryRecipeService = {
     }
     if (!lines.length) return { deducted: 0, short: [] };
 
-    // Aggregate only within the same exact order item. This preserves E1
-    // variant/modifier differences and gives E5 a lossless reversal trail.
     const aggregated = new Map<string, (typeof lines)[number]>();
     for (const line of lines) {
       const key = `${line.orderItemId}:${line.inventoryItemId}`;
@@ -500,9 +481,6 @@ export const inventoryRecipeService = {
     }
   },
 
-  // E4: recompute recipe-derived availability from the authoritative recipe
-  // graph. The inventory ids are only a trigger; the branch sweep is deliberate
-  // because a changed raw ingredient may be several levels below a sub-recipe.
   async syncMenuItemAvailability(
     tenantId: string,
     branchId: string,
@@ -528,8 +506,6 @@ export const inventoryRecipeService = {
       );
     }
 
-    // Inventory owns only the ingredient-sufficiency signal. AvailabilityService
-    // owns computed-state persistence, manual precedence, audit and realtime.
     const variants = await inventoryRepository.findScopedRecipeVariants(tenantId, branchId);
     for (const variant of variants) {
       if (!variant.enableRecipeDeduction) continue;

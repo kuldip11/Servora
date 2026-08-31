@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "menu_items" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -47,12 +47,12 @@ CREATE TABLE "menu_items" (
   CONSTRAINT "menu_items_category_id_menu_categories_id_fk" FOREIGN KEY ("category_id") REFERENCES "menu_categories"("id") ON DELETE CASCADE,
   CONSTRAINT "menu_items_manual_override_set_by_users_id_fk" FOREIGN KEY ("manual_override_set_by") REFERENCES "users"("id") ON DELETE SET NULL
 );
---> statement-breakpoint
+
 CREATE INDEX "menu_items_tenant_idx" ON "menu_items" USING btree ("tenant_id");
---> statement-breakpoint
+
 CREATE INDEX "menu_items_category_idx" ON "menu_items" USING btree ("category_id");
---> statement-breakpoint
+
 CREATE INDEX "menu_items_status_idx" ON "menu_items" USING btree ("tenant_id", "branch_id", "status");
---> statement-breakpoint
+
 CREATE INDEX "menu_items_manual_stock_count_idx" ON "menu_items" USING btree ("tenant_id", "manual_stock_count") WHERE "manual_stock_count" IS NOT NULL;
---> statement-breakpoint
+

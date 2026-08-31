@@ -1,8 +1,5 @@
-/**
- * Order controller — thin handlers only. Auth/branch resolution comes
- * from `requireAuthPlugin` (applied in `order.route.ts`); business logic
- * lives in `order.service.ts`.
- */
+
+
 import type { OrderStatus } from "@pos/types";
 import type { AuthContext } from "../../core/auth";
 import { successResponse, createdResponse } from "../../core/response";

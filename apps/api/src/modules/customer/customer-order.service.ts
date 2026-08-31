@@ -262,9 +262,7 @@ export const customerOrderService = {
         createdNewOrder = true;
         roundCreated = true;
       } catch (error) {
-        // The database's active-tab unique index closes the race between two
-        // rapid submissions that both observed no existing order. If another
-        // request won that race, append this request as the next round.
+
         if ((error as { code?: string })?.code !== "23505") throw error;
         const concurrentOrder = await customerRepository.findOpenOrderBySession(
           session.tenantId,
@@ -345,7 +343,7 @@ export const customerOrderService = {
       }
 
       if (createdNewOrder && session.mode === "DINE_IN" && session.tableId) {
-        // The first customer tab owns the table until its lifecycle is closed.
+
         const updatedTable = await tableRepository.update(
           session.tenantId,
           session.tableId,
@@ -383,9 +381,7 @@ export const customerOrderService = {
       session.tenantId,
       session.branchId,
     );
-    // A public takeaway order is intentionally invisible to the kitchen until
-    // a verified payment releases its PENDING_PAYMENT ticket. Dine-in orders
-    // can fire immediately.
+
     const firedTickets = (fullOrder?.kitchenTickets ?? []).filter(
       (ticket) => ticket.status === "FIRED",
     );

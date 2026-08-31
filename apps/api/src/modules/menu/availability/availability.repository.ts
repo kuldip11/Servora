@@ -1,14 +1,5 @@
-/**
- * Menu availability repository — data access only, for schedules,
- * holidays, and branch overrides. Business rules (schedule field
- * validation, effective-status precedence, override validation) live in
- * `availability.service.ts`.
- *
- * `findByIds` lives here with the availability data-access boundary. It is the
- * order-time pricing read, and pricing/availability at order time is what
- * this sub-domain is about. `orders/order.service.ts` now imports it from
- * here instead.
- */
+
+
 import { eq, and, or, isNull, inArray, gte, lte } from "drizzle-orm";
 import type { MenuItemStatus, MenuItemScheduleType } from "@pos/types";
 import { db } from "../../../db";
@@ -245,7 +236,6 @@ export const availabilityRepository = {
       .returning();
     return row ? withEffectiveModifierAvailability(row) : undefined;
   },
-  // ─── Order-time pricing (moved from menu/repository.ts) ────────────────────
 
   async findByIds(
     tenantId: string,
@@ -258,7 +248,7 @@ export const availabilityRepository = {
         eq(menuItems.tenantId, tenantId),
         inArray(menuItems.id, ids),
         isNull(menuItems.deletedAt),
-        eq(menuItems.isPublished, true), // a draft item is never orderable, regardless of status
+        eq(menuItems.isPublished, true),
         or(isNull(menuItems.effectiveFrom), lte(menuItems.effectiveFrom, asOf)),
         branchId
           ? or(eq(menuItems.branchId, branchId), isNull(menuItems.branchId))
@@ -273,10 +263,6 @@ export const availabilityRepository = {
         },
       },
     });
-
-    // Pricing is intentionally not overlaid here. A4 moves authoritative
-    // branch price/tax resolution into PricingPipeline so availability data
-    // stays unmutated and every order price passes through one staged path.
 
     return items.map((item) => ({
       ...withEffectiveMenuItemAvailability(item),
@@ -382,8 +368,6 @@ export const availabilityRepository = {
       );
   },
 
-  // ─── Schedules ───────────────────────────────────────────────────────────
-
   async findItemBasics(tenantId: string, itemId: string) {
     return db.query.menuItems.findFirst({
       where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)),
@@ -407,7 +391,6 @@ export const availabilityRepository = {
       where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)),
     });
   },
-
 
   async listSchedulesForItem(tenantId: string, itemId: string) {
     return db.query.menuItemSchedules.findMany({
@@ -509,8 +492,6 @@ export const availabilityRepository = {
         ),
       );
   },
-
-  // ─── Holidays ────────────────────────────────────────────────────────────
 
   async listHolidays(
     tenantId: string,
@@ -619,8 +600,6 @@ export const availabilityRepository = {
       .returning();
     return row;
   },
-
-  // ─── Branch overrides ────────────────────────────────────────────────────
 
   async getOverride(tenantId: string, menuItemId: string, branchId: string) {
     return db.query.menuItemBranchOverrides.findFirst({

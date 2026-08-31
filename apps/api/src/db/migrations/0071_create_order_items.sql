@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "order_items" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -61,12 +61,12 @@ CREATE TABLE "order_items" (
   CONSTRAINT "order_items_comped_by_users_id_fk" FOREIGN KEY ("comped_by") REFERENCES "users"("id"),
   CONSTRAINT "order_items_comped_reason_id_cancellation_reasons_id_fk" FOREIGN KEY ("comped_reason_id") REFERENCES "cancellation_reasons"("id") ON DELETE SET NULL
 );
---> statement-breakpoint
+
 CREATE INDEX "order_items_combo_group_idx" ON "order_items" USING btree ("combo_group_id");
---> statement-breakpoint
+
 CREATE INDEX "order_items_combo_slot_option_idx" ON "order_items" USING btree ("combo_slot_option_id");
---> statement-breakpoint
+
 CREATE INDEX "order_items_refires_idx" ON "order_items" USING btree ("refires_order_item_id");
---> statement-breakpoint
+
 CREATE INDEX "order_items_resolution_as_of_idx" ON "order_items" USING btree ("resolution_as_of");
---> statement-breakpoint
+

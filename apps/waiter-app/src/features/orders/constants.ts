@@ -6,8 +6,6 @@ export const orderKeys = {
 export const ORDERS_POLL_INTERVAL_MS = 15_000;
 export const ORDER_DETAIL_POLL_INTERVAL_MS = 10_000;
 
-// Tab (order) statuses — billing lifecycle only. Kitchen ticket statuses
-// (below) are rendered inline per-round in OrderDetailPage instead.
 export const STATUS_CONFIG = {
   OPEN: { label: "Open", color: "text-info", bg: "bg-info-surface" },
   BILL_REQUESTED: {
@@ -36,7 +34,3 @@ export const TICKET_STATUS_LABEL: Record<string, string> = {
   SERVED: "Served",
 };
 
-// TICKET_STATUS_COLOR retired in Sprint WA-4 (Phase 11): TicketGroup's
-// status pill now goes through the shared `StatusBadge` primitive with
-// a local tone map instead of its own bg/text class strings — see that
-// file's doc comment.

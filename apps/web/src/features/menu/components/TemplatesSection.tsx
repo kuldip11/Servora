@@ -121,8 +121,6 @@ function ApplyTemplateModal({
     },
   });
 
-  // Same unscoped ('all') branch list the switcher and Staff page use —
-  // shares cache with them instead of a duplicate ad-hoc query.
   const { data: branches } = useBranches();
   const applyMutation = useApplyTemplate();
 
@@ -186,9 +184,6 @@ function ApplyTemplateModal({
   );
 }
 
-// Triggered from a category's "Save as Template" button in MenuPage — a
-// separate, simpler flow from applying one, so it lives in this file too
-// but isn't part of the TemplatesSection list itself.
 export function SaveTemplateModal({
   category,
   onClose,

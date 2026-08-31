@@ -27,10 +27,6 @@ interface Props {
   onAddItems: (orderId: string) => void;
 }
 
-// Order-detail surfaces use the shared design tokens and order components.
-// `bg-background` maps to the same neutral application background used by the
-// shared theme, keeping the waiter UI aligned with the rest of the product.
-// (see the token file's own top comment).
 export function OrderDetailPage({ orderId, onBack, onAddItems }: Props) {
   const qc = useQueryClient();
   const { data: order, isLoading } = useOrder(orderId);
@@ -95,18 +91,6 @@ export function OrderDetailPage({ orderId, onBack, onAddItems }: Props) {
   const { data: mergeCandidates = [] } = useQuery({ queryKey: ["orders", "merge-candidates"], queryFn: fetchOrders, enabled: showMerge });
   const mergeOrder = useMutation({ mutationFn: (targetId: string) => mergeOrders(orderId, targetId) });
 
-  // Phase 14 memoization-audit correction: this page's own previous
-  // "Checked, found no equivalent issue" note (README.md, "Phase 14
-  // detail — Performance Pass") was wrong about this file specifically —
-  // it reasoned `useUpdateTicketStatus` here is "one order's own
-  // mutation, not a shared instance across a list of rows," but the
-  // tickets `.map()` below renders one `TicketGroup` *per round*, all
-  // sharing this single mutation instance. An order commonly has more
-  // than one kitchen ticket (multiple rounds), so `isPending` being one
-  // shared boolean reproduces `KitchenBoard`'s exact bug (see that
-  // file's own fix and comment): marking one round served was disabling
-  // every other ready round's "Mark Round Served" button for the
-  // duration of that one request. Scoped via `variables` the same way.
   const isTicketUpdating = useCallback(
     (ticketId: string) =>
       updateTicketStatus.isPending &&
@@ -114,10 +98,6 @@ export function OrderDetailPage({ orderId, onBack, onAddItems }: Props) {
     [updateTicketStatus.isPending, updateTicketStatus.variables],
   );
 
-  // Stabilized so memoizing `TicketGroup` (a natural next step, not
-  // done in this pass) wouldn't be defeated by a fresh inline callback
-  // on every render — same reasoning `KitchenBoard`'s `handleUpdateStatus`
-  // comment already documents.
   const handleMarkServed = useCallback(
     (ticketId: string) =>
       updateTicketStatus.mutate({ ticketId, status: "SERVED" }),
@@ -128,9 +108,9 @@ export function OrderDetailPage({ orderId, onBack, onAddItems }: Props) {
     return (
       <div className="flex flex-col h-screen bg-background">
         <div className="bg-surface border-b border-border px-4 py-3 flex items-center gap-3">
-          {/* Same `IconButton` back-button treatment as the loaded
-            header (`OrderDetailHeader.tsx`) — kept in sync rather than
-            left on raw markup now that the real header has moved. */}
+          {
+
+                                                                     }
           <IconButton
             icon={X}
             aria-label="Back to Orders"

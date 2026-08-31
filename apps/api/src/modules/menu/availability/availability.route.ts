@@ -19,8 +19,6 @@ import {
   stockCountBody,
 } from "./availability.validator";
 
-// Availability endpoints share the `/api/menu` namespace with the other
-// menu sub-domain routers and use the shared menu authorization boundary.
 export const menuAvailabilityRouter = new Elysia({ prefix: "/api/menu" })
   .use(requireAuthPlugin())
   .get("/availability/dashboard", ({ auth, query }) =>
@@ -38,7 +36,7 @@ export const menuAvailabilityRouter = new Elysia({ prefix: "/api/menu" })
       availabilityController.setStockCount(auth, params.id, body),
     { params: itemIdParams, body: stockCountBody },
   )
-  // ─── Schedules ─────────────────────────────────────────────────────────────
+
   .get(
     "/items/:id/schedules",
     ({ auth, params }) => availabilityController.listSchedules(auth, params.id),
@@ -71,7 +69,6 @@ export const menuAvailabilityRouter = new Elysia({ prefix: "/api/menu" })
     { params: itemIdParams, query: currentStatusQuery },
   )
 
-  // ─── Manual operational override (86 / restore computed state) ─────────────
   .put(
     "/items/:id/manual-override",
     ({ auth, params, body }) =>
@@ -84,7 +81,7 @@ export const menuAvailabilityRouter = new Elysia({ prefix: "/api/menu" })
       availabilityController.clearManualOverride(auth, params.id),
     { params: itemIdParams },
   )
-  // ─── Branch overrides ──────────────────────────────────────────────────────
+
   .get(
     "/items/:id/branch/:branchId",
     ({ auth, params }) =>
@@ -132,7 +129,7 @@ export const menuAvailabilityRouter = new Elysia({ prefix: "/api/menu" })
       availabilityController.deleteChannelOverride(auth, params.id),
     { params: itemIdParams },
   )
-  // ─── Holidays ──────────────────────────────────────────────────────────────
+
   .get(
     "/holidays",
     ({ auth, query }) =>

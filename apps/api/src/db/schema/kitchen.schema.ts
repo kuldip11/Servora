@@ -62,7 +62,6 @@ export const itemStationRouting = pgTable(
   }),
 );
 
-// One row per "fire to kitchen" action (a KOT/ticket). A tab can have many.
 export const kitchenTicketStatusEnum = pgEnum("kitchen_ticket_status", [
   "PENDING_PAYMENT",
   "HELD",
@@ -89,11 +88,6 @@ export const orderCourses = pgTable(
   }),
 );
 
-// ─── Kitchen Tickets (KOTs) ──────────────────────────────────────────────────
-// Each "Send to Kitchen" action creates one ticket. A tab (order) can have
-// many, fired at different times as rounds are ordered. This is what the
-// kitchen display actually shows — one card per ticket, not per order.
-
 export const kitchenTickets = pgTable(
   "kitchen_tickets",
   {
@@ -107,12 +101,11 @@ export const kitchenTickets = pgTable(
     orderId: uuid("order_id")
       .notNull()
       .references(() => orders.id, { onDelete: "cascade" }),
-    // 1, 2, 3… per order — "Round 2", "Round 3" etc.
+
     ticketNumber: integer("ticket_number").notNull(),
     status: kitchenTicketStatusEnum("status").notNull().default("FIRED"),
     courseId: uuid("course_id").references(() => orderCourses.id, { onDelete: "set null" }),
-    // Notes scoped to just this round (e.g. "no onions on this batch"),
-    // instead of one note blob shared across every round on the order.
+
     notes: text("notes"),
     customerRequestId: varchar("customer_request_id", { length: 128 }),
     firedAt: timestamp("fired_at").defaultNow(),
@@ -179,8 +172,7 @@ export const orderItems = pgTable(
   kitchenTicketId: uuid("kitchen_ticket_id")
     .notNull()
     .references(() => kitchenTickets.id, { onDelete: "cascade" }),
-  // Combo parent rows are real order_items but do not represent a menu item.
-  // Component children retain their normal menuItemId and kitchen/inventory semantics.
+
   menuItemId: uuid("menu_item_id")
     .references(() => menuItems.id),
   comboId: uuid("combo_id").references(() => combos.id),
@@ -188,9 +180,7 @@ export const orderItems = pgTable(
   comboSlotOptionId: uuid("combo_slot_option_id").references(() => comboSlotOptions.id, { onDelete: "set null" }),
   menuItemName: varchar("menu_item_name", { length: 200 }).notNull(),
   variantId: uuid("variant_id").references(() => menuItemVariants.id),
-  // Snapshot of the variant name at order time — same reasoning as
-  // menuItemName above: survives menu edits/deletions and lets the kitchen
-  // ticket actually display "Half" / "Full" without an extra lookup.
+
   variantName: varchar("variant_name", { length: 100 }),
   quantity: integer("quantity").notNull(),
   weightQuantity: numeric("weight_quantity", { precision: 12, scale: 4 }),
@@ -225,8 +215,7 @@ export const orderItems = pgTable(
     () => menuChangeEvents.id,
     { onDelete: "set null" },
   ),
-  // H1: immutable resolver evidence captured when this preparation instance
-  // is fired. Historical explanation never consults today's mutable status.
+
   resolutionAsOf: timestamp("resolution_as_of"),
   availabilitySnapshot: jsonb("availability_snapshot").$type<{
     asOf: string; branchId: string; channel: "UNSCOPED" | "STAFF" | "CUSTOMER_QR";

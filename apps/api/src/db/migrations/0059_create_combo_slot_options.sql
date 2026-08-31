@@ -1,4 +1,4 @@
--- Canonical pre-v1 table migration.
+
 
 CREATE TABLE "combo_slot_options" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -11,4 +11,4 @@ CREATE TABLE "combo_slot_options" (
   CONSTRAINT "combo_slot_options_menu_item_id_menu_items_id_fk" FOREIGN KEY ("menu_item_id") REFERENCES "menu_items"("id"),
   CONSTRAINT "combo_slot_options_variant_id_menu_item_variants_id_fk" FOREIGN KEY ("variant_id") REFERENCES "menu_item_variants"("id")
 );
---> statement-breakpoint
+

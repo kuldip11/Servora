@@ -14,8 +14,6 @@ import { ForbiddenPage } from "../features/auth/pages/ForbiddenPage";
 import { userHasPermission } from "../shared/auth/permissions";
 import { useAuthStore } from "../store/auth";
 
-// Route-level code splitting keeps product feature bundles isolated. Login and
-// signup stay eager because they are the first screens logged-out users need.
 function lazyPage(
   loader: () => Promise<{ default: ComponentType<Record<string, never>> }>,
 ) {
@@ -35,10 +33,8 @@ function lazyPage(
   };
 }
 
-// Root
 const rootRoute = createRootRoute({ component: RootLayout });
 
-// Auth routes
 const authRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "auth",
@@ -61,7 +57,6 @@ const signupRoute = createRoute({
   component: SignupPage,
 });
 
-// Protected routes
 const protectedRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "protected",
@@ -243,7 +238,6 @@ const branchesRoute = createRoute({
   ),
 });
 
-// Index redirect
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
