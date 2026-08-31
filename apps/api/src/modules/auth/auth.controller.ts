@@ -1,7 +1,5 @@
-
-
-import type { AuthContext } from "../../core/auth";
-import { successResponse } from "../../core/response";
+import type { AuthContext } from "@/core/auth";
+import { successResponse } from "@/core/response";
 import { authService } from "./auth.service";
 import type { SignupInput } from "@pos/validation";
 

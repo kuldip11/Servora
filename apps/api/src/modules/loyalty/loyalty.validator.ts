@@ -1,8 +1,12 @@
 import { t } from "elysia";
 export const loyaltyTierBody = t.Object({
   name: t.String({ minLength: 1, maxLength: 120 }),
-  discountPercent: t.Optional(t.Union([t.Number({ exclusiveMinimum: 0, maximum: 100 }), t.Null()])),
-  discountFixed: t.Optional(t.Union([t.Number({ exclusiveMinimum: 0 }), t.Null()])),
+  discountPercent: t.Optional(
+    t.Union([t.Number({ exclusiveMinimum: 0, maximum: 100 }), t.Null()]),
+  ),
+  discountFixed: t.Optional(
+    t.Union([t.Number({ exclusiveMinimum: 0 }), t.Null()]),
+  ),
 });
 export const updateLoyaltyTierBody = t.Partial(loyaltyTierBody);
 export const customerBody = t.Object({

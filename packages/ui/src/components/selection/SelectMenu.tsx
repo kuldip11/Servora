@@ -38,7 +38,7 @@ export interface SelectMenuProps {
   maxListHeight?: number | undefined;
 }
 
-export function SelectMenu({
+export const SelectMenu = ({
   options,
   value,
   onChange,
@@ -52,7 +52,7 @@ export function SelectMenu({
   id,
   className,
   maxListHeight = 320,
-}: SelectMenuProps) {
+}: SelectMenuProps) => {
   const [open, setOpen] = useState(false);
   const { fieldId, hintId, errorId } = useFieldIds(id);
   const listboxId = useId();
@@ -79,7 +79,6 @@ export function SelectMenu({
       (r) => r.kind === "option" && r.option.value === value,
     );
     if (selectedRow >= 0) setActiveRowIndex(selectedRow);
-
   }, [open]);
 
   const handleTriggerKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
@@ -172,4 +171,4 @@ export function SelectMenu({
       />
     </div>
   );
-}
+};

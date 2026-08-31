@@ -1,8 +1,8 @@
-import type { AuthContext } from "../../../core/auth";
-import { requirePermission } from "../../../core/auth";
-import { NotFoundError, ValidationError } from "../../../core/errors";
+import type { AuthContext } from "@/core/auth";
+import { requirePermission } from "@/core/auth";
+import { NotFoundError, ValidationError } from "@/core/errors";
 import { membershipRepository } from "./membership.repository";
-import { menuChangeLog } from "../change-log/menu-change-log";
+import { menuChangeLog } from "@/modules/menu/change-log/menu-change-log";
 
 export interface MembershipInput {
   menuId: string;
@@ -34,7 +34,9 @@ export const membershipService = {
       resources.category.branchId &&
       resources.item.branchId !== resources.category.branchId
     ) {
-      throw new ValidationError("Category branch does not match the menu item branch");
+      throw new ValidationError(
+        "Category branch does not match the menu item branch",
+      );
     }
     const membership = await membershipRepository.upsert({
       menuId: input.menuId,
@@ -42,15 +44,26 @@ export const membershipService = {
       categoryId: input.categoryId,
       sortOrder: input.sortOrder ?? 0,
     });
-    await menuChangeLog.record(auth, "MENU_MEMBERSHIP", membership.id, "UPDATED", {
-      menuId: input.menuId, menuItemId: itemId, categoryId: input.categoryId,
-      sortOrder: input.sortOrder ?? 0,
-    });
+    await menuChangeLog.record(
+      auth,
+      "MENU_MEMBERSHIP",
+      membership.id,
+      "UPDATED",
+      {
+        menuId: input.menuId,
+        menuItemId: itemId,
+        categoryId: input.categoryId,
+        sortOrder: input.sortOrder ?? 0,
+      },
+    );
     return membership;
   },
   async remove(auth: AuthContext, itemId: string, menuId: string) {
     requirePermission(auth, "menu:update");
     await membershipRepository.remove(auth.tenantId, itemId, menuId);
-    await menuChangeLog.record(auth, "MENU_MEMBERSHIP", itemId, "DELETED", { menuId, menuItemId: itemId });
+    await menuChangeLog.record(auth, "MENU_MEMBERSHIP", itemId, "DELETED", {
+      menuId,
+      menuItemId: itemId,
+    });
   },
 };

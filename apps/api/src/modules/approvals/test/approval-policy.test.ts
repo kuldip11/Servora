@@ -3,7 +3,7 @@ import {
   approvalAdjustmentValue,
   approvalRoleMatches,
   isApprovalRequired,
-} from "../approval-policy";
+} from "@/modules/approvals/approval-policy";
 
 describe("H6 approval policy", () => {
   it("does not require approval below or exactly at the threshold, but does above it", () => {
@@ -15,13 +15,35 @@ describe("H6 approval policy", () => {
 
   it("uses the whole active combo group as the affected value", () => {
     const items = [
-      { id: "parent", comboGroupId: "combo", itemStatus: "ACTIVE", subtotal: "0" },
-      { id: "cheap", comboGroupId: "combo", itemStatus: "ACTIVE", subtotal: "100" },
-      { id: "expensive", comboGroupId: "combo", itemStatus: "ACTIVE", subtotal: "700" },
-      { id: "old", comboGroupId: "combo", itemStatus: "VOIDED", subtotal: "900" },
+      {
+        id: "parent",
+        comboGroupId: "combo",
+        itemStatus: "ACTIVE",
+        subtotal: "0",
+      },
+      {
+        id: "cheap",
+        comboGroupId: "combo",
+        itemStatus: "ACTIVE",
+        subtotal: "100",
+      },
+      {
+        id: "expensive",
+        comboGroupId: "combo",
+        itemStatus: "ACTIVE",
+        subtotal: "700",
+      },
+      {
+        id: "old",
+        comboGroupId: "combo",
+        itemStatus: "VOIDED",
+        subtotal: "900",
+      },
     ];
     expect(approvalAdjustmentValue(items, "cheap")).toBe(800);
-    expect(isApprovalRequired(approvalAdjustmentValue(items, "cheap"), 500)).toBe(true);
+    expect(
+      isApprovalRequired(approvalAdjustmentValue(items, "cheap"), 500),
+    ).toBe(true);
   });
 
   it("honors the configured role while retaining owner override", () => {

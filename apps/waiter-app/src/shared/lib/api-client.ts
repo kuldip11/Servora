@@ -1,5 +1,5 @@
 import { createApiClient, type TokenStorageAdapter } from "@pos/api-client";
-import { STORAGE_KEYS } from "../constants/storage-keys";
+import { STORAGE_KEYS } from "@/shared/constants/storage-keys";
 
 const waiterStorageAdapter: TokenStorageAdapter = {
   getAccessToken: () => localStorage.getItem(STORAGE_KEYS.token),

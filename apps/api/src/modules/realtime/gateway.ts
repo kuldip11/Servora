@@ -1,15 +1,15 @@
 import { Elysia } from "elysia";
-import { ForbiddenError } from "../../core/errors";
-import { subscriber, REDIS_CHANNELS } from "../../lib/redis";
-import { verifyAccessToken, type JwtPayload } from "../../lib/jwt";
-import { db } from "../../db";
+import { ForbiddenError } from "@/core/errors";
+import { subscriber, REDIS_CHANNELS } from "@/lib/redis";
+import { verifyAccessToken, type JwtPayload } from "@/lib/jwt";
+import { db } from "@/db";
 import {
   resolveAuthorization,
   resolveMembership,
-} from "../../core/auth/authorization";
+} from "@/core/auth/authorization";
 import { shouldDeliverRealtimeEvent } from "./delivery-scope";
-import { customerService } from "../customer/customer.service";
-import { metrics } from "../../core/observability/metrics";
+import { customerService } from "@/modules/customer/customer.service";
+import { metrics } from "@/core/observability/metrics";
 
 interface RealtimeSocket {
   send(message: string): unknown;
@@ -27,40 +27,56 @@ type RealtimeEnvelope = {
 };
 
 const customerClients = new Map<string, Set<RealtimeSocket>>();
-interface CustomerBranchSocket { send(message: string): unknown }
+interface CustomerBranchSocket {
+  send(message: string): unknown;
+}
 const customerBranchClients = new Map<string, Set<CustomerBranchSocket>>();
-const customerScopeBySocket = new WeakMap<object, { tenantId: string; branchId: string }>();
+const customerScopeBySocket = new WeakMap<
+  object,
+  { tenantId: string; branchId: string }
+>();
 const customerSessionBySocket = new WeakMap<object, string>();
 
-function customerBranchKey(tenantId: string, branchId: string) {
+const customerBranchKey = (tenantId: string, branchId: string) => {
   return `${tenantId}:${branchId}`;
-}
-function addCustomerBranchClient(tenantId: string, branchId: string, ws: CustomerBranchSocket) {
+};
+const addCustomerBranchClient = (
+  tenantId: string,
+  branchId: string,
+  ws: CustomerBranchSocket,
+) => {
   const key = customerBranchKey(tenantId, branchId);
-  if (!customerBranchClients.has(key)) customerBranchClients.set(key, new Set());
+  if (!customerBranchClients.has(key))
+    customerBranchClients.set(key, new Set());
   customerBranchClients.get(key)!.add(ws);
-}
-function removeCustomerBranchClient(tenantId: string, branchId: string, ws: CustomerBranchSocket) {
+};
+const removeCustomerBranchClient = (
+  tenantId: string,
+  branchId: string,
+  ws: CustomerBranchSocket,
+) => {
   const key = customerBranchKey(tenantId, branchId);
   const set = customerBranchClients.get(key);
   if (!set) return;
   set.delete(ws);
   if (set.size === 0) customerBranchClients.delete(key);
-}
+};
 
-function addCustomerClient(sessionId: string, ws: RealtimeSocket) {
+const addCustomerClient = (sessionId: string, ws: RealtimeSocket) => {
   if (!customerClients.has(sessionId))
     customerClients.set(sessionId, new Set());
   customerClients.get(sessionId)!.add(ws);
-}
-function removeCustomerClient(sessionId: string, ws: RealtimeSocket) {
+};
+const removeCustomerClient = (sessionId: string, ws: RealtimeSocket) => {
   const set = customerClients.get(sessionId);
   if (!set) return;
   set.delete(ws);
   if (set.size === 0) customerClients.delete(sessionId);
-}
+};
 
-function customerSessionIdFromEvent(event: RealtimeEnvelope): string | undefined {
+const customerSessionIdFromEvent = (
+  event: RealtimeEnvelope,
+): string | undefined => {
   if (
     event.type === "customer.request.created" ||
     event.type === "customer.request.updated"
@@ -71,32 +87,35 @@ function customerSessionIdFromEvent(event: RealtimeEnvelope): string | undefined
       event.payload?.customerSessionId ?? event.payload?.customerSession?.id
     );
   return undefined;
-}
+};
 
 const clients = new Map<string, Set<RealtimeSocket>>();
-const staffScopeBySocket = new WeakMap<object, { tenantId: string; branchId: string | null }>();
+const staffScopeBySocket = new WeakMap<
+  object,
+  { tenantId: string; branchId: string | null }
+>();
 let staffConnectionCount = 0;
 let customerConnectionCount = 0;
 
-function addClient(tenantId: string, ws: RealtimeSocket) {
+const addClient = (tenantId: string, ws: RealtimeSocket) => {
   if (!clients.has(tenantId)) {
     clients.set(tenantId, new Set());
   }
   clients.get(tenantId)!.add(ws);
-}
+};
 
-function removeClient(tenantId: string, ws: RealtimeSocket) {
+const removeClient = (tenantId: string, ws: RealtimeSocket) => {
   const tenantClients = clients.get(tenantId);
   if (!tenantClients) return;
   tenantClients.delete(ws);
   if (tenantClients.size === 0) clients.delete(tenantId);
-}
+};
 
-export async function resolveRealtimeContext(
+export const resolveRealtimeContext = async (
   payload: JwtPayload,
   tenantId: string,
   branchId?: string,
-) {
+) => {
   if (!tenantId) throw new ForbiddenError("Active franchise is required");
 
   const membership = await resolveMembership(db, payload.sub, tenantId);
@@ -132,13 +151,19 @@ export async function resolveRealtimeContext(
     membershipId: membership.id,
     branchId: branchId && branchId !== "all" ? branchId : null,
   };
-}
+};
 
-export function forwardTenantRealtimeMessage(
+export const forwardTenantRealtimeMessage = (
   message: string,
-  tenantClients: Map<string, Set<{ __branchId?: string | null; send(message: string): void }>> = clients,
-): void {
-  const event = JSON.parse(message) as { tenantId: string; branchId?: string | null };
+  tenantClients: Map<
+    string,
+    Set<{ __branchId?: string | null; send(message: string): void }>
+  > = clients,
+): void => {
+  const event = JSON.parse(message) as {
+    tenantId: string;
+    branchId?: string | null;
+  };
   const scopedClients = tenantClients.get(event.tenantId);
   if (!scopedClients) return;
   for (const ws of scopedClients) {
@@ -146,12 +171,13 @@ export function forwardTenantRealtimeMessage(
     try {
       ws.send(message);
     } catch {
-      if (tenantClients === clients) removeClient(event.tenantId, ws as RealtimeSocket);
+      if (tenantClients === clients)
+        removeClient(event.tenantId, ws as RealtimeSocket);
     }
   }
-}
+};
 
-async function startRedisSubscription() {
+const startRedisSubscription = async () => {
   await subscriber.subscribe(
     REDIS_CHANNELS.ORDER_EVENTS,
     REDIS_CHANNELS.KITCHEN_EVENTS,
@@ -175,7 +201,11 @@ async function startRedisSubscription() {
           }
         }
       }
-      if (event.tenantId && event.branchId && event.type === "menu.availability.updated") {
+      if (
+        event.tenantId &&
+        event.branchId &&
+        event.type === "menu.availability.updated"
+      ) {
         const branchClients = customerBranchClients.get(
           customerBranchKey(event.tenantId, event.branchId),
         );
@@ -195,13 +225,12 @@ async function startRedisSubscription() {
       console.error("[WS Gateway] Failed to parse Redis message:", err);
     }
   });
-}
+};
 
 startRedisSubscription().catch(console.error);
 
 export const realtimeRouter = new Elysia({ prefix: "/ws" }).ws("/events", {
   async open(ws) {
-
     const token = ws.data.query["token"] as string;
     if (!token) {
       ws.send(JSON.stringify({ type: "error", code: "AUTH_MISSING_TOKEN" }));
@@ -216,10 +245,15 @@ export const realtimeRouter = new Elysia({ prefix: "/ws" }).ws("/events", {
         ? String(ws.data.query["branchId"])
         : undefined;
       const context = await resolveRealtimeContext(payload, tenantId, branchId);
-      staffScopeBySocket.set(ws, { tenantId: context.tenantId, branchId: context.branchId });
+      staffScopeBySocket.set(ws, {
+        tenantId: context.tenantId,
+        branchId: context.branchId,
+      });
       addClient(context.tenantId, ws);
       staffConnectionCount += 1;
-      metrics.setGauge("servora_websocket_connections", staffConnectionCount, { kind: "staff" });
+      metrics.setGauge("servora_websocket_connections", staffConnectionCount, {
+        kind: "staff",
+      });
       ws.send(
         JSON.stringify({ type: "connected", tenantId: context.tenantId }),
       );
@@ -230,7 +264,6 @@ export const realtimeRouter = new Elysia({ prefix: "/ws" }).ws("/events", {
   },
 
   message(ws, message) {
-
     if (message === "ping") ws.send("pong");
   },
 
@@ -239,7 +272,9 @@ export const realtimeRouter = new Elysia({ prefix: "/ws" }).ws("/events", {
     if (scope) {
       removeClient(scope.tenantId, ws);
       staffConnectionCount = Math.max(0, staffConnectionCount - 1);
-      metrics.setGauge("servora_websocket_connections", staffConnectionCount, { kind: "staff" });
+      metrics.setGauge("servora_websocket_connections", staffConnectionCount, {
+        kind: "staff",
+      });
     }
     staffScopeBySocket.delete(ws);
   },
@@ -260,11 +295,18 @@ export const customerRealtimeRouter = new Elysia({ prefix: "/ws/customer" }).ws(
       try {
         const session = await customerService.getSession(token);
         customerSessionBySocket.set(ws, session.id);
-        customerScopeBySocket.set(ws, { tenantId: session.tenantId, branchId: session.branchId });
+        customerScopeBySocket.set(ws, {
+          tenantId: session.tenantId,
+          branchId: session.branchId,
+        });
         addCustomerClient(session.id, ws);
         addCustomerBranchClient(session.tenantId, session.branchId, ws);
         customerConnectionCount += 1;
-        metrics.setGauge("servora_websocket_connections", customerConnectionCount, { kind: "customer" });
+        metrics.setGauge(
+          "servora_websocket_connections",
+          customerConnectionCount,
+          { kind: "customer" },
+        );
         ws.send(JSON.stringify({ type: "connected", sessionId: session.id }));
       } catch {
         ws.send(
@@ -282,7 +324,11 @@ export const customerRealtimeRouter = new Elysia({ prefix: "/ws/customer" }).ws(
       if (id) {
         removeCustomerClient(id, ws);
         customerConnectionCount = Math.max(0, customerConnectionCount - 1);
-        metrics.setGauge("servora_websocket_connections", customerConnectionCount, { kind: "customer" });
+        metrics.setGauge(
+          "servora_websocket_connections",
+          customerConnectionCount,
+          { kind: "customer" },
+        );
       }
       if (scope) removeCustomerBranchClient(scope.tenantId, scope.branchId, ws);
       customerSessionBySocket.delete(ws);

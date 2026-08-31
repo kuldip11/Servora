@@ -1,5 +1,5 @@
 import { createMenuApi, type SaveMenuItemInput } from "@pos/api-client";
-import { apiClient } from "../../../shared/lib/api-client";
+import { apiClient } from "@/shared/lib/api-client";
 import type { MenuItem, MenuCategory, MenuItemStatus } from "@pos/types";
 
 export type MenuItemFormPayload = SaveMenuItemInput;
@@ -27,9 +27,10 @@ export const menuItemsService = {
     item: MenuItem | null,
     payload: MenuItemFormPayload,
   ): Promise<MenuItem> {
-    return item ? menuApi.updateItem(item.id, payload) : menuApi.createItem(payload);
+    return item
+      ? menuApi.updateItem(item.id, payload)
+      : menuApi.createItem(payload);
   },
-
 
   async setManualStockCount(
     id: string,

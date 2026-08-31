@@ -59,11 +59,11 @@ vi.mock("../../../../core/audit", () => ({ writeAudit }));
 const { publish } = vi.hoisted(() => ({ publish: vi.fn() }));
 vi.mock("../../../../lib/event-bus", () => ({ eventBus: { publish } }));
 
-import { availabilityService } from "../availability.service";
+import { availabilityService } from "@/modules/menu/availability/availability.service";
 
-function localDate(hour: number, minute: number, second: number) {
+const localDate = (hour: number, minute: number, second: number) => {
   return new Date(2026, 7, 29, hour, minute, second, 0);
-}
+};
 
 const dailySchedule = {
   id: "schedule-1",
@@ -131,12 +131,11 @@ describe("availabilityService deterministic asOf handling", () => {
     ["immediately after the window", localDate(11, 0, 1), "OUT_OF_STOCK"],
   ])("resolves %s from the supplied asOf", async (_label, asOf, expected) => {
     await expect(
-      availabilityService.getEffectiveStatus(
-        "tenant-1",
-        "item-1",
-        "branch-1",
-        { channel: "STAFF", fulfillmentType: "DINE_IN", asOf },
-      ),
+      availabilityService.getEffectiveStatus("tenant-1", "item-1", "branch-1", {
+        channel: "STAFF",
+        fulfillmentType: "DINE_IN",
+        asOf,
+      }),
     ).resolves.toMatchObject({ status: expected });
   });
 
@@ -203,15 +202,46 @@ describe("availabilityService deterministic asOf handling", () => {
 
   it("applies a delivery-only channel override without affecting dine-in", async () => {
     findActiveSchedulesForItem.mockResolvedValue([]);
-    findItemBasics.mockResolvedValue({ ...(await findItemBasics()), status: "ACTIVE" });
-    getChannelOverride.mockImplementation(async (_tenant, _item, channel, fulfillment) =>
-      channel === "CUSTOMER_QR" && fulfillment === "DELIVERY"
-        ? { status: "OUT_OF_STOCK", isHidden: true, availabilityReason: "Delivery packaging unavailable" }
-        : undefined);
-    const dineIn = await availabilityService.getEffectiveItem("tenant-1", "item-1", "branch-1", { channel: "STAFF", fulfillmentType: "DINE_IN", asOf: localDate(9, 0, 0) });
-    const delivery = await availabilityService.getEffectiveItem("tenant-1", "item-1", "branch-1", { channel: "CUSTOMER_QR", fulfillmentType: "DELIVERY", asOf: localDate(9, 0, 0) });
+    findItemBasics.mockResolvedValue({
+      ...(await findItemBasics()),
+      status: "ACTIVE",
+    });
+    getChannelOverride.mockImplementation(
+      async (_tenant, _item, channel, fulfillment) =>
+        channel === "CUSTOMER_QR" && fulfillment === "DELIVERY"
+          ? {
+              status: "OUT_OF_STOCK",
+              isHidden: true,
+              availabilityReason: "Delivery packaging unavailable",
+            }
+          : undefined,
+    );
+    const dineIn = await availabilityService.getEffectiveItem(
+      "tenant-1",
+      "item-1",
+      "branch-1",
+      {
+        channel: "STAFF",
+        fulfillmentType: "DINE_IN",
+        asOf: localDate(9, 0, 0),
+      },
+    );
+    const delivery = await availabilityService.getEffectiveItem(
+      "tenant-1",
+      "item-1",
+      "branch-1",
+      {
+        channel: "CUSTOMER_QR",
+        fulfillmentType: "DELIVERY",
+        asOf: localDate(9, 0, 0),
+      },
+    );
     expect(dineIn.effectiveStatus).toBe("ACTIVE");
-    expect(delivery).toMatchObject({ effectiveStatus: "OUT_OF_STOCK", isHidden: true, availabilityReason: "Delivery packaging unavailable" });
+    expect(delivery).toMatchObject({
+      effectiveStatus: "OUT_OF_STOCK",
+      isHidden: true,
+      availabilityReason: "Delivery packaging unavailable",
+    });
   });
 });
 
@@ -270,7 +300,10 @@ describe("availabilityService manual override precedence", () => {
       manualOverrideSetBy: "user-1",
       manualOverrideSetAt: new Date(),
     });
-    getOverride.mockResolvedValue({ status: "ACTIVE", availabilityReason: "Branch active" });
+    getOverride.mockResolvedValue({
+      status: "ACTIVE",
+      availabilityReason: "Branch active",
+    });
 
     const result = await availabilityService.getEffectiveItem(
       "tenant-1",
@@ -305,7 +338,9 @@ describe("availabilityService manual override precedence", () => {
         { status: "OUT_OF_STOCK", reason: "   " },
         "user-1",
       ),
-    ).rejects.toThrow("A reason is required for a manual availability override");
+    ).rejects.toThrow(
+      "A reason is required for a manual availability override",
+    );
     expect(setManualOverride).not.toHaveBeenCalled();
   });
 });
@@ -313,38 +348,65 @@ describe("availabilityService manual override precedence", () => {
 describe("availabilityService inventory-computed availability ownership", () => {
   it("persists item computed state and emits audit + realtime without clearing manual precedence", async () => {
     findItemBasics.mockResolvedValue({
-      id: "item-1", status: "ACTIVE", branchId: "branch-1", availabilityReason: null,
-      manualOverrideStatus: "HIDDEN", manualOverrideReason: "Manager hold",
-      manualOverrideSetBy: "u1", manualOverrideSetAt: new Date(),
+      id: "item-1",
+      status: "ACTIVE",
+      branchId: "branch-1",
+      availabilityReason: null,
+      manualOverrideStatus: "HIDDEN",
+      manualOverrideReason: "Manager hold",
+      manualOverrideSetBy: "u1",
+      manualOverrideSetAt: new Date(),
     });
-    setComputedItemStatus.mockResolvedValue({ id: "item-1", status: "OUT_OF_STOCK" });
+    setComputedItemStatus.mockResolvedValue({
+      id: "item-1",
+      status: "OUT_OF_STOCK",
+    });
 
     await availabilityService.applyInventoryItemSignal(
-      "tenant-1", "branch-1", "item-1", false,
+      "tenant-1",
+      "branch-1",
+      "item-1",
+      false,
     );
 
     expect(setComputedItemStatus).toHaveBeenCalledWith(
-      "tenant-1", "item-1", "OUT_OF_STOCK", "Insufficient inventory",
+      "tenant-1",
+      "item-1",
+      "OUT_OF_STOCK",
+      "Insufficient inventory",
     );
-    expect(writeAudit).toHaveBeenCalledWith(expect.objectContaining({
-      action: "MENU_AVAILABILITY_COMPUTED_CHANGED",
-      entity: "menu_item",
-      metadata: expect.objectContaining({ effectiveStatus: "HIDDEN" }),
-    }));
+    expect(writeAudit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: "MENU_AVAILABILITY_COMPUTED_CHANGED",
+        entity: "menu_item",
+        metadata: expect.objectContaining({ effectiveStatus: "HIDDEN" }),
+      }),
+    );
     expect(publish).toHaveBeenCalledWith(
       expect.objectContaining({ type: "menu.availability.updated" }),
-      "tenant-1", "branch-1",
+      "tenant-1",
+      "branch-1",
     );
   });
 
   it("keeps a modifier manual hold effective while updating only its inventory signal", async () => {
     findModifierOptionForItem.mockResolvedValue({
-      id: "opt-1", computedAvailability: false, manualOverrideAvailability: false, isAvailable: false,
+      id: "opt-1",
+      computedAvailability: false,
+      manualOverrideAvailability: false,
+      isAvailable: false,
     });
-    setComputedModifierAvailability.mockResolvedValue({ id: "opt-1", isAvailable: false });
+    setComputedModifierAvailability.mockResolvedValue({
+      id: "opt-1",
+      isAvailable: false,
+    });
 
     await availabilityService.applyInventoryModifierSignal(
-      "tenant-1", "branch-1", "item-1", "opt-1", true,
+      "tenant-1",
+      "branch-1",
+      "item-1",
+      "opt-1",
+      true,
     );
 
     expect(setComputedModifierAvailability).toHaveBeenCalledWith("opt-1", true);
@@ -352,99 +414,195 @@ describe("availabilityService inventory-computed availability ownership", () => 
       expect.objectContaining({
         type: "menu.availability.updated",
         payload: expect.objectContaining({
-          computedAvailability: true, effectiveAvailability: false,
+          computedAvailability: true,
+          effectiveAvailability: false,
         }),
       }),
-      "tenant-1", "branch-1",
+      "tenant-1",
+      "branch-1",
     );
   });
 
   it("updates variant computed state while preserving manual effective status", async () => {
     findVariant.mockResolvedValue({
-      id: "v1", menuItemId: "item-1", status: "ACTIVE", manualOverrideStatus: "OUT_OF_STOCK",
+      id: "v1",
+      menuItemId: "item-1",
+      status: "ACTIVE",
+      manualOverrideStatus: "OUT_OF_STOCK",
       menuItem: { tenantId: "tenant-1", branchId: "branch-1" },
     });
-    setComputedVariantStatus.mockResolvedValue({ id: "v1", status: "OUT_OF_STOCK" });
+    setComputedVariantStatus.mockResolvedValue({
+      id: "v1",
+      status: "OUT_OF_STOCK",
+    });
 
     await availabilityService.applyInventoryVariantSignal(
-      "tenant-1", "branch-1", "v1", false,
+      "tenant-1",
+      "branch-1",
+      "v1",
+      false,
     );
 
     expect(setComputedVariantStatus).toHaveBeenCalledWith("v1", "OUT_OF_STOCK");
-    expect(writeAudit).toHaveBeenCalledWith(expect.objectContaining({
-      entity: "menu_item_variant",
-      metadata: expect.objectContaining({ effectiveStatus: "OUT_OF_STOCK" }),
-    }));
+    expect(writeAudit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        entity: "menu_item_variant",
+        metadata: expect.objectContaining({ effectiveStatus: "OUT_OF_STOCK" }),
+      }),
+    );
   });
 });
 
 describe("G4 manual stock-count availability", () => {
   it("treats a depleted item count as OUT_OF_STOCK below a human override", async () => {
     findItemBasics.mockResolvedValue({
-      id: "item-1", status: "ACTIVE", branchId: null, availabilityReason: null,
-      manualStockCount: 0, manualOverrideStatus: null, manualOverrideReason: null,
+      id: "item-1",
+      status: "ACTIVE",
+      branchId: null,
+      availabilityReason: null,
+      manualStockCount: 0,
+      manualOverrideStatus: null,
+      manualOverrideReason: null,
     });
-    await expect(availabilityService.getEffectiveStatus("tenant-1", "item-1", "branch-1", {
-      channel: "STAFF", fulfillmentType: "DINE_IN", asOf: localDate(9, 0, 0),
-    })).resolves.toEqual({ status: "OUT_OF_STOCK", reason: "Manual stock count depleted" });
+    await expect(
+      availabilityService.getEffectiveStatus("tenant-1", "item-1", "branch-1", {
+        channel: "STAFF",
+        fulfillmentType: "DINE_IN",
+        asOf: localDate(9, 0, 0),
+      }),
+    ).resolves.toEqual({
+      status: "OUT_OF_STOCK",
+      reason: "Manual stock count depleted",
+    });
 
     findItemBasics.mockResolvedValue({
-      id: "item-1", status: "ACTIVE", branchId: null, availabilityReason: null,
-      manualStockCount: 0, manualOverrideStatus: "ACTIVE", manualOverrideReason: "Manager override",
+      id: "item-1",
+      status: "ACTIVE",
+      branchId: null,
+      availabilityReason: null,
+      manualStockCount: 0,
+      manualOverrideStatus: "ACTIVE",
+      manualOverrideReason: "Manager override",
     });
-    await expect(availabilityService.getEffectiveStatus("tenant-1", "item-1", "branch-1", {
-      channel: "STAFF", fulfillmentType: "DINE_IN", asOf: localDate(9, 0, 0),
-    })).resolves.toEqual({ status: "ACTIVE", reason: "Manager override" });
+    await expect(
+      availabilityService.getEffectiveStatus("tenant-1", "item-1", "branch-1", {
+        channel: "STAFF",
+        fulfillmentType: "DINE_IN",
+        asOf: localDate(9, 0, 0),
+      }),
+    ).resolves.toEqual({ status: "ACTIVE", reason: "Manager override" });
   });
 
   it("applies the same count precedence to variants", async () => {
     findVariant.mockResolvedValue({
-      id: "variant-1", status: "ACTIVE", manualStockCount: 0, manualOverrideStatus: null,
-      manualOverrideReason: null, menuItem: { tenantId: "tenant-1" },
+      id: "variant-1",
+      status: "ACTIVE",
+      manualStockCount: 0,
+      manualOverrideStatus: null,
+      manualOverrideReason: null,
+      menuItem: { tenantId: "tenant-1" },
     });
-    await expect(availabilityService.getEffectiveVariant("tenant-1", "variant-1"))
-      .resolves.toMatchObject({ effectiveStatus: "OUT_OF_STOCK", availabilityReason: "Manual stock count depleted" });
+    await expect(
+      availabilityService.getEffectiveVariant("tenant-1", "variant-1"),
+    ).resolves.toMatchObject({
+      effectiveStatus: "OUT_OF_STOCK",
+      availabilityReason: "Manual stock count depleted",
+    });
 
     findVariant.mockResolvedValue({
-      id: "variant-1", status: "ACTIVE", manualStockCount: 0, manualOverrideStatus: "ACTIVE",
-      manualOverrideReason: "Manager override", menuItem: { tenantId: "tenant-1" },
+      id: "variant-1",
+      status: "ACTIVE",
+      manualStockCount: 0,
+      manualOverrideStatus: "ACTIVE",
+      manualOverrideReason: "Manager override",
+      menuItem: { tenantId: "tenant-1" },
     });
-    await expect(availabilityService.getEffectiveVariant("tenant-1", "variant-1"))
-      .resolves.toMatchObject({ effectiveStatus: "ACTIVE", availabilityReason: "Manager override" });
+    await expect(
+      availabilityService.getEffectiveVariant("tenant-1", "variant-1"),
+    ).resolves.toMatchObject({
+      effectiveStatus: "ACTIVE",
+      availabilityReason: "Manager override",
+    });
   });
 
   it("publishes the manager stock reset through the existing realtime availability event", async () => {
-    setManualStockCount.mockResolvedValue({ entityType: "MENU_ITEM", id: "item-1", manualStockCount: 6 });
-    await availabilityService.setManualStockCount("tenant-1", "branch-1", "item-1", 6);
-    expect(setManualStockCount).toHaveBeenCalledWith("tenant-1", "item-1", 6, undefined);
-    expect(publish).toHaveBeenCalledWith({
-      type: "menu.availability.updated",
-      payload: expect.objectContaining({ source: "MANUAL_STOCK_COUNT", menuItemId: "item-1", manualStockCount: 6 }),
-    }, "tenant-1", "branch-1");
+    setManualStockCount.mockResolvedValue({
+      entityType: "MENU_ITEM",
+      id: "item-1",
+      manualStockCount: 6,
+    });
+    await availabilityService.setManualStockCount(
+      "tenant-1",
+      "branch-1",
+      "item-1",
+      6,
+    );
+    expect(setManualStockCount).toHaveBeenCalledWith(
+      "tenant-1",
+      "item-1",
+      6,
+      undefined,
+    );
+    expect(publish).toHaveBeenCalledWith(
+      {
+        type: "menu.availability.updated",
+        payload: expect.objectContaining({
+          source: "MANUAL_STOCK_COUNT",
+          menuItemId: "item-1",
+          manualStockCount: 6,
+        }),
+      },
+      "tenant-1",
+      "branch-1",
+    );
   });
 
   it("does not let ACTIVE branch/channel overrides resurrect a depleted count", async () => {
     findItemBasics.mockResolvedValue({
-      id: "item-1", status: "ACTIVE", branchId: null, availabilityReason: null,
-      manualStockCount: 0, manualOverrideStatus: null, manualOverrideReason: null,
+      id: "item-1",
+      status: "ACTIVE",
+      branchId: null,
+      availabilityReason: null,
+      manualStockCount: 0,
+      manualOverrideStatus: null,
+      manualOverrideReason: null,
     });
     findFullItem.mockResolvedValue({
-      id: "item-1", name: "Croissant", branchId: null, status: "ACTIVE",
-      basePrice: "80.00", taxRate: "5.00", prepTimeMinutes: 2,
-      availabilityReason: null, manualStockCount: 0,
-      manualOverrideStatus: null, manualOverrideReason: null,
+      id: "item-1",
+      name: "Croissant",
+      branchId: null,
+      status: "ACTIVE",
+      basePrice: "80.00",
+      taxRate: "5.00",
+      prepTimeMinutes: 2,
+      availabilityReason: null,
+      manualStockCount: 0,
+      manualOverrideStatus: null,
+      manualOverrideReason: null,
     });
     getOverride.mockResolvedValue({
-      status: "ACTIVE", price: null, taxRate: null, prepTimeMinutes: null,
-      isHidden: false, availabilityReason: "Branch wants it active",
+      status: "ACTIVE",
+      price: null,
+      taxRate: null,
+      prepTimeMinutes: null,
+      isHidden: false,
+      availabilityReason: "Branch wants it active",
     });
     getChannelOverride.mockResolvedValue({
-      status: "ACTIVE", isHidden: false, availabilityReason: "Delivery wants it active",
+      status: "ACTIVE",
+      isHidden: false,
+      availabilityReason: "Delivery wants it active",
     });
 
     const result = await availabilityService.getEffectiveItem(
-      "tenant-1", "item-1", "branch-1",
-      { channel: "STAFF", fulfillmentType: "DINE_IN", asOf: localDate(9, 0, 0) },
+      "tenant-1",
+      "item-1",
+      "branch-1",
+      {
+        channel: "STAFF",
+        fulfillmentType: "DINE_IN",
+        asOf: localDate(9, 0, 0),
+      },
     );
 
     expect(result.effectiveStatus).toBe("OUT_OF_STOCK");
@@ -471,7 +629,9 @@ describe("H1 deterministic AvailabilityResolver replay", () => {
     findActiveSchedulesForItem.mockClear();
     getOverride.mockClear();
     getChannelOverride.mockClear();
-    findFullItem.mockRejectedValue(new Error("current menu must not be read during replay"));
+    findFullItem.mockRejectedValue(
+      new Error("current menu must not be read during replay"),
+    );
 
     const replayed = await availabilityService.getEffectiveItem(
       "tenant-1",

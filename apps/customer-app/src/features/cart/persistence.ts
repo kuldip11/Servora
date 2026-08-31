@@ -1,4 +1,4 @@
-import type { CustomerMenuItem } from "../menu/api";
+import type { CustomerMenuItem } from "@/features/menu/api";
 import type { CartLine, SelectedOption } from "./pricing";
 
 type PersistedSession = {
@@ -21,9 +21,9 @@ type PersistedCartLine = {
 
 import { CART_STORAGE_PREFIX } from "./constants";
 
-function key(scope: string, name: string) {
+const key = (scope: string, name: string) => {
   return `${CART_STORAGE_PREFIX}:${scope}:${name}`;
-}
+};
 
 function read<T>(storageKey: string): T | null {
   try {
@@ -34,52 +34,53 @@ function read<T>(storageKey: string): T | null {
   }
 }
 
-function write(storageKey: string, value: unknown) {
+const write = (storageKey: string, value: unknown) => {
   try {
     localStorage.setItem(storageKey, JSON.stringify(value));
-  } catch {
+  } catch {}
+};
 
-  }
-}
-
-function remove(storageKey: string) {
+const remove = (storageKey: string) => {
   try {
     localStorage.removeItem(storageKey);
-  } catch {
+  } catch {}
+};
 
-  }
-}
-
-export function getCustomerStorageScope(qrToken: string | null) {
+export const getCustomerStorageScope = (qrToken: string | null) => {
   return qrToken ? `qr:${qrToken}` : null;
-}
+};
 
-export function loadPersistedSession(scope: string): PersistedSession | null {
+export const loadPersistedSession = (
+  scope: string,
+): PersistedSession | null => {
   return read<PersistedSession>(key(scope, "session"));
-}
+};
 
-export function savePersistedSession(scope: string, session: PersistedSession) {
+export const savePersistedSession = (
+  scope: string,
+  session: PersistedSession,
+) => {
   write(key(scope, "session"), session);
-}
+};
 
-export function clearPersistedSession(scope: string) {
+export const clearPersistedSession = (scope: string) => {
   remove(key(scope, "session"));
-}
+};
 
-export function loadPersistedOrderId(scope: string): string | null {
+export const loadPersistedOrderId = (scope: string): string | null => {
   const value = read<{ orderId: string }>(key(scope, "order"));
   return value?.orderId ?? null;
-}
+};
 
-export function savePersistedOrderId(scope: string, orderId: string) {
+export const savePersistedOrderId = (scope: string, orderId: string) => {
   write(key(scope, "order"), { orderId });
-}
+};
 
-export function clearPersistedOrderId(scope: string) {
+export const clearPersistedOrderId = (scope: string) => {
   remove(key(scope, "order"));
-}
+};
 
-export function loadPersistedCart(scope: string): PersistedCartLine[] {
+export const loadPersistedCart = (scope: string): PersistedCartLine[] => {
   const value = read<PersistedCartLine[]>(key(scope, "cart"));
   if (!Array.isArray(value)) return [];
   return value.filter(
@@ -89,9 +90,9 @@ export function loadPersistedCart(scope: string): PersistedCartLine[] {
       Number.isInteger(line.quantity) &&
       line.quantity > 0,
   );
-}
+};
 
-export function savePersistedCart(scope: string, cart: CartLine[]) {
+export const savePersistedCart = (scope: string, cart: CartLine[]) => {
   const snapshot: PersistedCartLine[] = cart.map((line) => ({
     itemId: line.item.id,
     quantity: line.quantity,
@@ -100,16 +101,16 @@ export function savePersistedCart(scope: string, cart: CartLine[]) {
     fulfillmentType: line.fulfillmentType,
   }));
   write(key(scope, "cart"), snapshot);
-}
+};
 
-export function clearPersistedCart(scope: string) {
+export const clearPersistedCart = (scope: string) => {
   remove(key(scope, "cart"));
-}
+};
 
-function validOptions(
+const validOptions = (
   item: CustomerMenuItem,
   selectedOptions: SelectedOption[],
-) {
+) => {
   return selectedOptions.filter((selection) => {
     const option = item.modifierGroupLinks
       .flatMap(({ group }) => group.options)
@@ -121,13 +122,13 @@ function validOptions(
       selection.quantity <= option!.maxQuantity
     );
   });
-}
+};
 
-export function restoreCart(
+export const restoreCart = (
   scope: string,
   menu: CustomerMenuItem[],
   mode: "DINE_IN" | "TAKEAWAY",
-) {
+) => {
   const persisted = loadPersistedCart(scope);
   if (!persisted.length) return { cart: [] as CartLine[], droppedCount: 0 };
 
@@ -161,4 +162,4 @@ export function restoreCart(
   });
 
   return { cart, droppedCount };
-}
+};

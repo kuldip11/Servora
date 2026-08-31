@@ -48,21 +48,26 @@ export interface WaiterComboCartLine {
   courseNumber?: number;
 }
 
-export function comboLineKey(line: WaiterComboCartLine) {
+export const comboLineKey = (line: WaiterComboCartLine) => {
   return `${line.combo.id}__course${line.courseNumber ?? "none"}__${line.selections
-    .map((selection) => `${selection.slotId}:${[...selection.optionIds].sort().join(",")}`)
+    .map(
+      (selection) =>
+        `${selection.slotId}:${[...selection.optionIds].sort().join(",")}`,
+    )
     .sort()
     .join("|")}`;
-}
+};
 
-export function estimateComboSubtotal(
+export const estimateComboSubtotal = (
   line: WaiterComboCartLine,
   menuById: Map<string, WaiterComboMenuItem>,
-) {
+) => {
   let componentSum = 0;
   let upcharges = 0;
   for (const slot of line.combo.slots) {
-    const selected = line.selections.find((value) => value.slotId === slot.id)?.optionIds ?? [];
+    const selected =
+      line.selections.find((value) => value.slotId === slot.id)?.optionIds ??
+      [];
     for (const optionId of selected) {
       const option = slot.options.find((value) => value.id === optionId);
       if (!option) continue;
@@ -76,8 +81,9 @@ export function estimateComboSubtotal(
     }
   }
 
-  const policyPrice = line.combo.pricePolicy === "FIXED"
-    ? Number(line.combo.fixedPrice ?? 0)
-    : componentSum * (1 - Number(line.combo.percentOff ?? 0) / 100);
-  return Math.round((policyPrice + upcharges) * 100) / 100 * line.quantity;
-}
+  const policyPrice =
+    line.combo.pricePolicy === "FIXED"
+      ? Number(line.combo.fixedPrice ?? 0)
+      : componentSum * (1 - Number(line.combo.percentOff ?? 0) / 100);
+  return (Math.round((policyPrice + upcharges) * 100) / 100) * line.quantity;
+};

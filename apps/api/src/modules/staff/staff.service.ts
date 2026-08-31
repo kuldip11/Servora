@@ -1,10 +1,10 @@
 import bcrypt from "bcryptjs";
-import type { AuthContext } from "../../core/auth";
-import { requirePermission } from "../../core/auth";
+import type { AuthContext } from "@/core/auth";
+import { requirePermission } from "@/core/auth";
 import { staffRepository } from "./staff.repository";
 import { staffNotFound, branchRequiredForStaff } from "./staff.errors";
-import { ForbiddenError, ValidationError } from "../../core/errors";
-import { writeAudit } from "../../core/audit";
+import { ForbiddenError, ValidationError } from "@/core/errors";
+import { writeAudit } from "@/core/audit";
 
 export interface CreateStaffInput {
   firstName: string;
@@ -23,9 +23,11 @@ export interface UpdateStaffInput {
   branchIds?: string[] | undefined;
 }
 
-type StaffMembership = NonNullable<Awaited<ReturnType<typeof staffRepository.findMembership>>>;
+type StaffMembership = NonNullable<
+  Awaited<ReturnType<typeof staffRepository.findMembership>>
+>;
 
-function canManageTarget(auth: AuthContext, membership: StaffMembership) {
+const canManageTarget = (auth: AuthContext, membership: StaffMembership) => {
   if (!membership) throw staffNotFound("unknown");
   if (auth.tenantWide) return;
   const targetBranches = membership.branches.map((item) => item.branchId);
@@ -36,9 +38,9 @@ function canManageTarget(auth: AuthContext, membership: StaffMembership) {
   ) {
     throw staffNotFound(membership.userId);
   }
-}
+};
 
-async function validateRole(auth: AuthContext, roleId: string) {
+const validateRole = async (auth: AuthContext, roleId: string) => {
   const role = await staffRepository.findRoleById(roleId, auth.tenantId);
   if (!role) throw new ValidationError("Invalid role");
   if (role.name === "OWNER" && !auth.roles.includes("OWNER")) {
@@ -54,9 +56,9 @@ async function validateRole(auth: AuthContext, roleId: string) {
     );
   }
   return role;
-}
+};
 
-async function validateBranches(auth: AuthContext, branchIds: string[]) {
+const validateBranches = async (auth: AuthContext, branchIds: string[]) => {
   const unique = [...new Set(branchIds)];
   const branches = await staffRepository.findBranchesByIds(
     auth.tenantId,
@@ -75,7 +77,7 @@ async function validateBranches(auth: AuthContext, branchIds: string[]) {
     );
   }
   return unique;
-}
+};
 
 export const staffService = {
   async list(auth: AuthContext) {
@@ -178,8 +180,7 @@ export const staffService = {
       requirePermission(auth, "staff:assign_role");
       const role = await validateRole(auth, input.roleId);
       const targetBranches =
-        input.branchIds ??
-        membership.branches.map((item) => item.branchId);
+        input.branchIds ?? membership.branches.map((item) => item.branchId);
       if (
         (role.scope === "GLOBAL" || role.scope === "TENANT") &&
         targetBranches.length

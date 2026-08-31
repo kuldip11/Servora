@@ -6,7 +6,7 @@ import {
   fireTicketBody,
   orderIdParams,
   orderListQuery,
-} from "../order.validator";
+} from "@/modules/orders/order.validator";
 
 describe("order validators", () => {
   const item = { menuItemId: "m1", quantity: 1 };

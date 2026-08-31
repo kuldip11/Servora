@@ -1,6 +1,11 @@
 import { voidDomainRequest } from "./shared";
 import type { Branch } from "@pos/types";
-import { getDomainData, patchDomainData, postDomainData, type DomainHttpClient } from "./shared";
+import {
+  getDomainData,
+  patchDomainData,
+  postDomainData,
+  type DomainHttpClient,
+} from "./shared";
 
 export interface BranchInput {
   name: string;
@@ -16,7 +21,7 @@ export interface BranchInput {
   tablesEnabled: boolean;
 }
 
-export function createBranchesApi(client: DomainHttpClient) {
+export const createBranchesApi = (client: DomainHttpClient) => {
   return {
     list(): Promise<Branch[]> {
       return getDomainData<Branch[]>(client, "/branches");
@@ -31,4 +36,4 @@ export function createBranchesApi(client: DomainHttpClient) {
       return voidDomainRequest(client.delete(`/branches/${id}`));
     },
   };
-}
+};

@@ -33,4 +33,3 @@ export const TICKET_STATUS_LABEL: Record<string, string> = {
   READY: "Ready",
   SERVED: "Served",
 };
-

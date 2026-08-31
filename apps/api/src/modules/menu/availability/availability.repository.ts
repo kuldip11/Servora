@@ -1,8 +1,6 @@
-
-
 import { eq, and, or, isNull, inArray, gte, lte } from "drizzle-orm";
 import type { MenuItemStatus, MenuItemScheduleType } from "@pos/types";
-import { db } from "../../../db";
+import { db } from "@/db";
 import {
   menuItems,
   menuItemVariants,
@@ -13,8 +11,8 @@ import {
   branches,
   modifierOptions,
   menuItemModifierGroups,
-} from "../../../db/schema";
-import { compact } from "../../../lib/object-utils";
+} from "@/db/schema";
+import { compact } from "@/lib/object-utils";
 import {
   withEffectiveMenuItemAvailability,
   withEffectiveModifierAvailability,
@@ -104,7 +102,12 @@ export const availabilityRepository = {
         }),
       ]);
 
-    return { schedules, branchOverrides, channelOverrides, holidays: holidayRows };
+    return {
+      schedules,
+      branchOverrides,
+      channelOverrides,
+      holidays: holidayRows,
+    };
   },
   async setManualStockCount(
     tenantId: string,

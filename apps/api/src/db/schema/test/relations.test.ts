@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createTableRelationsHelpers } from "drizzle-orm";
-import * as schema from "../index";
+import * as schema from "@/db/schema/index";
 import {
   tenantsRelations,
   usersRelations,
@@ -41,7 +41,7 @@ import {
   menuItemBranchOverridesRelations,
   menuTemplatesRelations,
   menuTemplateItemsRelations,
-} from "../relations";
+} from "@/db/schema/relations";
 
 const relationDefinitions = {
   tenantsRelations,

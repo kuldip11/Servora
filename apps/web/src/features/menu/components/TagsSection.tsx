@@ -3,13 +3,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { createMenuTagSchema, type CreateMenuTagInput } from "@pos/validation";
 import { Plus, X } from "lucide-react";
 import { Button, Input } from "@pos/ui";
-import { useMenuTags } from "../hooks/useMenuTags";
-import { useAddMenuTag } from "../hooks/useAddMenuTag";
-import { useDeleteMenuTag } from "../hooks/useDeleteMenuTag";
+import { useMenuTags } from "@/features/menu/hooks/useMenuTags";
+import { useAddMenuTag } from "@/features/menu/hooks/useAddMenuTag";
+import { useDeleteMenuTag } from "@/features/menu/hooks/useDeleteMenuTag";
 
-import { TAG_COLORS } from "../constants";
+import { TAG_COLORS } from "@/features/menu/constants";
 
-export function TagsSection() {
+export const TagsSection = () => {
   const {
     register,
     handleSubmit,
@@ -96,4 +96,4 @@ export function TagsSection() {
       </form>
     </div>
   );
-}
+};

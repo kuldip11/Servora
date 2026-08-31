@@ -41,12 +41,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   branchId: null,
   isAuthenticated: false,
 
-  setAuth: ({
-    user,
-    accessToken,
-    membershipId = null,
-    memberships = [],
-  }) => {
+  setAuth: ({ user, accessToken, membershipId = null, memberships = [] }) => {
     set({
       user,
       accessToken,
@@ -96,4 +91,3 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
   },
 }));
-

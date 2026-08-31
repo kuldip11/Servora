@@ -1,22 +1,21 @@
-
-import { ValidationError, DomainRuleError } from "../../../core/errors";
+import { ValidationError, DomainRuleError } from "@/core/errors";
 import type { RowError } from "./menu-import-parser";
 
-export function noFileUploaded(): ValidationError {
+export const noFileUploaded = (): ValidationError => {
   return new ValidationError("No file uploaded", { reason: "NO_FILE" });
-}
+};
 
-export function emptyImportFile(): ValidationError {
+export const emptyImportFile = (): ValidationError => {
   return new ValidationError("File has no data rows", { reason: "EMPTY_FILE" });
-}
+};
 
-export function importValidationFailed(result: {
+export const importValidationFailed = (result: {
   inserted: number;
   updated: number;
   errors: RowError[];
-}): DomainRuleError {
+}): DomainRuleError => {
   return new DomainRuleError("No rows were valid", {
     reason: "VALIDATION_FAILED",
     result,
   });
-}
+};

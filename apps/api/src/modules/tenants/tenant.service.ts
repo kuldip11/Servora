@@ -1,14 +1,17 @@
-import type { AuthContext } from "../../core/auth";
-import { requirePermission } from "../../core/auth";
+import type { AuthContext } from "@/core/auth";
+import { requirePermission } from "@/core/auth";
 import { tenantRepository } from "./tenant.repository";
-import { branchRepository } from "../branches/branch.repository";
+import { branchRepository } from "@/modules/branches/branch.repository";
 import { tenantNotFound } from "./tenant.errors";
-import { ForbiddenError, ServiceUnavailableError, ValidationError } from "../../core/errors";
-import { writeAudit } from "../../core/audit";
+import {
+  ForbiddenError,
+  ServiceUnavailableError,
+  ValidationError,
+} from "@/core/errors";
+import { writeAudit } from "@/core/audit";
 
 export const tenantService = {
   async list(auth: AuthContext) {
-
     const memberships = await tenantRepository.findMembershipsByUserId(
       auth.userId,
     );
@@ -41,7 +44,6 @@ export const tenantService = {
     auth: AuthContext,
     input: { name: string; organizationId: string },
   ) {
-
     if (!auth.roles.includes("OWNER")) {
       throw new ForbiddenError("Only the global Owner can create tenants");
     }
@@ -109,17 +111,39 @@ export const tenantService = {
     if (!organizationMembership) throw tenantNotFound(tenantId);
     if (!auth.roles.includes("OWNER") && tenantId !== auth.tenantId)
       throw tenantNotFound(tenantId);
-    if (changes.serviceChargePercent !== undefined && changes.serviceChargePercent !== null &&
-      (!Number.isFinite(changes.serviceChargePercent) || changes.serviceChargePercent < 0 || changes.serviceChargePercent > 100)) {
-      throw new ValidationError("Service charge percent must be between 0 and 100");
+    if (
+      changes.serviceChargePercent !== undefined &&
+      changes.serviceChargePercent !== null &&
+      (!Number.isFinite(changes.serviceChargePercent) ||
+        changes.serviceChargePercent < 0 ||
+        changes.serviceChargePercent > 100)
+    ) {
+      throw new ValidationError(
+        "Service charge percent must be between 0 and 100",
+      );
     }
     const updated = await tenantRepository.update(tenantId, {
       ...(changes.name !== undefined ? { name: changes.name.trim() } : {}),
-      ...(changes.serviceChargePercent !== undefined ? { serviceChargePercent: changes.serviceChargePercent === null ? null : changes.serviceChargePercent.toFixed(2) } : {}),
-      ...(changes.serviceChargeTaxable !== undefined ? { serviceChargeTaxable: changes.serviceChargeTaxable } : {}),
-      ...(changes.roundingPolicy !== undefined ? { roundingPolicy: changes.roundingPolicy } : {}),
-      ...(changes.defaultTaxMode !== undefined ? { defaultTaxMode: changes.defaultTaxMode } : {}),
-      ...(changes.courseSequencingEnabled !== undefined ? { courseSequencingEnabled: changes.courseSequencingEnabled } : {}),
+      ...(changes.serviceChargePercent !== undefined
+        ? {
+            serviceChargePercent:
+              changes.serviceChargePercent === null
+                ? null
+                : changes.serviceChargePercent.toFixed(2),
+          }
+        : {}),
+      ...(changes.serviceChargeTaxable !== undefined
+        ? { serviceChargeTaxable: changes.serviceChargeTaxable }
+        : {}),
+      ...(changes.roundingPolicy !== undefined
+        ? { roundingPolicy: changes.roundingPolicy }
+        : {}),
+      ...(changes.defaultTaxMode !== undefined
+        ? { defaultTaxMode: changes.defaultTaxMode }
+        : {}),
+      ...(changes.courseSequencingEnabled !== undefined
+        ? { courseSequencingEnabled: changes.courseSequencingEnabled }
+        : {}),
     });
     if (!updated) throw tenantNotFound(tenantId);
     await writeAudit({

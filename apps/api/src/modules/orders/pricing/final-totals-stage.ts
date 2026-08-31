@@ -1,4 +1,4 @@
-import { tenantRepository } from "../../tenants/tenant.repository";
+import { tenantRepository } from "@/modules/tenants/tenant.repository";
 import type { PricedLine, PricingContext } from "./pricing.types";
 import { allocateCents, type PromotionStageOptions } from "./promotion-stage";
 import { applyDiscountStages, type LoyaltyStageResult } from "./loyalty-stage";
@@ -14,16 +14,18 @@ export interface FinalPricingResult extends LoyaltyStageResult {
   roundingPolicy: RoundingPolicy;
 }
 
-function lineDiscount(line: PricedLine) {
-  return Math.max(0, -(line.pricingAttribution.PROMOTION ?? 0)) +
-    Math.max(0, -(line.pricingAttribution.LOYALTY ?? 0));
-}
+const lineDiscount = (line: PricedLine) => {
+  return (
+    Math.max(0, -(line.pricingAttribution.PROMOTION ?? 0)) +
+    Math.max(0, -(line.pricingAttribution.LOYALTY ?? 0))
+  );
+};
 
-function money(value: number) {
+const money = (value: number) => {
   return Math.round((value + Number.EPSILON) * 100) / 100;
-}
+};
 
-export function roundTotal(preciseTotal: number, policy: RoundingPolicy) {
+export const roundTotal = (preciseTotal: number, policy: RoundingPolicy) => {
   const increments: Record<RoundingPolicy, number> = {
     NONE: 0,
     NEAREST_1: 1,
@@ -39,9 +41,9 @@ export function roundTotal(preciseTotal: number, policy: RoundingPolicy) {
     totalAmount: money(rounded),
     roundingAdjustment: money(rounded - preciseTotal),
   };
-}
+};
 
-export function calculateTaxServiceAndRounding(
+export const calculateTaxServiceAndRounding = (
   lines: PricedLine[],
   settings: {
     serviceChargePercent: string | null;
@@ -49,17 +51,29 @@ export function calculateTaxServiceAndRounding(
     roundingPolicy: RoundingPolicy;
     defaultTaxMode: TaxMode;
   },
-) {
+) => {
   const remainingCents = lines.map((line) =>
     Math.max(0, Math.round((line.subtotal - lineDiscount(line)) * 100)),
   );
-  const merchandiseCents = remainingCents.reduce((sum, value) => sum + value, 0);
-  const serviceChargeCents = settings.serviceChargePercent === null
-    ? 0
-    : Math.max(0, Math.round(merchandiseCents * Number(settings.serviceChargePercent) / 100));
-  const serviceAllocations = settings.serviceChargeTaxable && serviceChargeCents > 0 && merchandiseCents > 0
-    ? allocateCents(serviceChargeCents, remainingCents)
-    : lines.map(() => 0);
+  const merchandiseCents = remainingCents.reduce(
+    (sum, value) => sum + value,
+    0,
+  );
+  const serviceChargeCents =
+    settings.serviceChargePercent === null
+      ? 0
+      : Math.max(
+          0,
+          Math.round(
+            (merchandiseCents * Number(settings.serviceChargePercent)) / 100,
+          ),
+        );
+  const serviceAllocations =
+    settings.serviceChargeTaxable &&
+    serviceChargeCents > 0 &&
+    merchandiseCents > 0
+      ? allocateCents(serviceChargeCents, remainingCents)
+      : lines.map(() => 0);
 
   let taxCents = 0;
   let merchandisePayableCents = 0;
@@ -83,11 +97,14 @@ export function calculateTaxServiceAndRounding(
     }
   }
 
-  const preciseCents = merchandisePayableCents + serviceChargeCents +
-    (settings.serviceChargeTaxable ? serviceAllocations.reduce((sum, amount, index) => {
-
-      return sum + Math.round(amount * (lines[index]!.taxRate / 100));
-    }, 0) : 0);
+  const preciseCents =
+    merchandisePayableCents +
+    serviceChargeCents +
+    (settings.serviceChargeTaxable
+      ? serviceAllocations.reduce((sum, amount, index) => {
+          return sum + Math.round(amount * (lines[index]!.taxRate / 100));
+        }, 0)
+      : 0);
   const preciseTotal = preciseCents / 100;
   const rounded = roundTotal(preciseTotal, settings.roundingPolicy);
   return {
@@ -96,13 +113,13 @@ export function calculateTaxServiceAndRounding(
     preciseTotal,
     ...rounded,
   };
-}
+};
 
-export async function finalizePricing(
+export const finalizePricing = async (
   context: PricingContext,
   lines: PricedLine[],
   options: PromotionStageOptions = {},
-): Promise<FinalPricingResult> {
+): Promise<FinalPricingResult> => {
   const discounts = await applyDiscountStages(context, lines, options);
   const tenant = await tenantRepository.findById(context.tenantId);
   if (!tenant) throw new Error("Tenant not found while finalizing pricing");
@@ -113,4 +130,4 @@ export async function finalizePricing(
     defaultTaxMode: tenant.defaultTaxMode,
   });
   return { ...discounts, ...final, roundingPolicy: tenant.roundingPolicy };
-}
+};

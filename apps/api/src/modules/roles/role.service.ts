@@ -1,24 +1,24 @@
-import type { AuthContext } from "../../core/auth";
-import { requirePermission } from "../../core/auth";
+import type { AuthContext } from "@/core/auth";
+import { requirePermission } from "@/core/auth";
 import {
   ConflictError,
   ForbiddenError,
   NotFoundError,
   ValidationError,
-} from "../../core/errors";
-import { writeAudit } from "../../core/audit";
+} from "@/core/errors";
+import { writeAudit } from "@/core/audit";
 import { roleRepository } from "./role.repository";
 
-function normalizeName(name: string) {
+const normalizeName = (name: string) => {
   return name.trim().replace(/\s+/g, " ");
-}
+};
 
-function requireRoleAdministration(auth: AuthContext, permission: string) {
+const requireRoleAdministration = (auth: AuthContext, permission: string) => {
   requirePermission(auth, permission);
   if (!auth.tenantWide && !auth.roles.includes("OWNER")) {
     throw new ForbiddenError("Tenant-wide access is required to manage roles");
   }
-}
+};
 
 export const roleService = {
   async list(auth: AuthContext) {

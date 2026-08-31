@@ -1,9 +1,7 @@
-
-
-export function shouldDeliverRealtimeEvent(
+export const shouldDeliverRealtimeEvent = (
   socketBranchId: string | null | undefined,
   eventBranchId: string | null | undefined,
-): boolean {
+): boolean => {
   if (!socketBranchId) return true;
   return eventBranchId === socketBranchId;
-}
+};

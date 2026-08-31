@@ -1,8 +1,8 @@
 import { memo } from "react";
 import { Card } from "@pos/ui";
 import type { KitchenTicket, KitchenTicketStatus } from "@pos/types";
-import { STATUS_CONFIG } from "../constants";
-import { isUrgent, voidUrgency } from "../utils/ticket";
+import { STATUS_CONFIG } from "@/features/kitchen/constants";
+import { isUrgent, voidUrgency } from "@/features/kitchen/utils/ticket";
 import { TicketHeader } from "./TicketHeader";
 import { TicketItems } from "./TicketItems";
 import { TicketFooter } from "./TicketFooter";
@@ -29,7 +29,15 @@ export const TicketCard = memo(function TicketCard({
       padding="md"
       className={`border-2 rounded-xl flex flex-col gap-3 ${cfg.border} ${urgent ? "ring-2 ring-danger/60" : ""}`}
     >
-      {voidLevel !== "none" && <div className={`rounded-md px-2 py-1.5 text-xs font-bold ${voidLevel === "danger" ? "bg-danger-surface text-danger" : "bg-warning-surface text-warning"}`}>{voidLevel === "danger" ? "URGENT VOID — stop preparation" : "VOIDED before prep"}</div>}
+      {voidLevel !== "none" && (
+        <div
+          className={`rounded-md px-2 py-1.5 text-xs font-bold ${voidLevel === "danger" ? "bg-danger-surface text-danger" : "bg-warning-surface text-warning"}`}
+        >
+          {voidLevel === "danger"
+            ? "URGENT VOID — stop preparation"
+            : "VOIDED before prep"}
+        </div>
+      )}
       <TicketHeader
         ticket={ticket}
         statusLabel={cfg.label}

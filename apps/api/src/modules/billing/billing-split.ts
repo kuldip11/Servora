@@ -1,7 +1,10 @@
-import { ValidationError } from "../../core/errors";
+import { ValidationError } from "@/core/errors";
 
-export function splitMoneyEvenly(amount: number, ways: number): number[] {
-  if (!Number.isInteger(ways) || ways < 1) throw new ValidationError("Split count must be a positive integer", { reason: "INVALID_SPLIT_COUNT" });
+export const splitMoneyEvenly = (amount: number, ways: number): number[] => {
+  if (!Number.isInteger(ways) || ways < 1)
+    throw new ValidationError("Split count must be a positive integer", {
+      reason: "INVALID_SPLIT_COUNT",
+    });
   const sign = amount < 0 ? -1 : 1;
   const cents = Math.abs(Math.round(amount * 100));
   const base = Math.floor(cents / ways);
@@ -10,18 +13,18 @@ export function splitMoneyEvenly(amount: number, ways: number): number[] {
     const signedCents = sign * (base + (index < remainder ? 1 : 0));
     return signedCents === 0 ? 0 : signedCents / 100;
   });
-}
+};
 
-export function areAllBillsPaid(
+export const areAllBillsPaid = (
   bills: Array<{ id: string; totalAmount: string | number }>,
   paidByBill: ReadonlyMap<string, number>,
-): boolean {
+): boolean => {
   return bills.every(
     (bill) => (paidByBill.get(bill.id) ?? 0) >= Number(bill.totalAmount) - 0.01,
   );
-}
+};
 
-export function combinedOrderAmounts(
+export const combinedOrderAmounts = (
   orders: Array<{
     subtotal: string | number;
     taxAmount: string | number;
@@ -30,7 +33,7 @@ export function combinedOrderAmounts(
     roundingAdjustment?: string | number;
     totalAmount: string | number;
   }>,
-) {
+) => {
   const sum = (
     key:
       | "subtotal"
@@ -39,7 +42,10 @@ export function combinedOrderAmounts(
       | "serviceChargeAmount"
       | "roundingAdjustment"
       | "totalAmount",
-  ) => orders.reduce((total, order) => total + Number(order[key] ?? 0), 0).toFixed(2);
+  ) =>
+    orders
+      .reduce((total, order) => total + Number(order[key] ?? 0), 0)
+      .toFixed(2);
   return {
     subtotal: sum("subtotal"),
     taxAmount: sum("taxAmount"),
@@ -48,7 +54,7 @@ export function combinedOrderAmounts(
     roundingAdjustment: sum("roundingAdjustment"),
     totalAmount: sum("totalAmount"),
   };
-}
+};
 
 export type ItemAllocation = { label?: string; orderItemIds: string[] };
 export type ItemShareAllocation = {
@@ -57,34 +63,52 @@ export type ItemShareAllocation = {
 };
 export type BillableOrderItem = { id: string; comboGroupId?: string | null };
 
-export function validateItemShareAllocations(
+export const validateItemShareAllocations = (
   activeItemIds: string[],
   allocations: ItemShareAllocation[],
-): { ok: true } | { ok: false; reason: "EMPTY_BILL" | "UNKNOWN_ITEM" | "INVALID_RATIO" | "UNASSIGNED_ITEM" } {
-  if (allocations.some((allocation) => allocation.itemShares.length === 0)) return { ok: false, reason: "EMPTY_BILL" };
+):
+  | { ok: true }
+  | {
+      ok: false;
+      reason:
+        "EMPTY_BILL" | "UNKNOWN_ITEM" | "INVALID_RATIO" | "UNASSIGNED_ITEM";
+    } => {
+  if (allocations.some((allocation) => allocation.itemShares.length === 0))
+    return { ok: false, reason: "EMPTY_BILL" };
   const active = new Set(activeItemIds);
   const totals = new Map<string, number>();
   for (const allocation of allocations) {
     for (const share of allocation.itemShares) {
-      if (!active.has(share.orderItemId)) return { ok: false, reason: "UNKNOWN_ITEM" };
-      if (!Number.isFinite(share.shareRatio) || share.shareRatio <= 0 || share.shareRatio > 1) return { ok: false, reason: "INVALID_RATIO" };
-      totals.set(share.orderItemId, (totals.get(share.orderItemId) ?? 0) + share.shareRatio);
+      if (!active.has(share.orderItemId))
+        return { ok: false, reason: "UNKNOWN_ITEM" };
+      if (
+        !Number.isFinite(share.shareRatio) ||
+        share.shareRatio <= 0 ||
+        share.shareRatio > 1
+      )
+        return { ok: false, reason: "INVALID_RATIO" };
+      totals.set(
+        share.orderItemId,
+        (totals.get(share.orderItemId) ?? 0) + share.shareRatio,
+      );
     }
   }
   for (const id of active) {
-    if (Math.abs((totals.get(id) ?? 0) - 1) > 0.000001) return { ok: false, reason: "UNASSIGNED_ITEM" };
+    if (Math.abs((totals.get(id) ?? 0) - 1) > 0.000001)
+      return { ok: false, reason: "UNASSIGNED_ITEM" };
   }
   return { ok: true };
-}
+};
 
-export function validateFractionalComboAllocations(
+export const validateFractionalComboAllocations = (
   items: BillableOrderItem[],
   allocations: ItemShareAllocation[],
-): { ok: true } | { ok: false; reason: "SPLIT_COMBO_GROUP" } {
+): { ok: true } | { ok: false; reason: "SPLIT_COMBO_GROUP" } => {
   const sharesByItem = new Map<string, Map<number, number>>();
   allocations.forEach((allocation, billIndex) => {
     for (const share of allocation.itemShares) {
-      const byBill = sharesByItem.get(share.orderItemId) ?? new Map<number, number>();
+      const byBill =
+        sharesByItem.get(share.orderItemId) ?? new Map<number, number>();
       byBill.set(billIndex, share.shareRatio);
       sharesByItem.set(share.orderItemId, byBill);
     }
@@ -96,40 +120,50 @@ export function validateFractionalComboAllocations(
       const current = sharesByItem.get(id) ?? new Map();
       const bills = new Set([...baseline.keys(), ...current.keys()]);
       for (const bill of bills) {
-        if (Math.abs((baseline.get(bill) ?? 0) - (current.get(bill) ?? 0)) > 0.000001) {
+        if (
+          Math.abs((baseline.get(bill) ?? 0) - (current.get(bill) ?? 0)) >
+          0.000001
+        ) {
           return { ok: false, reason: "SPLIT_COMBO_GROUP" };
         }
       }
     }
   }
   return { ok: true };
-}
+};
 
-export function buildBillableItemGroups(items: BillableOrderItem[]): string[][] {
+export function buildBillableItemGroups(
+  items: BillableOrderItem[],
+): string[][] {
   const grouped = new Map<string, string[]>();
   for (const item of items) {
-    const key = item.comboGroupId ? `combo:${item.comboGroupId}` : `item:${item.id}`;
+    const key = item.comboGroupId
+      ? `combo:${item.comboGroupId}`
+      : `item:${item.id}`;
     grouped.set(key, [...(grouped.get(key) ?? []), item.id]);
   }
   return [...grouped.values()];
 }
 
-export function groupOrderItemsForEvenBills(
+export const groupOrderItemsForEvenBills = (
   items: BillableOrderItem[],
   ways: number,
-): string[][] | null {
-  if (!Number.isInteger(ways) || ways < 1) throw new ValidationError("Split count must be a positive integer", { reason: "INVALID_SPLIT_COUNT" });
+): string[][] | null => {
+  if (!Number.isInteger(ways) || ways < 1)
+    throw new ValidationError("Split count must be a positive integer", {
+      reason: "INVALID_SPLIT_COUNT",
+    });
   const groups = buildBillableItemGroups(items);
   if (groups.length < ways) return null;
   const bills = Array.from({ length: ways }, () => [] as string[]);
   groups.forEach((group, index) => bills[index % ways]!.push(...group));
   return bills;
-}
+};
 
-export function validateComboGroupAllocations(
+export const validateComboGroupAllocations = (
   items: BillableOrderItem[],
   allocations: ItemAllocation[],
-): { ok: true } | { ok: false; reason: "SPLIT_COMBO_GROUP" } {
+): { ok: true } | { ok: false; reason: "SPLIT_COMBO_GROUP" } => {
   const billByItem = new Map<string, number>();
   allocations.forEach((allocation, billIndex) => {
     allocation.orderItemIds.forEach((id) => billByItem.set(id, billIndex));
@@ -142,20 +176,22 @@ export function validateComboGroupAllocations(
         .map((id) => billByItem.get(id))
         .filter((value): value is number => value !== undefined),
     );
-    if (assignedBills.size > 1) return { ok: false, reason: "SPLIT_COMBO_GROUP" };
+    if (assignedBills.size > 1)
+      return { ok: false, reason: "SPLIT_COMBO_GROUP" };
   }
   return { ok: true };
-}
+};
 
-export function validateItemAllocations(
+export const validateItemAllocations = (
   activeItemIds: string[],
   allocations: ItemAllocation[],
 ):
   | { ok: true }
   | {
       ok: false;
-      reason: "EMPTY_BILL" | "UNKNOWN_ITEM" | "DUPLICATE_ITEM" | "UNASSIGNED_ITEM";
-    } {
+      reason:
+        "EMPTY_BILL" | "UNKNOWN_ITEM" | "DUPLICATE_ITEM" | "UNASSIGNED_ITEM";
+    } => {
   if (allocations.some((allocation) => allocation.orderItemIds.length === 0)) {
     return { ok: false, reason: "EMPTY_BILL" };
   }
@@ -168,16 +204,25 @@ export function validateItemAllocations(
       assigned.add(itemId);
     }
   }
-  if (assigned.size !== active.size) return { ok: false, reason: "UNASSIGNED_ITEM" };
+  if (assigned.size !== active.size)
+    return { ok: false, reason: "UNASSIGNED_ITEM" };
   return { ok: true };
-}
+};
 
-export function allocateTotalsByWeight(total: number, weights: number[]): number[] {
+export const allocateTotalsByWeight = (
+  total: number,
+  weights: number[],
+): number[] => {
   const sign = total < 0 ? -1 : 1;
   const totalCents = Math.abs(Math.round(total * 100));
-  const weightTotal = weights.reduce((sum, weight) => sum + Math.max(0, weight), 0);
+  const weightTotal = weights.reduce(
+    (sum, weight) => sum + Math.max(0, weight),
+    0,
+  );
   if (weightTotal <= 0) return splitMoneyEvenly(total, weights.length);
-  const raw = weights.map((weight) => (totalCents * Math.max(0, weight)) / weightTotal);
+  const raw = weights.map(
+    (weight) => (totalCents * Math.max(0, weight)) / weightTotal,
+  );
   const cents = raw.map(Math.floor);
   let remainder = totalCents - cents.reduce((sum, value) => sum + value, 0);
   const order = raw
@@ -190,9 +235,9 @@ export function allocateTotalsByWeight(total: number, weights: number[]): number
     const signed = sign * value;
     return signed === 0 ? 0 : signed / 100;
   });
-}
+};
 
-export function buildSeatAllocationPlan(
+export const buildSeatAllocationPlan = (
   items: Array<{
     id: string;
     seatLabel: string | null;
@@ -202,7 +247,7 @@ export function buildSeatAllocationPlan(
     comboGroupId?: string | null;
   }>,
   sharedItemStrategy: "EVEN_SPLIT" | "MANUAL",
-) {
+) => {
   const labels = [
     ...new Set(
       items
@@ -218,7 +263,9 @@ export function buildSeatAllocationPlan(
 
   const units = new Map<string, typeof items>();
   for (const item of items) {
-    const key = item.comboGroupId ? `combo:${item.comboGroupId}` : `item:${item.id}`;
+    const key = item.comboGroupId
+      ? `combo:${item.comboGroupId}`
+      : `item:${item.id}`;
     units.set(key, [...(units.get(key) ?? []), item]);
   }
 
@@ -241,10 +288,11 @@ export function buildSeatAllocationPlan(
       ),
     ];
     if (unitLabels.length === 1) {
-      const allocation = allocations.find((entry) => entry.label === unitLabels[0])!;
+      const allocation = allocations.find(
+        (entry) => entry.label === unitLabels[0],
+      )!;
       allocation.orderItemIds.push(...unit.map((item) => item.id));
     } else {
-
       sharedUnits.push({ items: unit, weight: weightOf(unit) });
     }
   }
@@ -253,7 +301,9 @@ export function buildSeatAllocationPlan(
     return {
       status: "manual_required" as const,
       allocations,
-      sharedItemIds: sharedUnits.flatMap((unit) => unit.items.map((item) => item.id)),
+      sharedItemIds: sharedUnits.flatMap((unit) =>
+        unit.items.map((item) => item.id),
+      ),
     };
   }
 
@@ -269,13 +319,15 @@ export function buildSeatAllocationPlan(
   const weights = allocations.map(allocationWeight);
   for (const unit of sharedUnits) {
     const lightest = weights.indexOf(Math.min(...weights));
-    allocations[lightest]!.orderItemIds.push(...unit.items.map((item) => item.id));
+    allocations[lightest]!.orderItemIds.push(
+      ...unit.items.map((item) => item.id),
+    );
     weights[lightest]! += unit.weight;
   }
   return { status: "complete" as const, allocations };
-}
+};
 
-export function buildFractionalSeatAllocationPlan(
+export const buildFractionalSeatAllocationPlan = (
   items: Array<{
     id: string;
     seatLabel: string | null;
@@ -286,26 +338,49 @@ export function buildFractionalSeatAllocationPlan(
     seatShares?: Array<{ seatLabel: string; shareRatio: string | number }>;
   }>,
   sharedItemStrategy: "EVEN_SPLIT" | "MANUAL",
-) {
+) => {
   if (!items.some((item) => item.seatShares?.length)) return null;
-  const labels = [...new Set(items.flatMap((item) => [
-    ...(item.seatLabel?.trim() ? [item.seatLabel.trim()] : []),
-    ...(item.seatShares ?? []).map((share) => share.seatLabel.trim()).filter(Boolean),
-  ]))];
+  const labels = [
+    ...new Set(
+      items.flatMap((item) => [
+        ...(item.seatLabel?.trim() ? [item.seatLabel.trim()] : []),
+        ...(item.seatShares ?? [])
+          .map((share) => share.seatLabel.trim())
+          .filter(Boolean),
+      ]),
+    ),
+  ];
   if (!labels.length) return { status: "no_seats" as const };
-  const allocations: ItemShareAllocation[] = labels.map((label) => ({ label, itemShares: [] }));
-  const allocationFor = (label: string) => allocations.find((entry) => entry.label === label)!;
+  const allocations: ItemShareAllocation[] = labels.map((label) => ({
+    label,
+    itemShares: [],
+  }));
+  const allocationFor = (label: string) =>
+    allocations.find((entry) => entry.label === label)!;
   const unresolved: typeof items = [];
 
   for (const item of items) {
     if (item.seatShares?.length) {
-      const total = item.seatShares.reduce((sum, share) => sum + Number(share.shareRatio), 0);
-      if (Math.abs(total - 1) > 0.000001) throw new ValidationError("Seat-share ratios for an order item must total 1", { reason: "INVALID_SEAT_SHARE_TOTAL" });
+      const total = item.seatShares.reduce(
+        (sum, share) => sum + Number(share.shareRatio),
+        0,
+      );
+      if (Math.abs(total - 1) > 0.000001)
+        throw new ValidationError(
+          "Seat-share ratios for an order item must total 1",
+          { reason: "INVALID_SEAT_SHARE_TOTAL" },
+        );
       for (const share of item.seatShares) {
-        allocationFor(share.seatLabel.trim()).itemShares.push({ orderItemId: item.id, shareRatio: Number(share.shareRatio) });
+        allocationFor(share.seatLabel.trim()).itemShares.push({
+          orderItemId: item.id,
+          shareRatio: Number(share.shareRatio),
+        });
       }
     } else if (item.seatLabel?.trim()) {
-      allocationFor(item.seatLabel.trim()).itemShares.push({ orderItemId: item.id, shareRatio: 1 });
+      allocationFor(item.seatLabel.trim()).itemShares.push({
+        orderItemId: item.id,
+        shareRatio: 1,
+      });
     } else {
       unresolved.push(item);
     }
@@ -314,20 +389,36 @@ export function buildFractionalSeatAllocationPlan(
   if (unresolved.length && sharedItemStrategy === "MANUAL") {
     return {
       status: "manual_required" as const,
-      allocations: allocations.map((allocation) => ({ label: allocation.label, orderItemIds: allocation.itemShares.map((share) => share.orderItemId) })),
+      allocations: allocations.map((allocation) => ({
+        label: allocation.label,
+        orderItemIds: allocation.itemShares.map((share) => share.orderItemId),
+      })),
       sharedItemIds: unresolved.map((item) => item.id),
     };
   }
 
-  const weightForAllocation = (allocation: ItemShareAllocation) => allocation.itemShares.reduce((sum, share) => {
-    const item = items.find((candidate) => candidate.id === share.orderItemId)!;
-    return sum + Number(item.subtotal) * (item.taxMode === "INCLUSIVE" ? 1 : 1 + Number(item.taxRate) / 100) * share.shareRatio;
-  }, 0);
+  const weightForAllocation = (allocation: ItemShareAllocation) =>
+    allocation.itemShares.reduce((sum, share) => {
+      const item = items.find(
+        (candidate) => candidate.id === share.orderItemId,
+      )!;
+      return (
+        sum +
+        Number(item.subtotal) *
+          (item.taxMode === "INCLUSIVE" ? 1 : 1 + Number(item.taxRate) / 100) *
+          share.shareRatio
+      );
+    }, 0);
   const weights = allocations.map(weightForAllocation);
   for (const item of unresolved) {
     const lightest = weights.indexOf(Math.min(...weights));
-    allocations[lightest]!.itemShares.push({ orderItemId: item.id, shareRatio: 1 });
-    weights[lightest]! += Number(item.subtotal) * (item.taxMode === "INCLUSIVE" ? 1 : 1 + Number(item.taxRate) / 100);
+    allocations[lightest]!.itemShares.push({
+      orderItemId: item.id,
+      shareRatio: 1,
+    });
+    weights[lightest]! +=
+      Number(item.subtotal) *
+      (item.taxMode === "INCLUSIVE" ? 1 : 1 + Number(item.taxRate) / 100);
   }
   return { status: "complete" as const, allocations };
-}
+};

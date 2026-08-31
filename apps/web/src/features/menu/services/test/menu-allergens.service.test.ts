@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const get = vi.hoisted(() => vi.fn());
 vi.mock("../../../../shared/lib/api-client", () => ({ apiClient: { get } }));
 
-import { menuAllergensService } from "../menu-allergens.service";
+import { menuAllergensService } from "@/features/menu/services/menu-allergens.service";
 
 describe("menuAllergensService", () => {
   beforeEach(() => {

@@ -6,7 +6,7 @@ interface Props {
   onBack: () => void;
 }
 
-export function ProfilePage({ waiterName, onBack }: Props) {
+export const ProfilePage = ({ waiterName, onBack }: Props) => {
   return (
     <div className="flex flex-col h-full bg-background">
       <header className="flex items-center gap-3 px-4 py-3 bg-surface border-b border-border">
@@ -34,4 +34,4 @@ export function ProfilePage({ waiterName, onBack }: Props) {
       </div>
     </div>
   );
-}
+};

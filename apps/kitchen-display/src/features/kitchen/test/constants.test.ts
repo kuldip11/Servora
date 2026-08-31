@@ -4,7 +4,7 @@ import {
   STATUS_CONFIG,
   TICKETS_POLL_INTERVAL_MS,
   URGENT_THRESHOLD_MS,
-} from "../constants";
+} from "@/features/kitchen/constants";
 describe("kitchen constants", () => {
   it("defines workflow and board", () => {
     expect(STATUS_CONFIG.FIRED.next).toBe("PREPARING");

@@ -18,8 +18,14 @@ vi.mock("../../../../shared/lib/realtime", () => ({
 
 import { createRealtimeClient } from "@pos/realtime";
 import type { RealtimeEvent, KitchenTicket } from "@pos/types";
-import { useKitchenRealtime, mergeKitchenTicketIntoQueue } from "../useKitchenRealtime";
-import { KITCHEN_TICKETS_QUERY_KEY, kitchenTicketsQueryKey } from "../useKitchenTickets";
+import {
+  useKitchenRealtime,
+  mergeKitchenTicketIntoQueue,
+} from "@/features/kitchen/hooks/useKitchenRealtime";
+import {
+  KITCHEN_TICKETS_QUERY_KEY,
+  kitchenTicketsQueryKey,
+} from "@/features/kitchen/hooks/useKitchenTickets";
 
 beforeEach(() => {
   mocks.handlers.length = 0;
@@ -66,27 +72,48 @@ describe("useKitchenRealtime", () => {
   });
   it("projects a void event onto the assigned station immediately without polling", () => {
     useKitchenRealtime("grill");
-    const voidHandler = mocks.handlers.find(([type]) => type === "order.item.voided")?.[1];
+    const voidHandler = mocks.handlers.find(
+      ([type]) => type === "order.item.voided",
+    )?.[1];
     expect(voidHandler).toBeDefined();
     const incoming = {
       id: "t-void",
       status: "PREPARING",
       firedAt: "2026-08-27T10:00:00.000Z",
       items: [
-        { id: "grill-line", menuItemId: "m1", stationId: "grill", itemStatus: "VOIDED" },
-        { id: "cold-line", menuItemId: "m2", stationId: "cold", itemStatus: "ACTIVE" },
-        { id: "fallback", menuItemId: "m3", stationId: null, itemStatus: "ACTIVE" },
+        {
+          id: "grill-line",
+          menuItemId: "m1",
+          stationId: "grill",
+          itemStatus: "VOIDED",
+        },
+        {
+          id: "cold-line",
+          menuItemId: "m2",
+          stationId: "cold",
+          itemStatus: "ACTIVE",
+        },
+        {
+          id: "fallback",
+          menuItemId: "m3",
+          stationId: null,
+          itemStatus: "ACTIVE",
+        },
       ],
     };
     const started = performance.now();
     voidHandler?.({ type: "order.item.voided", payload: incoming });
     const elapsed = performance.now() - started;
     expect(elapsed).toBeLessThan(50);
-    expect(mocks.setQueryData).toHaveBeenCalledWith(kitchenTicketsQueryKey("grill"), expect.any(Function));
+    expect(mocks.setQueryData).toHaveBeenCalledWith(
+      kitchenTicketsQueryKey("grill"),
+      expect.any(Function),
+    );
     const updater = mocks.setQueryData.mock.calls.at(-1)?.[1];
-    expect(updater([])[0].items.map((item: { id: string }) => item.id)).toEqual(["grill-line", "fallback"]);
+    expect(updater([])[0].items.map((item: { id: string }) => item.id)).toEqual(
+      ["grill-line", "fallback"],
+    );
   });
-
 });
 
 class TestRealtimeSocket {
@@ -98,9 +125,15 @@ class TestRealtimeSocket {
   onmessage: ((event: { data: string }) => void) | null = null;
   onclose: (() => void) | null = null;
   onerror: (() => void) | null = null;
-  constructor(public url: string) { TestRealtimeSocket.instances.push(this); }
-  close() { this.onclose?.(); }
-  message(payload: unknown) { this.onmessage?.({ data: JSON.stringify(payload) }); }
+  constructor(public url: string) {
+    TestRealtimeSocket.instances.push(this);
+  }
+  close() {
+    this.onclose?.();
+  }
+  message(payload: unknown) {
+    this.onmessage?.({ data: JSON.stringify(payload) });
+  }
 }
 
 describe("void realtime transport benchmark", () => {
@@ -115,17 +148,61 @@ describe("void realtime transport benchmark", () => {
     });
     let state: KitchenTicket[] = [];
     client.subscribe((event) => {
-      if (event.type === "order.item.voided" || event.type === "kitchen.ticket.created") {
+      if (
+        event.type === "order.item.voided" ||
+        event.type === "kitchen.ticket.created"
+      ) {
         state = mergeKitchenTicketIntoQueue(state, event.payload, "grill");
       }
     });
     const socket = TestRealtimeSocket.instances[0]!;
     const base = {
-      id: "ticket-transport", tenantId: "t1", branchId: "b1", orderId: "o1", ticketNumber: 1,
-      status: "PREPARING", courseId: null, notes: null, firedAt: "2026-08-30T10:00:00.000Z",
-      readyAt: null, servedAt: null, createdAt: "2026-08-30T10:00:00.000Z", updatedAt: "2026-08-30T10:00:00.000Z",
+      id: "ticket-transport",
+      tenantId: "t1",
+      branchId: "b1",
+      orderId: "o1",
+      ticketNumber: 1,
+      status: "PREPARING",
+      courseId: null,
+      notes: null,
+      firedAt: "2026-08-30T10:00:00.000Z",
+      readyAt: null,
+      servedAt: null,
+      createdAt: "2026-08-30T10:00:00.000Z",
+      updatedAt: "2026-08-30T10:00:00.000Z",
       items: [
-        { id: "grill", orderId: "o1", menuItemId: "m1", menuItemName: "Steak", variantId: null, variantName: null, quantity: 1, unitPrice: 10, subtotal: 10, taxRate: 0, taxMode: "EXCLUSIVE", pricingAttribution: null, chefNotes: null, fulfillmentType: "DINE_IN", stationId: "grill", menuChangeEventId: null, itemStatus: "ACTIVE", refiresOrderItemId: null, refireReason: null, refiredBy: null, refiredAt: null, voidedReason: null, voidedBy: null, voidedAt: null, voidedReasonId: null, compedReason: null, compedBy: null, compedAt: null, compedReasonId: null, modifiers: [] },
+        {
+          id: "grill",
+          orderId: "o1",
+          menuItemId: "m1",
+          menuItemName: "Steak",
+          variantId: null,
+          variantName: null,
+          quantity: 1,
+          unitPrice: 10,
+          subtotal: 10,
+          taxRate: 0,
+          taxMode: "EXCLUSIVE",
+          pricingAttribution: null,
+          chefNotes: null,
+          fulfillmentType: "DINE_IN",
+          stationId: "grill",
+          menuChangeEventId: null,
+          itemStatus: "ACTIVE",
+          refiresOrderItemId: null,
+          refireReason: null,
+          refiredBy: null,
+          refiredAt: null,
+          voidedReason: null,
+          voidedBy: null,
+          voidedAt: null,
+          voidedReasonId: null,
+          compedReason: null,
+          compedBy: null,
+          compedAt: null,
+          compedReasonId: null,
+          modifiers: [],
+        },
       ],
     } as unknown as KitchenTicket;
 
@@ -134,12 +211,21 @@ describe("void realtime transport benchmark", () => {
     const createdElapsed = performance.now() - createdStart;
     expect(state).toHaveLength(1);
 
-    const voided = { ...base, items: base.items.map((item) => ({ ...item, itemStatus: "VOIDED" as const, voidedReason: "guest changed mind" })) };
+    const voided = {
+      ...base,
+      items: base.items.map((item) => ({
+        ...item,
+        itemStatus: "VOIDED" as const,
+        voidedReason: "guest changed mind",
+      })),
+    };
     const voidStart = performance.now();
     socket.message({ type: "order.item.voided", payload: voided });
     const voidElapsed = performance.now() - voidStart;
     expect(state[0]?.items[0]?.itemStatus).toBe("VOIDED");
 
-    expect(voidElapsed).toBeLessThanOrEqual(Math.max(50, createdElapsed * 5 + 5));
+    expect(voidElapsed).toBeLessThanOrEqual(
+      Math.max(50, createdElapsed * 5 + 5),
+    );
   });
 });

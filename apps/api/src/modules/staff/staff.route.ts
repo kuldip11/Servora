@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import { requireAuthPlugin } from "../../core/auth";
+import { requireAuthPlugin } from "@/core/auth";
 import { staffController } from "./staff.controller";
 import {
   createStaffBody,

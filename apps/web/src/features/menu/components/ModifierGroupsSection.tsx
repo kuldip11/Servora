@@ -12,10 +12,10 @@ import {
   Spinner,
   Badge,
 } from "@pos/ui";
-import { formatCurrency } from "../../../shared/utils";
-import { useModifierGroups } from "../hooks/useModifierGroups";
-import { useSaveModifierGroup } from "../hooks/useSaveModifierGroup";
-import { useDeleteModifierGroup } from "../hooks/useDeleteModifierGroup";
+import { formatCurrency } from "@/shared/utils";
+import { useModifierGroups } from "@/features/menu/hooks/useModifierGroups";
+import { useSaveModifierGroup } from "@/features/menu/hooks/useSaveModifierGroup";
+import { useDeleteModifierGroup } from "@/features/menu/hooks/useDeleteModifierGroup";
 import type { ModifierGroup } from "@pos/types";
 import {
   modifierGroupFormSchema,
@@ -32,7 +32,7 @@ const emptyGroup: ModifierGroupFormValues = {
   dependsOnOptionId: null,
 };
 
-export function ModifierGroupsSection() {
+export const ModifierGroupsSection = () => {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<ModifierGroup | null>(null);
 
@@ -101,7 +101,9 @@ export function ModifierGroupsSection() {
         additionalPrice: Number(o.additionalPrice),
         maxQuantity: Number(o.maxQuantity),
         isDefault: o.isDefault ?? false,
-        ...(o.replacesDefaultComponent?.trim() ? { replacesDefaultComponent: o.replacesDefaultComponent.trim() } : {}),
+        ...(o.replacesDefaultComponent?.trim()
+          ? { replacesDefaultComponent: o.replacesDefaultComponent.trim() }
+          : {}),
       })),
     };
     saveMutation.mutate(
@@ -233,7 +235,21 @@ export function ModifierGroupsSection() {
           />
 
           <div className="grid grid-cols-3 gap-3">
-            <Controller control={control} name="groupType" render={({ field }) => <Select label="Group type" value={field.value} options={[{ value: "ADDON", label: "Addon" }, { value: "SUBSTITUTION", label: "Substitution" }]} onChange={field.onChange} />} />
+            <Controller
+              control={control}
+              name="groupType"
+              render={({ field }) => (
+                <Select
+                  label="Group type"
+                  value={field.value}
+                  options={[
+                    { value: "ADDON", label: "Addon" },
+                    { value: "SUBSTITUTION", label: "Substitution" },
+                  ]}
+                  onChange={field.onChange}
+                />
+              )}
+            />
             <Controller
               control={control}
               name="selectionType"
@@ -269,7 +285,28 @@ export function ModifierGroupsSection() {
             Min 0 = optional. Leave max blank for no limit on how many a guest
             can pick.
           </p>
-          <Controller control={control} name="dependsOnOptionId" render={({ field }) => <Select label="Show only after option" value={field.value ?? ""} options={[{ value: "", label: "Always show" }, ...(groups ?? []).filter((group) => group.id !== editing?.id).flatMap((group) => group.options.map((option) => ({ value: option.id, label: `${group.name} → ${option.name}` })))]} onChange={(value) => field.onChange(value || null)} />} />
+          <Controller
+            control={control}
+            name="dependsOnOptionId"
+            render={({ field }) => (
+              <Select
+                label="Show only after option"
+                value={field.value ?? ""}
+                options={[
+                  { value: "", label: "Always show" },
+                  ...(groups ?? [])
+                    .filter((group) => group.id !== editing?.id)
+                    .flatMap((group) =>
+                      group.options.map((option) => ({
+                        value: option.id,
+                        label: `${group.name} → ${option.name}`,
+                      })),
+                    ),
+                ]}
+                onChange={(value) => field.onChange(value || null)}
+              />
+            )}
+          />
 
           <div>
             <p className="text-sm font-medium text-text-primary mb-2">
@@ -316,8 +353,19 @@ export function ModifierGroupsSection() {
                     >
                       <X className="w-4 h-4" aria-hidden="true" />
                     </button>
-                    <label className="mt-2 flex items-center gap-1 text-xs"><input type="checkbox" {...register(`options.${i}.isDefault`)} /> Default</label>
-                    <div className="w-32"><Input placeholder="Replaces (e.g. Fries)" {...register(`options.${i}.replacesDefaultComponent`)} /></div>
+                    <label className="mt-2 flex items-center gap-1 text-xs">
+                      <input
+                        type="checkbox"
+                        {...register(`options.${i}.isDefault`)}
+                      />{" "}
+                      Default
+                    </label>
+                    <div className="w-32">
+                      <Input
+                        placeholder="Replaces (e.g. Fries)"
+                        {...register(`options.${i}.replacesDefaultComponent`)}
+                      />
+                    </div>
                   </div>
                 </div>
               ))}
@@ -330,7 +378,13 @@ export function ModifierGroupsSection() {
             <button
               type="button"
               onClick={() =>
-                append({ name: "", additionalPrice: "0", maxQuantity: "1", isDefault: false, replacesDefaultComponent: "" })
+                append({
+                  name: "",
+                  additionalPrice: "0",
+                  maxQuantity: "1",
+                  isDefault: false,
+                  replacesDefaultComponent: "",
+                })
               }
               className="mt-2 text-xs font-medium text-primary hover:text-primary-hover"
             >
@@ -358,4 +412,4 @@ export function ModifierGroupsSection() {
       </Modal>
     </div>
   );
-}
+};

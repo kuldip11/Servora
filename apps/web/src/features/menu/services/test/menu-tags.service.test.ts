@@ -7,7 +7,7 @@ const api = vi.hoisted(() => ({
 }));
 vi.mock("../../../../shared/lib/api-client", () => ({ apiClient: api }));
 
-import { menuTagsService } from "../menu-tags.service";
+import { menuTagsService } from "@/features/menu/services/menu-tags.service";
 
 describe("menuTagsService", () => {
   beforeEach(() => {

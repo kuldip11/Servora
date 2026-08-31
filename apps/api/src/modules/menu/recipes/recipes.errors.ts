@@ -1,10 +1,9 @@
+import { NotFoundError } from "@/core/errors";
 
-import { NotFoundError } from "../../../core/errors";
-
-export function itemNotFound(id?: string): NotFoundError {
+export const itemNotFound = (id?: string): NotFoundError => {
   return new NotFoundError("Menu item", id);
-}
+};
 
-export function inventoryItemNotFound(ids: string[]): NotFoundError {
+export const inventoryItemNotFound = (ids: string[]): NotFoundError => {
   return new NotFoundError("Inventory item", undefined, { missingIds: ids });
-}
+};

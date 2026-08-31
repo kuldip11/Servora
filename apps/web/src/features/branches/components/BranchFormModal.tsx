@@ -6,7 +6,7 @@ import type {
 } from "react-hook-form";
 import { Button, Modal, Input } from "@pos/ui";
 import type { BranchFormValues } from "@pos/validation";
-export function BranchFormModal({
+export const BranchFormModal = ({
   mode,
   open,
   form,
@@ -28,7 +28,7 @@ export function BranchFormModal({
   pending: boolean;
   onClose: () => void;
   onSubmit: (values: BranchFormValues) => void;
-}) {
+}) => {
   const valid =
     form.dineInEnabled ||
     form.takeawayEnabled ||
@@ -163,4 +163,4 @@ export function BranchFormModal({
       </form>
     </Modal>
   );
-}
+};

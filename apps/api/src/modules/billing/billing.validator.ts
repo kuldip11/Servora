@@ -27,19 +27,30 @@ export const billIdParams = t.Object({
 });
 
 export const orderIdParams = t.Object({ id: t.String() });
-export const orderItemSeatShareParams = t.Object({ id: t.String({ format: "uuid" }), itemId: t.String({ format: "uuid" }) });
-export const itemSeatSharesBody = t.Object({
-  shares: t.Array(t.Object({
-    seatLabel: t.String({ minLength: 1, maxLength: 50 }),
-    shareRatio: t.Number({ exclusiveMinimum: 0, maximum: 1 }),
-  }), { minItems: 2, maxItems: 20 }),
+export const orderItemSeatShareParams = t.Object({
+  id: t.String({ format: "uuid" }),
+  itemId: t.String({ format: "uuid" }),
 });
-export const splitBillBody = t.Object({ ways: t.Integer({ minimum: 2, maximum: 20 }) });
+export const itemSeatSharesBody = t.Object({
+  shares: t.Array(
+    t.Object({
+      seatLabel: t.String({ minLength: 1, maxLength: 50 }),
+      shareRatio: t.Number({ exclusiveMinimum: 0, maximum: 1 }),
+    }),
+    { minItems: 2, maxItems: 20 },
+  ),
+});
+export const splitBillBody = t.Object({
+  ways: t.Integer({ minimum: 2, maximum: 20 }),
+});
 export const splitByItemsBody = t.Object({
-  allocations: t.Array(t.Object({
-    label: t.Optional(t.String({ maxLength: 100 })),
-    orderItemIds: t.Array(t.String({ format: "uuid" }), { minItems: 1 }),
-  }), { minItems: 2, maxItems: 20 }),
+  allocations: t.Array(
+    t.Object({
+      label: t.Optional(t.String({ maxLength: 100 })),
+      orderItemIds: t.Array(t.String({ format: "uuid" }), { minItems: 1 }),
+    }),
+    { minItems: 2, maxItems: 20 },
+  ),
 });
 export const splitBySeatBody = t.Object({
   sharedItemStrategy: t.Union([t.Literal("EVEN_SPLIT"), t.Literal("MANUAL")]),

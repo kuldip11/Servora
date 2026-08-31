@@ -2,7 +2,7 @@ import { createOrdersApi } from "@pos/api-client";
 import type { Order } from "@pos/types";
 import type { AddOrderItemInput } from "./orders";
 import { createOrderSchema } from "@pos/validation";
-import { apiClient } from "../../../shared/lib/api-client";
+import { apiClient } from "@/shared/lib/api-client";
 
 const ordersApi = createOrdersApi(apiClient);
 
@@ -27,6 +27,6 @@ export interface CreateOrderInput {
   combos?: CreateOrderComboInput[];
 }
 
-export async function createOrder(input: CreateOrderInput): Promise<Order> {
+export const createOrder = async (input: CreateOrderInput): Promise<Order> => {
   return ordersApi.create(createOrderSchema.parse(input));
-}
+};

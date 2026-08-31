@@ -8,13 +8,13 @@ interface Props {
   onAdvance: () => void;
 }
 
-export function TicketFooter({
+export const TicketFooter = ({
   next,
   nextLabel,
   btnClass,
   isUpdating,
   onAdvance,
-}: Props) {
+}: Props) => {
   if (!next) {
     return (
       <p className="text-center text-xs text-text-secondary py-2">
@@ -32,4 +32,4 @@ export function TicketFooter({
       {nextLabel}
     </button>
   );
-}
+};

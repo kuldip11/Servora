@@ -1,14 +1,12 @@
-
-
 import type { OrderStatus } from "@pos/types";
-import type { AuthContext } from "../../core/auth";
-import { successResponse, createdResponse } from "../../core/response";
+import type { AuthContext } from "@/core/auth";
+import { successResponse, createdResponse } from "@/core/response";
 import {
   orderService,
   type CreateOrderInput,
   type FireTicketInput,
 } from "./order.service";
-import { orderExplainService } from "../menu/explain/order-explain.service";
+import { orderExplainService } from "@/modules/menu/explain/order-explain.service";
 
 export const orderController = {
   async explain(auth: AuthContext, orderId: string) {

@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
-import { rootLogger } from "../logger";
-import { requestContextPlugin } from "../context";
+import { rootLogger } from "@/core/logger";
+import { requestContextPlugin } from "@/core/context";
 import { metrics } from "./metrics";
 
 export const requestLoggingPlugin = () =>

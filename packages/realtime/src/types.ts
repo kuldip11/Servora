@@ -1,5 +1,4 @@
 export interface RealtimeClientConfig {
-
   url: string;
   getAccessToken: () => string | null;
 

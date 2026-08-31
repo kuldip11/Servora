@@ -1,5 +1,5 @@
-import { ValidationError } from "../../../core/errors";
-import type { PricedLine } from "../../orders/pricing/pricing-pipeline";
+import { ValidationError } from "@/core/errors";
+import type { PricedLine } from "@/modules/orders/pricing/pricing-pipeline";
 
 export interface ComboSlotSelection {
   slotId: string;
@@ -19,14 +19,14 @@ export interface ComboDefinition {
   }>;
 }
 
-function cents(value: number) {
+const cents = (value: number) => {
   return Math.round(value * 100);
-}
+};
 
-export function allocateComboTotal(
+export const allocateComboTotal = (
   lines: PricedLine[],
   total: number,
-): PricedLine[] {
+): PricedLine[] => {
   if (!lines.length) return lines;
 
   const target = cents(total);
@@ -59,12 +59,12 @@ export function allocateComboTotal(
       },
     };
   });
-}
+};
 
-export function priceCombo(
+export const priceCombo = (
   combo: ComboDefinition,
   selections: ComboSlotSelection[],
-) {
+) => {
   let componentSum = 0;
   let upcharges = 0;
 
@@ -81,7 +81,9 @@ export function priceCombo(
       );
     }
     for (const optionId of chosen) {
-      const option = slot.options.find((candidate) => candidate.id === optionId);
+      const option = slot.options.find(
+        (candidate) => candidate.id === optionId,
+      );
       if (!option) throw new ValidationError(`Invalid option for ${slot.name}`);
       componentSum += option.basePrice;
       upcharges += option.upcharge;
@@ -97,4 +99,4 @@ export function priceCombo(
     componentSum,
     upcharges,
   };
-}
+};

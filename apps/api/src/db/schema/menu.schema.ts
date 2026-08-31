@@ -35,7 +35,10 @@ export const menuItemStatusEnum = pgEnum("menu_item_status", [
 ]);
 
 export const foodTypeEnum = pgEnum("food_type", ["VEG", "NON_VEG", "EGG"]);
-export const menuItemDisplayModeEnum = pgEnum("menu_item_display_mode", ["STANDARD", "GUIDED_BUILDER"]);
+export const menuItemDisplayModeEnum = pgEnum("menu_item_display_mode", [
+  "STANDARD",
+  "GUIDED_BUILDER",
+]);
 
 export const spiceLevelEnum = pgEnum("spice_level", [
   "NONE",
@@ -48,10 +51,24 @@ export const modifierSelectionTypeEnum = pgEnum("modifier_selection_type", [
   "SINGLE",
   "MULTIPLE",
 ]);
-export const modifierGroupTypeEnum = pgEnum("modifier_group_type", ["ADDON", "SUBSTITUTION"]);
-export const comboPricePolicyEnum = pgEnum("combo_price_policy", ["FIXED", "PERCENT_OFF_SUM"]);
-export const zonePricingRuleEnum = pgEnum("zone_pricing_rule", ["AVERAGE", "HIGHER", "SUM_HALF"]);
-export const pricingModeEnum = pgEnum("pricing_mode", ["FIXED", "WEIGHT_BASED", "OPEN"]);
+export const modifierGroupTypeEnum = pgEnum("modifier_group_type", [
+  "ADDON",
+  "SUBSTITUTION",
+]);
+export const comboPricePolicyEnum = pgEnum("combo_price_policy", [
+  "FIXED",
+  "PERCENT_OFF_SUM",
+]);
+export const zonePricingRuleEnum = pgEnum("zone_pricing_rule", [
+  "AVERAGE",
+  "HIGHER",
+  "SUM_HALF",
+]);
+export const pricingModeEnum = pgEnum("pricing_mode", [
+  "FIXED",
+  "WEIGHT_BASED",
+  "OPEN",
+]);
 export const weightUnitEnum = pgEnum("weight_unit", ["G", "KG", "LB", "OZ"]);
 
 export const menuStatusEnum = pgEnum("menu_status", ["DRAFT", "PUBLISHED"]);
@@ -83,8 +100,12 @@ export const menus = pgTable(
   "menus",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
-    organizationId: uuid("organization_id").references(() => organizations.id, { onDelete: "cascade" }),
+    tenantId: uuid("tenant_id").references(() => tenants.id, {
+      onDelete: "cascade",
+    }),
+    organizationId: uuid("organization_id").references(() => organizations.id, {
+      onDelete: "cascade",
+    }),
     name: varchar("name", { length: 200 }).notNull(),
     description: text("description"),
     status: menuStatusEnum("status").notNull().default("DRAFT"),
@@ -101,8 +122,12 @@ export const menus = pgTable(
     organizationStatusIdx: index("menus_organization_status_idx")
       .on(t.organizationId, t.status)
       .where(sql`${t.organizationId} IS NOT NULL`),
-    tenantName: uniqueIndex("menus_tenant_name_unique").on(t.tenantId, t.name).where(sql`${t.tenantId} IS NOT NULL`),
-    organizationName: uniqueIndex("menus_organization_name_unique").on(t.organizationId, t.name).where(sql`${t.organizationId} IS NOT NULL`),
+    tenantName: uniqueIndex("menus_tenant_name_unique")
+      .on(t.tenantId, t.name)
+      .where(sql`${t.tenantId} IS NOT NULL`),
+    organizationName: uniqueIndex("menus_organization_name_unique")
+      .on(t.organizationId, t.name)
+      .where(sql`${t.organizationId} IS NOT NULL`),
     oneDefault: uniqueIndex("menus_one_default_per_tenant")
       .on(t.tenantId)
       .where(sql`${t.isDefault} = true AND ${t.tenantId} IS NOT NULL`),
@@ -164,7 +189,9 @@ export const menuItems = pgTable(
     openPriceMin: numeric("open_price_min", { precision: 10, scale: 2 }),
     openPriceMax: numeric("open_price_max", { precision: 10, scale: 2 }),
     supportsZones: boolean("supports_zones").notNull().default(false),
-    zonePricingRule: zonePricingRuleEnum("zone_pricing_rule").notNull().default("HIGHER"),
+    zonePricingRule: zonePricingRuleEnum("zone_pricing_rule")
+      .notNull()
+      .default("HIGHER"),
     manualStockCount: integer("manual_stock_count"),
     manualStockCountUpdatedAt: timestamp("manual_stock_count_updated_at"),
     taxRate: numeric("tax_rate", { precision: 5, scale: 2 })
@@ -185,15 +212,20 @@ export const menuItems = pgTable(
 
     manualOverrideStatus: menuItemStatusEnum("manual_override_status"),
     manualOverrideReason: varchar("manual_override_reason", { length: 500 }),
-    manualOverrideSetBy: uuid("manual_override_set_by").references(() => users.id, {
-      onDelete: "set null",
-    }),
+    manualOverrideSetBy: uuid("manual_override_set_by").references(
+      () => users.id,
+      {
+        onDelete: "set null",
+      },
+    ),
     manualOverrideSetAt: timestamp("manual_override_set_at"),
 
     enableRecipeDeduction: boolean("enable_recipe_deduction")
       .notNull()
       .default(true),
-    displayMode: menuItemDisplayModeEnum("display_mode").notNull().default("STANDARD"),
+    displayMode: menuItemDisplayModeEnum("display_mode")
+      .notNull()
+      .default("STANDARD"),
     effectiveFrom: timestamp("effective_from"),
 
     isPublished: boolean("is_published").notNull().default(true),
@@ -259,13 +291,20 @@ export const organizationMenuItems = pgTable(
   "organization_menu_items",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    menuId: uuid("menu_id").notNull().references(() => menus.id, { onDelete: "cascade" }),
+    menuId: uuid("menu_id")
+      .notNull()
+      .references(() => menus.id, { onDelete: "cascade" }),
     itemSku: varchar("item_sku", { length: 50 }).notNull(),
     categoryName: varchar("category_name", { length: 100 }),
     sortOrder: integer("sort_order").notNull().default(0),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
-  (t) => ({ menuSkuUnique: uniqueIndex("organization_menu_items_menu_sku_unique").on(t.menuId, t.itemSku) }),
+  (t) => ({
+    menuSkuUnique: uniqueIndex("organization_menu_items_menu_sku_unique").on(
+      t.menuId,
+      t.itemSku,
+    ),
+  }),
 );
 
 export const menuChangeEvents = pgTable(
@@ -369,27 +408,42 @@ export const modifierOptions = pgTable("modifier_options", {
     .notNull()
     .default("0"),
 
-  computedAvailability: boolean("computed_availability").notNull().default(true),
+  computedAvailability: boolean("computed_availability")
+    .notNull()
+    .default(true),
   manualOverrideAvailability: boolean("manual_override_availability"),
   maxQuantity: integer("max_quantity").notNull().default(1),
   sortOrder: integer("sort_order").notNull().default(0),
   isDefault: boolean("is_default").notNull().default(false),
-  replacesDefaultComponent: varchar("replaces_default_component", { length: 200 }),
+  replacesDefaultComponent: varchar("replaces_default_component", {
+    length: 200,
+  }),
 });
 
 export const modifierOptionVariantPrices = pgTable(
   "modifier_option_variant_prices",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    modifierOptionId: uuid("modifier_option_id").notNull().references(() => modifierOptions.id, { onDelete: "cascade" }),
-    variantId: uuid("variant_id").notNull().references(() => menuItemVariants.id, { onDelete: "cascade" }),
-    additionalPrice: numeric("additional_price", { precision: 10, scale: 2 }).notNull(),
+    modifierOptionId: uuid("modifier_option_id")
+      .notNull()
+      .references(() => modifierOptions.id, { onDelete: "cascade" }),
+    variantId: uuid("variant_id")
+      .notNull()
+      .references(() => menuItemVariants.id, { onDelete: "cascade" }),
+    additionalPrice: numeric("additional_price", {
+      precision: 10,
+      scale: 2,
+    }).notNull(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => ({
-    optionVariantUnique: uniqueIndex("modifier_option_variant_prices_option_variant_unique").on(t.modifierOptionId, t.variantId),
-    variantIdx: index("modifier_option_variant_prices_variant_idx").on(t.variantId),
+    optionVariantUnique: uniqueIndex(
+      "modifier_option_variant_prices_option_variant_unique",
+    ).on(t.modifierOptionId, t.variantId),
+    variantIdx: index("modifier_option_variant_prices_variant_idx").on(
+      t.variantId,
+    ),
   }),
 );
 
@@ -408,16 +462,42 @@ export const menuItemModifierGroups = pgTable(
 );
 
 export const combos = pgTable("combos", {
-  id: uuid("id").primaryKey().defaultRandom(), tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
-  name: varchar("name", { length: 200 }).notNull(), description: text("description"), pricePolicy: comboPricePolicyEnum("price_policy").notNull(),
-  fixedPrice: numeric("fixed_price", { precision: 10, scale: 2 }), percentOff: numeric("percent_off", { precision: 5, scale: 2 }),
-  status: menuItemStatusEnum("status").notNull().default("ACTIVE"), createdAt: timestamp("created_at").notNull().defaultNow(), updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id")
+    .notNull()
+    .references(() => tenants.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 200 }).notNull(),
+  description: text("description"),
+  pricePolicy: comboPricePolicyEnum("price_policy").notNull(),
+  fixedPrice: numeric("fixed_price", { precision: 10, scale: 2 }),
+  percentOff: numeric("percent_off", { precision: 5, scale: 2 }),
+  status: menuItemStatusEnum("status").notNull().default("ACTIVE"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 export const comboSlots = pgTable("combo_slots", {
-  id: uuid("id").primaryKey().defaultRandom(), comboId: uuid("combo_id").notNull().references(() => combos.id, { onDelete: "cascade" }), name: varchar("name", { length: 150 }).notNull(), minSelections: integer("min_selections").notNull().default(1), maxSelections: integer("max_selections").notNull().default(1), sortOrder: integer("sort_order").notNull().default(0),
+  id: uuid("id").primaryKey().defaultRandom(),
+  comboId: uuid("combo_id")
+    .notNull()
+    .references(() => combos.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 150 }).notNull(),
+  minSelections: integer("min_selections").notNull().default(1),
+  maxSelections: integer("max_selections").notNull().default(1),
+  sortOrder: integer("sort_order").notNull().default(0),
 });
 export const comboSlotOptions = pgTable("combo_slot_options", {
-  id: uuid("id").primaryKey().defaultRandom(), slotId: uuid("slot_id").notNull().references(() => comboSlots.id, { onDelete: "cascade" }), menuItemId: uuid("menu_item_id").notNull().references(() => menuItems.id), variantId: uuid("variant_id").references(() => menuItemVariants.id), upcharge: numeric("upcharge", { precision: 10, scale: 2 }).notNull().default("0"), isUnlimitedRefill: boolean("is_unlimited_refill").notNull().default(false),
+  id: uuid("id").primaryKey().defaultRandom(),
+  slotId: uuid("slot_id")
+    .notNull()
+    .references(() => comboSlots.id, { onDelete: "cascade" }),
+  menuItemId: uuid("menu_item_id")
+    .notNull()
+    .references(() => menuItems.id),
+  variantId: uuid("variant_id").references(() => menuItemVariants.id),
+  upcharge: numeric("upcharge", { precision: 10, scale: 2 })
+    .notNull()
+    .default("0"),
+  isUnlimitedRefill: boolean("is_unlimited_refill").notNull().default(false),
 });
 
 export const menuTags = pgTable("menu_tags", {
@@ -527,8 +607,12 @@ export const menuSchedules = pgTable(
   "menu_schedules",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
-    menuId: uuid("menu_id").notNull().references(() => menus.id, { onDelete: "cascade" }),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    menuId: uuid("menu_id")
+      .notNull()
+      .references(() => menus.id, { onDelete: "cascade" }),
     scheduleType: menuItemScheduleTypeEnum("schedule_type").notNull(),
     startTime: time("start_time"),
     endTime: time("end_time"),
@@ -609,8 +693,12 @@ export const menuItemChannelOverrides = pgTable(
   "menu_item_channel_overrides",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
-    menuItemId: uuid("menu_item_id").notNull().references(() => menuItems.id, { onDelete: "cascade" }),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    menuItemId: uuid("menu_item_id")
+      .notNull()
+      .references(() => menuItems.id, { onDelete: "cascade" }),
     channel: text("channel").notNull(),
     fulfillmentType: text("fulfillment_type"),
     status: menuItemStatusEnum("status"),
@@ -620,7 +708,10 @@ export const menuItemChannelOverrides = pgTable(
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => ({
-    itemChannelIdx: index("menu_item_channel_overrides_item_channel_idx").on(t.menuItemId, t.channel),
+    itemChannelIdx: index("menu_item_channel_overrides_item_channel_idx").on(
+      t.menuItemId,
+      t.channel,
+    ),
     scopeUnique: uniqueIndex("menu_item_channel_overrides_scope_unique").on(
       sql`${t.menuItemId}`,
       sql`${t.channel}`,
@@ -663,7 +754,9 @@ export const menuTemplateItems = pgTable(
     openPriceMin: numeric("open_price_min", { precision: 10, scale: 2 }),
     openPriceMax: numeric("open_price_max", { precision: 10, scale: 2 }),
     supportsZones: boolean("supports_zones").notNull().default(false),
-    zonePricingRule: zonePricingRuleEnum("zone_pricing_rule").notNull().default("HIGHER"),
+    zonePricingRule: zonePricingRuleEnum("zone_pricing_rule")
+      .notNull()
+      .default("HIGHER"),
     manualStockCount: integer("manual_stock_count"),
     manualStockCountUpdatedAt: timestamp("manual_stock_count_updated_at"),
     taxRate: numeric("tax_rate", { precision: 5, scale: 2 })

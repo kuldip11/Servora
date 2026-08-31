@@ -10,7 +10,10 @@ vi.mock("../../../store/auth", () => ({
   useAuthStore: { getState: () => ({ franchiseId: "fr-1", branchId: "br-1" }) },
 }));
 
-import { orderDetailQuery, ordersListQuery } from "../query-options";
+import {
+  orderDetailQuery,
+  ordersListQuery,
+} from "@/features/orders/query-options";
 
 describe("order query definitions", () => {
   it("binds list filters into the query key and service call", () => {

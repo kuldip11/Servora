@@ -1,5 +1,3 @@
-
-
 export interface TokenStorageAdapter {
   getAccessToken(): string | null;
   setAccessToken(accessToken: string): void;

@@ -1,10 +1,26 @@
-import type { AuthContext } from "../../../core/auth";
-import { createdResponse, successResponse } from "../../../core/response";
-import { priceRuleService, type HappyHourInput, type PriceRuleInput } from "./price-rule.service";
+import type { AuthContext } from "@/core/auth";
+import { createdResponse, successResponse } from "@/core/response";
+import {
+  priceRuleService,
+  type HappyHourInput,
+  type PriceRuleInput,
+} from "./price-rule.service";
 
 export const priceRuleController = {
-  async list(auth: AuthContext, menuItemId?: string, organizationId?: string, menuItemSku?: string) {
-    return successResponse(await priceRuleService.list(auth, menuItemId, organizationId, menuItemSku));
+  async list(
+    auth: AuthContext,
+    menuItemId?: string,
+    organizationId?: string,
+    menuItemSku?: string,
+  ) {
+    return successResponse(
+      await priceRuleService.list(
+        auth,
+        menuItemId,
+        organizationId,
+        menuItemSku,
+      ),
+    );
   },
   async create(auth: AuthContext, input: PriceRuleInput) {
     return createdResponse(await priceRuleService.create(auth, input));

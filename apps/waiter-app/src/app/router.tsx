@@ -8,16 +8,22 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import { Home, ClipboardList, Plus, LogOut, Settings } from "lucide-react";
 import { IconButton } from "@pos/ui";
-import { LoginPage, getToken, getWaiterName, logout, logoutSession } from "../features/auth";
-import { HomePage } from "../features/home/pages/HomePage";
-import { OrdersPage } from "../features/orders/pages/OrdersPage";
-import { MenuPage } from "../features/menu";
-import { OrderDetailPage } from "../features/orders/pages/OrderDetailPage";
-import { ProfilePage } from "../features/profile/pages/ProfilePage";
-import { useWaiterAttention } from "../features/orders/hooks/useWaiterAttention";
-import { useConnectionStatus } from "../shared/lib/realtime";
+import {
+  LoginPage,
+  getToken,
+  getWaiterName,
+  logout,
+  logoutSession,
+} from "@/features/auth";
+import { HomePage } from "@/features/home/pages/HomePage";
+import { OrdersPage } from "@/features/orders/pages/OrdersPage";
+import { MenuPage } from "@/features/menu";
+import { OrderDetailPage } from "@/features/orders/pages/OrderDetailPage";
+import { ProfilePage } from "@/features/profile/pages/ProfilePage";
+import { useWaiterAttention } from "@/features/orders/hooks/useWaiterAttention";
+import { useConnectionStatus } from "@/shared/lib/realtime";
 
-function AuthBoundary() {
+const AuthBoundary = () => {
   const [loggedIn, setLoggedIn] = useState(() => !!getToken());
 
   if (!loggedIn) {
@@ -25,9 +31,9 @@ function AuthBoundary() {
   }
 
   return <Outlet />;
-}
+};
 
-function AppLayout({ children }: { children?: ReactNode }) {
+const AppLayout = ({ children }: { children?: ReactNode }) => {
   const navigate = useNavigate();
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
@@ -107,7 +113,7 @@ function AppLayout({ children }: { children?: ReactNode }) {
       </nav>
     </div>
   );
-}
+};
 
 const rootRoute = createRootRoute({
   component: AuthBoundary,

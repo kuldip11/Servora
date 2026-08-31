@@ -67,7 +67,7 @@ vi.mock("../inventory.repository", () => ({
     findScopedRecipeVariants,
     findScopedRecipeModifierOptions,
     findMenuItemsForAvailability,
-          findOrderDeductions,
+    findOrderDeductions,
     listWasteReasons,
     findWasteReason,
     createWasteReason,
@@ -95,7 +95,10 @@ vi.mock("../../menu/availability/availability.service", () => ({
   },
 }));
 
-import { inventoryService, weightRecipeScale } from "../inventory.service";
+import {
+  inventoryService,
+  weightRecipeScale,
+} from "@/modules/inventory/inventory.service";
 
 const baseAuth: any = {
   userId: "u1",
@@ -133,10 +136,13 @@ const rawRecipe = (overrides: Record<string, unknown> = {}) => {
   };
   const next = { ...base, ...overrides };
   if (overrides.menuItem && typeof overrides.menuItem === "object") {
-    next.menuItem = { ...base.menuItem, ...overrides.menuItem as object };
+    next.menuItem = { ...base.menuItem, ...(overrides.menuItem as object) };
   }
   if (overrides.inventoryItem && typeof overrides.inventoryItem === "object") {
-    next.inventoryItem = { ...base.inventoryItem, ...overrides.inventoryItem as object };
+    next.inventoryItem = {
+      ...base.inventoryItem,
+      ...(overrides.inventoryItem as object),
+    };
   }
   return next;
 };
@@ -286,20 +292,26 @@ describe("inventory service", () => {
         },
       }),
     ]);
-    deductRecipeLines.mockResolvedValue({ deducted: 2, touchedInventoryItemIds: [], short: [] });
+    deductRecipeLines.mockResolvedValue({
+      deducted: 2,
+      touchedInventoryItemIds: [],
+      short: [],
+    });
 
     await inventoryService.deductForOrderItems(
       "t1",
       "b1",
       "o1",
       "kt1",
-      [{
-        orderItemId: "oi1",
-        menuItemId: "m1",
-        variantId: "v-large",
-        quantity: 1,
-        selectedOptions: [{ optionId: "opt-cheese", quantity: 2 }],
-      }],
+      [
+        {
+          orderItemId: "oi1",
+          menuItemId: "m1",
+          variantId: "v-large",
+          quantity: 1,
+          selectedOptions: [{ optionId: "opt-cheese", quantity: 2 }],
+        },
+      ],
       "u1",
     );
 
@@ -309,13 +321,25 @@ describe("inventory service", () => {
       "o1",
       "kt1",
       expect.arrayContaining([
-        expect.objectContaining({ orderItemId: "oi1", inventoryItemId: "i1", neededQuantity: 2 }),
-        expect.objectContaining({ orderItemId: "oi1", inventoryItemId: "i-cheese", neededQuantity: 1 }),
+        expect.objectContaining({
+          orderItemId: "oi1",
+          inventoryItemId: "i1",
+          neededQuantity: 2,
+        }),
+        expect.objectContaining({
+          orderItemId: "oi1",
+          inventoryItemId: "i-cheese",
+          neededQuantity: 1,
+        }),
       ]),
       "u1",
     );
-    const lines = deductRecipeLines.mock.calls[0]?.[4] as Array<{ inventoryItemId: string }>;
-    expect(lines.filter((line) => line.inventoryItemId === "i1")).toHaveLength(1);
+    const lines = deductRecipeLines.mock.calls[0]?.[4] as Array<{
+      inventoryItemId: string;
+    }>;
+    expect(lines.filter((line) => line.inventoryItemId === "i1")).toHaveLength(
+      1,
+    );
   });
 
   it("E2/E3 recursively resolves a sub-recipe and applies both recipe and prep yield", async () => {
@@ -338,33 +362,50 @@ describe("inventory service", () => {
       yieldQuantity: "10",
       yieldUnit: "KG",
       yieldPercent: "80",
-      ingredients: [{
-        inventoryItemId: "i-tomato",
-        ingredientSubRecipeId: null,
-        quantityRequired: "8",
-        unit: "KG",
-        inventoryItem: {
-          id: "i-tomato",
-          tenantId: "t1",
-          branchId: "b1",
+      ingredients: [
+        {
+          inventoryItemId: "i-tomato",
+          ingredientSubRecipeId: null,
+          quantityRequired: "8",
           unit: "KG",
-          name: "Tomato",
-          currentStock: "100",
-          costPerUnit: "3",
+          inventoryItem: {
+            id: "i-tomato",
+            tenantId: "t1",
+            branchId: "b1",
+            unit: "KG",
+            name: "Tomato",
+            currentStock: "100",
+            costPerUnit: "3",
+          },
         },
-      }],
+      ],
     });
-    deductRecipeLines.mockResolvedValue({ deducted: 1, touchedInventoryItemIds: [], short: [] });
+    deductRecipeLines.mockResolvedValue({
+      deducted: 1,
+      touchedInventoryItemIds: [],
+      short: [],
+    });
 
     await inventoryService.deductForOrderItems(
-      "t1", "b1", "o1", "kt1",
+      "t1",
+      "b1",
+      "o1",
+      "kt1",
       [{ orderItemId: "oi1", menuItemId: "m1", quantity: 1 }],
       "u1",
     );
 
     expect(deductRecipeLines).toHaveBeenCalledWith(
-      "t1", "b1", "o1", "kt1",
-      [expect.objectContaining({ inventoryItemId: "i-tomato", neededQuantity: 10 })],
+      "t1",
+      "b1",
+      "o1",
+      "kt1",
+      [
+        expect.objectContaining({
+          inventoryItemId: "i-tomato",
+          neededQuantity: 10,
+        }),
+      ],
       "u1",
     );
   });
@@ -377,7 +418,12 @@ describe("inventory service", () => {
         unit: "GRAMS",
         quantityRequired: "500",
         inventoryItem: null,
-        subRecipe: { id: "sr-sauce", tenantId: "t1", branchId: "b1", yieldUnit: "KG" },
+        subRecipe: {
+          id: "sr-sauce",
+          tenantId: "t1",
+          branchId: "b1",
+          yieldUnit: "KG",
+        },
       }),
     ]);
     findSubRecipeWithIngredients.mockResolvedValue({
@@ -388,28 +434,51 @@ describe("inventory service", () => {
       yieldQuantity: "1",
       yieldUnit: "KG",
       yieldPercent: null,
-      ingredients: [{
-        inventoryItemId: "i-tomato",
-        ingredientSubRecipeId: null,
-        quantityRequired: "800",
-        unit: "GRAMS",
-        inventoryItem: {
-          id: "i-tomato", tenantId: "t1", branchId: "b1", unit: "KG",
-          name: "Tomato", currentStock: "10", costPerUnit: "3",
+      ingredients: [
+        {
+          inventoryItemId: "i-tomato",
+          ingredientSubRecipeId: null,
+          quantityRequired: "800",
+          unit: "GRAMS",
+          inventoryItem: {
+            id: "i-tomato",
+            tenantId: "t1",
+            branchId: "b1",
+            unit: "KG",
+            name: "Tomato",
+            currentStock: "10",
+            costPerUnit: "3",
+          },
         },
-      }],
+      ],
     });
-    deductRecipeLines.mockResolvedValue({ deducted: 1, touchedInventoryItemIds: [], short: [] });
+    deductRecipeLines.mockResolvedValue({
+      deducted: 1,
+      touchedInventoryItemIds: [],
+      short: [],
+    });
 
     await inventoryService.deductForOrderItems(
-      "t1", "b1", "o1", "kt1",
+      "t1",
+      "b1",
+      "o1",
+      "kt1",
       [{ orderItemId: "oi1", menuItemId: "m1", quantity: 1 }],
       "u1",
     );
 
     expect(deductRecipeLines).toHaveBeenCalledWith(
-      "t1", "b1", "o1", "kt1",
-      [expect.objectContaining({ inventoryItemId: "i-tomato", unit: "KG", neededQuantity: 0.4 })],
+      "t1",
+      "b1",
+      "o1",
+      "kt1",
+      [
+        expect.objectContaining({
+          inventoryItemId: "i-tomato",
+          unit: "KG",
+          neededQuantity: 0.4,
+        }),
+      ],
       "u1",
     );
   });
@@ -422,16 +491,30 @@ describe("inventory service", () => {
         unit: "KG",
         quantityRequired: "1",
         inventoryItem: null,
-        subRecipe: { id: "sr-other", tenantId: "t1", branchId: "b2", yieldUnit: "KG" },
+        subRecipe: {
+          id: "sr-other",
+          tenantId: "t1",
+          branchId: "b2",
+          yieldUnit: "KG",
+        },
       }),
     ]);
     findSubRecipeWithIngredients.mockResolvedValue({
-      id: "sr-other", tenantId: "t1", branchId: "b2", name: "Other branch sauce",
-      yieldQuantity: "1", yieldUnit: "KG", yieldPercent: null, ingredients: [],
+      id: "sr-other",
+      tenantId: "t1",
+      branchId: "b2",
+      name: "Other branch sauce",
+      yieldQuantity: "1",
+      yieldUnit: "KG",
+      yieldPercent: null,
+      ingredients: [],
     });
 
     await expect(
-      inventoryService.computeRecipeCost("t1", "b1", { menuItemId: "m1", quantity: 1 }),
+      inventoryService.computeRecipeCost("t1", "b1", {
+        menuItemId: "m1",
+        quantity: 1,
+      }),
     ).rejects.toThrow("not compatible with the active branch");
   });
 
@@ -441,7 +524,10 @@ describe("inventory service", () => {
     ]);
 
     await expect(
-      inventoryService.computeRecipeCost("t1", "b1", { menuItemId: "m1", quantity: 1 }),
+      inventoryService.computeRecipeCost("t1", "b1", {
+        menuItemId: "m1",
+        quantity: 1,
+      }),
     ).rejects.toThrow("incompatible units");
   });
 
@@ -450,7 +536,10 @@ describe("inventory service", () => {
       rawRecipe({ quantityRequired: "2", yieldPercent: "50" }),
     ]);
     await expect(
-      inventoryService.computeRecipeCost("t1", "b1", { menuItemId: "m1", quantity: 99 }),
+      inventoryService.computeRecipeCost("t1", "b1", {
+        menuItemId: "m1",
+        quantity: 99,
+      }),
     ).resolves.toBe(8);
   });
 
@@ -463,13 +552,20 @@ describe("inventory service", () => {
     ]);
 
     await expect(
-      inventoryService.computeRecipeCost("t1", "b1", { menuItemId: "m1", quantity: 1 }),
+      inventoryService.computeRecipeCost("t1", "b1", {
+        menuItemId: "m1",
+        quantity: 1,
+      }),
     ).resolves.toBe(4);
   });
 
   it("E3 rejects non-positive WASTE quantities on the generic stock path", async () => {
     findById.mockResolvedValue({ id: "i1", branchId: "b1" });
-    findWasteReason.mockResolvedValue({ id: "wr1", tenantId: "t1", isActive: true });
+    findWasteReason.mockResolvedValue({
+      id: "wr1",
+      tenantId: "t1",
+      isActive: true,
+    });
 
     await expect(
       inventoryService.updateStock(
@@ -491,7 +587,11 @@ describe("inventory service", () => {
       ),
     ).rejects.toThrow("Waste reason is invalid or inactive");
 
-    findWasteReason.mockResolvedValue({ id: "wr1", tenantId: "t1", isActive: true });
+    findWasteReason.mockResolvedValue({
+      id: "wr1",
+      tenantId: "t1",
+      isActive: true,
+    });
     applyStockChange.mockResolvedValue({
       status: "ok",
       item: { id: "i1", branchId: "b1", currentStock: "8", minimumStock: "2" },
@@ -503,7 +603,13 @@ describe("inventory service", () => {
       { quantity: 2, wasteReasonId: "wr1", notes: "Trim loss" },
     );
     expect(applyStockChange).toHaveBeenCalledWith(
-      "t1", "i1", 2, "WASTE", "u1", "Trim loss", "wr1",
+      "t1",
+      "i1",
+      2,
+      "WASTE",
+      "u1",
+      "Trim loss",
+      "wr1",
     );
   });
 
@@ -553,18 +659,56 @@ describe("inventory service", () => {
       { id: "m1", enableRecipeDeduction: true, status: "ACTIVE" },
     ]);
     findScopedRecipeVariants.mockResolvedValue([
-      { id: "v-large", menuItemId: "m1", status: "ACTIVE", manualOverrideStatus: "OUT_OF_STOCK", enableRecipeDeduction: true },
-      { id: "v-small", menuItemId: "m1", status: "ACTIVE", manualOverrideStatus: null, enableRecipeDeduction: true },
-      { id: "v-medium", menuItemId: "m1", status: "ACTIVE", manualOverrideStatus: null, enableRecipeDeduction: true },
+      {
+        id: "v-large",
+        menuItemId: "m1",
+        status: "ACTIVE",
+        manualOverrideStatus: "OUT_OF_STOCK",
+        enableRecipeDeduction: true,
+      },
+      {
+        id: "v-small",
+        menuItemId: "m1",
+        status: "ACTIVE",
+        manualOverrideStatus: null,
+        enableRecipeDeduction: true,
+      },
+      {
+        id: "v-medium",
+        menuItemId: "m1",
+        status: "ACTIVE",
+        manualOverrideStatus: null,
+        enableRecipeDeduction: true,
+      },
     ]);
 
     await inventoryService.syncMenuItemAvailability("t1", "b1", ["i1"]);
 
     expect(applyInventoryVariantSignal).toHaveBeenCalledTimes(3);
-    expect(applyInventoryVariantSignal).toHaveBeenCalledWith("t1", "b1", "v-large", false);
-    expect(applyInventoryVariantSignal).toHaveBeenCalledWith("t1", "b1", "v-small", true);
-    expect(applyInventoryVariantSignal).toHaveBeenCalledWith("t1", "b1", "v-medium", true);
-    expect(applyInventoryItemSignal).toHaveBeenCalledWith("t1", "b1", "m1", true);
+    expect(applyInventoryVariantSignal).toHaveBeenCalledWith(
+      "t1",
+      "b1",
+      "v-large",
+      false,
+    );
+    expect(applyInventoryVariantSignal).toHaveBeenCalledWith(
+      "t1",
+      "b1",
+      "v-small",
+      true,
+    );
+    expect(applyInventoryVariantSignal).toHaveBeenCalledWith(
+      "t1",
+      "b1",
+      "v-medium",
+      true,
+    );
+    expect(applyInventoryItemSignal).toHaveBeenCalledWith(
+      "t1",
+      "b1",
+      "m1",
+      true,
+    );
 
     findRequiredRecipeLines.mockResolvedValue([
       rawRecipe({
@@ -580,25 +724,58 @@ describe("inventory service", () => {
       }),
     ]);
     findScopedRecipeVariants.mockResolvedValue([
-      { id: "v-large", menuItemId: "m1", status: "OUT_OF_STOCK", manualOverrideStatus: "OUT_OF_STOCK", enableRecipeDeduction: true },
+      {
+        id: "v-large",
+        menuItemId: "m1",
+        status: "OUT_OF_STOCK",
+        manualOverrideStatus: "OUT_OF_STOCK",
+        enableRecipeDeduction: true,
+      },
     ]);
     await inventoryService.syncMenuItemAvailability("t1", "b1", ["i1"]);
-    expect(applyInventoryVariantSignal).toHaveBeenLastCalledWith("t1", "b1", "v-large", true);
+    expect(applyInventoryVariantSignal).toHaveBeenLastCalledWith(
+      "t1",
+      "b1",
+      "v-large",
+      true,
+    );
   });
 
   it("E4 reports base, variant, and modifier recipe impact for an ingredient", async () => {
-    findById.mockResolvedValue({ id: "i1", tenantId: "t1", branchId: "b1", name: "Flour" });
+    findById.mockResolvedValue({
+      id: "i1",
+      tenantId: "t1",
+      branchId: "b1",
+      name: "Flour",
+    });
     findAllRecipeMenuItemIds.mockResolvedValue(["m1"]);
     findMenuItemsForAvailability.mockResolvedValue([
-      { id: "m1", name: "Pizza", enableRecipeDeduction: true, status: "ACTIVE" },
+      {
+        id: "m1",
+        name: "Pizza",
+        enableRecipeDeduction: true,
+        status: "ACTIVE",
+      },
     ]);
     findScopedRecipeVariants.mockResolvedValue([
-      { id: "v-large", name: "Large", menuItemId: "m1", menuItemName: "Pizza", status: "ACTIVE", manualOverrideStatus: null },
+      {
+        id: "v-large",
+        name: "Large",
+        menuItemId: "m1",
+        menuItemName: "Pizza",
+        status: "ACTIVE",
+        manualOverrideStatus: null,
+      },
     ]);
     findScopedRecipeModifierOptions.mockResolvedValue([
       {
-        id: "opt-extra", name: "Extra crust", menuItemId: "m1", menuItemName: "Pizza",
-        isAvailable: true, computedAvailability: true, manualOverrideAvailability: null,
+        id: "opt-extra",
+        name: "Extra crust",
+        menuItemId: "m1",
+        menuItemName: "Pizza",
+        isAvailable: true,
+        computedAvailability: true,
+        manualOverrideAvailability: null,
       },
     ]);
     findRequiredRecipeLines.mockResolvedValue([
@@ -612,11 +789,16 @@ describe("inventory service", () => {
       "i1",
     );
 
-    expect(result.impacts).toEqual(expect.arrayContaining([
-      expect.objectContaining({ kind: "ITEM", entityName: "Pizza" }),
-      expect.objectContaining({ kind: "VARIANT", entityName: "Large" }),
-      expect.objectContaining({ kind: "MODIFIER_OPTION", entityName: "Extra crust" }),
-    ]));
+    expect(result.impacts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "ITEM", entityName: "Pizza" }),
+        expect.objectContaining({ kind: "VARIANT", entityName: "Large" }),
+        expect.objectContaining({
+          kind: "MODIFIER_OPTION",
+          entityName: "Extra crust",
+        }),
+      ]),
+    );
   });
 
   it("E4 preserves a manual modifier hold when ingredients are replenished", async () => {
@@ -630,8 +812,12 @@ describe("inventory service", () => {
         modifierOptionId: "opt-cheese",
         quantityRequired: "1",
         inventoryItem: {
-          id: "i-cheese", tenantId: "t1", branchId: "b1",
-          currentStock: "5", costPerUnit: "8", name: "Cheese",
+          id: "i-cheese",
+          tenantId: "t1",
+          branchId: "b1",
+          currentStock: "5",
+          costPerUnit: "8",
+          name: "Cheese",
         },
       }),
     ]);
@@ -649,7 +835,11 @@ describe("inventory service", () => {
     await inventoryService.syncMenuItemAvailability("t1", "b1", ["i-cheese"]);
 
     expect(applyInventoryModifierSignal).toHaveBeenCalledWith(
-      "t1", "b1", "m1", "opt-cheese", true,
+      "t1",
+      "b1",
+      "m1",
+      "opt-cheese",
+      true,
     );
   });
 
@@ -662,8 +852,13 @@ describe("inventory service", () => {
       rawRecipe({
         variantId: "v-large",
         inventoryItem: {
-          id: "i1", tenantId: "t1", branchId: "b1",
-          currentStock: "0", costPerUnit: "2", name: "Flour", unit: "KG",
+          id: "i1",
+          tenantId: "t1",
+          branchId: "b1",
+          currentStock: "0",
+          costPerUnit: "2",
+          name: "Flour",
+          unit: "KG",
         },
       }),
       rawRecipe({ modifierOptionId: "opt-extra" }),
@@ -700,7 +895,12 @@ describe("inventory service", () => {
       }),
     ]);
     await inventoryService.syncMenuItemAvailability("t1", "b1", ["i1"]);
-    expect(applyInventoryItemSignal).toHaveBeenCalledWith("t1", "b1", "m1", false);
+    expect(applyInventoryItemSignal).toHaveBeenCalledWith(
+      "t1",
+      "b1",
+      "m1",
+      false,
+    );
 
     findMenuItemsForAvailability.mockResolvedValue([
       { id: "m1", enableRecipeDeduction: true, status: "OUT_OF_STOCK" },
@@ -718,7 +918,12 @@ describe("inventory service", () => {
       }),
     ]);
     await inventoryService.syncMenuItemAvailability("t1", "b1", ["i1"]);
-    expect(applyInventoryItemSignal).toHaveBeenLastCalledWith("t1", "b1", "m1", true);
+    expect(applyInventoryItemSignal).toHaveBeenLastCalledWith(
+      "t1",
+      "b1",
+      "m1",
+      true,
+    );
   });
 });
 
@@ -731,16 +936,41 @@ describe("G3 weight-based recipe consumption", () => {
   });
 
   it("scales recipe deduction by captured order weight", async () => {
-    findRequiredRecipeLines.mockResolvedValue([rawRecipe({ quantityRequired: "2" })]);
-    deductRecipeLines.mockResolvedValue({ deducted: 1, touchedInventoryItemIds: [], short: [] });
+    findRequiredRecipeLines.mockResolvedValue([
+      rawRecipe({ quantityRequired: "2" }),
+    ]);
+    deductRecipeLines.mockResolvedValue({
+      deducted: 1,
+      touchedInventoryItemIds: [],
+      short: [],
+    });
     await inventoryService.deductForOrderItems(
-      "t1", "b1", "o-weight", "kt-weight",
-      [{ orderItemId: "oi-weight", menuItemId: "m1", quantity: 1, weightQuantity: 450, weightUnit: "G" }],
+      "t1",
+      "b1",
+      "o-weight",
+      "kt-weight",
+      [
+        {
+          orderItemId: "oi-weight",
+          menuItemId: "m1",
+          quantity: 1,
+          weightQuantity: 450,
+          weightUnit: "G",
+        },
+      ],
       "u1",
     );
     expect(deductRecipeLines).toHaveBeenCalledWith(
-      "t1", "b1", "o-weight", "kt-weight",
-      [expect.objectContaining({ orderItemId: "oi-weight", neededQuantity: 0.9 })],
+      "t1",
+      "b1",
+      "o-weight",
+      "kt-weight",
+      [
+        expect.objectContaining({
+          orderItemId: "oi-weight",
+          neededQuantity: 0.9,
+        }),
+      ],
       "u1",
     );
   });

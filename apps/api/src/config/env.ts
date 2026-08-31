@@ -26,7 +26,7 @@ const schema = z.object({
 
 export type ApiEnv = z.infer<typeof schema>;
 
-export function loadApiEnv(source: NodeJS.ProcessEnv = process.env): ApiEnv {
+export const loadApiEnv = (source: NodeJS.ProcessEnv = process.env): ApiEnv => {
   const parsed = schema.safeParse(source);
   if (!parsed.success) {
     const details = parsed.error.issues
@@ -36,10 +36,7 @@ export function loadApiEnv(source: NodeJS.ProcessEnv = process.env): ApiEnv {
   }
   const value = parsed.data;
   if (value.NODE_ENV === "production") {
-    if (
-      value.JWT_SECRET.length < 32 ||
-      value.METRICS_TOKEN.length < 32
-    ) {
+    if (value.JWT_SECRET.length < 32 || value.METRICS_TOKEN.length < 32) {
       throw new Error(
         "Invalid API environment: production JWT/metrics secrets must be at least 32 characters",
       );
@@ -65,6 +62,6 @@ export function loadApiEnv(source: NodeJS.ProcessEnv = process.env): ApiEnv {
     }
   }
   return value;
-}
+};
 
 export const env = loadApiEnv();

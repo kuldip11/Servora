@@ -24,8 +24,8 @@ vi.mock("../inventory.repository", () => ({
 const { publish } = vi.hoisted(() => ({ publish: vi.fn() }));
 vi.mock("../../../lib/event-bus", () => ({ eventBus: { publish } }));
 
-import { inventoryController } from "../inventory.controller";
-import type { AuthContext } from "../../../core/auth";
+import { inventoryController } from "@/modules/inventory/inventory.controller";
+import type { AuthContext } from "@/core/auth";
 
 const auth: AuthContext = {
   userId: "u1",
@@ -40,7 +40,11 @@ const auth: AuthContext = {
 beforeEach(() => {
   vi.clearAllMocks();
   findById.mockResolvedValue({ id: "i1", tenantId: "t1", branchId: "b1" });
-  findWasteReason.mockResolvedValue({ id: "wr1", tenantId: "t1", isActive: true });
+  findWasteReason.mockResolvedValue({
+    id: "wr1",
+    tenantId: "t1",
+    isActive: true,
+  });
   findAllRecipeMenuItemIds.mockResolvedValue([]);
 });
 

@@ -1,10 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError } from "../../../shared/lib/notify";
-import { staffService } from "../services/staff.service";
-import { staffKeys } from "../query-keys";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError } from "@/shared/lib/notify";
+import { staffService } from "@/features/staff/services/staff.service";
+import { staffKeys } from "@/features/staff/query-keys";
 
-export function useUpdateStaffStatus() {
+export const useUpdateStaffStatus = () => {
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
       staffService.updateStatus(id, status),
@@ -12,4 +12,4 @@ export function useUpdateStaffStatus() {
       queryClient.invalidateQueries({ queryKey: staffKeys.list() }),
     onError: (err) => notifyError(err, "Failed to update staff status"),
   });
-}
+};

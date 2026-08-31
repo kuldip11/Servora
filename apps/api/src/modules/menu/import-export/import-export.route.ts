@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import { requireAuthPlugin } from "../../../core/auth";
+import { requireAuthPlugin } from "@/core/auth";
 import { importExportController } from "./import-export.controller";
 import {
   exportItemsQuery,
@@ -8,9 +8,9 @@ import {
 } from "./import-export.validator";
 import type { ExportFormat } from "./import-export.service";
 
-function toFormat(raw: string | undefined): ExportFormat {
+const toFormat = (raw: string | undefined): ExportFormat => {
   return raw === "xlsx" ? "xlsx" : "csv";
-}
+};
 
 export const menuImportExportRouter = new Elysia({ prefix: "/api/menu" })
   .use(requireAuthPlugin())

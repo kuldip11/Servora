@@ -1,12 +1,12 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { and, eq, sql } from "drizzle-orm";
 import type { KitchenTicket, Order } from "@pos/types";
-import { db } from "../../db";
-import { bills, kitchenTickets, orders, payments } from "../../db/schema";
-import { ValidationError } from "../../core/errors";
-import { eventBus } from "../../lib/event-bus";
-import { inventoryService } from "../inventory/inventory.service";
-import { orderRepository } from "../orders/order.repository";
+import { db } from "@/db";
+import { bills, kitchenTickets, orders, payments } from "@/db/schema";
+import { ValidationError } from "@/core/errors";
+import { eventBus } from "@/lib/event-bus";
+import { inventoryService } from "@/modules/inventory/inventory.service";
+import { orderRepository } from "@/modules/orders/order.repository";
 import { customerSessionService } from "./customer-session.service";
 
 export type CustomerCheckoutInput = {
@@ -20,7 +20,7 @@ const razorpayConfig = () => ({
   keySecret: process.env["RAZORPAY_KEY_SECRET"],
 });
 
-async function createRazorpayOrder(amount: string, receipt: string) {
+const createRazorpayOrder = async (amount: string, receipt: string) => {
   const { keyId, keySecret } = razorpayConfig();
   if (!keyId || !keySecret) {
     throw new ValidationError(
@@ -40,19 +40,20 @@ async function createRazorpayOrder(amount: string, receipt: string) {
       receipt,
     }),
   });
-  if (!response.ok) throw new ValidationError("Unable to initialize online payment");
+  if (!response.ok)
+    throw new ValidationError("Unable to initialize online payment");
   return (await response.json()) as {
     id: string;
     amount: number;
     currency: string;
   };
-}
+};
 
-function verifyRazorpaySignature(
+const verifyRazorpaySignature = (
   orderId: string,
   paymentId: string,
   signature: string,
-) {
+) => {
   const secret = process.env["RAZORPAY_KEY_SECRET"];
   if (!secret) return false;
   const expected = createHmac("sha256", secret)
@@ -61,9 +62,9 @@ function verifyRazorpaySignature(
   const a = Buffer.from(expected);
   const b = Buffer.from(signature);
   return a.length === b.length && timingSafeEqual(a, b);
-}
+};
 
-async function fetchRazorpayPayment(paymentId: string) {
+const fetchRazorpayPayment = async (paymentId: string) => {
   const { keyId, keySecret } = razorpayConfig();
   if (!keyId || !keySecret) {
     throw new ValidationError(
@@ -85,7 +86,7 @@ async function fetchRazorpayPayment(paymentId: string) {
     amount: number;
     currency: string;
   };
-}
+};
 
 export const customerPaymentService = {
   async initiateTakeawayPayment(
@@ -117,7 +118,9 @@ export const customerPaymentService = {
       if (pending) return pending;
 
       const bill =
-        (await tx.query.bills.findFirst({ where: eq(bills.orderId, orderId) })) ??
+        (await tx.query.bills.findFirst({
+          where: eq(bills.orderId, orderId),
+        })) ??
         (
           await tx
             .insert(bills)
@@ -134,7 +137,10 @@ export const customerPaymentService = {
         )[0];
       if (!bill) throw new ValidationError("Unable to initialize order bill");
 
-      const gatewayOrder = await createRazorpayOrder(order.totalAmount, orderId);
+      const gatewayOrder = await createRazorpayOrder(
+        order.totalAmount,
+        orderId,
+      );
       const [payment] = await tx
         .insert(payments)
         .values({
@@ -184,13 +190,17 @@ export const customerPaymentService = {
       },
     });
     if (!order) {
-      throw new ValidationError("Order does not belong to this customer session");
+      throw new ValidationError(
+        "Order does not belong to this customer session",
+      );
     }
     const payment = order.payments.find(
       (value) =>
         value.gatewayOrderId === input.razorpayOrderId ||
         value.reference === input.razorpayOrderId ||
-        value.metadata?.includes(`\"gatewayOrderId\":\"${input.razorpayOrderId}\"`),
+        value.metadata?.includes(
+          `\"gatewayOrderId\":\"${input.razorpayOrderId}\"`,
+        ),
     );
     if (!payment) throw new ValidationError("Payment attempt was not found");
     if (payment.status === "SUCCESS") {
@@ -216,11 +226,15 @@ export const customerPaymentService = {
       gatewayPayment.currency !== "INR" ||
       gatewayPayment.amount !== Math.round(Number(payment.amount) * 100)
     ) {
-      throw new ValidationError("Razorpay payment is not captured for this order");
+      throw new ValidationError(
+        "Razorpay payment is not captured for this order",
+      );
     }
 
     const shouldRelease = await db.transaction(async (tx) => {
-      await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${order.id}))`);
+      await tx.execute(
+        sql`select pg_advisory_xact_lock(hashtext(${order.id}))`,
+      );
       const current = await tx.query.payments.findFirst({
         where: eq(payments.id, payment.id),
       });
@@ -295,9 +309,16 @@ export const customerPaymentService = {
           );
         }
       } catch (err) {
-        console.error("Inventory deduction failed after takeaway payment", order.id, err);
+        console.error(
+          "Inventory deduction failed after takeaway payment",
+          order.id,
+          err,
+        );
       }
-      const updated = await orderRepository.findById(session.tenantId, order.id);
+      const updated = await orderRepository.findById(
+        session.tenantId,
+        order.id,
+      );
       await eventBus.publish(
         { type: "order.updated", payload: updated as unknown as Order },
         session.tenantId,
@@ -332,7 +353,9 @@ export const customerPaymentService = {
       ),
     });
     if (!order) {
-      throw new ValidationError("Order does not belong to this customer session");
+      throw new ValidationError(
+        "Order does not belong to this customer session",
+      );
     }
     if (order.status === "CANCELLED" || order.status === "CLOSED") {
       throw new ValidationError("This order can no longer be checked out");
@@ -342,7 +365,9 @@ export const customerPaymentService = {
     }
 
     return db.transaction(async (tx) => {
-      await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${order.id}))`);
+      await tx.execute(
+        sql`select pg_advisory_xact_lock(hashtext(${order.id}))`,
+      );
       const current = await tx.query.orders.findFirst({
         where: eq(orders.id, order.id),
         with: { payments: true },
@@ -440,7 +465,9 @@ export const customerPaymentService = {
       },
     });
     if (!order) {
-      throw new ValidationError("Order does not belong to this customer session");
+      throw new ValidationError(
+        "Order does not belong to this customer session",
+      );
     }
     return order;
   },

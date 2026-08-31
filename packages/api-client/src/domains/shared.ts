@@ -1,11 +1,14 @@
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 import type { ApiResponse } from "@pos/types";
 
-export type DomainHttpClient = Pick<AxiosInstance, "get" | "post" | "put" | "patch" | "delete">;
+export type DomainHttpClient = Pick<
+  AxiosInstance,
+  "get" | "post" | "put" | "patch" | "delete"
+>;
 
-export async function voidDomainRequest(request: unknown): Promise<void> {
+export const voidDomainRequest = async (request: unknown): Promise<void> => {
   await request;
-}
+};
 
 function unwrap<T>(response: AxiosResponse<ApiResponse<T>>): T {
   return response.data.data;

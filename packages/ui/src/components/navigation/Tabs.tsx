@@ -21,14 +21,14 @@ export interface TabsProps {
   "aria-label"?: string | undefined;
 }
 
-export function Tabs({
+export const Tabs = ({
   items,
   value,
   defaultValue,
   onValueChange,
   className,
   "aria-label": ariaLabel = "Tabs",
-}: TabsProps) {
+}: TabsProps) => {
   const resolvedDefaultValue = defaultValue ?? items[0]?.value;
   return (
     <RadixTabs.Root
@@ -71,4 +71,4 @@ export function Tabs({
       ))}
     </RadixTabs.Root>
   );
-}
+};

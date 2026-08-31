@@ -1,16 +1,23 @@
-
-
-import type { KitchenTicket, Order, OrderType, RestaurantTable } from "@pos/types";
-import type { AuthContext } from "../../core/auth";
+import type {
+  KitchenTicket,
+  Order,
+  OrderType,
+  RestaurantTable,
+} from "@pos/types";
+import type { AuthContext } from "@/core/auth";
 import { requireOrdersPermission } from "./orders-authorization";
-import { DomainRuleError, ValidationError } from "../../core/errors";
-import { availabilityRepository } from "../menu/availability/availability.repository";
-import { tableRepository } from "../tables/table.repository";
-import { branchRepository } from "../branches/branch.repository";
-import { inventoryService } from "../inventory/inventory.service";
-import { eventBus } from "../../lib/event-bus";
+import { DomainRuleError, ValidationError } from "@/core/errors";
+import { availabilityRepository } from "@/modules/menu/availability/availability.repository";
+import { tableRepository } from "@/modules/tables/table.repository";
+import { branchRepository } from "@/modules/branches/branch.repository";
+import { inventoryService } from "@/modules/inventory/inventory.service";
+import { eventBus } from "@/lib/event-bus";
 import { orderRepository } from "./order.repository";
-import { assertCourseSequencingAllowed, assertInitialCourseSequence, assertItemsInSchedule } from "./order-fire.helpers";
+import {
+  assertCourseSequencingAllowed,
+  assertInitialCourseSequence,
+  assertItemsInSchedule,
+} from "./order-fire.helpers";
 import {
   pricingPipeline,
   type OrderItemInput,
@@ -21,9 +28,9 @@ import { snapshotOrderLines } from "./order-line-snapshot.service";
 import {
   priceComboOrders,
   type ComboOrderSelection,
-} from "../menu/combos/combo-order.service";
-import { customerGroupRepository } from "../customer-groups/customer-group.repository";
-import { metrics } from "../../core/observability/metrics";
+} from "@/modules/menu/combos/combo-order.service";
+import { customerGroupRepository } from "@/modules/customer-groups/customer-group.repository";
+import { metrics } from "@/core/observability/metrics";
 import {
   branchRequiredForOrder,
   orderBranchNotFound,
@@ -275,8 +282,13 @@ export const createOrderService = {
         resolutionAsOf: asOf,
       });
     } catch (error) {
-      metrics.increment("servora_order_processing_errors_total", { stage: "persist" });
-      if (error instanceof DomainRuleError && error.details?.reason === "MANUAL_STOCK_DEPLETED") {
+      metrics.increment("servora_order_processing_errors_total", {
+        stage: "persist",
+      });
+      if (
+        error instanceof DomainRuleError &&
+        error.details?.reason === "MANUAL_STOCK_DEPLETED"
+      ) {
         throw new ValidationError(
           "One or more count-tracked items sold out while this order was being confirmed",
         );
@@ -340,7 +352,14 @@ export const createOrderService = {
                     weightQuantity: item.weightQuantity,
                     weightUnit: item.weightUnit,
                     selectedOptions: item.modifiers.flatMap((modifier) =>
-                      modifier.modifierId == null ? [] : [{ optionId: modifier.modifierId, quantity: modifier.quantity }],
+                      modifier.modifierId == null
+                        ? []
+                        : [
+                            {
+                              optionId: modifier.modifierId,
+                              quantity: modifier.quantity,
+                            },
+                          ],
                     ),
                   },
                 ],
@@ -348,12 +367,13 @@ export const createOrderService = {
           auth.userId,
         );
       } catch (err) {
-        metrics.increment("servora_order_processing_errors_total", { stage: "inventory_deduction" });
+        metrics.increment("servora_order_processing_errors_total", {
+          stage: "inventory_deduction",
+        });
         console.error("Inventory deduction failed for order", order.id, err);
       }
     }
 
     return fullOrder;
   },
-
 };

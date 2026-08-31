@@ -87,15 +87,15 @@ const menuItem = {
   modifierGroupLinks: [],
 };
 
-function json(route: Route, data: unknown, status = 200) {
+const json = (route: Route, data: unknown, status = 200) => {
   return route.fulfill({
     status,
     contentType: "application/json",
     body: JSON.stringify({ data }),
   });
-}
+};
 
-async function installApi(page: Page) {
+const installApi = async (page: Page) => {
   let orders: Array<Record<string, unknown>> = [];
   let capturedCreateOrder: unknown = null;
 
@@ -213,7 +213,7 @@ async function installApi(page: Page) {
   return {
     getCapturedCreateOrder: () => capturedCreateOrder,
   };
-}
+};
 
 test("owner can sign in, select context, and create a dine-in order", async ({
   page,

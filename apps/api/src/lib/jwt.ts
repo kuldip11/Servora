@@ -8,11 +8,11 @@ const INSECURE_DEFAULTS = new Set([
   "your-super-secret-jwt-key-change-in-production",
 ]);
 
-function assertProductionSecrets(): void {
+const assertProductionSecrets = (): void => {
   if (NODE_ENV === "production" && INSECURE_DEFAULTS.has(JWT_SECRET)) {
     throw new Error("JWT_SECRET must be explicitly configured in production");
   }
-}
+};
 
 assertProductionSecrets();
 const JWT_EXPIRES_IN = (process.env["JWT_EXPIRES_IN"] ?? "15m") as NonNullable<
@@ -28,9 +28,9 @@ export interface JwtPayload {
   exp?: number;
 }
 
-export function signAccessToken(
+export const signAccessToken = (
   user: Pick<User, "id" | "email" | "roles">,
-): string {
+): string => {
   const permissions = Array.from(
     new Set(user.roles.flatMap((r) => r.permissions.map((p) => p.key))),
   );
@@ -44,9 +44,8 @@ export function signAccessToken(
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN },
   );
-}
+};
 
-export function verifyAccessToken(token: string): JwtPayload {
+export const verifyAccessToken = (token: string): JwtPayload => {
   return verify(token, JWT_SECRET) as JwtPayload;
-}
-
+};

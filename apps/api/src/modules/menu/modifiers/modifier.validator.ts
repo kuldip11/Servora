@@ -5,7 +5,9 @@ const SELECTION_TYPE = t.Union([t.Literal("SINGLE"), t.Literal("MULTIPLE")]);
 export const createModifierGroupBody = t.Object({
   name: t.String({ minLength: 1 }),
   selectionType: t.Optional(SELECTION_TYPE),
-  groupType: t.Optional(t.Union([t.Literal("ADDON"), t.Literal("SUBSTITUTION")])),
+  groupType: t.Optional(
+    t.Union([t.Literal("ADDON"), t.Literal("SUBSTITUTION")]),
+  ),
   minSelections: t.Optional(t.Number({ minimum: 0 })),
   maxSelections: t.Optional(t.Number({ minimum: 1 })),
   branchId: t.Optional(t.String()),
@@ -17,7 +19,14 @@ export const createModifierGroupBody = t.Object({
         maxQuantity: t.Optional(t.Number({ minimum: 1 })),
         isDefault: t.Optional(t.Boolean()),
         replacesDefaultComponent: t.Optional(t.String()),
-        variantPrices: t.Optional(t.Array(t.Object({ variantId: t.String({ format: "uuid" }), additionalPrice: t.Number() }))),
+        variantPrices: t.Optional(
+          t.Array(
+            t.Object({
+              variantId: t.String({ format: "uuid" }),
+              additionalPrice: t.Number(),
+            }),
+          ),
+        ),
       }),
     ),
   ),
@@ -27,7 +36,9 @@ export const createModifierGroupBody = t.Object({
 export const updateModifierGroupBody = t.Object({
   name: t.Optional(t.String({ minLength: 1 })),
   selectionType: t.Optional(SELECTION_TYPE),
-  groupType: t.Optional(t.Union([t.Literal("ADDON"), t.Literal("SUBSTITUTION")])),
+  groupType: t.Optional(
+    t.Union([t.Literal("ADDON"), t.Literal("SUBSTITUTION")]),
+  ),
   minSelections: t.Optional(t.Number({ minimum: 0 })),
   maxSelections: t.Optional(t.Union([t.Number({ minimum: 1 }), t.Null()])),
   options: t.Optional(
@@ -40,7 +51,14 @@ export const updateModifierGroupBody = t.Object({
         maxQuantity: t.Optional(t.Number({ minimum: 1 })),
         isDefault: t.Optional(t.Boolean()),
         replacesDefaultComponent: t.Optional(t.String()),
-        variantPrices: t.Optional(t.Array(t.Object({ variantId: t.String({ format: "uuid" }), additionalPrice: t.Number() }))),
+        variantPrices: t.Optional(
+          t.Array(
+            t.Object({
+              variantId: t.String({ format: "uuid" }),
+              additionalPrice: t.Number(),
+            }),
+          ),
+        ),
       }),
     ),
   ),

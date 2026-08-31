@@ -7,7 +7,7 @@ import { modules } from "@/content/modules";
 import { servoraApps } from "@/lib/servora-apps";
 import { track } from "@/lib/analytics";
 
-export function SiteHeader() {
+export const SiteHeader = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [productOpen, setProductOpen] = useState(false);
   const [appsOpen, setAppsOpen] = useState(false);
@@ -269,4 +269,4 @@ export function SiteHeader() {
       )}
     </header>
   );
-}
+};

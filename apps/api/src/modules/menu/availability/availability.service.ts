@@ -1,5 +1,3 @@
-
-
 import type {
   MenuItemStatus,
   MenuItemScheduleType,
@@ -18,24 +16,24 @@ import {
   highestPriorityActiveSchedule,
   scheduleMatches,
 } from "./schedule-precedence";
-import { writeAudit } from "../../../core/audit";
-import { eventBus } from "../../../lib/event-bus";
-import { ValidationError } from "../../../core/errors";
+import { writeAudit } from "@/core/audit";
+import { eventBus } from "@/lib/event-bus";
+import { ValidationError } from "@/core/errors";
 
-function pad(n: number) {
+const pad = (n: number) => {
   return String(n).padStart(2, "0");
-}
-function formatTime(d: Date) {
+};
+const formatTime = (d: Date) => {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-}
-function formatDate(d: Date) {
+};
+const formatDate = (d: Date) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
+};
 
-function timeInRange(now: string, start: string, end: string): boolean {
+const timeInRange = (now: string, start: string, end: string): boolean => {
   if (start <= end) return now >= start && now <= end;
   return now >= start || now <= end;
-}
+};
 
 type ScheduleRow = Awaited<
   ReturnType<typeof availabilityRepository.findActiveSchedulesForItem>
@@ -103,7 +101,7 @@ export interface UpsertChannelOverrideInput {
   availabilityReason?: string | null | undefined;
 }
 
-function describeSchedule(schedule: ScheduleRow): string {
+const describeSchedule = (schedule: ScheduleRow): string => {
   switch (schedule.scheduleType) {
     case "DAILY":
       return `Daily window ${schedule.startTime}–${schedule.endTime}`;
@@ -126,7 +124,7 @@ function describeSchedule(schedule: ScheduleRow): string {
     default:
       return "Scheduled";
   }
-}
+};
 
 export const availabilityService = {
   getUnavailableDashboard: availabilityDashboardService.getUnavailableDashboard,
@@ -629,7 +627,12 @@ export const availabilityService = {
       if (!item) throw itemNotFound(itemId);
 
       const [resolvedStatus, override, channelOverride] = await Promise.all([
-        availabilityService.getEffectiveStatus(tenantId, itemId, branchId, context),
+        availabilityService.getEffectiveStatus(
+          tenantId,
+          itemId,
+          branchId,
+          context,
+        ),
         item.branchId === null
           ? availabilityRepository.getOverride(tenantId, itemId, branchId)
           : Promise.resolve(undefined),
@@ -643,7 +646,6 @@ export const availabilityService = {
           : Promise.resolve(undefined),
       ]);
       evidence = {
-
         item,
         resolvedStatus,
         branchOverride: override
@@ -678,11 +680,13 @@ export const availabilityService = {
     branchId: string,
     context: AvailabilityContext,
   ) {
-    return (await availabilityService.getEffectiveItemWithEvidence(
-      tenantId,
-      itemId,
-      branchId,
-      context,
-    )).effective;
+    return (
+      await availabilityService.getEffectiveItemWithEvidence(
+        tenantId,
+        itemId,
+        branchId,
+        context,
+      )
+    ).effective;
   },
 };

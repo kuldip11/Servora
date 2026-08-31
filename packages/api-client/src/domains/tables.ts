@@ -1,6 +1,11 @@
 import { voidDomainRequest } from "./shared";
 import type { TableStatus } from "@pos/types";
-import { getDomainData, patchDomainData, postDomainData, type DomainHttpClient } from "./shared";
+import {
+  getDomainData,
+  patchDomainData,
+  postDomainData,
+  type DomainHttpClient,
+} from "./shared";
 
 export interface RestaurantTableDto {
   id: string;
@@ -28,7 +33,7 @@ export interface TableInput {
   branchId?: string;
 }
 
-export function createTablesApi(client: DomainHttpClient) {
+export const createTablesApi = (client: DomainHttpClient) => {
   return {
     list(): Promise<RestaurantTableDto[]> {
       return getDomainData<RestaurantTableDto[]>(client, "/tables");
@@ -36,23 +41,43 @@ export function createTablesApi(client: DomainHttpClient) {
     create(input: TableInput): Promise<RestaurantTableDto> {
       return postDomainData<RestaurantTableDto>(client, "/tables", input);
     },
-    update(id: string, input: Omit<TableInput, "branchId">): Promise<RestaurantTableDto> {
-      return patchDomainData<RestaurantTableDto>(client, `/tables/${id}`, input);
+    update(
+      id: string,
+      input: Omit<TableInput, "branchId">,
+    ): Promise<RestaurantTableDto> {
+      return patchDomainData<RestaurantTableDto>(
+        client,
+        `/tables/${id}`,
+        input,
+      );
     },
     updateStatus(id: string, status: string): Promise<RestaurantTableDto> {
-      return patchDomainData<RestaurantTableDto>(client, `/tables/${id}/status`, { status });
+      return patchDomainData<RestaurantTableDto>(
+        client,
+        `/tables/${id}/status`,
+        { status },
+      );
     },
     remove(id: string): Promise<void> {
       return voidDomainRequest(client.delete(`/tables/${id}`));
     },
     regenerateQr(id: string): Promise<RestaurantTableDto> {
-      return postDomainData<RestaurantTableDto>(client, `/tables/${id}/qr/regenerate`);
+      return postDomainData<RestaurantTableDto>(
+        client,
+        `/tables/${id}/qr/regenerate`,
+      );
     },
     getTakeawayQr(branchId: string): Promise<TakeawayQrDto> {
-      return getDomainData<TakeawayQrDto>(client, `/branches/${branchId}/takeaway-qr`);
+      return getDomainData<TakeawayQrDto>(
+        client,
+        `/branches/${branchId}/takeaway-qr`,
+      );
     },
     regenerateTakeawayQr(branchId: string): Promise<TakeawayQrDto> {
-      return postDomainData<TakeawayQrDto>(client, `/branches/${branchId}/takeaway-qr/regenerate`);
+      return postDomainData<TakeawayQrDto>(
+        client,
+        `/branches/${branchId}/takeaway-qr/regenerate`,
+      );
     },
   };
-}
+};

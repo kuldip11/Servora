@@ -1,6 +1,6 @@
 import { Badge } from "@pos/ui";
 
-export function PublishBadge({ isPublished }: { isPublished: boolean }) {
+export const PublishBadge = ({ isPublished }: { isPublished: boolean }) => {
   if (isPublished) return null;
   return (
     <Badge
@@ -11,4 +11,4 @@ export function PublishBadge({ isPublished }: { isPublished: boolean }) {
       Draft
     </Badge>
   );
-}
+};

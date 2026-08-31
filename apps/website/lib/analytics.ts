@@ -11,7 +11,7 @@ export type AnalyticsEvent =
   | { event: "contact_form_submit"; subject: string }
   | { event: "contact_form_error"; error_type: string };
 
-export function track(event: AnalyticsEvent) {
+export const track = (event: AnalyticsEvent) => {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent("servora:analytics", { detail: event }));
   const consent = window.localStorage.getItem("servora_cookie_consent");
@@ -19,4 +19,4 @@ export function track(event: AnalyticsEvent) {
   const gtag = (window as Window & { gtag?: (...args: unknown[]) => void })
     .gtag;
   gtag?.("event", event.event, { ...event, event: undefined });
-}
+};

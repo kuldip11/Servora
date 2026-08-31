@@ -1,16 +1,16 @@
-import { useRealtimeEvent } from "../../../shared/lib/realtime";
-import { queryClient } from "../../../shared/lib/query-client";
-import { orderKeys } from "../query-keys";
+import { useRealtimeEvent } from "@/shared/lib/realtime";
+import { queryClient } from "@/shared/lib/query-client";
+import { orderKeys } from "@/features/orders/query-keys";
 import type { Order } from "@pos/types";
-import type { OrdersListFilters } from "../services/orders.service";
+import type { OrdersListFilters } from "@/features/orders/services/orders.service";
 
-function matchesFilters(order: Order, filters: OrdersListFilters) {
+const matchesFilters = (order: Order, filters: OrdersListFilters) => {
   if (filters.status && order.status !== filters.status) return false;
   if (filters.type && order.type !== filters.type) return false;
   return true;
-}
+};
 
-function upsertOrder(order: Order) {
+const upsertOrder = (order: Order) => {
   queryClient.setQueryData(orderKeys.detail(order.id), order);
   for (const query of queryClient
     .getQueryCache()
@@ -22,9 +22,9 @@ function upsertOrder(order: Order) {
       return matchesFilters(order, filters) ? [order, ...without] : without;
     });
   }
-}
+};
 
-export function useOrdersRealtimeSync() {
+export const useOrdersRealtimeSync = () => {
   useRealtimeEvent("order.created", (event) => upsertOrder(event.payload));
   useRealtimeEvent("order.updated", (event) => upsertOrder(event.payload));
 
@@ -45,4 +45,4 @@ export function useOrdersRealtimeSync() {
       },
     );
   });
-}
+};

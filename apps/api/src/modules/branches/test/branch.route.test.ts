@@ -46,7 +46,7 @@ vi.mock("../branch.controller", () => ({
     deactivate: vi.fn(),
   },
 }));
-import { branchesRouter } from "../branch.route";
+import { branchesRouter } from "@/modules/branches/branch.route";
 describe("branch routes", () => {
   it("registers authenticated CRUD endpoints under /api/branches", () => {
     const routes = (branchesRouter as any).routes;

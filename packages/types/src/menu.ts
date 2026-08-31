@@ -104,7 +104,9 @@ export interface Menu {
   status: MenuStatus;
   isDefault: boolean;
   availableChannels: Array<"STAFF" | "CUSTOMER_QR"> | null;
-  availableFulfillmentTypes: Array<"DINE_IN" | "TAKEAWAY" | "DELIVERY" | "ONLINE"> | null;
+  availableFulfillmentTypes: Array<
+    "DINE_IN" | "TAKEAWAY" | "DELIVERY" | "ONLINE"
+  > | null;
   availableBranchIds: string[] | null;
   effectiveFrom?: string | null;
   createdAt: string;
@@ -368,7 +370,10 @@ export interface OrderableMenuItem {
   zonePricingRule?: "AVERAGE" | "HIGHER" | "SUM_HALF";
   manualStockCount?: number | null;
   variants: OrderableMenuVariant[];
-  modifierGroupLinks: Array<{ sortOrder?: number; group: OrderableModifierGroup }>;
+  modifierGroupLinks: Array<{
+    sortOrder?: number;
+    group: OrderableModifierGroup;
+  }>;
 }
 
 export interface CustomerGroup {

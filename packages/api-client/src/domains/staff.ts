@@ -1,5 +1,10 @@
 import { voidDomainRequest } from "./shared";
-import { getDomainData, patchDomainData, postDomainData, type DomainHttpClient } from "./shared";
+import {
+  getDomainData,
+  patchDomainData,
+  postDomainData,
+  type DomainHttpClient,
+} from "./shared";
 
 export interface PermissionDto {
   id: string;
@@ -50,7 +55,7 @@ export interface UpdateStaffInput {
   branchIds?: string[];
 }
 
-export function createStaffApi(client: DomainHttpClient) {
+export const createStaffApi = (client: DomainHttpClient) => {
   return {
     listStaff(): Promise<StaffRowDto[]> {
       return getDomainData<StaffRowDto[]>(client, "/staff");
@@ -73,7 +78,10 @@ export function createStaffApi(client: DomainHttpClient) {
     createRole(input: CreateRoleInput): Promise<RoleDto> {
       return postDomainData<RoleDto>(client, "/roles", input);
     },
-    updateRole(id: string, input: Pick<CreateRoleInput, "name" | "description">): Promise<RoleDto> {
+    updateRole(
+      id: string,
+      input: Pick<CreateRoleInput, "name" | "description">,
+    ): Promise<RoleDto> {
       return patchDomainData<RoleDto>(client, `/roles/${id}`, input);
     },
     archiveRole(id: string): Promise<void> {
@@ -83,10 +91,18 @@ export function createStaffApi(client: DomainHttpClient) {
       return getDomainData<PermissionDto[]>(client, "/permissions");
     },
     permissionsForRole(roleId: string): Promise<PermissionDto[]> {
-      return getDomainData<PermissionDto[]>(client, `/roles/${roleId}/permissions`);
+      return getDomainData<PermissionDto[]>(
+        client,
+        `/roles/${roleId}/permissions`,
+      );
     },
-    setPermissionsForRole(roleId: string, permissionIds: string[]): Promise<void> {
-      return voidDomainRequest(client.put(`/roles/${roleId}/permissions`, { permissionIds }));
+    setPermissionsForRole(
+      roleId: string,
+      permissionIds: string[],
+    ): Promise<void> {
+      return voidDomainRequest(
+        client.put(`/roles/${roleId}/permissions`, { permissionIds }),
+      );
     },
   };
-}
+};

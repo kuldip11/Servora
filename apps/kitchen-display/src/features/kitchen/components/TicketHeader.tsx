@@ -9,12 +9,12 @@ interface Props {
   statusTextClass: string;
 }
 
-export function TicketHeader({
+export const TicketHeader = ({
   ticket,
   statusLabel,
   statusTone,
   statusTextClass,
-}: Props) {
+}: Props) => {
   const order = ticket.order;
   const tableName = order?.table?.name;
   const orderTypeLabel = order?.type?.replace("_", " ").toLowerCase();
@@ -30,11 +30,16 @@ export function TicketHeader({
               ? "Takeaway"
               : orderTypeLabel}
           {ticket.course ? (
-            <span className="ml-2 text-xs font-semibold text-text-secondary">Course {ticket.course.courseNumber}{ticket.course.name ? ` · ${ticket.course.name}` : ""}</span>
-          ) : ticket.ticketNumber > 1 && (
             <span className="ml-2 text-xs font-semibold text-text-secondary">
-              Round {ticket.ticketNumber}
+              Course {ticket.course.courseNumber}
+              {ticket.course.name ? ` · ${ticket.course.name}` : ""}
             </span>
+          ) : (
+            ticket.ticketNumber > 1 && (
+              <span className="ml-2 text-xs font-semibold text-text-secondary">
+                Round {ticket.ticketNumber}
+              </span>
+            )
           )}
         </p>
         <p className="text-xs text-text-secondary mt-0.5">
@@ -42,9 +47,7 @@ export function TicketHeader({
         </p>
       </div>
       <div className="text-right">
-        {
-
-                                                           }
+        {}
         <StatusBadge
           label={statusLabel}
           tone={statusTone}
@@ -55,4 +58,4 @@ export function TicketHeader({
       </div>
     </div>
   );
-}
+};

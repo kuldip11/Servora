@@ -38,7 +38,7 @@ vi.mock("elysia", async (importOriginal) => {
 });
 vi.mock("../../../../core/auth", () => ({ requireAuthPlugin: () => ({}) }));
 import { describe, expect, it, vi } from "vitest";
-import * as mod from "../availability.route";
+import * as mod from "@/modules/menu/availability/availability.route";
 
 describe("availability.route routes", () => {
   it("registers a non-empty Elysia router", () => {
@@ -46,7 +46,9 @@ describe("availability.route routes", () => {
       (v: any) => v && Array.isArray(v.routes),
     );
     expect(routers.length).toBeGreaterThan(0);
-    const routes = (routers[0] as { routes: Array<{ method: string; path: string }> }).routes;
+    const routes = (
+      routers[0] as { routes: Array<{ method: string; path: string }> }
+    ).routes;
     expect(routes.length).toBeGreaterThan(0);
     expect(routes).toEqual(
       expect.arrayContaining([

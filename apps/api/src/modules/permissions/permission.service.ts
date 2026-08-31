@@ -1,19 +1,15 @@
-import type { AuthContext } from "../../core/auth";
-import { requirePermission } from "../../core/auth";
-import {
-  ForbiddenError,
-  NotFoundError,
-  ValidationError,
-} from "../../core/errors";
-import { writeAudit } from "../../core/audit";
+import type { AuthContext } from "@/core/auth";
+import { requirePermission } from "@/core/auth";
+import { ForbiddenError, NotFoundError, ValidationError } from "@/core/errors";
+import { writeAudit } from "@/core/audit";
 import { permissionRepository } from "./permission.repository";
 
-function requireTenantWide(auth: AuthContext) {
+const requireTenantWide = (auth: AuthContext) => {
   if (!auth.tenantWide && !auth.roles.includes("OWNER"))
     throw new ForbiddenError(
       "Tenant-wide access is required to manage role permissions",
     );
-}
+};
 
 export const permissionService = {
   async list(auth: AuthContext) {
@@ -24,9 +20,7 @@ export const permissionService = {
     requirePermission(auth, "roles:read");
     const role = await permissionRepository.findRole(auth.tenantId, roleId);
     if (!role) throw new NotFoundError("Role not found");
-    return role.rolePermissions
-      .map((item) => item.permission)
-      .filter(Boolean);
+    return role.rolePermissions.map((item) => item.permission).filter(Boolean);
   },
   async setForRole(auth: AuthContext, roleId: string, permissionIds: string[]) {
     requirePermission(auth, "roles:assign_permissions");

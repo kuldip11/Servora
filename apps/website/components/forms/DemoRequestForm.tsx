@@ -2,7 +2,7 @@
 import { FormEvent, useRef, useState } from "react";
 import { track } from "@/lib/analytics";
 
-export function DemoRequestForm({ source = "demo" }: { source?: string }) {
+export const DemoRequestForm = ({ source = "demo" }: { source?: string }) => {
   const [state, setState] = useState<
     "idle" | "submitting" | "success" | "error"
   >("idle");
@@ -137,4 +137,4 @@ export function DemoRequestForm({ source = "demo" }: { source?: string }) {
       )}
     </form>
   );
-}
+};

@@ -1,5 +1,5 @@
 import { StatusBadge as SharedStatusBadge, type StatusTone } from "@pos/ui";
-import { STATUS_CONFIG } from "../constants";
+import { STATUS_CONFIG } from "@/features/orders/constants";
 
 const STATUS_TONE: Record<string, StatusTone> = {
   OPEN: "info",

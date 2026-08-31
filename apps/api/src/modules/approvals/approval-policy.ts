@@ -5,27 +5,31 @@ export interface ApprovalValueLine {
   subtotal: string | number;
 }
 
-export function isApprovalRequired(value: number, threshold: number | null | undefined) {
+export const isApprovalRequired = (
+  value: number,
+  threshold: number | null | undefined,
+) => {
   return threshold !== null && threshold !== undefined && value > threshold;
-}
+};
 
-export function approvalAdjustmentValue(
+export const approvalAdjustmentValue = (
   items: ApprovalValueLine[],
   orderItemId: string,
-) {
+) => {
   const target = items.find((item) => item.id === orderItemId);
   if (!target) return 0;
   return items
     .filter((candidate) =>
       target.comboGroupId
-        ? candidate.comboGroupId === target.comboGroupId && candidate.itemStatus === "ACTIVE"
+        ? candidate.comboGroupId === target.comboGroupId &&
+          candidate.itemStatus === "ACTIVE"
         : candidate.id === orderItemId,
     )
     .reduce((sum, candidate) => sum + Number(candidate.subtotal), 0);
-}
+};
 
-export function approvalRoleMatches(roleName: string, requiredRole: string) {
+export const approvalRoleMatches = (roleName: string, requiredRole: string) => {
   const role = roleName.trim().toLowerCase();
   const required = requiredRole.trim().toLowerCase();
   return role === required || role === "owner" || role === "global owner";
-}
+};

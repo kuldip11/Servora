@@ -1,16 +1,14 @@
-
-
 import { eq, and, notInArray } from "drizzle-orm";
 import type { TableStatus } from "@pos/types";
-import { db } from "../../db";
-import { ConflictError } from "../../core/errors";
+import { db } from "@/db";
+import { ConflictError } from "@/core/errors";
 import {
   restaurantTables,
   orders,
   customerSessions,
   orderStatusHistory,
-} from "../../db/schema";
-import { compact } from "../../lib/object-utils";
+} from "@/db/schema";
+import { compact } from "@/lib/object-utils";
 
 export const tableRepository = {
   async findMany(tenantId: string, branchId?: string | null) {
@@ -126,54 +124,65 @@ export const tableRepository = {
     reason?: string;
   }) {
     return db.transaction(async (tx) => {
-
       const [newTable] = await tx
         .update(restaurantTables)
         .set({ status: "OCCUPIED", updatedAt: new Date() })
-        .where(and(
-          eq(restaurantTables.id, input.newTableId),
-          eq(restaurantTables.tenantId, input.tenantId),
-          eq(restaurantTables.branchId, input.branchId),
-          eq(restaurantTables.status, "AVAILABLE"),
-          eq(restaurantTables.isActive, true),
-        ))
+        .where(
+          and(
+            eq(restaurantTables.id, input.newTableId),
+            eq(restaurantTables.tenantId, input.tenantId),
+            eq(restaurantTables.branchId, input.branchId),
+            eq(restaurantTables.status, "AVAILABLE"),
+            eq(restaurantTables.isActive, true),
+          ),
+        )
         .returning();
       if (!newTable) return undefined;
 
       const [oldTable] = await tx
         .update(restaurantTables)
         .set({ status: "AVAILABLE", updatedAt: new Date() })
-        .where(and(
-          eq(restaurantTables.id, input.oldTableId),
-          eq(restaurantTables.tenantId, input.tenantId),
-          eq(restaurantTables.branchId, input.branchId),
-        ))
+        .where(
+          and(
+            eq(restaurantTables.id, input.oldTableId),
+            eq(restaurantTables.tenantId, input.tenantId),
+            eq(restaurantTables.branchId, input.branchId),
+          ),
+        )
         .returning();
 
       const [order] = await tx
         .update(orders)
         .set({ tableId: input.newTableId, updatedAt: new Date() })
-        .where(and(
-          eq(orders.id, input.orderId),
-          eq(orders.tenantId, input.tenantId),
-          eq(orders.branchId, input.branchId),
-          eq(orders.status, "OPEN"),
-          eq(orders.tableId, input.oldTableId),
-        ))
+        .where(
+          and(
+            eq(orders.id, input.orderId),
+            eq(orders.tenantId, input.tenantId),
+            eq(orders.branchId, input.branchId),
+            eq(orders.status, "OPEN"),
+            eq(orders.tableId, input.oldTableId),
+          ),
+        )
         .returning();
       if (!order || !oldTable) {
-        throw new ConflictError("The order table changed while the transfer was being committed", {
-          reason: "ORDER_TABLE_TRANSFER_CONFLICT",
-        });
+        throw new ConflictError(
+          "The order table changed while the transfer was being committed",
+          {
+            reason: "ORDER_TABLE_TRANSFER_CONFLICT",
+          },
+        );
       }
 
       if (input.customerSessionId) {
-        await tx.update(customerSessions)
+        await tx
+          .update(customerSessions)
           .set({ tableId: input.newTableId, updatedAt: new Date() })
-          .where(and(
-            eq(customerSessions.id, input.customerSessionId),
-            eq(customerSessions.tenantId, input.tenantId),
-          ));
+          .where(
+            and(
+              eq(customerSessions.id, input.customerSessionId),
+              eq(customerSessions.tenantId, input.tenantId),
+            ),
+          );
       }
 
       await tx.insert(orderStatusHistory).values({

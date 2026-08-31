@@ -1,16 +1,16 @@
 import bcrypt from "bcryptjs";
 import { and, eq, gt, isNull } from "drizzle-orm";
-import type { AuthContext } from "../../core/auth";
-import { requirePermission } from "../../core/auth";
-import { ForbiddenError, ValidationError } from "../../core/errors";
-import { writeAudit } from "../../core/audit";
-import { db } from "../../db";
+import type { AuthContext } from "@/core/auth";
+import { requirePermission } from "@/core/auth";
+import { ForbiddenError, ValidationError } from "@/core/errors";
+import { writeAudit } from "@/core/audit";
+import { db } from "@/db";
 import { approvalRoleMatches, isApprovalRequired } from "./approval-policy";
 import {
   managerApprovalTokens,
   users,
   voidCompApprovalThresholds,
-} from "../../db/schema";
+} from "@/db/schema";
 
 export type ApprovalAction = "VOID" | "COMP";
 export const approvalService = {
@@ -102,7 +102,9 @@ export const approvalService = {
         eq(voidCompApprovalThresholds.actionType, input.actionType),
       ),
     });
-    const requiredRole = (threshold?.requiresRole ?? "Manager").trim().toLowerCase();
+    const requiredRole = (threshold?.requiresRole ?? "Manager")
+      .trim()
+      .toLowerCase();
     const permission =
       input.actionType === "VOID" ? "orders:void" : "orders:comp";
     const authorized = membership?.roles.some((entry) => {
@@ -110,7 +112,9 @@ export const approvalService = {
       return (
         entry.role.isActive &&
         roleMatches &&
-        entry.role.rolePermissions.some((rp) => rp.permission.key === permission)
+        entry.role.rolePermissions.some(
+          (rp) => rp.permission.key === permission,
+        )
       );
     });
     if (
@@ -163,7 +167,8 @@ export const approvalService = {
         eq(voidCompApprovalThresholds.actionType, actionType),
       ),
     });
-    if (!isApprovalRequired(lineValue, threshold ? Number(threshold.thresholdAmount) : null)) return;
+    if (!isApprovalRequired(lineValue, threshold ? Number(threshold.thresholdAmount) : null))
+      return;
     if (!tokenId) throw new ForbiddenError("Manager approval required");
     const [used] = await db
       .update(managerApprovalTokens)

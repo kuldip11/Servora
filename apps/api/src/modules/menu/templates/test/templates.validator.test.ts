@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Value } from "@sinclair/typebox/value";
-import * as mod from "../templates.validator";
+import * as mod from "@/modules/menu/templates/templates.validator";
 
 describe("templates.test validator validators", () => {
   it("exports TypeBox schemas with required-field validation", () => {

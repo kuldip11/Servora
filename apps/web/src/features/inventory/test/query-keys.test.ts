@@ -4,7 +4,7 @@ vi.mock("../../../store/auth", () => ({
   useAuthStore: { getState: () => ({ franchiseId: "fr-1", branchId: "br-1" }) },
 }));
 
-import { inventoryKeys } from "../query-keys";
+import { inventoryKeys } from "@/features/inventory/query-keys";
 
 describe("inventoryKeys", () => {
   it("uses the inventory namespace and branch context", () => {

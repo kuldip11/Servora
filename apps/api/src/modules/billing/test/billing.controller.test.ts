@@ -7,7 +7,7 @@ vi.mock("../billing.service", () => ({
   billingService: { createPayment, createRefund, getBill },
 }));
 
-import { billingController } from "../billing.controller";
+import { billingController } from "@/modules/billing/billing.controller";
 
 const auth = {
   userId: "u1",

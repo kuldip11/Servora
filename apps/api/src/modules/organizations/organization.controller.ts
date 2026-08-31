@@ -1,8 +1,8 @@
-import type { AuthContext } from "../../core/auth";
+import type { AuthContext } from "@/core/auth";
 import {
   createdResponse,
   successResponse,
-} from "../../core/response/response-helpers";
+} from "@/core/response/response-helpers";
 import { organizationService } from "./organization.service";
 
 export const organizationController = {
@@ -26,9 +26,20 @@ export const organizationController = {
     tierId: string,
     input: Parameters<typeof organizationService.updateLoyaltyTier>[3],
   ) {
-    return successResponse(await organizationService.updateLoyaltyTier(auth, organizationId, tierId, input));
+    return successResponse(
+      await organizationService.updateLoyaltyTier(
+        auth,
+        organizationId,
+        tierId,
+        input,
+      ),
+    );
   },
-  async deleteLoyaltyTier(auth: AuthContext, organizationId: string, tierId: string) {
+  async deleteLoyaltyTier(
+    auth: AuthContext,
+    organizationId: string,
+    tierId: string,
+  ) {
     await organizationService.deleteLoyaltyTier(auth, organizationId, tierId);
     return successResponse(null);
   },

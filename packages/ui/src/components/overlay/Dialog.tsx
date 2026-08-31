@@ -38,7 +38,7 @@ const dialogAnimationClasses = cn(
   "data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%]",
 );
 
-export function Dialog({
+export const Dialog = ({
   open,
   onClose,
   title,
@@ -47,7 +47,7 @@ export function Dialog({
   footer,
   preventDismiss,
   description,
-}: DialogProps) {
+}: DialogProps) => {
   return (
     <RadixDialog.Root open={open} onOpenChange={(next) => !next && onClose()}>
       <RadixDialog.Portal>
@@ -88,7 +88,7 @@ export function Dialog({
       </RadixDialog.Portal>
     </RadixDialog.Root>
   );
-}
+};
 
 export const Modal = Dialog;
 export type ModalProps = DialogProps;

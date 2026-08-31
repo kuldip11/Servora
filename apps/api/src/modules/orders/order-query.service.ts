@@ -1,5 +1,5 @@
-import type { AuthContext } from "../../core/auth";
-import { inventoryService } from "../inventory/inventory.service";
+import type { AuthContext } from "@/core/auth";
+import { inventoryService } from "@/modules/inventory/inventory.service";
 import {
   assertOrderListScope,
   assertOrderResourceAccess,

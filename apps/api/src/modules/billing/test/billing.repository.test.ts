@@ -17,7 +17,7 @@ const { tx, db } = vi.hoisted(() => {
 });
 vi.mock("../../../db", () => ({ db }));
 
-import { billingRepository } from "../billing.repository";
+import { billingRepository } from "@/modules/billing/billing.repository";
 
 const returning = (rows: any[]) => vi.fn().mockResolvedValue(rows);
 const where = (rows: any[]) => ({

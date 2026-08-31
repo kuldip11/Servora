@@ -1,9 +1,12 @@
 import type { KitchenTicket, Order, RestaurantTable } from "@pos/types";
-import type { AuthContext } from "../../core/auth";
-import { eventBus } from "../../lib/event-bus";
-import { ticketRepository } from "../kitchen-tickets/ticket.repository";
-import { tableRepository } from "../tables/table.repository";
-import { assertOrderResourceAccess, requireOrdersPermission } from "./orders-authorization";
+import type { AuthContext } from "@/core/auth";
+import { eventBus } from "@/lib/event-bus";
+import { ticketRepository } from "@/modules/kitchen-tickets/ticket.repository";
+import { tableRepository } from "@/modules/tables/table.repository";
+import {
+  assertOrderResourceAccess,
+  requireOrdersPermission,
+} from "./orders-authorization";
 import {
   branchRequiredForOrder,
   orderCannotMerge,
@@ -24,18 +27,29 @@ export const orderTableService = {
     if (!order) throw orderNotFound(orderId);
     assertOrderResourceAccess(auth, order.branchId);
     if (order.status !== "OPEN" || order.type !== "DINE_IN" || !order.tableId) {
-      throw orderCannotTransferTable("Only an open dine-in order can be transferred");
+      throw orderCannotTransferTable(
+        "Only an open dine-in order can be transferred",
+      );
     }
     if (order.tableId === newTableId) {
-      throw orderCannotTransferTable("The destination must be a different table");
+      throw orderCannotTransferTable(
+        "The destination must be a different table",
+      );
     }
 
     const [oldTable, newTable] = await Promise.all([
       tableRepository.findById(auth.tenantId, order.tableId),
       tableRepository.findById(auth.tenantId, newTableId),
     ]);
-    if (!oldTable || !newTable || newTable.branchId !== order.branchId || !newTable.isActive) {
-      throw orderCannotTransferTable("The destination table is not available in this branch");
+    if (
+      !oldTable ||
+      !newTable ||
+      newTable.branchId !== order.branchId ||
+      !newTable.isActive
+    ) {
+      throw orderCannotTransferTable(
+        "The destination table is not available in this branch",
+      );
     }
     if (newTable.status !== "AVAILABLE") {
       throw orderCannotTransferTable("The destination table is not available");
@@ -54,18 +68,26 @@ export const orderTableService = {
       ...(reason !== undefined ? { reason } : {}),
     });
     if (!transferred) {
-      throw orderCannotTransferTable("The destination table was claimed by another order");
+      throw orderCannotTransferTable(
+        "The destination table was claimed by another order",
+      );
     }
 
     const fullOrder = await orderRepository.findById(auth.tenantId, orderId);
     await Promise.all([
       eventBus.publish(
-        { type: "table.updated", payload: transferred.oldTable as unknown as RestaurantTable },
+        {
+          type: "table.updated",
+          payload: transferred.oldTable as unknown as RestaurantTable,
+        },
         auth.tenantId,
         order.branchId,
       ),
       eventBus.publish(
-        { type: "table.updated", payload: transferred.newTable as unknown as RestaurantTable },
+        {
+          type: "table.updated",
+          payload: transferred.newTable as unknown as RestaurantTable,
+        },
         auth.tenantId,
         order.branchId,
       ),
@@ -78,10 +100,16 @@ export const orderTableService = {
 
     for (const ticket of fullOrder?.kitchenTickets ?? []) {
       if (ticket.status === "SERVED") continue;
-      const detailed = await ticketRepository.findDetailedById(auth.tenantId, ticket.id);
+      const detailed = await ticketRepository.findDetailedById(
+        auth.tenantId,
+        ticket.id,
+      );
       if (detailed) {
         await eventBus.publish(
-          { type: "kitchen.ticket.updated", payload: detailed as unknown as KitchenTicket },
+          {
+            type: "kitchen.ticket.updated",
+            payload: detailed as unknown as KitchenTicket,
+          },
           auth.tenantId,
           order.branchId,
         );
@@ -90,7 +118,11 @@ export const orderTableService = {
     return fullOrder;
   },
 
-  async mergeOrders(auth: AuthContext, sourceOrderId: string, targetOrderId: string) {
+  async mergeOrders(
+    auth: AuthContext,
+    sourceOrderId: string,
+    targetOrderId: string,
+  ) {
     requireOrdersPermission(auth, "orders:update");
     if (!auth.branchId) throw branchRequiredForOrder();
     const result = await orderRepository.mergeOrders({
@@ -100,12 +132,17 @@ export const orderTableService = {
       targetOrderId,
     });
     if (result.status === "not_found") throw orderNotFound(sourceOrderId);
-    if (result.status === "same_order") throw orderCannotMerge("An order cannot be merged into itself");
+    if (result.status === "same_order")
+      throw orderCannotMerge("An order cannot be merged into itself");
     if (result.status === "closed") {
-      throw orderCannotMerge("Paid, closed, or cancelled orders cannot be merged");
+      throw orderCannotMerge(
+        "Paid, closed, or cancelled orders cannot be merged",
+      );
     }
     if (result.status === "already_merged") {
-      throw orderCannotMerge("This would create a merge chain or duplicate merge");
+      throw orderCannotMerge(
+        "This would create a merge chain or duplicate merge",
+      );
     }
 
     const [source, target] = await Promise.all([

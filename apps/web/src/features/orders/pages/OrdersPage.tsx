@@ -1,4 +1,4 @@
-import { usePermissions } from "../../../shared/auth/permissions";
+import { usePermissions } from "@/shared/auth/permissions";
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Plus, Eye, ShoppingBag } from "lucide-react";
@@ -17,19 +17,23 @@ import {
   type SortState,
   BUTTON_VARIANT_CLASSES,
 } from "@pos/ui";
-import { formatCurrency, formatTime } from "../../../shared/utils/format";
+import { formatCurrency, formatTime } from "@/shared/utils/format";
 import {
   getOrderStatusColor,
   getOrderStatusLabel,
-} from "../../../shared/utils/order-status";
-import { useOrders } from "../hooks/useOrders";
-import { useOrdersRealtimeSync } from "../hooks/useOrdersRealtimeSync";
-import { CreateOrderModal } from "../components/CreateOrderModal";
+} from "@/shared/utils/order-status";
+import { useOrders } from "@/features/orders/hooks/useOrders";
+import { useOrdersRealtimeSync } from "@/features/orders/hooks/useOrdersRealtimeSync";
+import { CreateOrderModal } from "@/features/orders/components/CreateOrderModal";
 import type { Order } from "@pos/types";
 
-import { ORDER_STATUS_OPTIONS, ORDER_STATUS_TONE, ORDER_TYPE_OPTIONS } from "../constants";
+import {
+  ORDER_STATUS_OPTIONS,
+  ORDER_STATUS_TONE,
+  ORDER_TYPE_OPTIONS,
+} from "@/features/orders/constants";
 
-function KitchenStatus({ order }: { order: Order }) {
+const KitchenStatus = ({ order }: { order: Order }) => {
   const tickets = order.kitchenTickets;
   if (!tickets?.length) return <span className="text-text-disabled">—</span>;
   if (tickets.some((t) => t.status === "READY")) {
@@ -43,9 +47,9 @@ function KitchenStatus({ order }: { order: Order }) {
       {tickets.length} ticket{tickets.length > 1 ? "s" : ""}
     </span>
   );
-}
+};
 
-export function OrdersPage() {
+export const OrdersPage = () => {
   const { has } = usePermissions();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -141,7 +145,6 @@ export function OrdersPage() {
         cell: (row) => {
           const tone = ORDER_STATUS_TONE[row.status];
           if (!tone) {
-
             return (
               <Badge className={getOrderStatusColor(row.status)}>
                 {getOrderStatusLabel(row.status)}
@@ -263,4 +266,4 @@ export function OrdersPage() {
       {showCreate && <CreateOrderModal onClose={() => setShowCreate(false)} />}
     </Page>
   );
-}
+};

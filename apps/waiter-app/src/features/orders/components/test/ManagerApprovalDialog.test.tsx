@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
 const api = vi.hoisted(() => ({ post: vi.fn() }));
-vi.mock("../../../../shared/lib/api-client", () => ({ apiClient: { post: api.post } }));
+vi.mock("../../../../shared/lib/api-client", () => ({
+  apiClient: { post: api.post },
+}));
 
-import { requestManagerApproval } from "../ManagerApprovalDialog";
+import { requestManagerApproval } from "@/features/orders/components/ManagerApprovalDialog";
 
 describe("waiter manager approval", () => {
   it("issues a scoped approval token for the blocked line adjustment", async () => {

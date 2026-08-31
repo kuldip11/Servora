@@ -1,5 +1,5 @@
 import { createAuthApi, type AuthResponse } from "@pos/api-client";
-import { apiClient } from "../../../shared/lib/api-client";
+import { apiClient } from "@/shared/lib/api-client";
 
 const authApi = createAuthApi(apiClient);
 export type { AuthResponse };
@@ -16,4 +16,3 @@ export const authService = {
   me: authApi.me,
   updateProfile: authApi.updateProfile,
 };
-

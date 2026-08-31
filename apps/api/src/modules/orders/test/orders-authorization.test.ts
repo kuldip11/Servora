@@ -3,7 +3,7 @@ import {
   assertOrderListScope,
   assertOrderResourceAccess,
   requireOrdersPermission,
-} from "../orders-authorization";
+} from "@/modules/orders/orders-authorization";
 
 const auth = (overrides: any = {}) => ({
   userId: "u1",

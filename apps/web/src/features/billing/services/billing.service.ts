@@ -1,5 +1,9 @@
-import { createBillingApi, type BillItemAllocation, type SeatSplitResult } from "@pos/api-client";
-import { apiClient } from "../../../shared/lib/api-client";
+import {
+  createBillingApi,
+  type BillItemAllocation,
+  type SeatSplitResult,
+} from "@pos/api-client";
+import { apiClient } from "@/shared/lib/api-client";
 
 const billingApi = createBillingApi(apiClient);
 
@@ -11,7 +15,10 @@ export interface CollectPaymentInput {
 }
 
 export const billingService = {
-  async collectPayment(orderId: string, input: CollectPaymentInput): Promise<void> {
+  async collectPayment(
+    orderId: string,
+    input: CollectPaymentInput,
+  ): Promise<void> {
     await billingApi.collectPayment({
       orderId,
       method: input.method,
@@ -25,7 +32,10 @@ export const billingService = {
   splitOrderByItems(orderId: string, allocations: BillItemAllocation[]) {
     return billingApi.splitOrderByItems(orderId, allocations);
   },
-  splitOrderBySeat(orderId: string, sharedItemStrategy: "EVEN_SPLIT" | "MANUAL"): Promise<SeatSplitResult> {
+  splitOrderBySeat(
+    orderId: string,
+    sharedItemStrategy: "EVEN_SPLIT" | "MANUAL",
+  ): Promise<SeatSplitResult> {
     return billingApi.splitOrderBySeat(orderId, sharedItemStrategy);
   },
 };

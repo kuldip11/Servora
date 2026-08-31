@@ -13,7 +13,7 @@ export interface PopoverProps {
   className?: string | undefined;
 }
 
-export function Popover({
+export const Popover = ({
   trigger,
   children,
   open,
@@ -21,7 +21,7 @@ export function Popover({
   align = "center",
   side = "bottom",
   className,
-}: PopoverProps) {
+}: PopoverProps) => {
   return (
     <RadixPopover.Root
       {...(open !== undefined && { open })}
@@ -40,4 +40,4 @@ export function Popover({
       </RadixPopover.Portal>
     </RadixPopover.Root>
   );
-}
+};

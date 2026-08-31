@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown, GitBranch } from "lucide-react";
-import { useAuthStore } from "../../../store/auth";
-import { cn } from "../../utils";
-import { useBranches } from "../../../features/branches/hooks/useBranches";
+import { useAuthStore } from "@/store/auth";
+import { cn } from "@/shared/utils";
+import { useBranches } from "@/features/branches/hooks/useBranches";
 
-export function BranchSwitcher() {
+export const BranchSwitcher = () => {
   const { memberships, membershipId, branchId, setContext } = useAuthStore();
   const membership = memberships.find(
     (item) => item.membershipId === membershipId,
@@ -202,4 +202,4 @@ export function BranchSwitcher() {
       )}
     </div>
   );
-}
+};

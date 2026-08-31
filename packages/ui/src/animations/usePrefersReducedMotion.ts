@@ -1,9 +1,9 @@
 import { useSyncExternalStore } from "react";
 import { REDUCED_MOTION_QUERY } from "./tokens";
 
-export function usePrefersReducedMotion(): boolean {
+export const usePrefersReducedMotion = (): boolean => {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-}
+};
 
 function subscribe(callback: () => void) {
   if (typeof window === "undefined" || !window.matchMedia) return () => {};

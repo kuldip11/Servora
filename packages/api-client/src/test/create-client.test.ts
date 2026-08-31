@@ -24,7 +24,7 @@ type Interceptor<T> = {
   use: (fulfilled: (value: T) => any, rejected?: (error: any) => any) => void;
 };
 
-function makeClientHarness() {
+const makeClientHarness = () => {
   const request: Interceptor<any> = { use: vi.fn() };
   const response: Interceptor<any> = { use: vi.fn() };
   const api = vi.fn();
@@ -33,24 +33,26 @@ function makeClientHarness() {
     post: mocks.post,
   });
   return { request, response, api };
-}
+};
 
-function storage(
+const storage = (
   overrides: Partial<TokenStorageAdapter> = {},
-): TokenStorageAdapter {
+): TokenStorageAdapter => {
   return {
     getAccessToken: () => null,
     setAccessToken: vi.fn(),
     clear: vi.fn(),
     ...overrides,
   };
-}
+};
 
-function installedInterceptors(harness: ReturnType<typeof makeClientHarness>) {
+const installedInterceptors = (
+  harness: ReturnType<typeof makeClientHarness>,
+) => {
   const requestHandler = (harness.request.use as any).mock.calls[0][0];
   const responseRejected = (harness.response.use as any).mock.calls[0][1];
   return { requestHandler, responseRejected };
-}
+};
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -158,7 +160,6 @@ describe("createApiClient response interceptor", () => {
     ).rejects.toBeTruthy();
     expect(mocks.post).not.toHaveBeenCalled();
   });
-
 
   it("refreshes tokens, updates storage, retries the request, and returns the retry result", async () => {
     const harness = makeClientHarness();

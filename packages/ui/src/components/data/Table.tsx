@@ -48,7 +48,7 @@ export interface TableProps<T> {
   "aria-labelledby"?: string | undefined;
 }
 
-function SortIcon({ direction }: { direction: SortDirectionOrNone }) {
+const SortIcon = ({ direction }: { direction: SortDirectionOrNone }) => {
   if (direction === "asc")
     return <ChevronUp aria-hidden="true" className="w-3.5 h-3.5" />;
   if (direction === "desc")
@@ -56,7 +56,7 @@ function SortIcon({ direction }: { direction: SortDirectionOrNone }) {
   return (
     <ChevronsUpDown aria-hidden="true" className="w-3.5 h-3.5 opacity-40" />
   );
-}
+};
 type SortDirectionOrNone = "asc" | "desc" | undefined;
 
 export function Table<T>({

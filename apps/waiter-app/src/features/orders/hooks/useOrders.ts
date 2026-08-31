@@ -1,10 +1,13 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Order } from "@pos/types";
-import { useRealtimeEvent } from "../../../shared/lib/realtime";
-import { fetchOrders } from "../api/orders";
-import { orderKeys, ORDERS_POLL_INTERVAL_MS } from "../constants";
+import { useRealtimeEvent } from "@/shared/lib/realtime";
+import { fetchOrders } from "@/features/orders/api/orders";
+import {
+  orderKeys,
+  ORDERS_POLL_INTERVAL_MS,
+} from "@/features/orders/constants";
 
-export function useOrders() {
+export const useOrders = () => {
   const qc = useQueryClient();
   const query = useQuery({
     queryKey: orderKeys.all,
@@ -54,4 +57,4 @@ export function useOrders() {
   });
 
   return query;
-}
+};

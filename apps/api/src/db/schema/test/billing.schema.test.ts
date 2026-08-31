@@ -7,12 +7,12 @@ import {
   paymentMethodEnum,
   paymentStatusEnum,
   billOrderItems,
-} from "../billing.schema";
-function expectTable(table: any, name: string, columns: string[]) {
+} from "@/db/schema/billing.schema";
+const expectTable = (table: any, name: string, columns: string[]) => {
   const actual = Object.keys(table[Symbol.for("drizzle:Columns")]);
   expect(getTableConfig(table).name).toBe(name);
   expect(actual).toEqual(expect.arrayContaining(columns));
-}
+};
 describe("billing.schema.ts", () => {
   it("defines bills", () =>
     expectTable(bills, "bills", [
@@ -42,8 +42,16 @@ describe("billing.schema.ts", () => {
       "updatedAt",
     ]));
   it("assigns every order item to at most one bill", () => {
-    expectTable(billOrderItems, "bill_order_items", ["id", "billId", "orderItemId"]);
-    expect(getTableConfig(billOrderItems).indexes.some((index) => index.config.unique)).toBe(true);
+    expectTable(billOrderItems, "bill_order_items", [
+      "id",
+      "billId",
+      "orderItemId",
+    ]);
+    expect(
+      getTableConfig(billOrderItems).indexes.some(
+        (index) => index.config.unique,
+      ),
+    ).toBe(true);
   });
   it("defines payment_refunds", () =>
     expectTable(paymentRefunds, "payment_refunds", [

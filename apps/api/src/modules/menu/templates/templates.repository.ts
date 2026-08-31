@@ -1,12 +1,11 @@
-
 import { eq, and, isNull } from "drizzle-orm";
-import { db } from "../../../db";
+import { db } from "@/db";
 import {
   menuTemplates,
   menuTemplateItems,
   menuCategories,
   menuItems,
-} from "../../../db/schema";
+} from "@/db/schema";
 import type { FoodType, SpiceLevel } from "@pos/types";
 
 export const templatesRepository = {

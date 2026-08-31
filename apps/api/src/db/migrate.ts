@@ -3,7 +3,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { migrationClient } from "./index";
 import { existsSync } from "fs";
 
-async function runMigrations() {
+const runMigrations = async () => {
   const migrationsFolder = "./src/db/migrations";
 
   if (!existsSync(migrationsFolder)) {
@@ -69,7 +69,7 @@ async function runMigrations() {
   await migrate(db, { migrationsFolder });
   console.log("✅ Migrations complete!");
   await migrationClient.end();
-}
+};
 
 runMigrations().catch((err: unknown) => {
   console.error("❌ Migration failed:", err);

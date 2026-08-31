@@ -8,14 +8,14 @@ import {
   Utensils,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useRealtimeEvent } from "../../../shared/lib/realtime";
+import { useRealtimeEvent } from "@/shared/lib/realtime";
 import { createCustomersApi } from "@pos/api-client";
-import { apiClient } from "../../../shared/lib/api-client";
+import { apiClient } from "@/shared/lib/api-client";
 import { Card } from "@pos/ui";
 
 const customersApi = createCustomersApi(apiClient);
-import { useOrders } from "../../orders/hooks/useOrders";
-import { OrderCard } from "../../orders/components/OrderCard";
+import { useOrders } from "@/features/orders/hooks/useOrders";
+import { OrderCard } from "@/features/orders/components/OrderCard";
 
 interface Props {
   waiterName: string;
@@ -24,19 +24,24 @@ interface Props {
   onSelectOrder: (id: string) => void;
 }
 
-export function HomePage({
+export const HomePage = ({
   waiterName,
   onNewOrder,
   onViewOrders,
   onSelectOrder,
-}: Props) {
+}: Props) => {
   const { data: orders } = useOrders();
   const [requests, setRequests] = useState<
     Array<{ id: string; tableId: string; type: string; status: string }>
   >([]);
   useEffect(() => {
     void customersApi
-      .listRequests<{ id: string; tableId: string; type: string; status: string }>()
+      .listRequests<{
+        id: string;
+        tableId: string;
+        type: string;
+        status: string;
+      }>()
       .then((response) => setRequests(response))
       .catch(() => undefined);
   }, []);
@@ -74,7 +79,7 @@ export function HomePage({
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
-      {            }
+      {}
       <div className="bg-primary px-5 pt-10 pb-8">
         <p className="text-primary-foreground text-xs font-medium">
           Welcome back
@@ -135,7 +140,7 @@ export function HomePage({
       )}
 
       <div className="px-4 -mt-4 space-y-3 pb-6">
-        {                   }
+        {}
         <Card
           as="button"
           onClick={onNewOrder}
@@ -154,7 +159,7 @@ export function HomePage({
           <ChevronRight className="w-5 h-5 text-text-disabled" />
         </Card>
 
-        {                   }
+        {}
         {active.length > 0 ? (
           <div>
             <div className="flex items-center justify-between mb-2 px-1">
@@ -193,4 +198,4 @@ export function HomePage({
       </div>
     </div>
   );
-}
+};

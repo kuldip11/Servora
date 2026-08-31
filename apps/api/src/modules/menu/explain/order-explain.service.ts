@@ -1,22 +1,22 @@
-import type { AuthContext } from "../../../core/auth";
-import { requirePermission } from "../../../core/auth";
-import { InternalError, NotFoundError } from "../../../core/errors";
-import { orderRepository } from "../../orders/order.repository";
+import type { AuthContext } from "@/core/auth";
+import { requirePermission } from "@/core/auth";
+import { InternalError, NotFoundError } from "@/core/errors";
+import { orderRepository } from "@/modules/orders/order.repository";
 import {
   pricingPipeline,
   type PricingReplayEvidence,
-} from "../../orders/pricing/pricing-pipeline";
+} from "@/modules/orders/pricing/pricing-pipeline";
 import {
   availabilityService,
   type AvailabilityReplayEvidence,
-} from "../availability/availability.service";
-import { menuChangeLog } from "../change-log/menu-change-log";
+} from "@/modules/menu/availability/availability.service";
+import { menuChangeLog } from "@/modules/menu/change-log/menu-change-log";
 
-function money(value: number) {
+const money = (value: number) => {
   return Math.round((value + Number.EPSILON) * 100) / 100;
-}
+};
 
-export function replayPersistedLine(item: {
+export const replayPersistedLine = (item: {
   quantity: number;
   unitPrice: string;
   subtotal: string;
@@ -29,7 +29,7 @@ export function replayPersistedLine(item: {
     LOYALTY?: number;
     PRICE_SOURCE?: { kind: string; id: string; description: string };
   } | null;
-}) {
+}) => {
   const attribution = item.pricingAttribution ?? {
     BASE_PRICE: Number(item.unitPrice),
     VARIANT: 0,
@@ -64,13 +64,15 @@ export function replayPersistedLine(item: {
       replayedPreComboSubtotal === preComboSubtotal &&
       replayedSubtotal === money(persistedSubtotal),
   };
-}
+};
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === "object" && value !== null;
-}
+};
 
-function isPricingReplayEvidence(value: unknown): value is PricingReplayEvidence {
+const isPricingReplayEvidence = (
+  value: unknown,
+): value is PricingReplayEvidence => {
   if (!isRecord(value)) return false;
   const line = value.requestedLine;
   const item = value.item;
@@ -82,9 +84,11 @@ function isPricingReplayEvidence(value: unknown): value is PricingReplayEvidence
     typeof item.id === "string" &&
     Array.isArray(value.priceRules)
   );
-}
+};
 
-function isAvailabilityReplayEvidence(value: unknown): value is AvailabilityReplayEvidence {
+const isAvailabilityReplayEvidence = (
+  value: unknown,
+): value is AvailabilityReplayEvidence => {
   if (!isRecord(value)) return false;
   const item = value.item;
   const resolvedStatus = value.resolvedStatus;
@@ -95,7 +99,7 @@ function isAvailabilityReplayEvidence(value: unknown): value is AvailabilityRepl
     typeof resolvedStatus.status === "string" &&
     typeof resolvedStatus.reason === "string"
   );
-}
+};
 
 export const orderExplainService = {
   async explainOrder(auth: AuthContext, orderId: string) {
@@ -128,12 +132,14 @@ export const orderExplainService = {
             },
             {
               stage: "PRICING_PIPELINE",
-              explanation: "Combo/cover grouping value is preserved on the immutable order line.",
+              explanation:
+                "Combo/cover grouping value is preserved on the immutable order line.",
               attribution: item.pricingAttribution ?? {},
             },
             {
               stage: "SNAPSHOT",
-              explanation: "Grouping lines do not have an availability resolver result because they are not menu items.",
+              explanation:
+                "Grouping lines do not have an availability resolver result because they are not menu items.",
             },
           ],
         });
@@ -146,10 +152,14 @@ export const orderExplainService = {
         limit: 20,
       });
       const availability = item.availabilitySnapshot ?? null;
-      const pricingEvidence = isPricingReplayEvidence(item.pricingReplayEvidence)
+      const pricingEvidence = isPricingReplayEvidence(
+        item.pricingReplayEvidence,
+      )
         ? item.pricingReplayEvidence
         : null;
-      const availabilityEvidence = isAvailabilityReplayEvidence(item.availabilityReplayEvidence)
+      const availabilityEvidence = isAvailabilityReplayEvidence(
+        item.availabilityReplayEvidence,
+      )
         ? item.availabilityReplayEvidence
         : null;
 
@@ -192,9 +202,11 @@ export const orderExplainService = {
           availabilityReason: replayedAvailability.availabilityReason ?? null,
           availabilityCause: replayedAvailability.availabilityCause,
           matchesSnapshot:
-            replayedAvailability.effectiveStatus === availability.effectiveStatus &&
+            replayedAvailability.effectiveStatus ===
+              availability.effectiveStatus &&
             replayedAvailability.isHidden === availability.isHidden &&
-            (replayedAvailability.availabilityReason ?? null) === availability.reason &&
+            (replayedAvailability.availabilityReason ?? null) ===
+              availability.reason &&
             replayedAvailability.availabilityCause === availability.cause,
         };
 
@@ -208,7 +220,9 @@ export const orderExplainService = {
                 ? order.type
                 : availability.fulfillmentType,
             ...(order.customerId ? { customerId: order.customerId } : {}),
-            ...(order.customerGroupId ? { customerGroupId: order.customerGroupId } : {}),
+            ...(order.customerGroupId
+              ? { customerGroupId: order.customerGroupId }
+              : {}),
             asOf: lineAsOf,
             allowUnavailable: true,
             historicalReplay: pricingEvidence,
@@ -222,7 +236,9 @@ export const orderExplainService = {
         const expectedBaseSubtotal = money(
           Number(item.subtotal) - (item.pricingAttribution?.COMBO ?? 0),
         );
-        const expectedBaseUnitPrice = money(expectedBaseSubtotal / item.quantity);
+        const expectedBaseUnitPrice = money(
+          expectedBaseSubtotal / item.quantity,
+        );
         authoritativePricingReplay = {
           unitPrice: money(replayedLine.unitPrice),
           subtotal: money(replayedLine.subtotal),
@@ -236,7 +252,7 @@ export const orderExplainService = {
 
       const historicalEvidenceComplete = Boolean(
         authoritativePricingReplay?.matchesSnapshot &&
-          authoritativeAvailabilityReplay?.matchesSnapshot,
+        authoritativeAvailabilityReplay?.matchesSnapshot,
       );
 
       lines.push({
@@ -266,7 +282,9 @@ export const orderExplainService = {
           },
           {
             stage: "PRICING_PIPELINE_STAGE_1",
-            explanation: persistedReplay.priceSource?.description ?? "Menu-item base price attribution",
+            explanation:
+              persistedReplay.priceSource?.description ??
+              "Menu-item base price attribution",
             source: persistedReplay.priceSource,
           },
           {

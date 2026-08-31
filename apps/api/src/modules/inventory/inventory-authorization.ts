@@ -1,6 +1,6 @@
-import type { AuthContext } from "../../core/auth";
-import { requireBranch, requirePermission } from "../../core/auth";
-import { ForbiddenError } from "../../core/errors";
+import type { AuthContext } from "@/core/auth";
+import { requireBranch, requirePermission } from "@/core/auth";
+import { ForbiddenError } from "@/core/errors";
 
 export type InventoryPermission =
   | "inventory:read"
@@ -9,17 +9,17 @@ export type InventoryPermission =
   | "inventory:adjust"
   | "inventory:waste";
 
-export function requireInventoryPermission(
+export const requireInventoryPermission = (
   auth: AuthContext,
   permission: InventoryPermission,
-): void {
+): void => {
   requirePermission(auth, permission);
-}
+};
 
-export function resolveInventoryBranch(
+export const resolveInventoryBranch = (
   auth: AuthContext,
   requestedBranchId?: string | null,
-): string {
+): string => {
   const requested = requestedBranchId ?? auth.branchId ?? undefined;
   if (!requested)
     return requireBranch(
@@ -40,12 +40,12 @@ export function resolveInventoryBranch(
     throw new ForbiddenError("Branch access denied");
   }
   return requested;
-}
+};
 
-export function assertInventoryResourceBranch(
+export const assertInventoryResourceBranch = (
   auth: AuthContext,
   resourceBranchId: string | null | undefined,
-): void {
+): void => {
   if (!resourceBranchId) throw new ForbiddenError("Branch access denied");
   if (auth.tenantWide) return;
   if (!(auth.authorizedBranchIds ?? []).includes(resourceBranchId)) {
@@ -54,12 +54,12 @@ export function assertInventoryResourceBranch(
   if (auth.branchId && auth.branchId !== resourceBranchId) {
     throw new ForbiddenError("Branch access denied");
   }
-}
+};
 
-export function requireInventoryTransactionPermission(
+export const requireInventoryTransactionPermission = (
   auth: AuthContext,
   transactionType: "IN" | "OUT" | "ADJUSTMENT" | "WASTE",
-): void {
+): void => {
   if (transactionType === "ADJUSTMENT") {
     requirePermission(auth, "inventory:adjust");
     return;
@@ -69,4 +69,4 @@ export function requireInventoryTransactionPermission(
     return;
   }
   requirePermission(auth, "inventory:update");
-}
+};

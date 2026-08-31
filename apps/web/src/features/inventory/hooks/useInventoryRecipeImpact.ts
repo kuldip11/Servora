@@ -1,11 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-import { inventoryKeys } from "../query-keys";
-import { inventoryService } from "../services/inventory.service";
+import { inventoryKeys } from "@/features/inventory/query-keys";
+import { inventoryService } from "@/features/inventory/services/inventory.service";
 
-export function useInventoryRecipeImpact(inventoryItemId: string | undefined) {
+export const useInventoryRecipeImpact = (
+  inventoryItemId: string | undefined,
+) => {
   return useQuery({
     queryKey: inventoryKeys.impact(inventoryItemId ?? "none"),
     queryFn: () => inventoryService.recipeImpact(inventoryItemId!),
     enabled: Boolean(inventoryItemId),
   });
-}
+};

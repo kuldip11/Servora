@@ -5,7 +5,7 @@ import { moduleBySlug } from "@/content/modules";
 import { CtaBanner } from "./CtaBanner";
 import { ProductPreview } from "./ProductPreview";
 
-export function ProductDetail({ module }: { module: Module }) {
+export const ProductDetail = ({ module }: { module: Module }) => {
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://servora.example";
   const url = `${base}/product/${module.slug}`;
   const jsonLd = {
@@ -193,4 +193,4 @@ export function ProductDetail({ module }: { module: Module }) {
       <CtaBanner title={`Explore ${module.name} with your team.`} />
     </>
   );
-}
+};

@@ -4,12 +4,15 @@ import { resolve } from "node:path";
 
 const migrationsDir = resolve(process.cwd(), "src/db/migrations");
 
-function readTableMigration(table: string): string {
+const readTableMigration = (table: string): string => {
   const suffix = `_create_${table}.sql`;
-  const name = readdirSync(migrationsDir).find((entry) => entry.endsWith(suffix));
-  if (!name) throw new Error(`Canonical migration not found for table: ${table}`);
+  const name = readdirSync(migrationsDir).find((entry) =>
+    entry.endsWith(suffix),
+  );
+  if (!name)
+    throw new Error(`Canonical migration not found for table: ${table}`);
   return readFileSync(resolve(migrationsDir, name), "utf8");
-}
+};
 
 describe("tenant isolation database contract", () => {
   it("guards tenant-owned role assignment", () => {

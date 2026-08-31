@@ -1,16 +1,19 @@
 import type { KitchenTicket, Order } from "@pos/types";
-import type { AuthContext } from "../../core/auth";
-import { DomainRuleError, ValidationError } from "../../core/errors";
-import { eventBus } from "../../lib/event-bus";
-import { availabilityRepository } from "../menu/availability/availability.repository";
-import { inventoryService } from "../inventory/inventory.service";
-import { ticketRepository } from "../kitchen-tickets/ticket.repository";
+import type { AuthContext } from "@/core/auth";
+import { DomainRuleError, ValidationError } from "@/core/errors";
+import { eventBus } from "@/lib/event-bus";
+import { availabilityRepository } from "@/modules/menu/availability/availability.repository";
+import { inventoryService } from "@/modules/inventory/inventory.service";
+import { ticketRepository } from "@/modules/kitchen-tickets/ticket.repository";
 import {
   priceComboOrders,
   type ComboOrderSelection,
-} from "../menu/combos/combo-order.service";
-import { promotionRepository } from "../menu/promotions/promotion.repository";
-import { requireOrdersPermission, assertOrderResourceAccess } from "./orders-authorization";
+} from "@/modules/menu/combos/combo-order.service";
+import { promotionRepository } from "@/modules/menu/promotions/promotion.repository";
+import {
+  requireOrdersPermission,
+  assertOrderResourceAccess,
+} from "./orders-authorization";
 import { orderRepository } from "./order.repository";
 import {
   pricingPipeline,
@@ -61,7 +64,8 @@ export const orderFireService = {
     );
     if (
       fireCourseNumbers.length > 0 &&
-      fireCourseNumbers.length !== regularItems.length + (input.combos?.length ?? 0)
+      fireCourseNumbers.length !==
+        regularItems.length + (input.combos?.length ?? 0)
     ) {
       throw new ValidationError(
         "Every line must have a course when course sequencing is used",
@@ -141,7 +145,8 @@ export const orderFireService = {
       );
     }
 
-    const priorRedemptions = await promotionRepository.listRedemptionsForOrder(orderId);
+    const priorRedemptions =
+      await promotionRepository.listRedemptionsForOrder(orderId);
     const continuedPromotionIds = [
       ...new Set([
         ...priorRedemptions.map((entry) => entry.promotionId),

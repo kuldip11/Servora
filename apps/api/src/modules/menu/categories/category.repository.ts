@@ -1,13 +1,12 @@
-
 import { eq, and, isNull, or } from "drizzle-orm";
-import { db } from "../../../db";
-import { menuCategories, menuItems } from "../../../db/schema";
-import { ITEM_DETAIL_RELATIONS } from "../items/item.repository";
-import { compact } from "../../../lib/object-utils";
+import { db } from "@/db";
+import { menuCategories, menuItems } from "@/db/schema";
+import { ITEM_DETAIL_RELATIONS } from "@/modules/menu/items/item.repository";
+import { compact } from "@/lib/object-utils";
 import {
   withEffectiveMenuItemAvailability,
   withEffectiveModifierAvailability,
-} from "../availability/availability-view";
+} from "@/modules/menu/availability/availability-view";
 
 export const categoryRepository = {
   async findById(tenantId: string, categoryId: string) {

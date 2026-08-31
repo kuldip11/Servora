@@ -1,5 +1,5 @@
 import type { InventoryUnit } from "@pos/types";
-import { ValidationError } from "../../core/errors";
+import { ValidationError } from "@/core/errors";
 import type { inventoryRepository } from "./inventory.repository";
 import {
   areInventoryUnitsCompatible,
@@ -23,14 +23,13 @@ type RecipeSelectionInput = {
   menuItemId: string;
   variantId?: string | null | undefined;
   selectedOptions?:
-    | Array<{ optionId: string; quantity?: number | undefined }>
-    | undefined;
+    Array<{ optionId: string; quantity?: number | undefined }> | undefined;
 };
 
-export function weightRecipeScale(
+export const weightRecipeScale = (
   weightQuantity?: number | string | null,
   weightUnit?: "G" | "KG" | "LB" | "OZ" | null,
-): number {
+): number => {
   if (weightQuantity == null || weightUnit == null) return 1;
   const quantity = Number(weightQuantity);
   if (!Number.isFinite(quantity) || quantity <= 0) return 1;
@@ -44,25 +43,25 @@ export function weightRecipeScale(
     case "OZ":
       return quantity * 0.028349523125;
   }
-}
+};
 
-export function recipeYieldFactor(value: string | null | undefined): number {
+export const recipeYieldFactor = (value: string | null | undefined): number => {
   if (value == null) return 1;
   const percent = Number(value);
   return Number.isFinite(percent) && percent > 0 ? percent / 100 : 1;
-}
+};
 
-function recipeSourceKey(row: RequiredRecipeRow): string {
+const recipeSourceKey = (row: RequiredRecipeRow): string => {
   return row.inventoryItemId
     ? `inventory:${row.inventoryItemId}`
     : `sub:${row.subRecipeId}`;
-}
+};
 
-export function applicableRecipeRows(
+export const applicableRecipeRows = (
   rows: RequiredRecipeRow[],
   item: RecipeSelectionInput,
   requireRecipeDeductionEnabled = true,
-) {
+) => {
   const itemRows = rows.filter(
     (row) =>
       row.menuItemId === item.menuItemId &&
@@ -95,23 +94,23 @@ export function applicableRecipeRows(
     if (multiplier > 0) selected.push({ row, multiplier });
   }
   return selected;
-}
+};
 
-export function convertRecipeQuantity(
+export const convertRecipeQuantity = (
   quantity: number,
   from: InventoryUnit,
   to: InventoryUnit,
   label: string,
-): number {
+): number => {
   if (!areInventoryUnitsCompatible(from, to)) {
     throw new ValidationError(
       `${label} uses incompatible units (${from} → ${to})`,
     );
   }
   return convertInventoryQuantity(quantity, from, to);
-}
+};
 
-export function aggregateRawNeeds(needs: ResolvedRawNeed[]) {
+export const aggregateRawNeeds = (needs: ResolvedRawNeed[]) => {
   const aggregated = new Map<string, ResolvedRawNeed>();
   for (const need of needs) {
     const existing = aggregated.get(need.inventoryItemId);
@@ -119,10 +118,10 @@ export function aggregateRawNeeds(needs: ResolvedRawNeed[]) {
     else aggregated.set(need.inventoryItemId, { ...need });
   }
   return Array.from(aggregated.values());
-}
+};
 
-export function canSatisfyNeeds(needs: ResolvedRawNeed[]) {
+export const canSatisfyNeeds = (needs: ResolvedRawNeed[]) => {
   return aggregateRawNeeds(needs).every(
     (need) => need.currentStock >= need.neededQuantity,
   );
-}
+};

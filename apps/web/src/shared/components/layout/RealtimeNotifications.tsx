@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
 import { toast } from "@pos/ui";
-import { useRealtimeEvent } from "../../lib/realtime";
-import { queryClient } from "../../lib/query-client";
+import { useRealtimeEvent } from "@/shared/lib/realtime";
+import { queryClient } from "@/shared/lib/query-client";
 
-export function RealtimeNotifications() {
+export const RealtimeNotifications = () => {
   const seen = useRef(new Set<string>());
 
   useEffect(() => () => seen.current.clear(), []);
@@ -18,7 +18,6 @@ export function RealtimeNotifications() {
       duration: 4500,
     });
   });
-
 
   useRealtimeEvent("menu.availability.updated", () => {
     void queryClient.invalidateQueries({ queryKey: ["menu"] });
@@ -50,4 +49,4 @@ export function RealtimeNotifications() {
   });
 
   return null;
-}
+};

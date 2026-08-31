@@ -1,31 +1,32 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ForbiddenError } from "../../errors";
-import type { Database } from "../../../db";
+import { ForbiddenError } from "@/core/errors";
+import type { Database } from "@/db";
 import {
   hasPermission,
   requireBranchAccess,
   requirePermission,
   resolveAuthorization,
   resolveMembership,
-} from "../authorization";
+} from "@/core/auth/authorization";
 
 const makeDb = (
   membership: any,
   globalRoles: any[] = [],
   branch: any = { id: "b1" },
   rows: any[] = [{ key: "orders:read" }],
-) => ({
-  query: {
-    tenantMemberships: { findFirst: vi.fn().mockResolvedValue(membership) },
-    globalUserRoles: { findMany: vi.fn().mockResolvedValue(globalRoles) },
-    branches: { findFirst: vi.fn().mockResolvedValue(branch) },
-  },
-  select: vi.fn(() => ({
-    from: vi.fn(() => ({
-      innerJoin: vi.fn(() => ({ where: vi.fn().mockResolvedValue(rows) })),
+) =>
+  ({
+    query: {
+      tenantMemberships: { findFirst: vi.fn().mockResolvedValue(membership) },
+      globalUserRoles: { findMany: vi.fn().mockResolvedValue(globalRoles) },
+      branches: { findFirst: vi.fn().mockResolvedValue(branch) },
+    },
+    select: vi.fn(() => ({
+      from: vi.fn(() => ({
+        innerJoin: vi.fn(() => ({ where: vi.fn().mockResolvedValue(rows) })),
+      })),
     })),
-  })),
-}) as unknown as Database;
+  }) as unknown as Database;
 
 const membership = {
   id: "m1",
@@ -36,7 +37,9 @@ const membership = {
 describe("authorization", () => {
   it("does not query PostgreSQL for an empty tenant id", async () => {
     const db = { query: { tenantMemberships: { findFirst: vi.fn() } } };
-    expect(await resolveMembership(db as unknown as Database, "u1", "")).toBeUndefined();
+    expect(
+      await resolveMembership(db as unknown as Database, "u1", ""),
+    ).toBeUndefined();
     expect(db.query.tenantMemberships.findFirst).not.toHaveBeenCalled();
   });
   it("resolves membership authorization and permissions", async () => {

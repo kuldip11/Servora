@@ -12,8 +12,11 @@ export const STATUS_CONFIG = {
     btn: "",
   },
   HELD: {
-    label: "Held", next: "FIRED", nextLabel: "Fire Course",
-    border: "border-text-disabled/40", badgeTone: "neutral" as StatusTone,
+    label: "Held",
+    next: "FIRED",
+    nextLabel: "Fire Course",
+    border: "border-text-disabled/40",
+    badgeTone: "neutral" as StatusTone,
     badgeTextClass: "text-text-secondary",
     btn: "bg-primary hover:opacity-90 text-primary-foreground",
   },
@@ -36,7 +39,6 @@ export const STATUS_CONFIG = {
     btn: "bg-warning hover:opacity-90 text-warning-foreground",
   },
   READY: {
-
     label: "Ready",
     next: null,
     nextLabel: null,

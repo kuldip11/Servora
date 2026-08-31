@@ -1,7 +1,6 @@
-
 import { eq, and, isNull, or, inArray, asc } from "drizzle-orm";
 import type { FoodType, MenuItemStatus, SpiceLevel } from "@pos/types";
-import { db } from "../../../db";
+import { db } from "@/db";
 import {
   menuItems,
   menuItemVariants,
@@ -15,13 +14,15 @@ import {
   recipes,
   menus,
   menuMemberships,
-} from "../../../db/schema";
+} from "@/db/schema";
 import {
   withEffectiveMenuItemAvailability,
   withEffectiveModifierAvailability,
-} from "../availability/availability-view";
+} from "@/modules/menu/availability/availability-view";
 
-type MenuItemDetailRelations = NonNullable<NonNullable<Parameters<typeof db.query.menuItems.findFirst>[0]>["with"]>;
+type MenuItemDetailRelations = NonNullable<
+  NonNullable<Parameters<typeof db.query.menuItems.findFirst>[0]>["with"]
+>;
 
 export const ITEM_DETAIL_RELATIONS = {
   variants: true,
@@ -30,7 +31,10 @@ export const ITEM_DETAIL_RELATIONS = {
     with: {
       group: {
         with: {
-          options: { orderBy: [asc(modifierOptions.sortOrder)], with: { variantPrices: true } },
+          options: {
+            orderBy: [asc(modifierOptions.sortOrder)],
+            with: { variantPrices: true },
+          },
         },
       },
     },
@@ -41,12 +45,21 @@ export const ITEM_DETAIL_RELATIONS = {
   menuMemberships: { with: { menu: true, category: true } },
 } satisfies MenuItemDetailRelations;
 
-function withItemReadModel<T extends {
-  status: MenuItemStatus | string;
-  manualOverrideStatus?: MenuItemStatus | string | null;
-  manualStockCount?: number | null;
-  modifierGroupLinks?: Array<{ group: { options: Array<{ computedAvailability: boolean; manualOverrideAvailability?: boolean | null }> } }>;
-}>(item: T) {
+function withItemReadModel<
+  T extends {
+    status: MenuItemStatus | string;
+    manualOverrideStatus?: MenuItemStatus | string | null;
+    manualStockCount?: number | null;
+    modifierGroupLinks?: Array<{
+      group: {
+        options: Array<{
+          computedAvailability: boolean;
+          manualOverrideAvailability?: boolean | null;
+        }>;
+      };
+    }>;
+  },
+>(item: T) {
   return {
     ...withEffectiveMenuItemAvailability(item),
     ...(item.modifierGroupLinks
@@ -55,7 +68,9 @@ function withItemReadModel<T extends {
             ...link,
             group: {
               ...link.group,
-              options: link.group.options.map(withEffectiveModifierAvailability),
+              options: link.group.options.map(
+                withEffectiveModifierAvailability,
+              ),
             },
           })),
         }
@@ -157,7 +172,8 @@ export const itemRepository = {
           supportsZones: data.supportsZones ?? false,
           zonePricingRule: data.zonePricingRule ?? "HIGHER",
           manualStockCount: data.manualStockCount ?? null,
-          manualStockCountUpdatedAt: data.manualStockCount === undefined ? null : new Date(),
+          manualStockCountUpdatedAt:
+            data.manualStockCount === undefined ? null : new Date(),
           taxRate: data.taxRate ?? "0",
           taxMode: data.taxMode ?? null,
           foodType: data.foodType ?? "VEG",
@@ -182,7 +198,10 @@ export const itemRepository = {
       }
 
       const defaultMenu = await tx.query.menus.findFirst({
-        where: and(eq(menus.tenantId, data.tenantId), eq(menus.isDefault, true)),
+        where: and(
+          eq(menus.tenantId, data.tenantId),
+          eq(menus.isDefault, true),
+        ),
         columns: { id: true },
       });
       if (defaultMenu) {

@@ -17,7 +17,7 @@ vi.mock("@pos/ui", () => ({
   TextInput: (p: any) => <input {...p} />,
   PasswordInput: (p: any) => <input {...p} />,
 }));
-import { KitchenLogin } from "../KitchenLogin";
+import { KitchenLogin } from "@/features/auth/pages/KitchenLogin";
 describe("KitchenLogin", () =>
   it("renders credentials step", () => {
     const h = renderToStaticMarkup(<KitchenLogin onLogin={() => {}} />);

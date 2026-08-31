@@ -1,40 +1,40 @@
 import { useState } from "react";
 import { ListChecks, Upload } from "lucide-react";
 import { Button, Page, PageHeader, Tabs, type TabItem } from "@pos/ui";
-import { ItemFormModal } from "../components/ItemFormModal";
-import { MenuItemsContent } from "../components/MenuItemsContent";
-import { MenuCategoriesSection } from "../components/MenuCategoriesSection";
-import { MenuSpecializedSection } from "../components/MenuSpecializedSection";
-import { ModifierGroupsSection } from "../components/ModifierGroupsSection";
-import { TagsSection } from "../components/TagsSection";
-import { HolidaysSection } from "../components/HolidaysSection";
+import { ItemFormModal } from "@/features/menu/components/ItemFormModal";
+import { MenuItemsContent } from "@/features/menu/components/MenuItemsContent";
+import { MenuCategoriesSection } from "@/features/menu/components/MenuCategoriesSection";
+import { MenuSpecializedSection } from "@/features/menu/components/MenuSpecializedSection";
+import { ModifierGroupsSection } from "@/features/menu/components/ModifierGroupsSection";
+import { TagsSection } from "@/features/menu/components/TagsSection";
+import { HolidaysSection } from "@/features/menu/components/HolidaysSection";
 import {
   TemplatesSection,
   SaveTemplateModal,
-} from "../components/TemplatesSection";
-import { ExportMenu } from "../components/ExportMenu";
-import { ImportWizard } from "../components/ImportWizard";
-import { useMenuCategories } from "../hooks/useMenuCategories";
-import { useMenuTags } from "../hooks/useMenuTags";
-import { useToggleItemAvailability } from "../hooks/useToggleItemAvailability";
-import { useDeleteMenuItem } from "../hooks/useDeleteMenuItem";
-import { useDuplicateMenuItem } from "../hooks/useDuplicateMenuItem";
-import { useSetItemPublished } from "../hooks/useSetItemPublished";
+} from "@/features/menu/components/TemplatesSection";
+import { ExportMenu } from "@/features/menu/components/ExportMenu";
+import { ImportWizard } from "@/features/menu/components/ImportWizard";
+import { useMenuCategories } from "@/features/menu/hooks/useMenuCategories";
+import { useMenuTags } from "@/features/menu/hooks/useMenuTags";
+import { useToggleItemAvailability } from "@/features/menu/hooks/useToggleItemAvailability";
+import { useDeleteMenuItem } from "@/features/menu/hooks/useDeleteMenuItem";
+import { useDuplicateMenuItem } from "@/features/menu/hooks/useDuplicateMenuItem";
+import { useSetItemPublished } from "@/features/menu/hooks/useSetItemPublished";
 import type { MenuItem, FoodType, MenuItemStatus } from "@pos/types";
-import { MenusSection } from "../components/MenusSection";
-import { KitchenStationsSection } from "../components/KitchenStationsSection";
-import { CombosSection } from "../components/CombosSection";
-import { PromotionsSection } from "../components/PromotionsSection";
-import { LoyaltySection } from "../components/LoyaltySection";
-import { HappyHourSection } from "../components/HappyHourSection";
-import { CustomerGroupsSection } from "../components/CustomerGroupsSection";
-import { BuffetPricingSection } from "../components/BuffetPricingSection";
-import { OrganizationManagementSection } from "../components/OrganizationManagementSection";
-import { GuidedComboPromotionBuilder } from "../components/GuidedComboPromotionBuilder";
+import { MenusSection } from "@/features/menu/components/MenusSection";
+import { KitchenStationsSection } from "@/features/menu/components/KitchenStationsSection";
+import { CombosSection } from "@/features/menu/components/CombosSection";
+import { PromotionsSection } from "@/features/menu/components/PromotionsSection";
+import { LoyaltySection } from "@/features/menu/components/LoyaltySection";
+import { HappyHourSection } from "@/features/menu/components/HappyHourSection";
+import { CustomerGroupsSection } from "@/features/menu/components/CustomerGroupsSection";
+import { BuffetPricingSection } from "@/features/menu/components/BuffetPricingSection";
+import { OrganizationManagementSection } from "@/features/menu/components/OrganizationManagementSection";
+import { GuidedComboPromotionBuilder } from "@/features/menu/components/GuidedComboPromotionBuilder";
 
-import { MENU_TABS, type MenuTabId } from "../constants";
+import { MENU_TABS, type MenuTabId } from "@/features/menu/constants";
 
-export function MenuPage() {
+export const MenuPage = () => {
   const [tab, setTab] = useState<MenuTabId>("items");
   const [showImport, setShowImport] = useState(false);
   const [savingTemplateFor, setSavingTemplateFor] = useState<{
@@ -119,12 +119,30 @@ export function MenuPage() {
   const tabItems: TabItem[] = [
     { value: "items", label: "Items", content: itemsContent },
     { value: "menus", label: "Menus", content: <MenusSection /> },
-    { value: "guided-builder", label: "Guided Builder", content: <GuidedComboPromotionBuilder /> },
+    {
+      value: "guided-builder",
+      label: "Guided Builder",
+      content: <GuidedComboPromotionBuilder />,
+    },
     { value: "combos", label: "Combos", content: <CombosSection /> },
-    { value: "promotions", label: "Promotions", content: <PromotionsSection /> },
+    {
+      value: "promotions",
+      label: "Promotions",
+      content: <PromotionsSection />,
+    },
     { value: "loyalty", label: "Loyalty", content: <LoyaltySection /> },
     { value: "happy-hour", label: "Happy Hour", content: <HappyHourSection /> },
-    { value: "advanced", label: "Advanced Models", content: <div className="space-y-10"><CustomerGroupsSection /><BuffetPricingSection /><OrganizationManagementSection /></div> },
+    {
+      value: "advanced",
+      label: "Advanced Models",
+      content: (
+        <div className="space-y-10">
+          <CustomerGroupsSection />
+          <BuffetPricingSection />
+          <OrganizationManagementSection />
+        </div>
+      ),
+    },
     {
       value: "categories",
       label: "Categories",
@@ -145,7 +163,11 @@ export function MenuPage() {
       label: "Availability",
       content: <MenuSpecializedSection mode="availability" />,
     },
-    { value: "stations", label: "Stations", content: <KitchenStationsSection /> },
+    {
+      value: "stations",
+      label: "Stations",
+      content: <KitchenStationsSection />,
+    },
     { value: "tools", label: "Tools", content: toolsContent },
   ];
 
@@ -194,4 +216,4 @@ export function MenuPage() {
       )}
     </Page>
   );
-}
+};

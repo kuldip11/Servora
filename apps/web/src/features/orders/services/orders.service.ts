@@ -1,8 +1,8 @@
 import { createOrdersApi, type OrdersListFilters } from "@pos/api-client";
 import type { CreateOrderInput as ValidatedCreateOrderInput } from "@pos/validation";
-import { apiClient } from "../../../shared/lib/api-client";
+import { apiClient } from "@/shared/lib/api-client";
 import type { Order } from "@pos/types";
-import type { CartItem } from "../utils/cartTypes";
+import type { CartItem } from "@/features/orders/utils/cartTypes";
 
 export type CreateOrderInput = ValidatedCreateOrderInput;
 export type { OrdersListFilters };
@@ -24,7 +24,7 @@ interface CartItemPayload {
 
 const ordersApi = createOrdersApi(apiClient);
 
-export function toCartItemPayload(item: CartItem): CartItemPayload {
+export const toCartItemPayload = (item: CartItem): CartItemPayload => {
   return {
     menuItemId: item.menuItemId,
     quantity: item.quantity,
@@ -37,7 +37,7 @@ export function toCartItemPayload(item: CartItem): CartItemPayload {
       quantity: m.quantity,
     })),
   };
-}
+};
 
 export const ordersService = {
   list: ordersApi.list,
@@ -52,7 +52,8 @@ export const ordersService = {
     reason?: { cancellationReasonId?: string; reason?: string },
   ): Promise<Order> {
     return ordersApi.updateStatus(orderId, {
-      status: status as "OPEN" | "BILL_REQUESTED" | "PAID" | "CLOSED" | "CANCELLED",
+      status: status as
+        "OPEN" | "BILL_REQUESTED" | "PAID" | "CLOSED" | "CANCELLED",
       ...reason,
     });
   },

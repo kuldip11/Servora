@@ -1,6 +1,6 @@
 import { and, eq, inArray, isNull, or } from "drizzle-orm";
-import { db } from "../../db";
-import { ConflictError } from "../../core/errors";
+import { db } from "@/db";
+import { ConflictError } from "@/core/errors";
 import {
   branches,
   membershipBranches,
@@ -8,7 +8,7 @@ import {
   roles,
   tenantMemberships,
   users,
-} from "../../db/schema";
+} from "@/db/schema";
 
 import { STAFF_LIST_COLUMNS } from "./constants";
 

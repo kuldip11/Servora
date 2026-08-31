@@ -14,14 +14,14 @@ export interface PageHeaderProps extends Omit<
   eyebrow?: ReactNode;
 }
 
-export function PageHeader({
+export const PageHeader = ({
   title,
   description,
   actions,
   eyebrow,
   className,
   ...props
-}: PageHeaderProps) {
+}: PageHeaderProps) => {
   return (
     <div className={cn(className)} {...props}>
       {eyebrow && <div className="mb-2">{eyebrow}</div>}
@@ -42,4 +42,4 @@ export function PageHeader({
       </Stack>
     </div>
   );
-}
+};

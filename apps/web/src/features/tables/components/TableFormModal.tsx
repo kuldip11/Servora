@@ -5,10 +5,10 @@ import type {
 } from "react-hook-form";
 import { Button, Modal, Input, Select } from "@pos/ui";
 import type { Branch } from "@pos/types";
-import type { RestaurantTable } from "../types";
-import type { TableFormValues } from "../table-form.types";
+import type { RestaurantTable } from "@/features/tables/types";
+import type { TableFormValues } from "@/features/tables/table-form.types";
 
-export function TableFormModal({
+export const TableFormModal = ({
   mode,
   open,
   editing,
@@ -32,7 +32,7 @@ export function TableFormModal({
   pending: boolean;
   onClose: () => void;
   onSubmit: (values: TableFormValues) => void;
-}) {
+}) => {
   return (
     <Modal
       open={open}
@@ -85,4 +85,4 @@ export function TableFormModal({
       </form>
     </Modal>
   );
-}
+};

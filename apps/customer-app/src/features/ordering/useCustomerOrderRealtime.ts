@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import type { CustomerOrder } from "../../api";
+import type { CustomerOrder } from "@/api";
 
-import { CUSTOMER_ORDER_INITIAL_RECONNECT_DELAY_MS, CUSTOMER_ORDER_MAX_RECONNECT_DELAY_MS } from "./constants";
+import {
+  CUSTOMER_ORDER_INITIAL_RECONNECT_DELAY_MS,
+  CUSTOMER_ORDER_MAX_RECONNECT_DELAY_MS,
+} from "./constants";
 
-export function useCustomerOrderRealtime(
+export const useCustomerOrderRealtime = (
   sessionToken: string | undefined,
   orderId: string | undefined,
   onOrder: (order: CustomerOrder) => void,
   onMenuAvailability?: (() => void) | undefined,
-) {
+) => {
   const [live, setLive] = useState(false);
   const reconnectTimer = useRef<number | undefined>(undefined);
   const pingTimer = useRef<number | undefined>(undefined);
@@ -42,7 +45,8 @@ export function useCustomerOrderRealtime(
     const scheduleReconnect = () => {
       if (stopped || reconnectTimer.current !== undefined) return;
       const delay = Math.min(
-        CUSTOMER_ORDER_INITIAL_RECONNECT_DELAY_MS * 2 ** reconnectAttempt.current,
+        CUSTOMER_ORDER_INITIAL_RECONNECT_DELAY_MS *
+          2 ** reconnectAttempt.current,
         CUSTOMER_ORDER_MAX_RECONNECT_DELAY_MS,
       );
       reconnectAttempt.current += 1;
@@ -82,9 +86,7 @@ export function useCustomerOrderRealtime(
           } else if (message.type === "menu.availability.updated") {
             onMenuAvailability?.();
           }
-        } catch {
-
-        }
+        } catch {}
       };
 
       socket.onerror = () => {
@@ -112,4 +114,4 @@ export function useCustomerOrderRealtime(
   }, [sessionToken, orderId, onOrder, onMenuAvailability]);
 
   return live;
-}
+};

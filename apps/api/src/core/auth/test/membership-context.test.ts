@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import type { Database } from "../../../db";
+import type { Database } from "@/db";
 import {
   listUserMemberships,
   resolveActiveBranch,
-} from "../membership-context";
+} from "@/core/auth/membership-context";
 
 const activeMembership = {
   id: "m1",
@@ -46,7 +46,9 @@ describe("membership context", () => {
         },
       },
     };
-    await expect(listUserMemberships(db as unknown as Database, "u1")).resolves.toEqual([
+    await expect(
+      listUserMemberships(db as unknown as Database, "u1"),
+    ).resolves.toEqual([
       {
         membershipId: "m1",
         isGlobalOwner: true,

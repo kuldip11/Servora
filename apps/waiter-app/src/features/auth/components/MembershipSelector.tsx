@@ -1,13 +1,13 @@
 import { Building2 } from "lucide-react";
 import type { AvailableMembership } from "@pos/types";
 
-export function MembershipSelector({
+export const MembershipSelector = ({
   memberships,
   onSelect,
 }: {
   memberships: AvailableMembership[];
   onSelect: (id: string) => void;
-}) {
+}) => {
   return (
     <div className="space-y-3">
       <p className="text-sm font-semibold text-text-primary mb-4">
@@ -33,4 +33,4 @@ export function MembershipSelector({
       ))}
     </div>
   );
-}
+};

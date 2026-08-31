@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Download } from "lucide-react";
 import { Popover } from "@pos/ui";
-import { useExportMenu } from "../hooks/useExportMenu";
+import { useExportMenu } from "@/features/menu/hooks/useExportMenu";
 import type {
   MenuExportEntity,
   MenuExportFormat,
-} from "../services/menu-export.service";
+} from "@/features/menu/services/menu-export.service";
 
 const ENTITIES: { value: MenuExportEntity; label: string }[] = [
   { value: "items", label: "Items" },
@@ -14,7 +14,7 @@ const ENTITIES: { value: MenuExportEntity; label: string }[] = [
   { value: "modifiers", label: "Modifiers" },
 ];
 
-export function ExportMenu() {
+export const ExportMenu = () => {
   const [open, setOpen] = useState(false);
   const { download, downloadingKey } = useExportMenu();
 
@@ -40,9 +40,7 @@ export function ExportMenu() {
         </button>
       }
     >
-      {
-
-                       }
+      {}
       <div className="w-64 -m-4 p-2">
         {ENTITIES.map((e) => (
           <div
@@ -70,4 +68,4 @@ export function ExportMenu() {
       </div>
     </Popover>
   );
-}
+};

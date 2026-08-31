@@ -1,6 +1,5 @@
-
 import { eq, and, inArray } from "drizzle-orm";
-import { db } from "../../../db";
+import { db } from "@/db";
 import {
   menuItems,
   recipes,
@@ -9,7 +8,7 @@ import {
   modifierOptions,
   menuItemModifierGroups,
   subRecipes,
-} from "../../../db/schema";
+} from "@/db/schema";
 import type { InventoryUnit } from "@pos/types";
 
 export interface RecipeWriteRow {
@@ -45,7 +44,10 @@ export const recipesRepository = {
     });
   },
 
-  async findOwnedInventorySources(tenantId: string, inventoryItemIds: string[]) {
+  async findOwnedInventorySources(
+    tenantId: string,
+    inventoryItemIds: string[],
+  ) {
     if (!inventoryItemIds.length) return [];
     return db.query.inventoryItems.findMany({
       where: and(
@@ -59,7 +61,10 @@ export const recipesRepository = {
   async findOwnedSubRecipeSources(tenantId: string, ids: string[]) {
     if (!ids.length) return [];
     return db.query.subRecipes.findMany({
-      where: and(eq(subRecipes.tenantId, tenantId), inArray(subRecipes.id, ids)),
+      where: and(
+        eq(subRecipes.tenantId, tenantId),
+        inArray(subRecipes.id, ids),
+      ),
       columns: { id: true, branchId: true, yieldUnit: true },
     });
   },
@@ -80,7 +85,10 @@ export const recipesRepository = {
       .from(modifierOptions)
       .innerJoin(
         menuItemModifierGroups,
-        eq(menuItemModifierGroups.modifierGroupId, modifierOptions.modifierGroupId),
+        eq(
+          menuItemModifierGroups.modifierGroupId,
+          modifierOptions.modifierGroupId,
+        ),
       )
       .where(
         and(

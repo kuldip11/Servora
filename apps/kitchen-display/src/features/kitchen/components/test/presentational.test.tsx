@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { TicketItems } from "../TicketItems";
-import { TicketFooter } from "../TicketFooter";
-import { TicketHeader } from "../TicketHeader";
-import { TicketCard } from "../TicketCard";
-import { ticket } from "../../test/fixtures";
-import { filterTicketForStation } from "../../utils/ticket";
+import { TicketItems } from "@/features/kitchen/components/TicketItems";
+import { TicketFooter } from "@/features/kitchen/components/TicketFooter";
+import { TicketHeader } from "@/features/kitchen/components/TicketHeader";
+import { TicketCard } from "@/features/kitchen/components/TicketCard";
+import { ticket } from "@/features/kitchen/test/fixtures";
+import { filterTicketForStation } from "@/features/kitchen/utils/ticket";
 vi.mock("@pos/ui", () => ({
   Card: ({ children, ...p }: any) => <div {...p}>{children}</div>,
   StatusBadge: ({ label }: any) => <span>{label}</span>,
@@ -107,8 +107,12 @@ describe("ticket components", () => {
     const cold = filterTicketForStation(comboTicket, "cold");
     expect(grill?.items.map((item) => item.id)).toEqual(["combo-grill"]);
     expect(cold?.items.map((item) => item.id)).toEqual(["combo-cold"]);
-    const grillHtml = renderToStaticMarkup(<TicketItems notes={null} items={grill!.items} />);
-    const coldHtml = renderToStaticMarkup(<TicketItems notes={null} items={cold!.items} />);
+    const grillHtml = renderToStaticMarkup(
+      <TicketItems notes={null} items={grill!.items} />,
+    );
+    const coldHtml = renderToStaticMarkup(
+      <TicketItems notes={null} items={cold!.items} />,
+    );
     expect(grillHtml).toContain("Grilled Steak");
     expect(grillHtml).not.toContain("Garden Salad");
     expect(coldHtml).toContain("Garden Salad");
@@ -120,24 +124,41 @@ describe("ticket components", () => {
   it("G2/G3/G6 renders zones, captured weight, and distinguishes REFILL from REFIRE", () => {
     const base = ticket.items[0]!;
     const zoned = {
-      ...base, id: "zone-line", weightQuantity: 450, weightUnit: "G" as const,
+      ...base,
+      id: "zone-line",
+      weightQuantity: 450,
+      weightUnit: "G" as const,
       modifiers: [
         { ...base.modifiers[0]!, name: "Pepperoni", zoneLabel: "LEFT" },
-        { ...base.modifiers[0]!, modifierId: "mod2", name: "Mushroom", zoneLabel: "RIGHT" },
+        {
+          ...base.modifiers[0]!,
+          modifierId: "mod2",
+          name: "Mushroom",
+          zoneLabel: "RIGHT",
+        },
       ],
     };
     const refill = {
-      ...base, id: "refill-line", menuItemName: "Rice", refiresOrderItemId: "rice-original", refireType: "REFILL" as const,
+      ...base,
+      id: "refill-line",
+      menuItemName: "Rice",
+      refiresOrderItemId: "rice-original",
+      refireType: "REFILL" as const,
     };
     const refire = {
-      ...base, id: "refire-line", menuItemName: "Steak", refiresOrderItemId: "steak-original", refireType: "REFIRE" as const,
+      ...base,
+      id: "refire-line",
+      menuItemName: "Steak",
+      refiresOrderItemId: "steak-original",
+      refireType: "REFIRE" as const,
     };
-    const h = renderToStaticMarkup(<TicketItems notes={null} items={[zoned, refill, refire]} />);
+    const h = renderToStaticMarkup(
+      <TicketItems notes={null} items={[zoned, refill, refire]} />,
+    );
     expect(h).toContain("LEFT: Pepperoni");
     expect(h).toContain("RIGHT: Mushroom");
     expect(h).toContain("450 G");
     expect(h).toContain("REFILL · INCLUDED");
     expect(h).toContain("REFIRE");
   });
-
 });

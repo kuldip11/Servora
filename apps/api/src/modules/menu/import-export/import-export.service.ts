@@ -1,10 +1,8 @@
-
-
 import * as XLSX from "xlsx";
-import type { AuthContext } from "../../../core/auth";
+import type { AuthContext } from "@/core/auth";
 import { importExportRepository } from "./import-export.repository";
-import { requirePermission } from "../../../core/auth";
-import { resolveMenuBranch } from "../menu-authorization";
+import { requirePermission } from "@/core/auth";
+import { resolveMenuBranch } from "@/modules/menu/menu-authorization";
 import {
   parseFile,
   buildTemplate,
@@ -18,14 +16,14 @@ import {
   emptyImportFile,
   importValidationFailed,
 } from "./import-export.errors";
-import { menuChangeLog } from "../change-log/menu-change-log";
+import { menuChangeLog } from "@/modules/menu/change-log/menu-change-log";
 
 export type ExportFormat = "csv" | "xlsx";
 
-function toSheet(
+const toSheet = (
   rows: Record<string, unknown>[],
   format: ExportFormat,
-): { content: string | Buffer; contentType: string } {
+): { content: string | Buffer; contentType: string } => {
   const sheet = XLSX.utils.json_to_sheet(rows);
   if (format === "csv") {
     return { content: XLSX.utils.sheet_to_csv(sheet), contentType: "text/csv" };
@@ -41,10 +39,9 @@ function toSheet(
     contentType:
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   };
-}
+};
 
 export const importExportService = {
-
   async exportItems(
     auth: AuthContext,
     format: ExportFormat,
@@ -187,7 +184,11 @@ export const importExportService = {
 
     requirePermission(auth, "menu:create");
     const effectiveBranchId = resolveMenuBranch(auth);
-    const { inserted, updated, touched = [] } = valid.length
+    const {
+      inserted,
+      updated,
+      touched = [],
+    } = valid.length
       ? await importExportRepository.commitRows(
           auth.tenantId,
           effectiveBranchId,
@@ -195,12 +196,15 @@ export const importExportService = {
         )
       : { inserted: 0, updated: 0, touched: [] };
 
-    await menuChangeLog.recordMany(auth, touched.map((row) => ({
-      entityType: "MENU_ITEM",
-      entityId: row.id,
-      changeType: row.action === "insert" ? "CREATED" : "UPDATED",
-      diff: { source: "IMPORT", ...row.data },
-    })));
+    await menuChangeLog.recordMany(
+      auth,
+      touched.map((row) => ({
+        entityType: "MENU_ITEM",
+        entityId: row.id,
+        changeType: row.action === "insert" ? "CREATED" : "UPDATED",
+        diff: { source: "IMPORT", ...row.data },
+      })),
+    );
 
     if (errors.length && inserted === 0 && updated === 0) {
       throw importValidationFailed({ inserted, updated, errors });

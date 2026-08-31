@@ -5,11 +5,11 @@ export type ModifierAvailabilitySource = {
   manualOverrideAvailability?: boolean | null | undefined;
 };
 
-export function effectiveModifierAvailability(
+export const effectiveModifierAvailability = (
   option: ModifierAvailabilitySource,
-): boolean {
+): boolean => {
   return option.manualOverrideAvailability ?? option.computedAvailability;
-}
+};
 
 export function withEffectiveModifierAvailability<
   T extends ModifierAvailabilitySource,
@@ -26,15 +26,15 @@ export type MenuItemAvailabilitySource = {
   manualStockCount?: number | null | undefined;
 };
 
-export function effectiveMenuItemAvailability(
+export const effectiveMenuItemAvailability = (
   item: MenuItemAvailabilitySource,
-): boolean {
+): boolean => {
   const effectiveStatus = item.manualOverrideStatus ?? item.status;
   return (
     effectiveStatus === "ACTIVE" &&
     (item.manualStockCount == null || item.manualStockCount > 0)
   );
-}
+};
 
 export function withEffectiveMenuItemAvailability<
   T extends MenuItemAvailabilitySource,

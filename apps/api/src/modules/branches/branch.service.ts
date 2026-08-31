@@ -1,10 +1,8 @@
-
-
-import { requirePermission } from "../../core/auth";
-import type { AuthContext } from "../../core/auth";
+import { requirePermission } from "@/core/auth";
+import type { AuthContext } from "@/core/auth";
 import { branchRepository } from "./branch.repository";
-import { writeAudit } from "../../core/audit";
-import { NotFoundError, ValidationError } from "../../core/errors";
+import { writeAudit } from "@/core/audit";
+import { NotFoundError, ValidationError } from "@/core/errors";
 import {
   branchNotFound,
   allOrderTypesDisabled,
@@ -43,21 +41,21 @@ export interface UpdateBranchInput {
   tablesEnabled?: boolean | undefined;
 }
 
-function assertValidTimezone(timezone: string) {
+const assertValidTimezone = (timezone: string) => {
   try {
     new Intl.DateTimeFormat("en-US", { timeZone: timezone }).format();
   } catch {
     throw new ValidationError(`Invalid IANA timezone: ${timezone}`);
   }
-}
+};
 
-function assertCapabilityProfile(profile: {
+const assertCapabilityProfile = (profile: {
   dineInEnabled: boolean;
   takeawayEnabled: boolean;
   deliveryEnabled: boolean;
   onlineEnabled: boolean;
   tablesEnabled: boolean;
-}) {
+}) => {
   if (!profile.dineInEnabled && profile.tablesEnabled)
     throw tablesRequireDineIn();
   if (
@@ -68,12 +66,11 @@ function assertCapabilityProfile(profile: {
   ) {
     throw allOrderTypesDisabled();
   }
-}
+};
 
 import { BRANCH_CAPABILITY_FIELDS } from "./constants";
 
 export const branchService = {
-
   async list(auth: AuthContext) {
     requirePermission(auth, "branch:read");
     return branchRepository.findMany(

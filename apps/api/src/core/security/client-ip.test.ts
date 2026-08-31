@@ -23,8 +23,8 @@ describe("resolveClientIp", () => {
   });
 
   it("uses x-real-ip only when forwarding is trusted and x-forwarded-for is absent", () => {
-    expect(
-      resolveClientIp({ "x-real-ip": "203.0.113.9" }, "10.0.0.5", 1),
-    ).toBe("203.0.113.9");
+    expect(resolveClientIp({ "x-real-ip": "203.0.113.9" }, "10.0.0.5", 1)).toBe(
+      "203.0.113.9",
+    );
   });
 });

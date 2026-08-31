@@ -5,7 +5,11 @@ import { swagger } from "@elysiajs/swagger";
 import { requestContextPlugin } from "./core/context";
 import type { RequestContext } from "./core/context/request-context";
 import { securityHeadersPlugin, rateLimitPlugin } from "./core/security";
-import { metrics, metricsRouter, requestLoggingPlugin } from "./core/observability";
+import {
+  metrics,
+  metricsRouter,
+  requestLoggingPlugin,
+} from "./core/observability";
 import { AppError } from "./core/errors";
 import { rootLogger } from "./core/logger";
 
@@ -117,7 +121,8 @@ let app = new Elysia()
     try {
       await db.execute(sql`select 1`);
       checks.database = true;
-    } catch {} finally {
+    } catch {
+    } finally {
       metrics.observeDuration(
         "servora_db_query_duration_ms",
         performance.now() - dbStarted,
@@ -193,7 +198,8 @@ app = app.onError((context) => {
   const { code, error, set } = context;
   const requestContext =
     "requestContext" in context
-      ? (context as unknown as { requestContext?: RequestContext }).requestContext
+      ? (context as unknown as { requestContext?: RequestContext })
+          .requestContext
       : undefined;
 
   if (AppError.isAppError(error)) {
@@ -263,7 +269,7 @@ app.listen(port, () => {
 
 let shuttingDown = false;
 
-async function shutdown(signal: string) {
+const shutdown = async (signal: string) => {
   if (shuttingDown) return;
   shuttingDown = true;
   rootLogger.info("shutdown.started", { signal });
@@ -280,7 +286,7 @@ async function shutdown(signal: string) {
     closeDatabaseConnections(),
   ]);
   rootLogger.info("shutdown.complete", { signal });
-}
+};
 
 process.once("SIGINT", () => void shutdown("SIGINT"));
 process.once("SIGTERM", () => void shutdown("SIGTERM"));

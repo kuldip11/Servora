@@ -87,7 +87,7 @@ export interface DataGridProps<T> {
   toolbarActions?: ReactNode;
 }
 
-function SortIcon({ direction }: { direction: "asc" | "desc" | undefined }) {
+const SortIcon = ({ direction }: { direction: "asc" | "desc" | undefined }) => {
   if (direction === "asc")
     return <ChevronUp aria-hidden="true" className="w-3.5 h-3.5" />;
   if (direction === "desc")
@@ -95,9 +95,9 @@ function SortIcon({ direction }: { direction: "asc" | "desc" | undefined }) {
   return (
     <ChevronsUpDown aria-hidden="true" className="w-3.5 h-3.5 opacity-40" />
   );
-}
+};
 
-function GridCheckbox({
+const GridCheckbox = ({
   checked,
   indeterminate = false,
   onChange,
@@ -109,7 +109,7 @@ function GridCheckbox({
   onChange: (checked: boolean) => void;
   disabled?: boolean;
   label: string;
-}) {
+}) => {
   return (
     <input
       type="checkbox"
@@ -128,7 +128,7 @@ function GridCheckbox({
       )}
     />
   );
-}
+};
 
 const CHECKBOX_COL_WIDTH = 40;
 

@@ -1,16 +1,27 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { ApprovalThresholdSettingsCard } from "../ApprovalThresholdSettingsCard";
+import { ApprovalThresholdSettingsCard } from "@/features/settings/components/ApprovalThresholdSettingsCard";
 
 const api = vi.hoisted(() => ({ get: vi.fn(), put: vi.fn() }));
-vi.mock("../../../../shared/lib/api-client", () => ({ apiClient: { get: api.get, put: api.put } }));
-vi.mock("../../../../shared/lib/notify", () => ({ notifySuccess: vi.fn(), notifyError: vi.fn() }));
+vi.mock("../../../../shared/lib/api-client", () => ({
+  apiClient: { get: api.get, put: api.put },
+}));
+vi.mock("../../../../shared/lib/notify", () => ({
+  notifySuccess: vi.fn(),
+  notifyError: vi.fn(),
+}));
 
-function renderCard() {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
-  return render(<QueryClientProvider client={client}><ApprovalThresholdSettingsCard /></QueryClientProvider>);
-}
+const renderCard = () => {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={client}>
+      <ApprovalThresholdSettingsCard />
+    </QueryClientProvider>,
+  );
+};
 
 describe("ApprovalThresholdSettingsCard", () => {
   it("renders defaults while the thresholds query is still loading", () => {
@@ -26,10 +37,24 @@ describe("ApprovalThresholdSettingsCard", () => {
   });
 
   it("loads and saves the configured threshold and required role", async () => {
-    api.get.mockResolvedValueOnce({ data: { data: [
-      { id: "v", actionType: "VOID", thresholdAmount: "500.00", requiresRole: "Manager" },
-      { id: "c", actionType: "COMP", thresholdAmount: "750.00", requiresRole: "Owner" },
-    ] } });
+    api.get.mockResolvedValueOnce({
+      data: {
+        data: [
+          {
+            id: "v",
+            actionType: "VOID",
+            thresholdAmount: "500.00",
+            requiresRole: "Manager",
+          },
+          {
+            id: "c",
+            actionType: "COMP",
+            thresholdAmount: "750.00",
+            requiresRole: "Owner",
+          },
+        ],
+      },
+    });
     api.put.mockResolvedValue({ data: { data: {} } });
     renderCard();
 
@@ -42,6 +67,11 @@ describe("ApprovalThresholdSettingsCard", () => {
     fireEvent.change(roles[0]!, { target: { value: "Supervisor" } });
     fireEvent.click(screen.getAllByRole("button", { name: "Save" })[0]!);
 
-    await waitFor(() => expect(api.put).toHaveBeenCalledWith("/approvals/thresholds/VOID", { thresholdAmount: 600, requiresRole: "Supervisor" }));
+    await waitFor(() =>
+      expect(api.put).toHaveBeenCalledWith("/approvals/thresholds/VOID", {
+        thresholdAmount: 600,
+        requiresRole: "Supervisor",
+      }),
+    );
   });
 });

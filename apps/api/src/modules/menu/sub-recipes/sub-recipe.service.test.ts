@@ -43,16 +43,20 @@ vi.mock("../change-log/menu-change-log", () => ({
   buildDiff,
 }));
 
-const { syncMenuItemAvailability, syncRecipeConfigurationAvailability } = vi.hoisted(() => ({
-  syncMenuItemAvailability: vi.fn(),
-  syncRecipeConfigurationAvailability: vi.fn(),
-}));
+const { syncMenuItemAvailability, syncRecipeConfigurationAvailability } =
+  vi.hoisted(() => ({
+    syncMenuItemAvailability: vi.fn(),
+    syncRecipeConfigurationAvailability: vi.fn(),
+  }));
 vi.mock("../../inventory/inventory.service", () => ({
-  inventoryService: { syncMenuItemAvailability, syncRecipeConfigurationAvailability },
+  inventoryService: {
+    syncMenuItemAvailability,
+    syncRecipeConfigurationAvailability,
+  },
 }));
 
 import { subRecipeService } from "./sub-recipe.service";
-import type { AuthContext } from "../../../core/auth";
+import type { AuthContext } from "@/core/auth";
 
 const auth: AuthContext = {
   userId: "u1",
@@ -106,7 +110,6 @@ describe("subRecipeService graph safety", () => {
   });
 
   it("rejects a path deeper than the maximum even when a node is also reachable by a shorter path", async () => {
-
     listGraph.mockResolvedValue([
       { id: "target", children: [] },
       { id: "b", children: ["c"] },
@@ -138,7 +141,9 @@ describe("subRecipeService graph safety", () => {
 
     await expect(
       subRecipeService.create(auth, {
-        name: "Sauce", yieldQuantity: 1, yieldUnit: "KG",
+        name: "Sauce",
+        yieldQuantity: 1,
+        yieldUnit: "KG",
         ingredients: [{ inventoryItemId: "raw-b2", quantity: 1, unit: "KG" }],
       }),
     ).rejects.toThrow("outside the active branch");
@@ -153,7 +158,9 @@ describe("subRecipeService graph safety", () => {
 
     await expect(
       subRecipeService.create(auth, {
-        name: "Sauce", yieldQuantity: 1, yieldUnit: "KG",
+        name: "Sauce",
+        yieldQuantity: 1,
+        yieldUnit: "KG",
         ingredients: [{ inventoryItemId: "raw-1", quantity: 1, unit: "ML" }],
       }),
     ).rejects.toThrow("incompatible with inventory unit");

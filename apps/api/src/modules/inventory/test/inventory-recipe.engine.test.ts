@@ -4,7 +4,7 @@ import {
   canSatisfyNeeds,
   recipeYieldFactor,
   weightRecipeScale,
-} from "../inventory-recipe.engine";
+} from "@/modules/inventory/inventory-recipe.engine";
 
 describe("inventory recipe engine", () => {
   it("normalizes weight-priced recipe quantities to kilograms", () => {
@@ -38,6 +38,8 @@ describe("inventory recipe engine", () => {
     ];
     expect(aggregateRawNeeds(needs)[0]?.neededQuantity).toBe(2.75);
     expect(canSatisfyNeeds(needs)).toBe(true);
-    expect(canSatisfyNeeds([...needs, { ...needs[0]!, neededQuantity: 1 }])).toBe(false);
+    expect(
+      canSatisfyNeeds([...needs, { ...needs[0]!, neededQuantity: 1 }]),
+    ).toBe(false);
   });
 });

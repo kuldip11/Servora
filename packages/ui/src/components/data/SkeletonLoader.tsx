@@ -18,12 +18,12 @@ const RADIUS_CLASSES = {
   full: "rounded-full",
 };
 
-export function Skeleton({
+export const Skeleton = ({
   className,
   height = "1rem",
   width = "100%",
   radius = "md",
-}: SkeletonProps) {
+}: SkeletonProps) => {
   return (
     <div
       aria-hidden="true"
@@ -37,21 +37,20 @@ export function Skeleton({
       style={{ height, width }}
     />
   );
-}
+};
 
 export interface SkeletonTextProps {
-
   lines?: number | undefined;
 
   lastLineWidth?: string | undefined;
   className?: string | undefined;
 }
 
-export function SkeletonText({
+export const SkeletonText = ({
   lines = 1,
   lastLineWidth = "60%",
   className,
-}: SkeletonTextProps) {
+}: SkeletonTextProps) => {
   return (
     <div className={cn("flex flex-col gap-2", className)}>
       {Array.from({ length: lines }).map((_, i) => (
@@ -63,7 +62,7 @@ export function SkeletonText({
       ))}
     </div>
   );
-}
+};
 
 export interface SkeletonCardProps {
   className?: string | undefined;
@@ -71,10 +70,10 @@ export interface SkeletonCardProps {
   withMedia?: boolean | undefined;
 }
 
-export function SkeletonCard({
+export const SkeletonCard = ({
   className,
   withMedia = false,
-}: SkeletonCardProps) {
+}: SkeletonCardProps) => {
   return (
     <div
       className={cn(
@@ -86,7 +85,7 @@ export function SkeletonCard({
       <SkeletonText lines={3} />
     </div>
   );
-}
+};
 
 export interface SkeletonTableProps {
   rows?: number | undefined;
@@ -95,12 +94,12 @@ export interface SkeletonTableProps {
   className?: string | undefined;
 }
 
-export function SkeletonTable({
+export const SkeletonTable = ({
   rows = 5,
   columns = 4,
   density = "comfortable",
   className,
-}: SkeletonTableProps) {
+}: SkeletonTableProps) => {
   return (
     <div className={cn("w-full", className)} aria-hidden="true">
       {Array.from({ length: rows }).map((_, r) => (
@@ -118,4 +117,4 @@ export function SkeletonTable({
       ))}
     </div>
   );
-}
+};

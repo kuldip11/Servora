@@ -11,13 +11,13 @@ export interface PageProps extends HTMLAttributes<HTMLElement> {
   contained?: boolean;
 }
 
-export function Page({
+export const Page = ({
   children,
   containerSize = "xl",
   contained = true,
   className,
   ...props
-}: PageProps) {
+}: PageProps) => {
   const content = (
     <Stack gap="lg" className={cn("py-6", className)} {...props}>
       {children}
@@ -27,4 +27,4 @@ export function Page({
   if (!contained) return content;
 
   return <Container size={containerSize}>{content}</Container>;
-}
+};

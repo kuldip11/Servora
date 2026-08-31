@@ -6,17 +6,17 @@ import {
 } from "@tanstack/react-router";
 import { lazy, Suspense, type ComponentType } from "react";
 import { Spinner } from "@pos/ui";
-import { RootLayout } from "../shared/components/layout/RootLayout";
-import { DashboardLayout } from "../shared/components/layout/DashboardLayout";
-import { LoginPage } from "../features/auth/pages/LoginPage";
-import { SignupPage } from "../features/auth/pages/SignupPage";
-import { ForbiddenPage } from "../features/auth/pages/ForbiddenPage";
-import { userHasPermission } from "../shared/auth/permissions";
-import { useAuthStore } from "../store/auth";
+import { RootLayout } from "@/shared/components/layout/RootLayout";
+import { DashboardLayout } from "@/shared/components/layout/DashboardLayout";
+import { LoginPage } from "@/features/auth/pages/LoginPage";
+import { SignupPage } from "@/features/auth/pages/SignupPage";
+import { ForbiddenPage } from "@/features/auth/pages/ForbiddenPage";
+import { userHasPermission } from "@/shared/auth/permissions";
+import { useAuthStore } from "@/store/auth";
 
-function lazyPage(
+const lazyPage = (
   loader: () => Promise<{ default: ComponentType<Record<string, never>> }>,
-) {
+) => {
   const LazyComponent = lazy(loader);
   return function LazyPageWrapper() {
     return (
@@ -31,7 +31,7 @@ function lazyPage(
       </Suspense>
     );
   };
-}
+};
 
 const rootRoute = createRootRoute({ component: RootLayout });
 
@@ -78,13 +78,13 @@ const forbiddenRoute = createRoute({
   component: ForbiddenPage,
 });
 
-function requirePermission(permission: string) {
+const requirePermission = (permission: string) => {
   return () => {
     const state = useAuthStore.getState();
     if (!userHasPermission(state.user, permission))
       throw redirect({ to: "/forbidden" });
   };
-}
+};
 
 const contextRoute = createRoute({
   getParentRoute: () => protectedRoute,
@@ -156,9 +156,11 @@ const availabilityDashboardRoute = createRoute({
   path: "/availability",
   beforeLoad: requirePermission("menu:read"),
   component: lazyPage(() =>
-    import("../features/availability/pages/AvailabilityDashboardPage").then((m) => ({
-      default: m.AvailabilityDashboardPage,
-    })),
+    import("../features/availability/pages/AvailabilityDashboardPage").then(
+      (m) => ({
+        default: m.AvailabilityDashboardPage,
+      }),
+    ),
   ),
 });
 

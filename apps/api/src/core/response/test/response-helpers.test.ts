@@ -4,7 +4,7 @@ import {
   listResponse,
   paginatedResponse,
   successResponse,
-} from "../response-helpers";
+} from "@/core/response/response-helpers";
 
 describe("response helpers", () => {
   it("creates success and created envelopes", () => {

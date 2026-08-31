@@ -9,7 +9,10 @@ vi.mock("../../../../shared/lib/api-client", () => ({
   apiClient: { get: mocks.get, patch: mocks.patch },
 }));
 
-import { fetchKitchenTickets, updateTicketStatus } from "../tickets";
+import {
+  fetchKitchenTickets,
+  updateTicketStatus,
+} from "@/features/kitchen/api/tickets";
 
 describe("tickets api", () => {
   beforeEach(() => {

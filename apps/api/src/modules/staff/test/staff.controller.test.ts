@@ -9,7 +9,7 @@ const { list, create, update, remove, listRoles } = vi.hoisted(() => ({
 vi.mock("../staff.service", () => ({
   staffService: { list, create, update, remove, listRoles },
 }));
-import { staffController } from "../staff.controller";
+import { staffController } from "@/modules/staff/staff.controller";
 const auth = {
   userId: "u1",
   tenantId: "t1",

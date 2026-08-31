@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { instances } = vi.hoisted(() => ({ instances: [] as Array<{ url: string; options: unknown }> }));
+const { instances } = vi.hoisted(() => ({
+  instances: [] as Array<{ url: string; options: unknown }>,
+}));
 vi.mock("ioredis", () => ({
   default: class FakeRedis {
     constructor(

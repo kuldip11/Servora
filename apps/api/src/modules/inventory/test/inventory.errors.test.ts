@@ -3,7 +3,7 @@ import {
   branchRequiredForInventoryItem,
   insufficientStock,
   inventoryItemNotFound,
-} from "../inventory.errors";
+} from "@/modules/inventory/inventory.errors";
 describe("inventory errors", () => {
   it("creates a not-found error with the item identity", () => {
     expect(inventoryItemNotFound("i1").toJSON()).toMatchObject({

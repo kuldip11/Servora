@@ -1,5 +1,5 @@
 import { Outlet } from "@tanstack/react-router";
 
-export function RootLayout() {
+export const RootLayout = () => {
   return <Outlet />;
-}
+};

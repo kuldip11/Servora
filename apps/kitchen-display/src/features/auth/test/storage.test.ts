@@ -5,8 +5,8 @@ import {
   logout,
   saveContext,
   saveTokens,
-} from "../storage";
-import { STORAGE_KEYS } from "../../../shared/constants/storage-keys";
+} from "@/features/auth/storage";
+import { STORAGE_KEYS } from "@/shared/constants/storage-keys";
 
 describe("storage", () => {
   beforeEach(() => sessionStorage.clear());

@@ -5,7 +5,7 @@ import { Button, Modal, Input, Select } from "@pos/ui";
 import { ItemMediaVariantsSection } from "./forms/ItemMediaVariantsSection";
 import { ItemAssociationsSection } from "./forms/ItemAssociationsSection";
 import { FoodTypeDot } from "./FoodTypeDot";
-import { MENU_ITEM_STATUS_OPTIONS } from "../constants";
+import { MENU_ITEM_STATUS_OPTIONS } from "@/features/menu/constants";
 import { RecipeBuilder } from "./RecipeBuilder";
 import { ScheduleManager } from "./ScheduleManager";
 import { BranchOverridesPanel } from "./BranchOverridesPanel";
@@ -15,18 +15,22 @@ import { VariantAvailabilityPanel } from "./VariantAvailabilityPanel";
 import { VariantModifierPricingPanel } from "./VariantModifierPricingPanel";
 import { MenuMembershipsEditor } from "./forms/MenuMembershipsEditor";
 import { StationRoutingEditor } from "./forms/StationRoutingEditor";
-import { useMenuCategories } from "../hooks/useMenuCategories";
-import { useModifierGroups } from "../hooks/useModifierGroups";
-import { useMenuTags } from "../hooks/useMenuTags";
-import { useMenuAllergens } from "../hooks/useMenuAllergens";
-import { useSaveMenuItem } from "../hooks/useSaveMenuItem";
+import { useMenuCategories } from "@/features/menu/hooks/useMenuCategories";
+import { useModifierGroups } from "@/features/menu/hooks/useModifierGroups";
+import { useMenuTags } from "@/features/menu/hooks/useMenuTags";
+import { useMenuAllergens } from "@/features/menu/hooks/useMenuAllergens";
+import { useSaveMenuItem } from "@/features/menu/hooks/useSaveMenuItem";
 import type {
   MenuItem,
   FoodType,
   SpiceLevel,
   MenuItemStatus,
 } from "@pos/types";
-import { advancedMenuItemPricingSchema, menuItemFormSchema, type MenuItemFormValues } from "@pos/validation";
+import {
+  advancedMenuItemPricingSchema,
+  menuItemFormSchema,
+  type MenuItemFormValues,
+} from "@pos/validation";
 
 interface Props {
   categoryId: string;
@@ -48,7 +52,7 @@ const SPICE_OPTIONS: { value: SpiceLevel | ""; label: string }[] = [
   { value: "HOT", label: "Hot" },
 ];
 
-export function ItemFormModal({ categoryId, item, onClose }: Props) {
+export const ItemFormModal = ({ categoryId, item, onClose }: Props) => {
   const isEdit = !!item;
 
   const {
@@ -92,17 +96,41 @@ export function ItemFormModal({ categoryId, item, onClose }: Props) {
     item?.images?.map((i) => i.url) ?? [],
   );
   const [newImageUrl, setNewImageUrl] = useState("");
-  const [displayMode, setDisplayMode] = useState<"STANDARD" | "GUIDED_BUILDER">(item?.displayMode ?? "STANDARD");
-  const [taxMode, setTaxMode] = useState<"" | "INCLUSIVE" | "EXCLUSIVE">(item?.taxMode ?? "");
-  const [effectiveFrom, setEffectiveFrom] = useState(item?.effectiveFrom ? new Date(item.effectiveFrom).toISOString().slice(0, 16) : "");
-  const [pricingMode, setPricingMode] = useState<"FIXED" | "WEIGHT_BASED" | "OPEN">(item?.pricingMode ?? "FIXED");
-  const [weightUnit, setWeightUnit] = useState<"G" | "KG" | "LB" | "OZ">(item?.weightUnit ?? "KG");
-  const [openPriceMin, setOpenPriceMin] = useState(item?.openPriceMin != null ? String(item.openPriceMin) : "");
-  const [openPriceMax, setOpenPriceMax] = useState(item?.openPriceMax != null ? String(item.openPriceMax) : "");
-  const [supportsZones, setSupportsZones] = useState(item?.supportsZones ?? false);
-  const [zonePricingRule, setZonePricingRule] = useState<"AVERAGE" | "HIGHER" | "SUM_HALF">(item?.zonePricingRule ?? "HIGHER");
-  const [trackByCount, setTrackByCount] = useState(item?.manualStockCount != null);
-  const [manualStockCount, setManualStockCount] = useState(item?.manualStockCount != null ? String(item.manualStockCount) : "");
+  const [displayMode, setDisplayMode] = useState<"STANDARD" | "GUIDED_BUILDER">(
+    item?.displayMode ?? "STANDARD",
+  );
+  const [taxMode, setTaxMode] = useState<"" | "INCLUSIVE" | "EXCLUSIVE">(
+    item?.taxMode ?? "",
+  );
+  const [effectiveFrom, setEffectiveFrom] = useState(
+    item?.effectiveFrom
+      ? new Date(item.effectiveFrom).toISOString().slice(0, 16)
+      : "",
+  );
+  const [pricingMode, setPricingMode] = useState<
+    "FIXED" | "WEIGHT_BASED" | "OPEN"
+  >(item?.pricingMode ?? "FIXED");
+  const [weightUnit, setWeightUnit] = useState<"G" | "KG" | "LB" | "OZ">(
+    item?.weightUnit ?? "KG",
+  );
+  const [openPriceMin, setOpenPriceMin] = useState(
+    item?.openPriceMin != null ? String(item.openPriceMin) : "",
+  );
+  const [openPriceMax, setOpenPriceMax] = useState(
+    item?.openPriceMax != null ? String(item.openPriceMax) : "",
+  );
+  const [supportsZones, setSupportsZones] = useState(
+    item?.supportsZones ?? false,
+  );
+  const [zonePricingRule, setZonePricingRule] = useState<
+    "AVERAGE" | "HIGHER" | "SUM_HALF"
+  >(item?.zonePricingRule ?? "HIGHER");
+  const [trackByCount, setTrackByCount] = useState(
+    item?.manualStockCount != null,
+  );
+  const [manualStockCount, setManualStockCount] = useState(
+    item?.manualStockCount != null ? String(item.manualStockCount) : "",
+  );
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>(
     item?.modifierGroupLinks?.map((l) => l.modifierGroupId) ?? [],
   );
@@ -144,14 +172,25 @@ export function ItemFormModal({ categoryId, item, onClose }: Props) {
     const advancedPricing = advancedMenuItemPricingSchema.safeParse({
       pricingMode,
       weightUnit: pricingMode === "WEIGHT_BASED" ? weightUnit : null,
-      openPriceMin: pricingMode === "OPEN" && openPriceMin !== "" ? Number(openPriceMin) : null,
-      openPriceMax: pricingMode === "OPEN" && openPriceMax !== "" ? Number(openPriceMax) : null,
+      openPriceMin:
+        pricingMode === "OPEN" && openPriceMin !== ""
+          ? Number(openPriceMin)
+          : null,
+      openPriceMax:
+        pricingMode === "OPEN" && openPriceMax !== ""
+          ? Number(openPriceMax)
+          : null,
       supportsZones,
       zonePricingRule,
-      manualStockCount: trackByCount && manualStockCount !== "" ? Number(manualStockCount) : null,
+      manualStockCount:
+        trackByCount && manualStockCount !== ""
+          ? Number(manualStockCount)
+          : null,
     });
     if (!advancedPricing.success) {
-      const message = advancedPricing.error.issues[0]?.message ?? "Invalid advanced pricing configuration";
+      const message =
+        advancedPricing.error.issues[0]?.message ??
+        "Invalid advanced pricing configuration";
       setError("basePrice", { message });
       return;
     }
@@ -196,7 +235,9 @@ export function ItemFormModal({ categoryId, item, onClose }: Props) {
       availabilityReason: values.availabilityReason.trim() || null,
       enableRecipeDeduction: values.enableRecipeDeduction,
       displayMode,
-      effectiveFrom: effectiveFrom ? new Date(effectiveFrom).toISOString() : null,
+      effectiveFrom: effectiveFrom
+        ? new Date(effectiveFrom).toISOString()
+        : null,
       variants: variants
         .filter((v) => v.name.trim())
         .map((v) => ({ name: v.name, price: parseFloat(v.price) || 0 })),
@@ -227,7 +268,7 @@ export function ItemFormModal({ categoryId, item, onClose }: Props) {
         {item && (
           <MenuMembershipsEditor item={item} categories={allCategories ?? []} />
         )}
-        {            }
+        {}
         <Input
           label="Item name"
           placeholder="Chicken Tikka"
@@ -271,13 +312,29 @@ export function ItemFormModal({ categoryId, item, onClose }: Props) {
             error={errors.taxRate?.message}
             {...register("taxRate")}
           />
-          <Select label="Tax mode" value={taxMode} onChange={(event) => setTaxMode(event.target.value as "" | "INCLUSIVE" | "EXCLUSIVE")} options={[{ value: "", label: "Inherit tenant default" }, { value: "EXCLUSIVE", label: "Tax exclusive" }, { value: "INCLUSIVE", label: "Tax included in price" }]} />
+          <Select
+            label="Tax mode"
+            value={taxMode}
+            onChange={(event) =>
+              setTaxMode(event.target.value as "" | "INCLUSIVE" | "EXCLUSIVE")
+            }
+            options={[
+              { value: "", label: "Inherit tenant default" },
+              { value: "EXCLUSIVE", label: "Tax exclusive" },
+              { value: "INCLUSIVE", label: "Tax included in price" },
+            ]}
+          />
         </div>
 
         <section className="rounded-lg border border-border bg-surface-secondary/40 p-4 space-y-4">
           <div>
-            <h3 className="text-sm font-semibold text-text-primary">Advanced restaurant pricing</h3>
-            <p className="mt-0.5 text-xs text-text-secondary">Advanced pricing modes are opt-in. Existing items stay on fixed, whole-item pricing.</p>
+            <h3 className="text-sm font-semibold text-text-primary">
+              Advanced restaurant pricing
+            </h3>
+            <p className="mt-0.5 text-xs text-text-secondary">
+              Advanced pricing modes are opt-in. Existing items stay on fixed,
+              whole-item pricing.
+            </p>
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             <label className="text-sm font-medium text-text-primary">
@@ -285,7 +342,9 @@ export function ItemFormModal({ categoryId, item, onClose }: Props) {
               <select
                 className="mt-1.5 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm"
                 value={pricingMode}
-                onChange={(event) => setPricingMode(event.target.value as typeof pricingMode)}
+                onChange={(event) =>
+                  setPricingMode(event.target.value as typeof pricingMode)
+                }
               >
                 <option value="FIXED">Fixed price</option>
                 <option value="WEIGHT_BASED">Weight based</option>
@@ -298,32 +357,67 @@ export function ItemFormModal({ categoryId, item, onClose }: Props) {
                 <select
                   className="mt-1.5 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm"
                   value={weightUnit}
-                  onChange={(event) => setWeightUnit(event.target.value as typeof weightUnit)}
+                  onChange={(event) =>
+                    setWeightUnit(event.target.value as typeof weightUnit)
+                  }
                 >
-                  <option value="G">gram (g)</option><option value="KG">kilogram (kg)</option>
-                  <option value="LB">pound (lb)</option><option value="OZ">ounce (oz)</option>
+                  <option value="G">gram (g)</option>
+                  <option value="KG">kilogram (kg)</option>
+                  <option value="LB">pound (lb)</option>
+                  <option value="OZ">ounce (oz)</option>
                 </select>
               </label>
             )}
             {pricingMode === "OPEN" && (
               <>
-                <Input label="Minimum manual price" type="number" min="0" step="0.01" value={openPriceMin} onChange={(event) => setOpenPriceMin(event.target.value)} />
-                <Input label="Maximum manual price" type="number" min="0" step="0.01" value={openPriceMax} onChange={(event) => setOpenPriceMax(event.target.value)} />
+                <Input
+                  label="Minimum manual price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={openPriceMin}
+                  onChange={(event) => setOpenPriceMin(event.target.value)}
+                />
+                <Input
+                  label="Maximum manual price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={openPriceMax}
+                  onChange={(event) => setOpenPriceMax(event.target.value)}
+                />
               </>
             )}
           </div>
-          {pricingMode === "OPEN" && openPriceMin !== "" && openPriceMax !== "" && Number(openPriceMin) > Number(openPriceMax) && (
-            <p className="text-xs text-danger">Minimum manual price cannot exceed maximum.</p>
-          )}
+          {pricingMode === "OPEN" &&
+            openPriceMin !== "" &&
+            openPriceMax !== "" &&
+            Number(openPriceMin) > Number(openPriceMax) && (
+              <p className="text-xs text-danger">
+                Minimum manual price cannot exceed maximum.
+              </p>
+            )}
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <label className="flex items-center gap-2 text-sm font-medium text-text-primary">
-              <input type="checkbox" checked={supportsZones} onChange={(event) => setSupportsZones(event.target.checked)} />
+              <input
+                type="checkbox"
+                checked={supportsZones}
+                onChange={(event) => setSupportsZones(event.target.checked)}
+              />
               Supports split zones / half-and-half
             </label>
             {supportsZones && (
               <label className="text-sm font-medium text-text-primary">
                 Zone pricing rule
-                <select className="mt-1.5 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm" value={zonePricingRule} onChange={(event) => setZonePricingRule(event.target.value as typeof zonePricingRule)}>
+                <select
+                  className="mt-1.5 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm"
+                  value={zonePricingRule}
+                  onChange={(event) =>
+                    setZonePricingRule(
+                      event.target.value as typeof zonePricingRule,
+                    )
+                  }
+                >
                   <option value="HIGHER">Charge higher-priced zone</option>
                   <option value="AVERAGE">Average zone modifier totals</option>
                   <option value="SUM_HALF">Sum half of each zone</option>
@@ -333,16 +427,27 @@ export function ItemFormModal({ categoryId, item, onClose }: Props) {
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <label className="flex items-center gap-2 text-sm font-medium text-text-primary">
-              <input type="checkbox" checked={trackByCount} onChange={(event) => setTrackByCount(event.target.checked)} />
+              <input
+                type="checkbox"
+                checked={trackByCount}
+                onChange={(event) => setTrackByCount(event.target.checked)}
+              />
               Track finite stock by item count
             </label>
             {trackByCount && (
-              <Input label="Current stock count" type="number" min="0" step="1" value={manualStockCount} onChange={(event) => setManualStockCount(event.target.value)} />
+              <Input
+                label="Current stock count"
+                type="number"
+                min="0"
+                step="1"
+                value={manualStockCount}
+                onChange={(event) => setManualStockCount(event.target.value)}
+              />
             )}
           </div>
         </section>
 
-        {                             }
+        {}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <span
@@ -405,7 +510,7 @@ export function ItemFormModal({ categoryId, item, onClose }: Props) {
           />
         </div>
 
-        {                         }
+        {}
         <div className="grid grid-cols-2 gap-3">
           <Select
             label="Status"
@@ -449,11 +554,49 @@ export function ItemFormModal({ categoryId, item, onClose }: Props) {
         />
 
         <div className="rounded border border-border p-3 space-y-2">
-          <Select label="Ordering experience" value={displayMode} options={[{ value: "STANDARD", label: "Standard item" }, { value: "GUIDED_BUILDER", label: "Guided build-your-own" }]} onChange={(event) => setDisplayMode(event.target.value as "STANDARD" | "GUIDED_BUILDER")} />
-          <Button type="button" size="sm" variant="secondary" onClick={() => { setDisplayMode("GUIDED_BUILDER"); setSelectedGroupIds((allGroups ?? []).filter((group) => group.minSelections > 0).map((group) => group.id)); }}>Apply Build-Your-Own preset</Button>
-          <Input label="Effective from (optional)" type="datetime-local" value={effectiveFrom} onChange={(event) => setEffectiveFrom(event.target.value)} />
-          {effectiveFrom && new Date(effectiveFrom) > new Date() && <p className="text-xs text-warning">Pending publish · live {new Date(effectiveFrom).toLocaleString()}</p>}
-          <p className="text-xs text-text-secondary">The preset attaches required modifier groups and presents them as guided steps. Pricing and validation stay unchanged.</p>
+          <Select
+            label="Ordering experience"
+            value={displayMode}
+            options={[
+              { value: "STANDARD", label: "Standard item" },
+              { value: "GUIDED_BUILDER", label: "Guided build-your-own" },
+            ]}
+            onChange={(event) =>
+              setDisplayMode(
+                event.target.value as "STANDARD" | "GUIDED_BUILDER",
+              )
+            }
+          />
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            onClick={() => {
+              setDisplayMode("GUIDED_BUILDER");
+              setSelectedGroupIds(
+                (allGroups ?? [])
+                  .filter((group) => group.minSelections > 0)
+                  .map((group) => group.id),
+              );
+            }}
+          >
+            Apply Build-Your-Own preset
+          </Button>
+          <Input
+            label="Effective from (optional)"
+            type="datetime-local"
+            value={effectiveFrom}
+            onChange={(event) => setEffectiveFrom(event.target.value)}
+          />
+          {effectiveFrom && new Date(effectiveFrom) > new Date() && (
+            <p className="text-xs text-warning">
+              Pending publish · live {new Date(effectiveFrom).toLocaleString()}
+            </p>
+          )}
+          <p className="text-xs text-text-secondary">
+            The preset attaches required modifier groups and presents them as
+            guided steps. Pricing and validation stay unchanged.
+          </p>
         </div>
         <ItemAssociationsSection
           groups={allGroups ?? []}
@@ -471,7 +614,7 @@ export function ItemFormModal({ categoryId, item, onClose }: Props) {
           }}
         />
 
-        {                             }
+        {}
         <div>
           <label className="flex items-center gap-2 text-sm text-text-secondary mb-2">
             <input
@@ -494,22 +637,26 @@ export function ItemFormModal({ categoryId, item, onClose }: Props) {
           )}
         </div>
 
-        {                }
+        {}
         {isEdit && (
           <div>
             <ScheduleManager itemId={item!.id} />
             <ChannelOverridesPanel itemId={item!.id} />
-            <VariantAvailabilityPanel itemId={item!.id} variants={item!.variants ?? []} />
+            <VariantAvailabilityPanel
+              itemId={item!.id}
+              variants={item!.variants ?? []}
+            />
             <VariantModifierPricingPanel
               variants={item!.variants ?? []}
-              groups={(allGroups ?? []).filter((group) => selectedGroupIds.includes(group.id))}
+              groups={(allGroups ?? []).filter((group) =>
+                selectedGroupIds.includes(group.id),
+              )}
             />
             <PriceRulesPanel itemId={item!.id} branchId={item!.branchId} />
           </div>
         )}
 
-        {
-                                                                           }
+        {}
         {isEdit && item!.branchId === null && (
           <div>
             <BranchOverridesPanel
@@ -524,7 +671,9 @@ export function ItemFormModal({ categoryId, item, onClose }: Props) {
         {isEdit && (
           <StationRoutingEditor
             itemId={item!.id}
-            groups={(allGroups ?? []).filter((group) => selectedGroupIds.includes(group.id))}
+            groups={(allGroups ?? []).filter((group) =>
+              selectedGroupIds.includes(group.id),
+            )}
           />
         )}
 
@@ -539,4 +688,4 @@ export function ItemFormModal({ categoryId, item, onClose }: Props) {
       </form>
     </Modal>
   );
-}
+};

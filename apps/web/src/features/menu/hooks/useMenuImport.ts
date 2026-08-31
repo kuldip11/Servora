@@ -1,17 +1,17 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
-import { menuImportService } from "../services/menu-import.service";
-import { menuKeys } from "../query-keys";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
+import { menuImportService } from "@/features/menu/services/menu-import.service";
+import { menuKeys } from "@/features/menu/query-keys";
 
-export function useValidateMenuImport() {
+export const useValidateMenuImport = () => {
   return useMutation({
     mutationFn: (file: File) => menuImportService.validate(file),
     onError: (err) => notifyError(err, "Failed to read file"),
   });
-}
+};
 
-export function useCommitMenuImport() {
+export const useCommitMenuImport = () => {
   return useMutation({
     mutationFn: (file: File) => menuImportService.commit(file),
     onSuccess: (data) => {
@@ -20,4 +20,4 @@ export function useCommitMenuImport() {
     },
     onError: (err) => notifyError(err, "Import failed"),
   });
-}
+};

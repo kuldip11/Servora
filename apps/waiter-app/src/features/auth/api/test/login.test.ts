@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { apiClient } from "../../../../shared/lib/api-client";
-import { fetchMemberships, login } from "../login";
+import { apiClient } from "@/shared/lib/api-client";
+import { fetchMemberships, login } from "@/features/auth/api/login";
 
 vi.mock("../../../../shared/lib/api-client", () => ({
   apiClient: { get: vi.fn(), post: vi.fn() },

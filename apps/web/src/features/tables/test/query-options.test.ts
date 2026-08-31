@@ -8,7 +8,7 @@ vi.mock("../../../store/auth", () => ({
   useAuthStore: { getState: () => ({ franchiseId: "fr-1", branchId: "br-1" }) },
 }));
 
-import { tablesQuery } from "../query-options";
+import { tablesQuery } from "@/features/tables/query-options";
 
 describe("tablesQuery", () => {
   it("binds the table key to the table service", () => {

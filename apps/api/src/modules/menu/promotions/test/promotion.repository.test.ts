@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   assertAndInsertPromotionRedemptions,
   type PendingPromotionRedemption,
-} from "../promotion.repository";
+} from "@/modules/menu/promotions/promotion.repository";
 
 type RedemptionRow = {
   id: string;
@@ -23,7 +23,7 @@ type PromotionRow = {
 
 type PromotionTx = Parameters<typeof assertAndInsertPromotionRedemptions>[0];
 
-function createPromotionLockHarness() {
+const createPromotionLockHarness = () => {
   const promotion: PromotionRow = {
     id: "promo-1",
     tenantId: "tenant-1",
@@ -63,7 +63,8 @@ function createPromotionLockHarness() {
         promotionRedemptions: {
           findFirst: async () =>
             redemptions.find(
-              (row) => row.promotionId === promotion.id && row.orderId === orderId,
+              (row) =>
+                row.promotionId === promotion.id && row.orderId === orderId,
             ),
         },
       },
@@ -78,7 +79,6 @@ function createPromotionLockHarness() {
                     ).length,
                   },
                 ]).then((rows) => {
-
                   if (rows[0]!.value >= (promotion.maxUsesTotal ?? Infinity)) {
                     release();
                   }
@@ -100,7 +100,10 @@ function createPromotionLockHarness() {
           customerId: string | null;
           discountAmount: string;
         }) => {
-          redemptions.push({ id: `redemption-${redemptions.length + 1}`, ...value });
+          redemptions.push({
+            id: `redemption-${redemptions.length + 1}`,
+            ...value,
+          });
           release();
         },
       }),
@@ -117,7 +120,7 @@ function createPromotionLockHarness() {
   };
 
   return { makeTx, redemptions, lockModes };
-}
+};
 
 describe("promotion redemption concurrency (D3)", () => {
   it("serializes concurrent maxUsesTotal=1 redemptions and rejects the second order", async () => {
@@ -143,10 +146,18 @@ describe("promotion redemption concurrency (D3)", () => {
       ),
     ]);
 
-    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
-    expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
-    expect(results.find((result) => result.status === "rejected")).toMatchObject({
-      reason: expect.objectContaining({ message: expect.stringMatching(/usage limit/i) }),
+    expect(
+      results.filter((result) => result.status === "fulfilled"),
+    ).toHaveLength(1);
+    expect(
+      results.filter((result) => result.status === "rejected"),
+    ).toHaveLength(1);
+    expect(
+      results.find((result) => result.status === "rejected"),
+    ).toMatchObject({
+      reason: expect.objectContaining({
+        message: expect.stringMatching(/usage limit/i),
+      }),
     });
     expect(harness.redemptions).toHaveLength(1);
     expect(harness.lockModes).toEqual(["update", "update"]);

@@ -22,14 +22,14 @@ const onRender: ProfilerOnRenderCallback = (
   });
 };
 
-export function PerformanceProfiler({
+export const PerformanceProfiler = ({
   id,
   children,
-}: PerformanceProfilerProps) {
+}: PerformanceProfilerProps) => {
   if (!import.meta.env.DEV) return <>{children}</>;
   return (
     <Profiler id={id} onRender={onRender}>
       {children}
     </Profiler>
   );
-}
+};

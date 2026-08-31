@@ -1,25 +1,35 @@
-
-import type { AuthContext } from "../../../core/auth";
+import type { AuthContext } from "@/core/auth";
 import {
   bulkOpsRepository,
   type BulkMode,
   type PriceMode,
 } from "./bulk-ops.repository";
 import type { MenuItemStatus } from "@pos/types";
-import { requirePermission } from "../../../core/auth";
-import { assertMenuResourceBranch } from "../menu-authorization";
-import { menuChangeLog } from "../change-log/menu-change-log";
+import { requirePermission } from "@/core/auth";
+import { assertMenuResourceBranch } from "@/modules/menu/menu-authorization";
+import { menuChangeLog } from "@/modules/menu/change-log/menu-change-log";
 
-async function recordItems(auth: AuthContext, itemIds: string[], changeType: "UPDATED" | "DELETED", diff: Record<string, unknown>) {
-  await menuChangeLog.recordMany(auth, itemIds.map((entityId) => ({
-    entityType: "MENU_ITEM", entityId, changeType, diff,
-  })));
-}
+const recordItems = async (
+  auth: AuthContext,
+  itemIds: string[],
+  changeType: "UPDATED" | "DELETED",
+  diff: Record<string, unknown>,
+) => {
+  await menuChangeLog.recordMany(
+    auth,
+    itemIds.map((entityId) => ({
+      entityType: "MENU_ITEM",
+      entityId,
+      changeType,
+      diff,
+    })),
+  );
+};
 
-async function assertScope(auth: AuthContext, itemIds: string[]) {
+const assertScope = async (auth: AuthContext, itemIds: string[]) => {
   const rows = await bulkOpsRepository.findItemScopes(auth.tenantId, itemIds);
   for (const row of rows) assertMenuResourceBranch(auth, row.branchId);
-}
+};
 
 export const bulkOpsService = {
   async updateItemsStatus(
@@ -36,7 +46,10 @@ export const bulkOpsService = {
       status,
       reason,
     );
-    await recordItems(auth, itemIds, "UPDATED", { status, reason: reason ?? null });
+    await recordItems(auth, itemIds, "UPDATED", {
+      status,
+      reason: reason ?? null,
+    });
     return result;
   },
 
@@ -113,7 +126,10 @@ export const bulkOpsService = {
   async bulkDeleteItems(auth: AuthContext, itemIds: string[]) {
     requirePermission(auth, "menu:delete");
     await assertScope(auth, itemIds);
-    const result = await bulkOpsRepository.bulkDeleteItems(auth.tenantId, itemIds);
+    const result = await bulkOpsRepository.bulkDeleteItems(
+      auth.tenantId,
+      itemIds,
+    );
     await recordItems(auth, itemIds, "DELETED", {});
     return result;
   },

@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   assertAnalyticsScope,
   requireAnalyticsPermission,
-} from "../analytics-authorization";
-import type { AuthContext } from "../../../core/auth";
+} from "@/modules/analytics/analytics-authorization";
+import type { AuthContext } from "@/core/auth";
 
 const auth = (overrides: Partial<AuthContext> = {}): AuthContext => ({
   userId: "u1",

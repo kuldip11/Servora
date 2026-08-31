@@ -27,11 +27,11 @@ const subscribe = (listener: () => void) => {
 };
 const getSnapshot = () => toasts;
 
-function nextId() {
+const nextId = () => {
   return typeof crypto !== "undefined" && crypto.randomUUID
     ? crypto.randomUUID()
     : `toast-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-}
+};
 
 const TONE_PRIORITY: Record<StatusTone, "foreground" | "background"> = {
   danger: "foreground",
@@ -41,17 +41,17 @@ const TONE_PRIORITY: Record<StatusTone, "foreground" | "background"> = {
   neutral: "background",
 };
 
-export function toast(input: ToastInput) {
+export const toast = (input: ToastInput) => {
   const id = nextId();
   toasts = [...toasts, { id, duration: 5000, tone: "neutral", ...input }];
   emit();
   return id;
-}
+};
 
-function dismiss(id: string) {
+const dismiss = (id: string) => {
   toasts = toasts.filter((t) => t.id !== id);
   emit();
-}
+};
 
 const TONE_ICON: Record<StatusTone, typeof Info> = {
   success: CheckCircle2,
@@ -80,7 +80,7 @@ const toastAnimationClasses = cn(
   "data-[swipe=end]:animate-out data-[swipe=end]:slide-out-to-right-full",
 );
 
-export function Toaster() {
+export const Toaster = () => {
   const items = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
   return (
@@ -123,4 +123,4 @@ export function Toaster() {
       <RadixToast.Viewport className="fixed bottom-0 right-0 z-50 flex flex-col gap-2 p-4 w-full max-w-sm outline-none" />
     </RadixToast.Provider>
   );
-}
+};

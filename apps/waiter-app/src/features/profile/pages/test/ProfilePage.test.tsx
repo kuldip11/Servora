@@ -1,8 +1,8 @@
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { ThemeProvider } from "../../../../../../../packages/ui/src/theme/ThemeProvider";
-import { ProfilePage } from "../ProfilePage";
+import { ThemeProvider } from "@pos/ui";
+import { ProfilePage } from "@/features/profile/pages/ProfilePage";
 
 describe("ProfilePage", () => {
   it("renders profile and theme controls", () => {

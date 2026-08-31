@@ -1,5 +1,3 @@
-
-
 import {
   eq,
   and,
@@ -13,8 +11,8 @@ import {
   desc,
   sql,
 } from "drizzle-orm";
-import { db } from "../../db";
-import { orders, inventoryItems, orderItems, menuItems } from "../../db/schema";
+import { db } from "@/db";
+import { orders, inventoryItems, orderItems, menuItems } from "@/db/schema";
 
 import { ACTIVE_ORDER_EXCLUDED_STATUSES } from "./constants";
 
@@ -200,7 +198,7 @@ export const analyticsRepository = {
           eq(orders.tenantId, tenantId),
           eq(orders.branchId, branchId),
           gte(orders.createdAt, since),
-          notInArray(orders.status, ['CANCELLED']),
+          notInArray(orders.status, ["CANCELLED"]),
           sql`${orderItems.itemStatus} NOT IN ('VOIDED', 'COMPED')`,
         ),
       )

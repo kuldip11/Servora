@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@pos/ui";
 import type { KitchenTicketStatus } from "@pos/types";
-import { updateTicketStatus } from "../api/tickets";
+import { updateTicketStatus } from "@/features/kitchen/api/tickets";
 import { KITCHEN_TICKETS_QUERY_KEY } from "./useKitchenTickets";
 
-export function useUpdateTicketStatus() {
+export const useUpdateTicketStatus = () => {
   const qc = useQueryClient();
 
   return useMutation({
@@ -16,4 +16,4 @@ export function useUpdateTicketStatus() {
     },
     onError: () => toast({ title: "Failed to update ticket", tone: "danger" }),
   });
-}
+};

@@ -2,19 +2,17 @@ import { X } from "lucide-react";
 import { IconButton } from "@pos/ui";
 import type { Order } from "@pos/types";
 import { StatusBadge } from "./StatusBadge";
-import { shortOrderId } from "../utils/orderHelpers";
+import { shortOrderId } from "@/features/orders/utils/orderHelpers";
 
 interface Props {
   order: Order;
   onBack: () => void;
 }
 
-export function OrderDetailHeader({ order, onBack }: Props) {
+export const OrderDetailHeader = ({ order, onBack }: Props) => {
   return (
     <div className="bg-surface border-b border-border px-4 py-3 flex items-center gap-3">
-      {
-
-                                                                   }
+      {}
       <IconButton
         icon={X}
         aria-label="Back to Orders"
@@ -34,4 +32,4 @@ export function OrderDetailHeader({ order, onBack }: Props) {
       <StatusBadge status={order.status} />
     </div>
   );
-}
+};

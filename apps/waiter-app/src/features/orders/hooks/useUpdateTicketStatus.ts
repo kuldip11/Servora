@@ -1,15 +1,19 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@pos/ui";
-import { updateTicketStatus } from "../api/orders";
-import { orderKeys } from "../constants";
+import { updateTicketStatus } from "@/features/orders/api/orders";
+import { orderKeys } from "@/features/orders/constants";
 
-function mutationErrorMessage(error: unknown, fallback: string): string {
-  if (typeof error !== "object" || error === null || !("response" in error)) return fallback;
-  const response = (error as { response?: { data?: { message?: unknown } } }).response;
-  return typeof response?.data?.message === "string" ? response.data.message : fallback;
-}
+const mutationErrorMessage = (error: unknown, fallback: string): string => {
+  if (typeof error !== "object" || error === null || !("response" in error))
+    return fallback;
+  const response = (error as { response?: { data?: { message?: unknown } } })
+    .response;
+  return typeof response?.data?.message === "string"
+    ? response.data.message
+    : fallback;
+};
 
-export function useUpdateTicketStatus() {
+export const useUpdateTicketStatus = () => {
   const qc = useQueryClient();
 
   return useMutation({
@@ -26,4 +30,4 @@ export function useUpdateTicketStatus() {
         tone: "danger",
       }),
   });
-}
+};

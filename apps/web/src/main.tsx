@@ -14,7 +14,7 @@ const root = document.getElementById("root") as HTMLElement | null;
 if (!root) throw new Error("Root element not found");
 const rootElement: HTMLElement = root;
 
-async function start() {
+const start = async () => {
   await bootstrapAuthSession();
 
   createRoot(rootElement).render(
@@ -24,15 +24,13 @@ async function start() {
           <PerformanceProfiler id="web-router">
             <RouterProvider router={router} />
           </PerformanceProfiler>
-          {
-
-                                                            }
+          {}
           <Toaster />
           {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
         </QueryClientProvider>
       </ThemeProvider>
     </StrictMode>,
   );
-}
+};
 
 void start();

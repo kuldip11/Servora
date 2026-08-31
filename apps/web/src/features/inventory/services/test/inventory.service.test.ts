@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 const api = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), patch: vi.fn() }));
 vi.mock("../../../../shared/lib/api-client", () => ({ apiClient: api }));
-import { inventoryService } from "../inventory.service";
+import { inventoryService } from "@/features/inventory/services/inventory.service";
 
 describe("inventoryService", () => {
   it("lists inventory", async () => {
@@ -9,7 +9,11 @@ describe("inventoryService", () => {
     await expect(inventoryService.list()).resolves.toEqual(["i"]);
   });
   it("loads recipe impact for an inventory item", async () => {
-    const impact = { inventoryItemId: "i1", inventoryItemName: "Flour", impacts: [] };
+    const impact = {
+      inventoryItemId: "i1",
+      inventoryItemName: "Flour",
+      impacts: [],
+    };
     api.get.mockResolvedValue({ data: { data: impact } });
     await expect(inventoryService.recipeImpact("i1")).resolves.toEqual(impact);
     expect(api.get).toHaveBeenCalledWith("/inventory/items/i1/recipe-impact");

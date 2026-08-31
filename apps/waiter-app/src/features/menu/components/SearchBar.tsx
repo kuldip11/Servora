@@ -5,7 +5,7 @@ interface Props {
   onChange: (value: string) => void;
 }
 
-export function SearchBar({ value, onChange }: Props) {
+export const SearchBar = ({ value, onChange }: Props) => {
   return (
     <div className="px-4 pt-3 pb-2">
       <SearchInput
@@ -17,4 +17,4 @@ export function SearchBar({ value, onChange }: Props) {
       />
     </div>
   );
-}
+};

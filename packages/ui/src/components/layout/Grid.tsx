@@ -71,13 +71,13 @@ export interface GridProps extends HTMLAttributes<HTMLDivElement> {
   gap?: keyof typeof GAPS;
 }
 
-export function Grid({
+export const Grid = ({
   children,
   columns = 1,
   gap = "md",
   className,
   ...props
-}: GridProps) {
+}: GridProps) => {
   const cols: GridColumns =
     typeof columns === "number" ? { base: columns } : columns;
 
@@ -98,4 +98,4 @@ export function Grid({
       {children}
     </div>
   );
-}
+};

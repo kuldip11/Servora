@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import { requireAuthPlugin } from "../../core/auth";
+import { requireAuthPlugin } from "@/core/auth";
 import { inventoryController } from "./inventory.controller";
 import {
   createInventoryItemBody,
@@ -41,7 +41,10 @@ export const inventoryRouter = new Elysia()
     { params: inventoryItemIdParams },
   )
   .get("/api/inventory/waste-reasons", ({ auth, query }) =>
-    inventoryController.listWasteReasons(auth, query.includeInactive === "true"),
+    inventoryController.listWasteReasons(
+      auth,
+      query.includeInactive === "true",
+    ),
   )
   .post(
     "/api/inventory/waste-reasons",
@@ -53,11 +56,13 @@ export const inventoryRouter = new Elysia()
   )
   .patch(
     "/api/inventory/waste-reasons/:id",
-    ({ auth, params, body }) => inventoryController.updateWasteReason(auth, params.id, body),
+    ({ auth, params, body }) =>
+      inventoryController.updateWasteReason(auth, params.id, body),
     { params: inventoryItemIdParams, body: updateWasteReasonBody },
   )
   .post(
     "/api/inventory/items/:id/waste",
-    ({ auth, params, body }) => inventoryController.logWaste(auth, params.id, body),
+    ({ auth, params, body }) =>
+      inventoryController.logWaste(auth, params.id, body),
     { params: inventoryItemIdParams, body: logWasteBody },
   );

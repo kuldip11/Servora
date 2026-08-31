@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { branchRequired, ticketNotFound } from "../ticket.errors";
+import {
+  branchRequired,
+  ticketNotFound,
+} from "@/modules/kitchen-tickets/ticket.errors";
 
 describe("kitchen ticket errors", () => {
   it("creates a stable not-found error", () => {

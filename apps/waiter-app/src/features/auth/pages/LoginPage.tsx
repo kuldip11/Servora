@@ -1,13 +1,13 @@
 import { ChefHat } from "lucide-react";
-import { useLogin } from "../hooks/useLogin";
-import { LoginForm } from "../components/LoginForm";
-import { BranchSelector } from "../components/BranchSelector";
-import { MembershipSelector } from "../components/MembershipSelector";
+import { useLogin } from "@/features/auth/hooks/useLogin";
+import { LoginForm } from "@/features/auth/components/LoginForm";
+import { BranchSelector } from "@/features/auth/components/BranchSelector";
+import { MembershipSelector } from "@/features/auth/components/MembershipSelector";
 
 interface Props {
   onLogin: () => void;
 }
-export function LoginPage({ onLogin }: Props) {
+export const LoginPage = ({ onLogin }: Props) => {
   const auth = useLogin(onLogin);
   return (
     <div className="min-h-screen bg-primary flex flex-col">
@@ -49,4 +49,4 @@ export function LoginPage({ onLogin }: Props) {
       </div>
     </div>
   );
-}
+};

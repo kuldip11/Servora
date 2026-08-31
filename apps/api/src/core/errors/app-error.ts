@@ -1,7 +1,4 @@
-
-
 export enum ErrorCode {
-
   UNAUTHORIZED = "UNAUTHORIZED",
   RATE_LIMITED = "RATE_LIMITED",
   FORBIDDEN = "FORBIDDEN",
@@ -44,7 +41,6 @@ export class AppError extends Error {
     this.details = context.details;
     this.cause = context.cause;
     this.timestamp = new Date().toISOString();
-
   }
 
   toJSON() {

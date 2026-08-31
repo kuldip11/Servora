@@ -25,7 +25,7 @@ export interface BottomSheetProps {
   description?: string | undefined;
 }
 
-export function BottomSheet({
+export const BottomSheet = ({
   open,
   onClose,
   title,
@@ -33,7 +33,7 @@ export function BottomSheet({
   maxHeight = "85vh",
   footer,
   description,
-}: BottomSheetProps) {
+}: BottomSheetProps) => {
   return (
     <RadixDialog.Root open={open} onOpenChange={(next) => !next && onClose()}>
       <RadixDialog.Portal>
@@ -77,4 +77,4 @@ export function BottomSheet({
       </RadixDialog.Portal>
     </RadixDialog.Root>
   );
-}
+};

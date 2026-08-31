@@ -37,7 +37,7 @@ vi.mock("../../../lib/object-utils", () => ({
   compact: (v: any) =>
     Object.fromEntries(Object.entries(v).filter(([, x]) => x !== undefined)),
 }));
-import { tableRepository } from "../table.repository";
+import { tableRepository } from "@/modules/tables/table.repository";
 beforeEach(() => {
   vi.clearAllMocks();
 });

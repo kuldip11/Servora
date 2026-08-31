@@ -1,5 +1,3 @@
-
-
 export interface SelectedModifier {
   optionId: string;
   groupId: string;
@@ -23,9 +21,9 @@ export interface CartItem {
   unitPrice: number;
 }
 
-export function cartItemKey(item: CartItem): string {
+export const cartItemKey = (item: CartItem): string => {
   return `${item.menuItemId}__${item.variantId ?? ""}__${item.seatLabel ?? ""}__${item.modifiers
     .map((m) => `${m.optionId}x${m.quantity}`)
     .sort()
     .join(",")}`;
-}
+};

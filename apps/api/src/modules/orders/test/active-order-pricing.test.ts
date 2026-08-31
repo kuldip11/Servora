@@ -10,8 +10,12 @@ import {
   finalizeWholeActiveOrder,
   storedOrderLineToStage4Snapshot,
   type StoredOrderLineForRepricing,
-} from "../active-order-pricing";
-import type { PricedLine, PricingContext, PricingReplayEvidence } from "../pricing/pricing-pipeline";
+} from "@/modules/orders/active-order-pricing";
+import type {
+  PricedLine,
+  PricingContext,
+  PricingReplayEvidence,
+} from "@/modules/orders/pricing/pricing-pipeline";
 
 const context: PricingContext = {
   tenantId: "tenant-1",
@@ -21,12 +25,18 @@ const context: PricingContext = {
   asOf: new Date("2026-08-30T12:00:00.000Z"),
 };
 
-
 const pricingReplayEvidence: PricingReplayEvidence = {
   requestedLine: { menuItemId: "item-1", quantity: 1 },
   item: {
-    id: "item-1", branchId: null, name: "Historical Burger", categoryId: "cat-1",
-    isAvailable: true, basePrice: "120.00", taxRate: "5.00", variants: [], modifierGroupLinks: [],
+    id: "item-1",
+    branchId: null,
+    name: "Historical Burger",
+    categoryId: "cat-1",
+    isAvailable: true,
+    basePrice: "120.00",
+    taxRate: "5.00",
+    variants: [],
+    modifierGroupLinks: [],
   },
   branchOverride: null,
   priceRules: [],
@@ -50,7 +60,9 @@ const storedLine: StoredOrderLineForRepricing = {
     VARIANT: 0,
     MODIFIER: 0,
     PROMOTION: -20,
-    PROMOTION_DETAILS: [{ promotionId: "old-promo", name: "Old", discountAmount: 20 }],
+    PROMOTION_DETAILS: [
+      { promotionId: "old-promo", name: "Old", discountAmount: 20 },
+    ],
     LOYALTY: -10,
     LOYALTY_DETAILS: { tierId: "tier-1", name: "Gold", discountAmount: 10 },
     TAXABLE_BASE: 90,
@@ -68,10 +80,17 @@ const newLine: PricedLine = {
   taxRate: 5,
   fulfillmentType: "DINE_IN",
   modifiers: [],
-  pricingAttribution: { BASE_PRICE: 50, VARIANT: 0, MODIFIER: 0, CATEGORY_ID: "sides" },
+  pricingAttribution: {
+    BASE_PRICE: 50,
+    VARIANT: 0,
+    MODIFIER: 0,
+    CATEGORY_ID: "sides",
+  },
 };
 
-beforeEach(() => { vi.clearAllMocks(); });
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 describe("whole-active-order pricing finalization", () => {
   it("reconstructs historical lines from stored stage-1-through-4 snapshots only", () => {
@@ -89,7 +108,8 @@ describe("whole-active-order pricing finalization", () => {
         CATEGORY_ID: "historical-category",
       },
     });
-    const attribution = storedOrderLineToStage4Snapshot(storedLine).pricingAttribution;
+    const attribution =
+      storedOrderLineToStage4Snapshot(storedLine).pricingAttribution;
     expect(attribution.PROMOTION).toBeUndefined();
     expect(attribution.PROMOTION_DETAILS).toBeUndefined();
     expect(attribution.LOYALTY).toBeUndefined();
@@ -100,7 +120,10 @@ describe("whole-active-order pricing finalization", () => {
   it("runs stages 5-9 once across existing and newly-fired lines and maps updates back to persisted lines", async () => {
     const repricedOld = storedOrderLineToStage4Snapshot(storedLine);
     repricedOld.pricingAttribution.PROMOTION = -10;
-    const repricedNew = { ...newLine, pricingAttribution: { ...newLine.pricingAttribution, PROMOTION: -5 } };
+    const repricedNew = {
+      ...newLine,
+      pricingAttribution: { ...newLine.pricingAttribution, PROMOTION: -5 },
+    };
     finalize.mockResolvedValue({
       lines: [repricedOld, repricedNew],
       subtotal: 170,
@@ -112,18 +135,34 @@ describe("whole-active-order pricing finalization", () => {
       preciseTotal: 162.75,
       roundingPolicy: "NONE",
       loyaltyDiscountAmount: 0,
-      redemptions: [{ promotionId: "promo-1", customerId: null, discountAmount: 15 }],
-      appliedPromotions: [{ promotionId: "promo-1", stackableWithLoyalty: true, discountAmount: 15 }],
+      redemptions: [
+        { promotionId: "promo-1", customerId: null, discountAmount: 15 },
+      ],
+      appliedPromotions: [
+        {
+          promotionId: "promo-1",
+          stackableWithLoyalty: true,
+          discountAmount: 15,
+        },
+      ],
     });
 
-    const result = await finalizeWholeActiveOrder(context, [storedLine], [newLine], {
-      promotionIds: ["promo-1"],
-    });
+    const result = await finalizeWholeActiveOrder(
+      context,
+      [storedLine],
+      [newLine],
+      {
+        promotionIds: ["promo-1"],
+      },
+    );
 
     expect(finalize).toHaveBeenCalledWith(
       context,
       [
-        expect.objectContaining({ menuItemName: "Historical Burger", subtotal: 120 }),
+        expect.objectContaining({
+          menuItemName: "Historical Burger",
+          subtotal: 120,
+        }),
         newLine,
       ],
       { promotionIds: ["promo-1"] },

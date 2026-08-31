@@ -1,10 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError } from "../../../shared/lib/notify";
-import { menuSchedulesService } from "../services/menu-schedules.service";
-import { menuKeys } from "../query-keys";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError } from "@/shared/lib/notify";
+import { menuSchedulesService } from "@/features/menu/services/menu-schedules.service";
+import { menuKeys } from "@/features/menu/query-keys";
 
-export function useDeleteSchedule(itemId: string) {
+export const useDeleteSchedule = (itemId: string) => {
   return useMutation({
     mutationFn: (scheduleId: string) => menuSchedulesService.remove(scheduleId),
     onSuccess: () =>
@@ -13,4 +13,4 @@ export function useDeleteSchedule(itemId: string) {
       }),
     onError: () => notifyError(undefined, "Failed to remove schedule"),
   });
-}
+};

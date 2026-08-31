@@ -26,9 +26,15 @@ export const priceRules = pgTable(
   "price_rules",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
-    organizationId: uuid("organization_id").references(() => organizations.id, { onDelete: "cascade" }),
-    menuItemId: uuid("menu_item_id").references(() => menuItems.id, { onDelete: "cascade" }),
+    tenantId: uuid("tenant_id").references(() => tenants.id, {
+      onDelete: "cascade",
+    }),
+    organizationId: uuid("organization_id").references(() => organizations.id, {
+      onDelete: "cascade",
+    }),
+    menuItemId: uuid("menu_item_id").references(() => menuItems.id, {
+      onDelete: "cascade",
+    }),
     menuItemSku: varchar("menu_item_sku", { length: 50 }),
     variantId: uuid("variant_id").references(() => menuItemVariants.id, {
       onDelete: "cascade",
@@ -38,7 +44,10 @@ export const priceRules = pgTable(
     }),
     channel: orderSourceEnum("channel"),
     fulfillmentType: orderTypeEnum("fulfillment_type"),
-    customerGroupId: uuid("customer_group_id").references(() => customerGroups.id, { onDelete: "cascade" }),
+    customerGroupId: uuid("customer_group_id").references(
+      () => customerGroups.id,
+      { onDelete: "cascade" },
+    ),
     coverTier: coverTierEnum("cover_tier"),
     isPerCover: boolean("is_per_cover").notNull().default(false),
     startDate: date("start_date"),

@@ -1,23 +1,26 @@
 type Labels = Record<string, string | number | boolean | undefined>;
 
-function labelKey(labels: Labels = {}): string {
+const labelKey = (labels: Labels = {}): string => {
   return Object.entries(labels)
     .filter(([, value]) => value !== undefined)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([key, value]) => `${key}=${String(value)}`)
     .join("|");
-}
+};
 
-function renderLabels(key: string): string {
+const renderLabels = (key: string): string => {
   if (!key) return "";
   const pairs = key.split("|").map((part) => {
     const index = part.indexOf("=");
     const name = part.slice(0, index);
-    const value = part.slice(index + 1).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+    const value = part
+      .slice(index + 1)
+      .replace(/\\/g, "\\\\")
+      .replace(/"/g, '\\"');
     return `${name}="${value}"`;
   });
   return `{${pairs.join(",")}}`;
-}
+};
 
 const counters = new Map<string, Map<string, number>>();
 const gauges = new Map<string, Map<string, number>>();
@@ -26,7 +29,10 @@ const durations = new Map<
   Map<string, { count: number; sum: number; max: number }>
 >();
 
-function nested<T>(root: Map<string, Map<string, T>>, name: string): Map<string, T> {
+function nested<T>(
+  root: Map<string, Map<string, T>>,
+  name: string,
+): Map<string, T> {
   let value = root.get(name);
   if (!value) {
     value = new Map<string, T>();
@@ -60,11 +66,13 @@ export const metrics = {
     const lines: string[] = [];
     for (const [name, entries] of counters) {
       lines.push(`# TYPE ${name} counter`);
-      for (const [labels, value] of entries) lines.push(`${name}${renderLabels(labels)} ${value}`);
+      for (const [labels, value] of entries)
+        lines.push(`${name}${renderLabels(labels)} ${value}`);
     }
     for (const [name, entries] of gauges) {
       lines.push(`# TYPE ${name} gauge`);
-      for (const [labels, value] of entries) lines.push(`${name}${renderLabels(labels)} ${value}`);
+      for (const [labels, value] of entries)
+        lines.push(`${name}${renderLabels(labels)} ${value}`);
     }
     for (const [name, entries] of durations) {
       lines.push(`# TYPE ${name} summary`);

@@ -3,20 +3,20 @@ import { useQuery } from "@tanstack/react-query";
 import { Modal } from "@pos/ui";
 import { MenuPicker } from "./create-order/MenuPicker";
 import { OrderCart } from "./create-order/OrderCart";
-import { useTables } from "../../tables/hooks/useTables";
-import { useMenuCategories } from "../../menu/hooks/useMenuCategories";
-import { useCreateOrder } from "../hooks/useCreateOrder";
-import { toCartItemPayload } from "../services/orders.service";
+import { useTables } from "@/features/tables/hooks/useTables";
+import { useMenuCategories } from "@/features/menu/hooks/useMenuCategories";
+import { useCreateOrder } from "@/features/orders/hooks/useCreateOrder";
+import { toCartItemPayload } from "@/features/orders/services/orders.service";
 import { ItemCustomizerModal } from "./ItemCustomizerModal";
-import { cartItemKey, type CartItem } from "../utils/cartTypes";
+import { cartItemKey, type CartItem } from "@/features/orders/utils/cartTypes";
 import type { FoodType, MenuCategory, MenuItem } from "@pos/types";
 import { createOrderSchema } from "@pos/validation";
-import { useBranches } from "../../branches/hooks/useBranches";
+import { useBranches } from "@/features/branches/hooks/useBranches";
 import { createMenuApi } from "@pos/api-client";
-import { apiClient } from "../../../shared/lib/api-client";
+import { apiClient } from "@/shared/lib/api-client";
 
 const menuApi = createMenuApi(apiClient);
-import { useCourseSequencingEnabled } from "../hooks/useCourseSequencingEnabled";
+import { useCourseSequencingEnabled } from "@/features/orders/hooks/useCourseSequencingEnabled";
 
 interface ActiveMenuSummary {
   id: string;
@@ -24,9 +24,9 @@ interface ActiveMenuSummary {
   memberships: Array<{ menuItemId: string }>;
 }
 
-import { ALL_ORDER_TYPES } from "../constants";
+import { ALL_ORDER_TYPES } from "@/features/orders/constants";
 
-export function CreateOrderModal({ onClose }: { onClose: () => void }) {
+export const CreateOrderModal = ({ onClose }: { onClose: () => void }) => {
   const [orderType, setOrderType] = useState("DINE_IN");
   const [tableId, setTableId] = useState("");
   const [notes, setNotes] = useState("");
@@ -65,12 +65,24 @@ export function CreateOrderModal({ onClose }: { onClose: () => void }) {
     queryFn: () => menuApi.listActiveMenus(orderType),
   });
   useEffect(() => {
-    if (!activeMenus.some((menu) => menu.id === selectedMenuId)) setSelectedMenuId(activeMenus[0]?.id ?? "");
+    if (!activeMenus.some((menu) => menu.id === selectedMenuId))
+      setSelectedMenuId(activeMenus[0]?.id ?? "");
   }, [activeMenus, selectedMenuId]);
   const visibleItemIds = new Set(
-    activeMenus.filter((menu) => !selectedMenuId || menu.id === selectedMenuId).flatMap((menu) => menu.memberships.map((membership) => membership.menuItemId)),
+    activeMenus
+      .filter((menu) => !selectedMenuId || menu.id === selectedMenuId)
+      .flatMap((menu) =>
+        menu.memberships.map((membership) => membership.menuItemId),
+      ),
   );
-  const scopedCategories = categories?.map((category: MenuCategory) => ({ ...category, menuItems: (category.menuItems ?? []).filter((item) => visibleItemIds.has(item.id)) })).filter((category) => category.menuItems.length > 0);
+  const scopedCategories = categories
+    ?.map((category: MenuCategory) => ({
+      ...category,
+      menuItems: (category.menuItems ?? []).filter((item) =>
+        visibleItemIds.has(item.id),
+      ),
+    }))
+    .filter((category) => category.menuItems.length > 0);
 
   const { data: tables } = useTables({
     enabled: orderType === "DINE_IN" && tablesEnabled,
@@ -115,7 +127,11 @@ export function CreateOrderModal({ onClose }: { onClose: () => void }) {
   }
 
   function updateCourse(key: string, courseNumber: number) {
-    setItems((prev) => prev.map((item) => cartItemKey(item) === key ? { ...item, courseNumber } : item));
+    setItems((prev) =>
+      prev.map((item) =>
+        cartItemKey(item) === key ? { ...item, courseNumber } : item,
+      ),
+    );
   }
 
   function updateQty(key: string, delta: number) {
@@ -169,26 +185,65 @@ export function CreateOrderModal({ onClose }: { onClose: () => void }) {
 
   return (
     <Modal open title="New Order" onClose={onClose} size="xl">
-      {courseSequencingAvailable && <label className="mb-4 flex items-center gap-2 rounded-md border border-border bg-surface-secondary px-3 py-2 text-sm text-text-secondary"><input type="checkbox" checked={courseMode} onChange={(event) => { const enabled = event.target.checked; setCourseMode(enabled); setItems((current) => current.map((item) => enabled ? { ...item, courseNumber: item.courseNumber ?? 1 } : (({ courseNumber: _courseNumber, ...rest }) => rest)(item))); }} /><span><strong className="text-text-primary">Course mode</strong> — assign lines to courses; later courses are held until fired.</span></label>}
+      {courseSequencingAvailable && (
+        <label className="mb-4 flex items-center gap-2 rounded-md border border-border bg-surface-secondary px-3 py-2 text-sm text-text-secondary">
+          <input
+            type="checkbox"
+            checked={courseMode}
+            onChange={(event) => {
+              const enabled = event.target.checked;
+              setCourseMode(enabled);
+              setItems((current) =>
+                current.map((item) =>
+                  enabled
+                    ? { ...item, courseNumber: item.courseNumber ?? 1 }
+                    : (({ courseNumber: _courseNumber, ...rest }) => rest)(
+                        item,
+                      ),
+                ),
+              );
+            }}
+          />
+          <span>
+            <strong className="text-text-primary">Course mode</strong> — assign
+            lines to courses; later courses are held until fired.
+          </span>
+        </label>
+      )}
       <div className="grid grid-cols-2 gap-6">
         <div className="space-y-3">
-          {activeMenus.length > 1 && <label className="block text-sm font-medium">Menu<select className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2" value={selectedMenuId} onChange={(event) => setSelectedMenuId(event.target.value)}>{activeMenus.map((menu) => <option key={menu.id} value={menu.id}>{menu.name}</option>)}</select></label>}
-        <MenuPicker
-          orderType={orderType}
-          tableId={tableId}
-          tablesEnabled={tablesEnabled}
-          tables={tables}
-          categories={scopedCategories}
-          filter={foodTypeFilter}
-          availableOrderTypes={availableOrderTypes}
-          onOrderTypeChange={(v) => {
-            setOrderType(v);
-            setTableId("");
-          }}
-          onTableChange={setTableId}
-          onFilterChange={setFoodTypeFilter}
-          onItemClick={handleItemClick}
-        />
+          {activeMenus.length > 1 && (
+            <label className="block text-sm font-medium">
+              Menu
+              <select
+                className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2"
+                value={selectedMenuId}
+                onChange={(event) => setSelectedMenuId(event.target.value)}
+              >
+                {activeMenus.map((menu) => (
+                  <option key={menu.id} value={menu.id}>
+                    {menu.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <MenuPicker
+            orderType={orderType}
+            tableId={tableId}
+            tablesEnabled={tablesEnabled}
+            tables={tables}
+            categories={scopedCategories}
+            filter={foodTypeFilter}
+            availableOrderTypes={availableOrderTypes}
+            onOrderTypeChange={(v) => {
+              setOrderType(v);
+              setTableId("");
+            }}
+            onTableChange={setTableId}
+            onFilterChange={setFoodTypeFilter}
+            onItemClick={handleItemClick}
+          />
         </div>
         <OrderCart
           items={items}
@@ -219,4 +274,4 @@ export function CreateOrderModal({ onClose }: { onClose: () => void }) {
       )}
     </Modal>
   );
-}
+};

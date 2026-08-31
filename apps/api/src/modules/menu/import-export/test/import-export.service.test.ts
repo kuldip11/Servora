@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import * as mod from "../import-export.service";
+import * as mod from "@/modules/menu/import-export/import-export.service";
 
 describe("import-export service", () => {
   it("exposes the documented module boundary", () => {

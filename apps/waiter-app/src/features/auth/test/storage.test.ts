@@ -7,7 +7,7 @@ import {
   saveContext,
   saveProfile,
   saveTokens,
-} from "../storage";
+} from "@/features/auth/storage";
 
 beforeEach(() => localStorage.clear());
 

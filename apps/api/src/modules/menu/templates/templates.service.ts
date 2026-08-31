@@ -1,11 +1,12 @@
-
-
-import type { AuthContext } from "../../../core/auth";
+import type { AuthContext } from "@/core/auth";
 import { templatesRepository } from "./templates.repository";
-import { requirePermission } from "../../../core/auth";
-import { resolveMenuBranch } from "../menu-authorization";
+import { requirePermission } from "@/core/auth";
+import { resolveMenuBranch } from "@/modules/menu/menu-authorization";
 import { templateNotFound, templateCategoryNotFound } from "./templates.errors";
-import { buildDiff, menuChangeLog } from "../change-log/menu-change-log";
+import {
+  buildDiff,
+  menuChangeLog,
+} from "@/modules/menu/change-log/menu-change-log";
 
 export const templatesService = {
   async list(auth: AuthContext) {
@@ -49,7 +50,13 @@ export const templatesService = {
       items,
     );
     if (!created) throw new Error("Menu template could not be created");
-    await menuChangeLog.record(auth, "TEMPLATE", created.id, "CREATED", buildDiff(null, created));
+    await menuChangeLog.record(
+      auth,
+      "TEMPLATE",
+      created.id,
+      "CREATED",
+      buildDiff(null, created),
+    );
     return created;
   },
 
@@ -74,7 +81,9 @@ export const templatesService = {
       branchId,
     });
     await menuChangeLog.record(auth, "TEMPLATE", templateId, "UPDATED", {
-      operation: "APPLIED", branchId, categoryName: options.categoryName ?? null,
+      operation: "APPLIED",
+      branchId,
+      categoryName: options.categoryName ?? null,
     });
     return result;
   },
@@ -83,6 +92,8 @@ export const templatesService = {
     requirePermission(auth, "menu:delete");
     const deleted = await templatesRepository.delete(auth.tenantId, templateId);
     if (!deleted) throw templateNotFound(templateId);
-    await menuChangeLog.record(auth, "TEMPLATE", templateId, "DELETED", { deleted });
+    await menuChangeLog.record(auth, "TEMPLATE", templateId, "DELETED", {
+      deleted,
+    });
   },
 };

@@ -1,8 +1,6 @@
-
-
 import type { MenuItemStatus } from "@pos/types";
-import type { AuthContext } from "../../../core/auth";
-import { successResponse } from "../../../core/response";
+import type { AuthContext } from "@/core/auth";
+import { successResponse } from "@/core/response";
 import { bulkOpsService } from "./bulk-ops.service";
 import type { BulkMode, PriceMode } from "./bulk-ops.repository";
 

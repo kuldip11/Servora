@@ -1,6 +1,11 @@
 import { createInventoryApi } from "@pos/api-client";
-import { apiClient } from "../../../shared/lib/api-client";
-import type { InventoryItem, InventoryRecipeImpact, InventoryTransaction, WasteReason } from "@pos/types";
+import { apiClient } from "@/shared/lib/api-client";
+import type {
+  InventoryItem,
+  InventoryRecipeImpact,
+  InventoryTransaction,
+  WasteReason,
+} from "@pos/types";
 
 export interface InventoryItemFormInput {
   name: string;
@@ -28,7 +33,8 @@ export const inventoryService = {
   async add(input: InventoryItemFormInput): Promise<void> {
     await inventoryApi.create({
       name: input.name,
-      unit: input.unit as "KG" | "GRAMS" | "LITERS" | "ML" | "PIECES" | "PACKETS",
+      unit: input.unit as
+        "KG" | "GRAMS" | "LITERS" | "ML" | "PIECES" | "PACKETS",
       currentStock: parseFloat(input.currentStock),
       minimumStock: parseFloat(input.minimumStock),
       reorderPoint: parseFloat(input.reorderPoint),
@@ -45,7 +51,8 @@ export const inventoryService = {
   async updateStock(itemId: string, input: StockUpdateInput): Promise<void> {
     await inventoryApi.updateStock(itemId, {
       quantity: parseFloat(input.quantity),
-      transactionType: input.transactionType as "IN" | "OUT" | "ADJUSTMENT" | "WASTE",
+      transactionType: input.transactionType as
+        "IN" | "OUT" | "ADJUSTMENT" | "WASTE",
       ...(input.notes ? { notes: input.notes } : {}),
       ...(input.wasteReasonId ? { wasteReasonId: input.wasteReasonId } : {}),
     });
@@ -56,7 +63,10 @@ export const inventoryService = {
   createWasteReason(label: string): Promise<WasteReason> {
     return inventoryApi.createWasteReason(label);
   },
-  logWaste(itemId: string, input: { quantity: number; wasteReasonId: string; notes?: string }): Promise<void> {
+  logWaste(
+    itemId: string,
+    input: { quantity: number; wasteReasonId: string; notes?: string },
+  ): Promise<void> {
     return inventoryApi.logWaste(itemId, input);
   },
 };

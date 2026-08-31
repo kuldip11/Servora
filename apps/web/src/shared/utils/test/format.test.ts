@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatCurrency, formatDate, formatTime } from "../format";
+import { formatCurrency, formatDate, formatTime } from "@/shared/utils/format";
 
 describe("formatCurrency", () => {
   it("formats INR amounts using the application locale", () => {

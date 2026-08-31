@@ -28,7 +28,6 @@ const customerOrderItem = t.Object({
   ),
 });
 
-
 const customerComboOrder = t.Object({
   comboId: t.String({ format: "uuid" }),
   quantity: t.Optional(t.Number({ minimum: 1, maximum: 50 })),
@@ -43,7 +42,9 @@ const customerComboOrder = t.Object({
 
 export const createCustomerOrderBody = t.Object({
   items: t.Optional(t.Array(customerOrderItem, { minItems: 1, maxItems: 100 })),
-  combos: t.Optional(t.Array(customerComboOrder, { minItems: 1, maxItems: 50 })),
+  combos: t.Optional(
+    t.Array(customerComboOrder, { minItems: 1, maxItems: 50 }),
+  ),
   notes: t.Optional(t.String({ maxLength: 1000 })),
   couponCode: t.Optional(t.String({ minLength: 1, maxLength: 50 })),
   loyaltyPhone: t.Optional(t.String({ minLength: 3, maxLength: 40 })),

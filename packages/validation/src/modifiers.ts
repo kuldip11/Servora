@@ -77,9 +77,15 @@ export const modifierGroupFormSchema = z
         message: "Pick one groups cannot allow more than 1 option",
       });
     }
-    if (value.groupType === "ADDON") value.options.forEach((option, index) => {
-      if (Number(option.additionalPrice) < 0) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["options", index, "additionalPrice"], message: "Addon prices cannot be negative" });
-    });
+    if (value.groupType === "ADDON")
+      value.options.forEach((option, index) => {
+        if (Number(option.additionalPrice) < 0)
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["options", index, "additionalPrice"],
+            message: "Addon prices cannot be negative",
+          });
+      });
   });
 
 export type ModifierGroupFormValues = z.infer<typeof modifierGroupFormSchema>;

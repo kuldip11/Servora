@@ -1,8 +1,8 @@
 import { and, eq, sql } from "drizzle-orm";
-import { db } from "../../../db";
-import { promotionRedemptions, promotions } from "../../../db/schema";
-import { compact } from "../../../lib/object-utils";
-import { ValidationError } from "../../../core/errors";
+import { db } from "@/db";
+import { promotionRedemptions, promotions } from "@/db/schema";
+import { compact } from "@/lib/object-utils";
+import { ValidationError } from "@/core/errors";
 
 export type PromotionRow = typeof promotions.$inferSelect;
 export type NewPromotion = typeof promotions.$inferInsert;
@@ -16,25 +16,41 @@ export const promotionRepository = {
     });
   },
   findById(tenantId: string, id: string) {
-    return db.query.promotions.findFirst({ where: and(eq(promotions.id, id), eq(promotions.tenantId, tenantId)) });
+    return db.query.promotions.findFirst({
+      where: and(eq(promotions.id, id), eq(promotions.tenantId, tenantId)),
+    });
   },
   findCandidates(tenantId: string) {
-    return db.query.promotions.findMany({ where: and(eq(promotions.tenantId, tenantId), eq(promotions.isActive, true)) });
+    return db.query.promotions.findMany({
+      where: and(
+        eq(promotions.tenantId, tenantId),
+        eq(promotions.isActive, true),
+      ),
+    });
   },
   async create(data: NewPromotion) {
     const [row] = await db.insert(promotions).values(data).returning();
     return row!;
   },
   async update(tenantId: string, id: string, data: Partial<NewPromotion>) {
-    const [row] = await db.update(promotions).set(compact({ ...data, updatedAt: new Date() }) as Partial<NewPromotion>)
-      .where(and(eq(promotions.id, id), eq(promotions.tenantId, tenantId))).returning();
+    const [row] = await db
+      .update(promotions)
+      .set(compact({ ...data, updatedAt: new Date() }) as Partial<NewPromotion>)
+      .where(and(eq(promotions.id, id), eq(promotions.tenantId, tenantId)))
+      .returning();
     return row;
   },
   async remove(tenantId: string, id: string) {
-    await db.delete(promotions).where(and(eq(promotions.id, id), eq(promotions.tenantId, tenantId)));
+    await db
+      .delete(promotions)
+      .where(and(eq(promotions.id, id), eq(promotions.tenantId, tenantId)));
   },
-  async listRedemptionsForOrder(orderId: string): Promise<PendingPromotionRedemption[]> {
-    const rows = await db.query.promotionRedemptions.findMany({ where: eq(promotionRedemptions.orderId, orderId) });
+  async listRedemptionsForOrder(
+    orderId: string,
+  ): Promise<PendingPromotionRedemption[]> {
+    const rows = await db.query.promotionRedemptions.findMany({
+      where: eq(promotionRedemptions.orderId, orderId),
+    });
     return rows.map((row) => ({
       promotionId: row.promotionId,
       customerId: row.customerId,
@@ -42,12 +58,19 @@ export const promotionRepository = {
     }));
   },
   async stats(tenantId: string, promotionId: string) {
-    const [row] = await db.select({
-      uses: sql<number>`count(${promotionRedemptions.id})::int`,
-      discountAmount: sql<string>`coalesce(sum(${promotionRedemptions.discountAmount}), 0)`,
-    }).from(promotionRedemptions)
-      .innerJoin(promotions, eq(promotions.id, promotionRedemptions.promotionId))
-      .where(and(eq(promotions.tenantId, tenantId), eq(promotions.id, promotionId)));
+    const [row] = await db
+      .select({
+        uses: sql<number>`count(${promotionRedemptions.id})::int`,
+        discountAmount: sql<string>`coalesce(sum(${promotionRedemptions.discountAmount}), 0)`,
+      })
+      .from(promotionRedemptions)
+      .innerJoin(
+        promotions,
+        eq(promotions.id, promotionRedemptions.promotionId),
+      )
+      .where(
+        and(eq(promotions.tenantId, tenantId), eq(promotions.id, promotionId)),
+      );
     return row ?? { uses: 0, discountAmount: "0" };
   },
 };
@@ -58,32 +81,61 @@ export interface PendingPromotionRedemption {
   discountAmount: number;
 }
 
-export async function assertAndInsertPromotionRedemptions(
+export const assertAndInsertPromotionRedemptions = async (
   tx: Transaction,
   tenantId: string,
   orderId: string,
   pending: PendingPromotionRedemption[],
-) {
+) => {
   for (const redemption of pending) {
-    const [promotion] = await tx.select().from(promotions)
-      .where(and(eq(promotions.id, redemption.promotionId), eq(promotions.tenantId, tenantId)))
+    const [promotion] = await tx
+      .select()
+      .from(promotions)
+      .where(
+        and(
+          eq(promotions.id, redemption.promotionId),
+          eq(promotions.tenantId, tenantId),
+        ),
+      )
       .for("update");
-    if (!promotion || !promotion.isActive) throw new ValidationError("Promotion is no longer available");
+    if (!promotion || !promotion.isActive)
+      throw new ValidationError("Promotion is no longer available");
 
     const existing = await tx.query.promotionRedemptions.findFirst({
-      where: and(eq(promotionRedemptions.promotionId, promotion.id), eq(promotionRedemptions.orderId, orderId)),
+      where: and(
+        eq(promotionRedemptions.promotionId, promotion.id),
+        eq(promotionRedemptions.orderId, orderId),
+      ),
     });
     if (!existing) {
       if (promotion.maxUsesTotal != null) {
-        const [count] = await tx.select({ value: sql<number>`count(*)::int` }).from(promotionRedemptions)
+        const [count] = await tx
+          .select({ value: sql<number>`count(*)::int` })
+          .from(promotionRedemptions)
           .where(eq(promotionRedemptions.promotionId, promotion.id));
-        if ((count?.value ?? 0) >= promotion.maxUsesTotal) throw new ValidationError(`${promotion.name} has reached its usage limit`);
+        if ((count?.value ?? 0) >= promotion.maxUsesTotal)
+          throw new ValidationError(
+            `${promotion.name} has reached its usage limit`,
+          );
       }
       if (promotion.maxUsesPerCustomer != null) {
-        if (!redemption.customerId) throw new ValidationError(`${promotion.name} requires an identified customer`);
-        const [count] = await tx.select({ value: sql<number>`count(*)::int` }).from(promotionRedemptions)
-          .where(and(eq(promotionRedemptions.promotionId, promotion.id), eq(promotionRedemptions.customerId, redemption.customerId)));
-        if ((count?.value ?? 0) >= promotion.maxUsesPerCustomer) throw new ValidationError(`${promotion.name} has reached this customer's usage limit`);
+        if (!redemption.customerId)
+          throw new ValidationError(
+            `${promotion.name} requires an identified customer`,
+          );
+        const [count] = await tx
+          .select({ value: sql<number>`count(*)::int` })
+          .from(promotionRedemptions)
+          .where(
+            and(
+              eq(promotionRedemptions.promotionId, promotion.id),
+              eq(promotionRedemptions.customerId, redemption.customerId),
+            ),
+          );
+        if ((count?.value ?? 0) >= promotion.maxUsesPerCustomer)
+          throw new ValidationError(
+            `${promotion.name} has reached this customer's usage limit`,
+          );
       }
       await tx.insert(promotionRedemptions).values({
         promotionId: promotion.id,
@@ -92,19 +144,24 @@ export async function assertAndInsertPromotionRedemptions(
         discountAmount: redemption.discountAmount.toFixed(2),
       });
     } else {
-      await tx.update(promotionRedemptions).set({
-        discountAmount: (Number(existing.discountAmount) + redemption.discountAmount).toFixed(2),
-      }).where(eq(promotionRedemptions.id, existing.id));
+      await tx
+        .update(promotionRedemptions)
+        .set({
+          discountAmount: (
+            Number(existing.discountAmount) + redemption.discountAmount
+          ).toFixed(2),
+        })
+        .where(eq(promotionRedemptions.id, existing.id));
     }
   }
-}
+};
 
-export async function assertAndReplacePromotionRedemptions(
+export const assertAndReplacePromotionRedemptions = async (
   tx: Transaction,
   tenantId: string,
   orderId: string,
   pending: PendingPromotionRedemption[],
-) {
+) => {
   const existingRows = await tx.query.promotionRedemptions.findMany({
     where: eq(promotionRedemptions.orderId, orderId),
   });
@@ -116,21 +173,29 @@ export async function assertAndReplacePromotionRedemptions(
   const existingByPromotion = new Map(
     existingRows.map((entry) => [entry.promotionId, entry] as const),
   );
-  const promotionIds = [...new Set([
-    ...existingRows.map((entry) => entry.promotionId),
-    ...pending.map((entry) => entry.promotionId),
-  ])].sort();
+  const promotionIds = [
+    ...new Set([
+      ...existingRows.map((entry) => entry.promotionId),
+      ...pending.map((entry) => entry.promotionId),
+    ]),
+  ].sort();
 
   for (const promotionId of promotionIds) {
-    const [promotion] = await tx.select().from(promotions)
-      .where(and(eq(promotions.id, promotionId), eq(promotions.tenantId, tenantId)))
+    const [promotion] = await tx
+      .select()
+      .from(promotions)
+      .where(
+        and(eq(promotions.id, promotionId), eq(promotions.tenantId, tenantId)),
+      )
       .for("update");
     const existing = existingByPromotion.get(promotionId);
     const desired = desiredByPromotion.get(promotionId);
 
     if (!desired) {
       if (existing) {
-        await tx.delete(promotionRedemptions).where(eq(promotionRedemptions.id, existing.id));
+        await tx
+          .delete(promotionRedemptions)
+          .where(eq(promotionRedemptions.id, existing.id));
       }
       continue;
     }
@@ -140,20 +205,35 @@ export async function assertAndReplacePromotionRedemptions(
 
     if (!existing) {
       if (promotion.maxUsesTotal != null) {
-        const [count] = await tx.select({ value: sql<number>`count(*)::int` }).from(promotionRedemptions)
+        const [count] = await tx
+          .select({ value: sql<number>`count(*)::int` })
+          .from(promotionRedemptions)
           .where(eq(promotionRedemptions.promotionId, promotion.id));
         if ((count?.value ?? 0) >= promotion.maxUsesTotal) {
-          throw new ValidationError(`${promotion.name} has reached its usage limit`);
+          throw new ValidationError(
+            `${promotion.name} has reached its usage limit`,
+          );
         }
       }
       if (promotion.maxUsesPerCustomer != null) {
         if (!desired.customerId) {
-          throw new ValidationError(`${promotion.name} requires an identified customer`);
+          throw new ValidationError(
+            `${promotion.name} requires an identified customer`,
+          );
         }
-        const [count] = await tx.select({ value: sql<number>`count(*)::int` }).from(promotionRedemptions)
-          .where(and(eq(promotionRedemptions.promotionId, promotion.id), eq(promotionRedemptions.customerId, desired.customerId)));
+        const [count] = await tx
+          .select({ value: sql<number>`count(*)::int` })
+          .from(promotionRedemptions)
+          .where(
+            and(
+              eq(promotionRedemptions.promotionId, promotion.id),
+              eq(promotionRedemptions.customerId, desired.customerId),
+            ),
+          );
         if ((count?.value ?? 0) >= promotion.maxUsesPerCustomer) {
-          throw new ValidationError(`${promotion.name} has reached this customer's usage limit`);
+          throw new ValidationError(
+            `${promotion.name} has reached this customer's usage limit`,
+          );
         }
       }
       await tx.insert(promotionRedemptions).values({
@@ -165,9 +245,12 @@ export async function assertAndReplacePromotionRedemptions(
       continue;
     }
 
-    await tx.update(promotionRedemptions).set({
-      customerId: desired.customerId ?? null,
-      discountAmount: desired.discountAmount.toFixed(2),
-    }).where(eq(promotionRedemptions.id, existing.id));
+    await tx
+      .update(promotionRedemptions)
+      .set({
+        customerId: desired.customerId ?? null,
+        discountAmount: desired.discountAmount.toFixed(2),
+      })
+      .where(eq(promotionRedemptions.id, existing.id));
   }
-}
+};

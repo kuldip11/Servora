@@ -1,10 +1,10 @@
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { CategoryTabs } from "../CategoryTabs";
-import { MenuItemCard } from "../MenuItemCard";
-import { MenuGrid } from "../MenuGrid";
-import { OrderOptionsPanel } from "../OrderOptionsPanel";
+import { CategoryTabs } from "@/features/menu/components/CategoryTabs";
+import { MenuItemCard } from "@/features/menu/components/MenuItemCard";
+import { MenuGrid } from "@/features/menu/components/MenuGrid";
+import { OrderOptionsPanel } from "@/features/menu/components/OrderOptionsPanel";
 
 const item: any = {
   id: "m1",

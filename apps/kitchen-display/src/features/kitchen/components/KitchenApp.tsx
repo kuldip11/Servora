@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { KitchenLogin, getToken, logout, logoutSession } from "../../auth";
-import { KitchenBoard } from "../pages/KitchenBoard";
+import { KitchenLogin, getToken, logout, logoutSession } from "@/features/auth";
+import { KitchenBoard } from "@/features/kitchen/pages/KitchenBoard";
 
-export function KitchenApp() {
+export const KitchenApp = () => {
   const [loggedIn, setLoggedIn] = useState(!!getToken());
 
   async function handleLogout() {
@@ -16,4 +16,4 @@ export function KitchenApp() {
 
   if (!loggedIn) return <KitchenLogin onLogin={() => setLoggedIn(true)} />;
   return <KitchenBoard onLogout={() => void handleLogout()} />;
-}
+};

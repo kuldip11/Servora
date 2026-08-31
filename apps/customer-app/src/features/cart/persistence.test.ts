@@ -9,7 +9,7 @@ import {
   savePersistedCart,
 } from "./persistence";
 import type { CartLine } from "./pricing";
-import type { CustomerMenuItem } from "../menu/api";
+import type { CustomerMenuItem } from "@/features/menu/api";
 
 const item: CustomerMenuItem = {
   id: "item-1",

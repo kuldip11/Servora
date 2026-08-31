@@ -8,7 +8,7 @@ vi.mock("../../../auth", () => ({
 vi.mock("../../pages/KitchenBoard", () => ({
   KitchenBoard: () => <div>board</div>,
 }));
-import { KitchenApp } from "../KitchenApp";
+import { KitchenApp } from "@/features/kitchen/components/KitchenApp";
 describe("KitchenApp", () =>
   it("renders login when no token", () =>
     expect(renderToStaticMarkup(<KitchenApp />)).toContain("login")));

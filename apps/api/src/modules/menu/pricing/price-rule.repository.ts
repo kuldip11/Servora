@@ -1,17 +1,17 @@
 import { and, eq, inArray, or } from "drizzle-orm";
-import { db } from "../../../db";
-import { priceRules, tenants } from "../../../db/schema";
-import { compact } from "../../../lib/object-utils";
+import { db } from "@/db";
+import { priceRules, tenants } from "@/db/schema";
+import { compact } from "@/lib/object-utils";
 
 export type NewPriceRule = typeof priceRules.$inferInsert;
 
-async function organizationIdForTenant(tenantId: string) {
+const organizationIdForTenant = async (tenantId: string) => {
   const tenant = await db.query.tenants.findFirst({
     where: eq(tenants.id, tenantId),
     columns: { organizationId: true },
   });
   return tenant?.organizationId ?? null;
-}
+};
 
 export const priceRuleRepository = {
   async findCandidates(
@@ -25,9 +25,15 @@ export const priceRuleRepository = {
       where: and(
         eq(priceRules.isActive, true),
         or(
-          and(eq(priceRules.tenantId, tenantId), inArray(priceRules.menuItemId, menuItemIds)),
+          and(
+            eq(priceRules.tenantId, tenantId),
+            inArray(priceRules.menuItemId, menuItemIds),
+          ),
           organizationId && menuItemSkus.length
-            ? and(eq(priceRules.organizationId, organizationId), inArray(priceRules.menuItemSku, menuItemSkus))
+            ? and(
+                eq(priceRules.organizationId, organizationId),
+                inArray(priceRules.menuItemSku, menuItemSkus),
+              )
             : undefined,
         ),
       ),
@@ -43,7 +49,9 @@ export const priceRuleRepository = {
         eq(priceRules.isPerCover, true),
         or(
           eq(priceRules.tenantId, tenantId),
-          organizationId ? eq(priceRules.organizationId, organizationId) : undefined,
+          organizationId
+            ? eq(priceRules.organizationId, organizationId)
+            : undefined,
         ),
       ),
     });
@@ -76,7 +84,9 @@ export const priceRuleRepository = {
         eq(priceRules.id, id),
         or(
           eq(priceRules.tenantId, tenantId),
-          organizationId ? eq(priceRules.organizationId, organizationId) : undefined,
+          organizationId
+            ? eq(priceRules.organizationId, organizationId)
+            : undefined,
         ),
       ),
     });
@@ -106,7 +116,10 @@ export const priceRuleRepository = {
   async remove(tenantId: string, id: string) {
     const existing = await priceRuleRepository.findById(tenantId, id);
     if (!existing) return undefined;
-    const [deleted] = await db.delete(priceRules).where(eq(priceRules.id, existing.id)).returning({ id: priceRules.id });
+    const [deleted] = await db
+      .delete(priceRules)
+      .where(eq(priceRules.id, existing.id))
+      .returning({ id: priceRules.id });
     return deleted;
   },
 

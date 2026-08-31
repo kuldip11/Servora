@@ -1,6 +1,5 @@
-
 import { eq, and, inArray, isNull } from "drizzle-orm";
-import { db } from "../../../db";
+import { db } from "@/db";
 import type { MenuItemStatus } from "@pos/types";
 import {
   menuItems,
@@ -8,7 +7,7 @@ import {
   menuItemTags,
   orders,
   orderItems,
-} from "../../../db/schema";
+} from "@/db/schema";
 
 export type BulkMode = "add" | "remove" | "replace";
 export type PriceMode = "set" | "increase" | "decrease";
@@ -114,7 +113,6 @@ export const bulkOpsRepository = {
           .onConflictDoNothing();
       }
     } else {
-
       await db
         .delete(menuItemTags)
         .where(

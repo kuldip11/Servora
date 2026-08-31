@@ -1,7 +1,7 @@
 import { Button } from "@pos/ui";
 import { X } from "lucide-react";
 type Variant = { name: string; price: string };
-export function ItemMediaVariantsSection({
+export const ItemMediaVariantsSection = ({
   imageUrls,
   newImageUrl,
   variants,
@@ -21,7 +21,7 @@ export function ItemMediaVariantsSection({
   onVariantChange: (i: number, patch: Partial<Variant>) => void;
   onRemoveVariant: (i: number) => void;
   onAddVariant: () => void;
-}) {
+}) => {
   return (
     <>
       <div>
@@ -119,4 +119,4 @@ export function ItemMediaVariantsSection({
       </div>
     </>
   );
-}
+};

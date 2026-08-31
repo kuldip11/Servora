@@ -18,7 +18,7 @@ export interface NavItem {
   linkProps?: Record<string, unknown> | undefined;
 }
 
-export function navItemClasses(active?: boolean, disabled?: boolean) {
+export const navItemClasses = (active?: boolean, disabled?: boolean) => {
   return cn(
     "flex items-center gap-3 rounded-md text-sm font-medium transition-colors duration-fast ease-standard outline-none",
     "focus-visible:ring-2 focus-visible:ring-primary",
@@ -27,9 +27,9 @@ export function navItemClasses(active?: boolean, disabled?: boolean) {
       ? "bg-primary-surface text-primary"
       : "text-text-secondary hover:bg-surface-secondary hover:text-text-primary",
   );
-}
+};
 
-export function NavLink({
+export const NavLink = ({
   item,
   className,
   children,
@@ -37,7 +37,7 @@ export function NavLink({
   item: NavItem;
   className?: string | undefined;
   children: ReactNode;
-}) {
+}) => {
   const { as: As, href, onClick, disabled, active, linkProps } = item;
   const commonProps = {
     className,
@@ -46,7 +46,6 @@ export function NavLink({
   };
 
   if (As) {
-
     const existingOnClick = linkProps?.["onClick"];
     return (
       <As
@@ -85,4 +84,4 @@ export function NavLink({
       {children}
     </button>
   );
-}
+};

@@ -4,7 +4,7 @@ vi.mock("../../shared/api/client", () => ({
   request: vi.fn(),
 }));
 
-import { request } from "../../shared/api/client";
+import { request } from "@/shared/api/client";
 import { createCustomerOrder, verifyTakeawayPayment } from "./api";
 
 const mockedRequest = vi.mocked(request);

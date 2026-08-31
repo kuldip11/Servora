@@ -1,5 +1,5 @@
 import { createMenuApi } from "@pos/api-client";
-import { apiClient } from "../../../shared/lib/api-client";
+import { apiClient } from "@/shared/lib/api-client";
 
 const menuApi = createMenuApi(apiClient);
 
@@ -33,7 +33,7 @@ export interface CommitImportResponse {
   updated: number;
 }
 
-function triggerDownload(blob: Blob, filename: string) {
+const triggerDownload = (blob: Blob, filename: string) => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -42,7 +42,7 @@ function triggerDownload(blob: Blob, filename: string) {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
-}
+};
 
 export const menuImportService = {
   async downloadTemplate(format: "csv" | "xlsx"): Promise<void> {

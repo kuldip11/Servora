@@ -1,11 +1,11 @@
 import { and, eq, inArray } from "drizzle-orm";
-import { db } from "../../../db";
+import { db } from "@/db";
 import {
   subRecipes,
   subRecipeIngredients,
   inventoryItems,
   recipes,
-} from "../../../db/schema";
+} from "@/db/schema";
 import type { InventoryUnit } from "@pos/types";
 
 export interface SubRecipeIngredientWrite {
@@ -25,7 +25,10 @@ export const subRecipeRepository = {
   async list(tenantId: string, branchId?: string | null) {
     return db.query.subRecipes.findMany({
       where: branchId
-        ? and(eq(subRecipes.tenantId, tenantId), eq(subRecipes.branchId, branchId))
+        ? and(
+            eq(subRecipes.tenantId, tenantId),
+            eq(subRecipes.branchId, branchId),
+          )
         : eq(subRecipes.tenantId, tenantId),
       with: relations,
       orderBy: (t, { asc }) => [asc(t.name)],
@@ -39,7 +42,11 @@ export const subRecipeRepository = {
     });
   },
 
-  async findOwnedInventorySources(tenantId: string, branchId: string, ids: string[]) {
+  async findOwnedInventorySources(
+    tenantId: string,
+    branchId: string,
+    ids: string[],
+  ) {
     if (!ids.length) return [];
     return db.query.inventoryItems.findMany({
       where: and(
@@ -51,7 +58,11 @@ export const subRecipeRepository = {
     });
   },
 
-  async findOwnedSubRecipeSources(tenantId: string, branchId: string, ids: string[]) {
+  async findOwnedSubRecipeSources(
+    tenantId: string,
+    branchId: string,
+    ids: string[],
+  ) {
     if (!ids.length) return [];
     return db.query.subRecipes.findMany({
       where: and(
@@ -72,7 +83,9 @@ export const subRecipeRepository = {
     return parents.map((parent) => ({
       id: parent.id,
       children: parent.ingredients.flatMap((ingredient) =>
-        ingredient.ingredientSubRecipeId ? [ingredient.ingredientSubRecipeId] : [],
+        ingredient.ingredientSubRecipeId
+          ? [ingredient.ingredientSubRecipeId]
+          : [],
       ),
     }));
   },
@@ -87,55 +100,78 @@ export const subRecipeRepository = {
     ingredients: SubRecipeIngredientWrite[];
   }) {
     return db.transaction(async (tx) => {
-      const [created] = await tx.insert(subRecipes).values({
-        tenantId: data.tenantId,
-        branchId: data.branchId,
-        name: data.name,
-        yieldQuantity: String(data.yieldQuantity),
-        yieldUnit: data.yieldUnit,
-        yieldPercent: data.yieldPercent == null ? null : String(data.yieldPercent),
-      }).returning();
+      const [created] = await tx
+        .insert(subRecipes)
+        .values({
+          tenantId: data.tenantId,
+          branchId: data.branchId,
+          name: data.name,
+          yieldQuantity: String(data.yieldQuantity),
+          yieldUnit: data.yieldUnit,
+          yieldPercent:
+            data.yieldPercent == null ? null : String(data.yieldPercent),
+        })
+        .returning();
       if (data.ingredients.length) {
-        await tx.insert(subRecipeIngredients).values(data.ingredients.map((ingredient) => ({
-          subRecipeId: created!.id,
-          inventoryItemId: ingredient.inventoryItemId ?? null,
-          ingredientSubRecipeId: ingredient.ingredientSubRecipeId ?? null,
-          quantityRequired: String(ingredient.quantity),
-          unit: ingredient.unit,
-        })));
+        await tx.insert(subRecipeIngredients).values(
+          data.ingredients.map((ingredient) => ({
+            subRecipeId: created!.id,
+            inventoryItemId: ingredient.inventoryItemId ?? null,
+            ingredientSubRecipeId: ingredient.ingredientSubRecipeId ?? null,
+            quantityRequired: String(ingredient.quantity),
+            unit: ingredient.unit,
+          })),
+        );
       }
-      return tx.query.subRecipes.findFirst({ where: eq(subRecipes.id, created!.id), with: relations });
+      return tx.query.subRecipes.findFirst({
+        where: eq(subRecipes.id, created!.id),
+        with: relations,
+      });
     });
   },
 
-  async update(id: string, data: {
-    branchId: string;
-    name: string;
-    yieldQuantity: number;
-    yieldUnit: InventoryUnit;
-    yieldPercent?: number | null;
-    ingredients: SubRecipeIngredientWrite[];
-  }) {
+  async update(
+    id: string,
+    data: {
+      branchId: string;
+      name: string;
+      yieldQuantity: number;
+      yieldUnit: InventoryUnit;
+      yieldPercent?: number | null;
+      ingredients: SubRecipeIngredientWrite[];
+    },
+  ) {
     return db.transaction(async (tx) => {
-      await tx.update(subRecipes).set({
-        branchId: data.branchId,
-        name: data.name,
-        yieldQuantity: String(data.yieldQuantity),
-        yieldUnit: data.yieldUnit,
-        yieldPercent: data.yieldPercent == null ? null : String(data.yieldPercent),
-        updatedAt: new Date(),
-      }).where(eq(subRecipes.id, id));
-      await tx.delete(subRecipeIngredients).where(eq(subRecipeIngredients.subRecipeId, id));
+      await tx
+        .update(subRecipes)
+        .set({
+          branchId: data.branchId,
+          name: data.name,
+          yieldQuantity: String(data.yieldQuantity),
+          yieldUnit: data.yieldUnit,
+          yieldPercent:
+            data.yieldPercent == null ? null : String(data.yieldPercent),
+          updatedAt: new Date(),
+        })
+        .where(eq(subRecipes.id, id));
+      await tx
+        .delete(subRecipeIngredients)
+        .where(eq(subRecipeIngredients.subRecipeId, id));
       if (data.ingredients.length) {
-        await tx.insert(subRecipeIngredients).values(data.ingredients.map((ingredient) => ({
-          subRecipeId: id,
-          inventoryItemId: ingredient.inventoryItemId ?? null,
-          ingredientSubRecipeId: ingredient.ingredientSubRecipeId ?? null,
-          quantityRequired: String(ingredient.quantity),
-          unit: ingredient.unit,
-        })));
+        await tx.insert(subRecipeIngredients).values(
+          data.ingredients.map((ingredient) => ({
+            subRecipeId: id,
+            inventoryItemId: ingredient.inventoryItemId ?? null,
+            ingredientSubRecipeId: ingredient.ingredientSubRecipeId ?? null,
+            quantityRequired: String(ingredient.quantity),
+            unit: ingredient.unit,
+          })),
+        );
       }
-      return tx.query.subRecipes.findFirst({ where: eq(subRecipes.id, id), with: relations });
+      return tx.query.subRecipes.findFirst({
+        where: eq(subRecipes.id, id),
+        with: relations,
+      });
     });
   },
 

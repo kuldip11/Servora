@@ -39,7 +39,9 @@ vi.mock("../analytics.repository", () => ({
   },
 }));
 
-const { computeRecipeCosts } = vi.hoisted(() => ({ computeRecipeCosts: vi.fn() }));
+const { computeRecipeCosts } = vi.hoisted(() => ({
+  computeRecipeCosts: vi.fn(),
+}));
 vi.mock("../../inventory/inventory.service", () => ({
   inventoryService: { computeRecipeCosts },
 }));
@@ -49,8 +51,8 @@ vi.mock("../../orders/pricing/pricing-pipeline", () => ({
   pricingPipeline: { price },
 }));
 
-import { analyticsService } from "../analytics.service";
-import type { AuthContext } from "../../../core/auth";
+import { analyticsService } from "@/modules/analytics/analytics.service";
+import type { AuthContext } from "@/core/auth";
 
 const auth = (overrides: Partial<AuthContext> = {}): AuthContext => ({
   userId: "u1",
@@ -121,16 +123,20 @@ describe("analytics service", () => {
   });
 
   it("E6 calculates margin from the authoritative resolved price, not base price", async () => {
-    findCostReportItems.mockResolvedValue([{
-      id: "m1",
-      name: "Pasta",
-      categoryId: "c1",
-      category: { name: "Mains" },
-      basePrice: "999.00",
-      variants: [{ id: "v1", name: "Large" }],
-    }]);
+    findCostReportItems.mockResolvedValue([
+      {
+        id: "m1",
+        name: "Pasta",
+        categoryId: "c1",
+        category: { name: "Mains" },
+        basePrice: "999.00",
+        variants: [{ id: "v1", name: "Large" }],
+      },
+    ]);
     computeRecipeCosts.mockResolvedValue([40, 55]);
-    price.mockResolvedValue({ lines: [{ unitPrice: 100 }, { unitPrice: 140 }] });
+    price.mockResolvedValue({
+      lines: [{ unitPrice: 100 }, { unitPrice: 140 }],
+    });
 
     const result = await analyticsService.getCostMarginReport(auth(), "c1");
 
@@ -157,30 +163,89 @@ describe("analytics service", () => {
       ],
     );
     expect(result).toEqual([
-      expect.objectContaining({ variantId: "v1", price: 140, cost: 55, margin: 85, marginPercent: 60.71 }),
-      expect.objectContaining({ variantId: null, price: 100, cost: 40, margin: 60, marginPercent: 60 }),
+      expect.objectContaining({
+        variantId: "v1",
+        price: 140,
+        cost: 55,
+        margin: 85,
+        marginPercent: 60.71,
+      }),
+      expect.objectContaining({
+        variantId: null,
+        price: 100,
+        cost: 40,
+        margin: 60,
+        marginPercent: 60,
+      }),
     ]);
   });
 
   it("E6 requires a concrete branch because ingredient costs are branch-scoped", async () => {
     await expect(
-      analyticsService.getCostMarginReport(auth({ branchId: null, tenantWide: true })),
+      analyticsService.getCostMarginReport(
+        auth({ branchId: null, tenantWide: true }),
+      ),
     ).rejects.toThrow("Select a branch");
     expect(findCostReportItems).not.toHaveBeenCalled();
   });
 });
 
-
 describe("H3 menu-engineering report", () => {
   it("uses the requested analysis window and classifies actual margin/volume pairs", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-08-30T12:00:00.000Z"));
-    const marginSpy = vi.spyOn(analyticsService, "getCostMarginReport").mockResolvedValue([
-      { menuItemId: "star", menuItemName: "Star", categoryId: "c", categoryName: "C", variantId: null, variantName: null, price: 150, cost: 50, margin: 100, marginPercent: 66.67 },
-      { menuItemId: "puzzle", menuItemName: "Puzzle", categoryId: "c", categoryName: "C", variantId: null, variantName: null, price: 140, cost: 50, margin: 90, marginPercent: 64.29 },
-      { menuItemId: "plow", menuItemName: "Plow", categoryId: "c", categoryName: "C", variantId: null, variantName: null, price: 70, cost: 50, margin: 20, marginPercent: 28.57 },
-      { menuItemId: "dog", menuItemName: "Dog", categoryId: "c", categoryName: "C", variantId: null, variantName: null, price: 60, cost: 50, margin: 10, marginPercent: 16.67 },
-    ]);
+    const marginSpy = vi
+      .spyOn(analyticsService, "getCostMarginReport")
+      .mockResolvedValue([
+        {
+          menuItemId: "star",
+          menuItemName: "Star",
+          categoryId: "c",
+          categoryName: "C",
+          variantId: null,
+          variantName: null,
+          price: 150,
+          cost: 50,
+          margin: 100,
+          marginPercent: 66.67,
+        },
+        {
+          menuItemId: "puzzle",
+          menuItemName: "Puzzle",
+          categoryId: "c",
+          categoryName: "C",
+          variantId: null,
+          variantName: null,
+          price: 140,
+          cost: 50,
+          margin: 90,
+          marginPercent: 64.29,
+        },
+        {
+          menuItemId: "plow",
+          menuItemName: "Plow",
+          categoryId: "c",
+          categoryName: "C",
+          variantId: null,
+          variantName: null,
+          price: 70,
+          cost: 50,
+          margin: 20,
+          marginPercent: 28.57,
+        },
+        {
+          menuItemId: "dog",
+          menuItemName: "Dog",
+          categoryId: "c",
+          categoryName: "C",
+          variantId: null,
+          variantName: null,
+          price: 60,
+          cost: 50,
+          margin: 10,
+          marginPercent: 16.67,
+        },
+      ]);
     salesVolumeByItem.mockResolvedValue([
       { menuItemId: "star", variantId: null, volume: 100 },
       { menuItemId: "puzzle", variantId: null, volume: 2 },
@@ -207,11 +272,11 @@ describe("H3 menu-engineering report", () => {
   });
 
   it("rejects unsupported windows instead of silently changing the period", async () => {
-    await expect(analyticsService.getMenuEngineeringReport(auth(), 6)).rejects.toThrow(
-      "Window must be between 7 and 365 days",
-    );
-    await expect(analyticsService.getMenuEngineeringReport(auth(), 366)).rejects.toThrow(
-      "Window must be between 7 and 365 days",
-    );
+    await expect(
+      analyticsService.getMenuEngineeringReport(auth(), 6),
+    ).rejects.toThrow("Window must be between 7 and 365 days");
+    await expect(
+      analyticsService.getMenuEngineeringReport(auth(), 366),
+    ).rejects.toThrow("Window must be between 7 and 365 days");
   });
 });

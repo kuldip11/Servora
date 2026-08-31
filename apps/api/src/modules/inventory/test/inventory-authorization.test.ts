@@ -4,8 +4,8 @@ import {
   requireInventoryPermission,
   requireInventoryTransactionPermission,
   resolveInventoryBranch,
-} from "../inventory-authorization";
-import type { AuthContext } from "../../../core/auth";
+} from "@/modules/inventory/inventory-authorization";
+import type { AuthContext } from "@/core/auth";
 const auth = (o: Partial<AuthContext> = {}): AuthContext => ({
   userId: "u1",
   tenantId: "t1",

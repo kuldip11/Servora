@@ -34,7 +34,9 @@ export const customerLoyaltyTiers = pgTable(
     ).on(t.tenantId, t.name),
     organizationNameUnique: uniqueIndex(
       "customer_loyalty_tiers_organization_name_unique",
-    ).on(t.organizationId, t.name).where(sql`${t.organizationId} IS NOT NULL`),
+    )
+      .on(t.organizationId, t.name)
+      .where(sql`${t.organizationId} IS NOT NULL`),
     scopeExactlyOne: check(
       "customer_loyalty_tiers_scope_exactly_one",
       sql`(${t.tenantId} IS NULL) <> (${t.organizationId} IS NULL)`,

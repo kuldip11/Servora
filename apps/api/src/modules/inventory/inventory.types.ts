@@ -23,10 +23,12 @@ export interface RecipeNeedItemInput {
   quantity: number;
   weightQuantity?: number | string | null | undefined;
   weightUnit?: "G" | "KG" | "LB" | "OZ" | null | undefined;
-  selectedOptions?: Array<{
-    optionId: string;
-    quantity?: number | undefined;
-  }> | undefined;
+  selectedOptions?:
+    | Array<{
+        optionId: string;
+        quantity?: number | undefined;
+      }>
+    | undefined;
 }
 
 export interface InventoryOrderItemInput extends RecipeNeedItemInput {

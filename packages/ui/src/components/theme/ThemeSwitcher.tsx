@@ -19,17 +19,16 @@ const THEME_LABELS: Record<Theme, string> = {
 const THEME_ORDER: Theme[] = ["light", "dark", "high-contrast"];
 
 export interface ThemeSwitcherProps {
-
   label?: string | undefined;
   id?: string | undefined;
   className?: string | undefined;
 }
 
-export function ThemeSwitcher({
+export const ThemeSwitcher = ({
   label = "Theme",
   id,
   className,
-}: ThemeSwitcherProps) {
+}: ThemeSwitcherProps) => {
   const { theme, setTheme } = useTheme();
 
   const options: SelectOption[] = useMemo(
@@ -52,4 +51,4 @@ export function ThemeSwitcher({
       className={className}
     />
   );
-}
+};

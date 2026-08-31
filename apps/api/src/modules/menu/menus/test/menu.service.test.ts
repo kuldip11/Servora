@@ -7,17 +7,21 @@ const { list, findById, create, update, remove } = vi.hoisted(() => ({
   update: vi.fn(),
   remove: vi.fn(),
 }));
-const { record } = vi.hoisted(() => ({ record: vi.fn().mockResolvedValue({ id: "event1" }) }));
+const { record } = vi.hoisted(() => ({
+  record: vi.fn().mockResolvedValue({ id: "event1" }),
+}));
 
 vi.mock("../menu.repository", () => ({
   menuRepository: { list, findById, create, update, remove },
 }));
 vi.mock("../../change-log/menu-change-log", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("../../change-log/menu-change-log")>()),
+  ...(await importOriginal<
+    typeof import("../../change-log/menu-change-log")
+  >()),
   menuChangeLog: { record },
 }));
 
-import { menuService } from "../menu.service";
+import { menuService } from "@/modules/menu/menus/menu.service";
 
 const auth = (permissions: string[]) => ({
   userId: "u1",

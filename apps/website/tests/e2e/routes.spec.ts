@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { modules } from "../../content/modules";
+import { modules } from "@/content/modules";
 
 const routes = [
   "/",

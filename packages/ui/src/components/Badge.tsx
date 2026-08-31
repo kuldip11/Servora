@@ -8,12 +8,11 @@ interface BadgeProps {
   variant?: "default" | "success" | "warning" | "danger" | "info";
 }
 
-export function Badge({
+export const Badge = ({
   children,
   className,
   variant = "default",
-}: BadgeProps) {
-
+}: BadgeProps) => {
   const variants = {
     default: "bg-surface-secondary text-text-secondary",
     success: "bg-success-surface text-success",
@@ -32,4 +31,4 @@ export function Badge({
       {children}
     </span>
   );
-}
+};

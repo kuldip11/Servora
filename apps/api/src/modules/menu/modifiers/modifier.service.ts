@@ -1,18 +1,19 @@
-
-
-import type { AuthContext } from "../../../core/auth";
+import type { AuthContext } from "@/core/auth";
 import { modifierRepository } from "./modifier.repository";
-import { requirePermission } from "../../../core/auth";
-import { ValidationError } from "../../../core/errors";
+import { requirePermission } from "@/core/auth";
+import { ValidationError } from "@/core/errors";
 import {
   assertMenuResourceBranch,
   resolveMenuBranch,
-} from "../menu-authorization";
+} from "@/modules/menu/menu-authorization";
 import {
   modifierGroupNotFound,
   modifierOptionNotFound,
 } from "./modifier.errors";
-import { buildDiff, menuChangeLog } from "../change-log/menu-change-log";
+import {
+  buildDiff,
+  menuChangeLog,
+} from "@/modules/menu/change-log/menu-change-log";
 
 type SelectionType = "SINGLE" | "MULTIPLE";
 
@@ -24,7 +25,8 @@ export interface ModifierOptionInput {
   maxQuantity?: number | undefined;
   isDefault?: boolean | undefined;
   replacesDefaultComponent?: string | undefined;
-  variantPrices?: Array<{ variantId: string; additionalPrice: number }> | undefined;
+  variantPrices?:
+    Array<{ variantId: string; additionalPrice: number }> | undefined;
 }
 
 export interface CreateModifierGroupInput {
@@ -53,11 +55,11 @@ export interface CreateTagInput {
   color?: string | undefined;
 }
 
-async function assertNoCircularDependency(
+const assertNoCircularDependency = async (
   tenantId: string,
   groupId: string,
   dependsOnOptionId: string | null | undefined,
-) {
+) => {
   if (!dependsOnOptionId) return;
 
   const visitedGroupIds = new Set<string>([groupId]);
@@ -81,24 +83,31 @@ async function assertNoCircularDependency(
     );
     prerequisiteOptionId = prerequisiteGroup?.dependsOnOptionId ?? null;
   }
-}
+};
 
-function withStringPrice(option: ModifierOptionInput): Omit<ModifierOptionInput, "additionalPrice" | "variantPrices"> & {
+const withStringPrice = (
+  option: ModifierOptionInput,
+): Omit<ModifierOptionInput, "additionalPrice" | "variantPrices"> & {
   additionalPrice: string;
-  variantPrices?: Array<{ variantId: string; additionalPrice: string }> | undefined;
-} {
+  variantPrices?:
+    Array<{ variantId: string; additionalPrice: string }> | undefined;
+} => {
   const { additionalPrice, variantPrices, ...rest } = option;
   return {
     ...rest,
     additionalPrice: String(additionalPrice),
     ...(variantPrices !== undefined
-      ? { variantPrices: variantPrices.map((price) => ({ ...price, additionalPrice: String(price.additionalPrice) })) }
+      ? {
+          variantPrices: variantPrices.map((price) => ({
+            ...price,
+            additionalPrice: String(price.additionalPrice),
+          })),
+        }
       : {}),
   };
-}
+};
 
 export const modifierService = {
-
   async listGroups(auth: AuthContext) {
     requirePermission(auth, "menu:read");
     resolveMenuBranch(auth);
@@ -111,9 +120,15 @@ export const modifierService = {
   async createGroup(auth: AuthContext, input: CreateModifierGroupInput) {
     requirePermission(auth, "menu:create");
     const branchId = resolveMenuBranch(auth, input.branchId);
-    if ((input.groupType ?? "ADDON") === "ADDON" && input.options?.some((option) => option.additionalPrice < 0)) throw new ValidationError("Addon modifier prices cannot be negative");
+    if (
+      (input.groupType ?? "ADDON") === "ADDON" &&
+      input.options?.some((option) => option.additionalPrice < 0)
+    )
+      throw new ValidationError("Addon modifier prices cannot be negative");
     if (input.options?.some((option) => option.variantPrices?.length)) {
-      throw new ValidationError("Create the modifier group first, attach it to an item, then configure variant-specific prices");
+      throw new ValidationError(
+        "Create the modifier group first, attach it to an item, then configure variant-specific prices",
+      );
     }
     const created = await modifierRepository.createModifierGroup({
       ...input,
@@ -122,7 +137,13 @@ export const modifierService = {
       options: input.options?.map(withStringPrice),
     });
     if (!created) throw new Error("Modifier group could not be created");
-    await menuChangeLog.record(auth, "MODIFIER_GROUP", created.id, "CREATED", buildDiff(null, created));
+    await menuChangeLog.record(
+      auth,
+      "MODIFIER_GROUP",
+      created.id,
+      "CREATED",
+      buildDiff(null, created),
+    );
     return created;
   },
 
@@ -146,20 +167,49 @@ export const modifierService = {
       );
     }
     const { options, ...groupFields } = input;
-    if ((input.groupType ?? existing.groupType ?? "ADDON") === "ADDON" && options?.some((option) => option.additionalPrice < 0)) throw new ValidationError("Addon modifier prices cannot be negative");
-    if ((input.groupType ?? existing.groupType ?? "ADDON") === "ADDON" && options?.some((option) => option.variantPrices?.some((price) => price.additionalPrice < 0))) {
-      throw new ValidationError("Addon variant-specific modifier prices cannot be negative");
+    if (
+      (input.groupType ?? existing.groupType ?? "ADDON") === "ADDON" &&
+      options?.some((option) => option.additionalPrice < 0)
+    )
+      throw new ValidationError("Addon modifier prices cannot be negative");
+    if (
+      (input.groupType ?? existing.groupType ?? "ADDON") === "ADDON" &&
+      options?.some((option) =>
+        option.variantPrices?.some((price) => price.additionalPrice < 0),
+      )
+    ) {
+      throw new ValidationError(
+        "Addon variant-specific modifier prices cannot be negative",
+      );
     }
     for (const option of options ?? []) {
       const ids = option.variantPrices?.map((price) => price.variantId) ?? [];
-      if (new Set(ids).size !== ids.length) throw new ValidationError("A modifier option can have only one price override per variant");
+      if (new Set(ids).size !== ids.length)
+        throw new ValidationError(
+          "A modifier option can have only one price override per variant",
+        );
     }
     if (options?.some((option) => option.variantPrices?.length)) {
-      const variantIds = [...new Set(options.flatMap((option) => option.variantPrices?.map((price) => price.variantId) ?? []))];
-      const eligible = await modifierRepository.findEligibleVariantIdsForGroup(auth.tenantId, groupId, variantIds);
-      const invalid = variantIds.filter((variantId) => !eligible.has(variantId));
+      const variantIds = [
+        ...new Set(
+          options.flatMap(
+            (option) =>
+              option.variantPrices?.map((price) => price.variantId) ?? [],
+          ),
+        ),
+      ];
+      const eligible = await modifierRepository.findEligibleVariantIdsForGroup(
+        auth.tenantId,
+        groupId,
+        variantIds,
+      );
+      const invalid = variantIds.filter(
+        (variantId) => !eligible.has(variantId),
+      );
       if (invalid.length) {
-        throw new ValidationError("Variant-specific modifier prices can only target variants of tenant items that use this modifier group");
+        throw new ValidationError(
+          "Variant-specific modifier prices can only target variants of tenant items that use this modifier group",
+        );
       }
     }
     const group = await modifierRepository.updateModifierGroup(
@@ -176,7 +226,13 @@ export const modifierService = {
       );
     }
 
-    await menuChangeLog.record(auth, "MODIFIER_GROUP", groupId, "UPDATED", buildDiff(existing, { ...group, options }));
+    await menuChangeLog.record(
+      auth,
+      "MODIFIER_GROUP",
+      groupId,
+      "UPDATED",
+      buildDiff(existing, { ...group, options }),
+    );
 
     return group;
   },
@@ -190,7 +246,13 @@ export const modifierService = {
     if (!existing) return;
     assertMenuResourceBranch(auth, existing.branchId);
     await modifierRepository.deleteModifierGroup(auth.tenantId, groupId);
-    await menuChangeLog.record(auth, "MODIFIER_GROUP", groupId, "DELETED", buildDiff(existing, null));
+    await menuChangeLog.record(
+      auth,
+      "MODIFIER_GROUP",
+      groupId,
+      "DELETED",
+      buildDiff(existing, null),
+    );
   },
 
   async setOptionAvailability(
@@ -211,7 +273,13 @@ export const modifierService = {
       isAvailable,
     );
     if (!updated) throw modifierOptionNotFound(optionId);
-    await menuChangeLog.record(auth, "MODIFIER_OPTION", optionId, "UPDATED", buildDiff(existing, updated));
+    await menuChangeLog.record(
+      auth,
+      "MODIFIER_OPTION",
+      optionId,
+      "UPDATED",
+      buildDiff(existing, updated),
+    );
     return updated;
   },
 
@@ -222,8 +290,18 @@ export const modifierService = {
 
   async createTag(auth: AuthContext, input: CreateTagInput) {
     requirePermission(auth, "menu:create");
-    const created = await modifierRepository.createTag(auth.tenantId, input.name, input.color);
-    await menuChangeLog.record(auth, "TAG", created.id, "CREATED", buildDiff(null, created));
+    const created = await modifierRepository.createTag(
+      auth.tenantId,
+      input.name,
+      input.color,
+    );
+    await menuChangeLog.record(
+      auth,
+      "TAG",
+      created.id,
+      "CREATED",
+      buildDiff(null, created),
+    );
     return created;
   },
 

@@ -4,7 +4,7 @@ import {
   assertValidTransition,
   canTransition,
   timestampFieldsFor,
-} from "../ticket-status.machine";
+} from "@/modules/kitchen-tickets/ticket-status.machine";
 
 describe("kitchen ticket status machine", () => {
   it("supports HELD→FIRED→PREPARING→READY→SERVED", () => {

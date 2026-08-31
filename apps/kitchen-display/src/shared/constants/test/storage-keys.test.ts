@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { STORAGE_KEYS } from "../storage-keys";
+import { STORAGE_KEYS } from "@/shared/constants/storage-keys";
 describe("storage keys", () =>
   it("uses kds namespace", () => {
     expect(Object.values(STORAGE_KEYS)).toEqual([

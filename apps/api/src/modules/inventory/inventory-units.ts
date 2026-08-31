@@ -1,8 +1,11 @@
-import { ValidationError } from "../../core/errors";
+import { ValidationError } from "@/core/errors";
 
 import type { InventoryUnit } from "@pos/types";
 
-const unitScale: Record<InventoryUnit, { dimension: "MASS" | "VOLUME" | "COUNT" | "PACKET"; toBase: number }> = {
+const unitScale: Record<
+  InventoryUnit,
+  { dimension: "MASS" | "VOLUME" | "COUNT" | "PACKET"; toBase: number }
+> = {
   KG: { dimension: "MASS", toBase: 1000 },
   GRAMS: { dimension: "MASS", toBase: 1 },
   LITERS: { dimension: "VOLUME", toBase: 1000 },
@@ -11,18 +14,24 @@ const unitScale: Record<InventoryUnit, { dimension: "MASS" | "VOLUME" | "COUNT" 
   PACKETS: { dimension: "PACKET", toBase: 1 },
 };
 
-export function areInventoryUnitsCompatible(from: InventoryUnit, to: InventoryUnit): boolean {
+export const areInventoryUnitsCompatible = (
+  from: InventoryUnit,
+  to: InventoryUnit,
+): boolean => {
   return unitScale[from].dimension === unitScale[to].dimension;
-}
+};
 
-export function convertInventoryQuantity(
+export const convertInventoryQuantity = (
   quantity: number,
   from: InventoryUnit,
   to: InventoryUnit,
-): number {
-  if (!Number.isFinite(quantity)) throw new ValidationError("Inventory quantity must be finite");
+): number => {
+  if (!Number.isFinite(quantity))
+    throw new ValidationError("Inventory quantity must be finite");
   if (!areInventoryUnitsCompatible(from, to)) {
-    throw new ValidationError(`Incompatible inventory units: ${from} cannot be converted to ${to}`);
+    throw new ValidationError(
+      `Incompatible inventory units: ${from} cannot be converted to ${to}`,
+    );
   }
-  return quantity * unitScale[from].toBase / unitScale[to].toBase;
-}
+  return (quantity * unitScale[from].toBase) / unitScale[to].toBase;
+};

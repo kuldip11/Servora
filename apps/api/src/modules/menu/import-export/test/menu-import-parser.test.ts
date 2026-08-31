@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { buildTemplate, parseFile, validateRows } from "../menu-import-parser";
+import {
+  buildTemplate,
+  parseFile,
+  validateRows,
+} from "@/modules/menu/import-export/menu-import-parser";
 
 describe("menu import parser", () => {
   it("builds both CSV and XLSX templates", () => {

@@ -2,9 +2,17 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "@pos/ui";
 import { extractApiError } from "@pos/api-client";
-import { login, fetchMemberships } from "../api/login";
-import { saveTokens, saveProfile, saveContext, clearTokens } from "../storage";
-import type { AvailableMembership, CredentialsForm } from "../types";
+import { login, fetchMemberships } from "@/features/auth/api/login";
+import {
+  saveTokens,
+  saveProfile,
+  saveContext,
+  clearTokens,
+} from "@/features/auth/storage";
+import type {
+  AvailableMembership,
+  CredentialsForm,
+} from "@/features/auth/types";
 
 interface UseLoginResult {
   step: "credentials" | "membership" | "branch";
@@ -17,7 +25,7 @@ interface UseLoginResult {
   resetToCredentials: () => void;
 }
 
-export function useLogin(onLogin: () => void): UseLoginResult {
+export const useLogin = (onLogin: () => void): UseLoginResult => {
   const [step, setStep] = useState<"credentials" | "membership" | "branch">(
     "credentials",
   );
@@ -83,4 +91,4 @@ export function useLogin(onLogin: () => void): UseLoginResult {
       clearTokens();
     },
   };
-}
+};

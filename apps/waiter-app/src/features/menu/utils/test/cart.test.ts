@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { OrderableMenuItem, OrderableMenuVariant } from "@pos/types";
-import type { CartItem } from "../../types";
-import { cartItemKey, priceLabel } from "../cart";
+import type { CartItem } from "@/features/menu/types";
+import { cartItemKey, priceLabel } from "@/features/menu/utils/cart";
 
-function menuItem(overrides: Partial<OrderableMenuItem> = {}): OrderableMenuItem {
+const menuItem = (
+  overrides: Partial<OrderableMenuItem> = {},
+): OrderableMenuItem => {
   return {
     id: "m1",
     name: "Item",
@@ -12,26 +14,30 @@ function menuItem(overrides: Partial<OrderableMenuItem> = {}): OrderableMenuItem
     modifierGroupLinks: [],
     ...overrides,
   };
-}
+};
 
-function variant(id: string, price: string): OrderableMenuVariant {
+const variant = (id: string, price: string): OrderableMenuVariant => {
   return { id, name: `Variant ${id}`, price };
-}
+};
 
 describe("cart helpers", () => {
   it("formats flat and variant-driven prices", () => {
     expect(priceLabel(menuItem({ basePrice: "12.5" }))).toBe("₹12.50");
     expect(
-      priceLabel(menuItem({
-        basePrice: "0",
-        variants: [variant("v1", "10"), variant("v2", "10")],
-      })),
+      priceLabel(
+        menuItem({
+          basePrice: "0",
+          variants: [variant("v1", "10"), variant("v2", "10")],
+        }),
+      ),
     ).toBe("₹10.00");
     expect(
-      priceLabel(menuItem({
-        basePrice: "0",
-        variants: [variant("v1", "10"), variant("v2", "15")],
-      })),
+      priceLabel(
+        menuItem({
+          basePrice: "0",
+          variants: [variant("v1", "10"), variant("v2", "15")],
+        }),
+      ),
     ).toBe("₹10.00–₹15.00");
   });
 
@@ -42,8 +48,22 @@ describe("cart helpers", () => {
       basePrice: 10,
       variantId: "v1",
       modifiers: [
-        { optionId: "b", groupId: "g", groupName: "Group", name: "B", price: 0, quantity: 2 },
-        { optionId: "a", groupId: "g", groupName: "Group", name: "A", price: 0, quantity: 1 },
+        {
+          optionId: "b",
+          groupId: "g",
+          groupName: "Group",
+          name: "B",
+          price: 0,
+          quantity: 2,
+        },
+        {
+          optionId: "a",
+          groupId: "g",
+          groupName: "Group",
+          name: "A",
+          price: 0,
+          quantity: 1,
+        },
       ],
       quantity: 1,
       chefNotes: "",

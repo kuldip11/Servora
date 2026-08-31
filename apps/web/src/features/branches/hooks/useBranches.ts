@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { branchesQuery } from "../query-options";
+import { branchesQuery } from "@/features/branches/query-options";
 
-export function useBranches(options?: { enabled?: boolean }) {
+export const useBranches = (options?: { enabled?: boolean }) => {
   return useQuery({
     ...branchesQuery(),
     ...(options?.enabled !== undefined && { enabled: options.enabled }),
   });
-}
+};

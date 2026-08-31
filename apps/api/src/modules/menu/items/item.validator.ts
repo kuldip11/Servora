@@ -11,9 +11,22 @@ const SPICE_LEVEL = t.Union([
   t.Literal("MEDIUM"),
   t.Literal("HOT"),
 ]);
-const PRICING_MODE = t.Union([t.Literal("FIXED"), t.Literal("WEIGHT_BASED"), t.Literal("OPEN")]);
-const WEIGHT_UNIT = t.Union([t.Literal("G"), t.Literal("KG"), t.Literal("LB"), t.Literal("OZ")]);
-const ZONE_PRICING_RULE = t.Union([t.Literal("AVERAGE"), t.Literal("HIGHER"), t.Literal("SUM_HALF")]);
+const PRICING_MODE = t.Union([
+  t.Literal("FIXED"),
+  t.Literal("WEIGHT_BASED"),
+  t.Literal("OPEN"),
+]);
+const WEIGHT_UNIT = t.Union([
+  t.Literal("G"),
+  t.Literal("KG"),
+  t.Literal("LB"),
+  t.Literal("OZ"),
+]);
+const ZONE_PRICING_RULE = t.Union([
+  t.Literal("AVERAGE"),
+  t.Literal("HIGHER"),
+  t.Literal("SUM_HALF"),
+]);
 const TAX_MODE = t.Union([t.Literal("INCLUSIVE"), t.Literal("EXCLUSIVE")]);
 const ITEM_STATUS = t.Union([
   t.Literal("ACTIVE"),
@@ -47,7 +60,9 @@ export const createItemBody = t.Object({
   status: t.Optional(ITEM_STATUS),
   enableRecipeDeduction: t.Optional(t.Boolean()),
   isPublished: t.Optional(t.Boolean()),
-  displayMode: t.Optional(t.Union([t.Literal("STANDARD"), t.Literal("GUIDED_BUILDER")])),
+  displayMode: t.Optional(
+    t.Union([t.Literal("STANDARD"), t.Literal("GUIDED_BUILDER")]),
+  ),
   effectiveFrom: t.Optional(t.String()),
 
   variants: t.Optional(
@@ -82,7 +97,9 @@ export const updateItemBody = t.Object({
   status: t.Optional(ITEM_STATUS),
   availabilityReason: t.Optional(t.Union([t.String(), t.Null()])),
   enableRecipeDeduction: t.Optional(t.Boolean()),
-  displayMode: t.Optional(t.Union([t.Literal("STANDARD"), t.Literal("GUIDED_BUILDER")])),
+  displayMode: t.Optional(
+    t.Union([t.Literal("STANDARD"), t.Literal("GUIDED_BUILDER")]),
+  ),
   effectiveFrom: t.Optional(t.Union([t.String(), t.Null()])),
   tagIds: t.Optional(t.Array(t.String())),
   allergenIds: t.Optional(t.Array(t.String())),

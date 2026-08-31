@@ -1,7 +1,4 @@
-
-
 export const DURATIONS = {
-
   instant: 100,
 
   fast: 150,
@@ -16,7 +13,6 @@ export const DURATIONS = {
 export type DurationToken = keyof typeof DURATIONS;
 
 export const EASINGS = {
-
   standard: "cubic-bezier(0.4, 0, 0.2, 1)",
 
   decelerate: "cubic-bezier(0, 0, 0.2, 1)",

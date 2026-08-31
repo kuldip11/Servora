@@ -1,7 +1,7 @@
 import { toast } from "@pos/ui";
-import { useRealtimeEvent } from "../../../shared/lib/realtime";
+import { useRealtimeEvent } from "@/shared/lib/realtime";
 
-export function useWaiterAttention() {
+export const useWaiterAttention = () => {
   useRealtimeEvent("kitchen.ticket.updated", (event) => {
     if (event.payload.status !== "READY") return;
     const table = event.payload.order?.table?.name;
@@ -19,4 +19,4 @@ export function useWaiterAttention() {
       duration: 3500,
     });
   });
-}
+};

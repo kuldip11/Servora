@@ -1,24 +1,24 @@
 import { Elysia } from "elysia";
-import { redis } from "../../lib/redis";
-import { env } from "../../config/env";
+import { redis } from "@/lib/redis";
+import { env } from "@/config/env";
 import { resolveClientIp } from "./client-ip";
 
 const RATE_LIMIT_PREFIX = "servora:rate-limit";
 
-function requestIp(
+const requestIp = (
   headers: Record<string, string | undefined>,
   directIp: string | undefined,
-): string {
+): string => {
   return resolveClientIp(headers, directIp, env.TRUST_PROXY_HOPS) ?? "unknown";
-}
+};
 
-function isRateLimitExempt(pathname: string): boolean {
+const isRateLimitExempt = (pathname: string): boolean => {
   return (
     pathname.startsWith("/health") ||
     pathname.startsWith("/swagger") ||
     pathname.startsWith("/ws")
   );
-}
+};
 
 export const securityHeadersPlugin = () =>
   new Elysia({ name: "security-headers" }).onAfterHandle(
@@ -76,9 +76,7 @@ export const rateLimitPlugin = () =>
             message: "Too many requests",
           };
         }
-      } catch {
-
-      }
+      } catch {}
 
       return undefined;
     },

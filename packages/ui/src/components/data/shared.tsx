@@ -16,7 +16,6 @@ export interface SortState {
 export type ColumnAlign = "left" | "right" | "center";
 
 export interface Column<T> {
-
   id: string;
   header: ReactNode;
 
@@ -86,22 +85,22 @@ export function sortRows<T>(
   });
 }
 
-export function nextSortState(
+export const nextSortState = (
   current: SortState | null,
   columnId: string,
-): SortState | null {
+): SortState | null => {
   if (!current || current.columnId !== columnId)
     return { columnId, direction: "asc" };
   if (current.direction === "asc") return { columnId, direction: "desc" };
   return null;
-}
+};
 
-export function useVirtualizedRows(
+export const useVirtualizedRows = (
   count: number,
   containerRef: RefObject<HTMLElement | null>,
   rowHeight: number,
   overscan = 8,
-) {
+) => {
   const [scrollTop, setScrollTop] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(0);
 
@@ -129,17 +128,17 @@ export function useVirtualizedRows(
   );
 
   return { totalHeight, startIndex, endIndex, offsetY: startIndex * rowHeight };
-}
+};
 
 export const STICKY_FALLBACK_WIDTH = 150;
 
-function parseWidthPx(width: string | undefined): number {
+const parseWidthPx = (width: string | undefined): number => {
   if (!width) return STICKY_FALLBACK_WIDTH;
   const n = parseFloat(width);
   return Number.isFinite(n) && width.trim().endsWith("px")
     ? n
     : STICKY_FALLBACK_WIDTH;
-}
+};
 
 export function computeStickyOffsets<T>(
   visibleColumns: Column<T>[],
@@ -163,10 +162,10 @@ export function computeStickyOffsets<T>(
   return offsets;
 }
 
-export function matchesGlobalFilter(
+export const matchesGlobalFilter = (
   searchableText: string,
   query: string,
-): boolean {
+): boolean => {
   if (!query.trim()) return true;
   return searchableText.toLowerCase().includes(query.trim().toLowerCase());
-}
+};

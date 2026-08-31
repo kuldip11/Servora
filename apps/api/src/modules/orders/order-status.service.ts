@@ -1,11 +1,14 @@
 import type { Order, OrderStatus, RestaurantTable } from "@pos/types";
-import type { AuthContext } from "../../core/auth";
-import { ValidationError } from "../../core/errors";
-import { eventBus } from "../../lib/event-bus";
-import { ticketRepository } from "../kitchen-tickets/ticket.repository";
-import { tableRepository } from "../tables/table.repository";
+import type { AuthContext } from "@/core/auth";
+import { ValidationError } from "@/core/errors";
+import { eventBus } from "@/lib/event-bus";
+import { ticketRepository } from "@/modules/kitchen-tickets/ticket.repository";
+import { tableRepository } from "@/modules/tables/table.repository";
 import { cancellationReasonService } from "./cancellation-reasons/cancellation-reason.service";
-import { assertOrderResourceAccess, requireOrdersPermission } from "./orders-authorization";
+import {
+  assertOrderResourceAccess,
+  requireOrdersPermission,
+} from "./orders-authorization";
 import { orderNotFound, ticketsNotServed } from "./order.errors";
 import { orderRepository } from "./order.repository";
 import { assertValidOrderTransition } from "./order-status.machine";
@@ -32,11 +35,17 @@ export const orderStatusService = {
       if (!reason?.trim() && !cancellationReasonId) {
         throw new ValidationError("A cancellation reason is required");
       }
-      await cancellationReasonService.assertUsable(auth.tenantId, cancellationReasonId);
+      await cancellationReasonService.assertUsable(
+        auth.tenantId,
+        cancellationReasonId,
+      );
     }
 
     if (newStatus === "BILL_REQUESTED") {
-      const allServed = await ticketRepository.allServed(auth.tenantId, orderId);
+      const allServed = await ticketRepository.allServed(
+        auth.tenantId,
+        orderId,
+      );
       if (!allServed) throw ticketsNotServed();
     }
 
@@ -56,12 +65,19 @@ export const orderStatusService = {
       order.tableId &&
       (["PAID", "CLOSED", "CANCELLED"] as OrderStatus[]).includes(newStatus)
     ) {
-      const updatedTable = await tableRepository.update(auth.tenantId, order.tableId, {
-        status: "AVAILABLE",
-      });
+      const updatedTable = await tableRepository.update(
+        auth.tenantId,
+        order.tableId,
+        {
+          status: "AVAILABLE",
+        },
+      );
       if (updatedTable) {
         await eventBus.publish(
-          { type: "table.updated", payload: updatedTable as unknown as RestaurantTable },
+          {
+            type: "table.updated",
+            payload: updatedTable as unknown as RestaurantTable,
+          },
           auth.tenantId,
           order.branchId,
         );

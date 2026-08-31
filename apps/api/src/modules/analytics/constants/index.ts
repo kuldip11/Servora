@@ -1,1 +1,5 @@
-export const ACTIVE_ORDER_EXCLUDED_STATUSES = ["PAID", "CLOSED", "CANCELLED"] as const;
+export const ACTIVE_ORDER_EXCLUDED_STATUSES = [
+  "PAID",
+  "CLOSED",
+  "CANCELLED",
+] as const;

@@ -6,7 +6,6 @@ import axios, {
 import type { TokenStorageAdapter } from "./types";
 
 export interface ApiClientConfig {
-
   baseURL: string;
 
   timeout: number;
@@ -15,7 +14,7 @@ export interface ApiClientConfig {
   onRefreshFailure: () => void;
 }
 
-export function createApiClient(config: ApiClientConfig): AxiosInstance {
+export const createApiClient = (config: ApiClientConfig): AxiosInstance => {
   const { baseURL, timeout, storage, onRefreshFailure } = config;
 
   const clientConfig = {
@@ -101,4 +100,4 @@ export function createApiClient(config: ApiClientConfig): AxiosInstance {
   );
 
   return apiClient;
-}
+};

@@ -90,8 +90,14 @@ export const wasteReasons = pgTable(
   },
   (t) => ({
     tenantIdx: index("waste_reasons_tenant_idx").on(t.tenantId),
-    tenantActiveIdx: index("waste_reasons_tenant_active_idx").on(t.tenantId, t.isActive),
-    tenantLabelUnique: uniqueIndex("waste_reasons_tenant_label_unique").on(t.tenantId, t.label),
+    tenantActiveIdx: index("waste_reasons_tenant_active_idx").on(
+      t.tenantId,
+      t.isActive,
+    ),
+    tenantLabelUnique: uniqueIndex("waste_reasons_tenant_label_unique").on(
+      t.tenantId,
+      t.label,
+    ),
   }),
 );
 
@@ -125,8 +131,12 @@ export const inventoryTransactions = pgTable(
   },
   (t) => ({
     itemIdx: index("inventory_transactions_item_idx").on(t.inventoryItemId),
-    wasteReasonIdx: index("inventory_transactions_waste_reason_idx").on(t.wasteReasonId),
-    reversalUnique: uniqueIndex("inventory_transactions_reversal_unique").on(t.reversalOfDeductionId),
+    wasteReasonIdx: index("inventory_transactions_waste_reason_idx").on(
+      t.wasteReasonId,
+    ),
+    reversalUnique: uniqueIndex("inventory_transactions_reversal_unique").on(
+      t.reversalOfDeductionId,
+    ),
   }),
 );
 
@@ -141,7 +151,9 @@ export const orderInventoryDeductions = pgTable(
       () => kitchenTickets.id,
       { onDelete: "cascade" },
     ),
-    orderItemId: uuid("order_item_id").references(() => orderItems.id, { onDelete: "cascade" }),
+    orderItemId: uuid("order_item_id").references(() => orderItems.id, {
+      onDelete: "cascade",
+    }),
     menuItemId: uuid("menu_item_id")
       .notNull()
       .references(() => menuItems.id, { onDelete: "cascade" }),

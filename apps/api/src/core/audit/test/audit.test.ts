@@ -9,7 +9,7 @@ const { returning, values, insert } = vi.hoisted(() => {
 });
 vi.mock("../../../db", () => ({ db: { insert } }));
 vi.mock("../../../db/schema", () => ({ auditLogs: {} }));
-import { writeAudit } from "../audit";
+import { writeAudit } from "@/core/audit/audit";
 
 describe("writeAudit", () => {
   it("writes tenant-scoped audit entries with normalized optional fields", async () => {

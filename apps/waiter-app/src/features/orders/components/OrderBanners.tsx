@@ -6,7 +6,7 @@ interface Props {
   readyTickets: KitchenTicket[];
 }
 
-export function OrderBanners({ order, readyTickets }: Props) {
+export const OrderBanners = ({ order, readyTickets }: Props) => {
   return (
     <>
       {readyTickets.length > 0 && (
@@ -38,4 +38,4 @@ export function OrderBanners({ order, readyTickets }: Props) {
       )}
     </>
   );
-}
+};

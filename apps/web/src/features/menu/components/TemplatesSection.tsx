@@ -9,15 +9,15 @@ import {
 } from "@pos/validation";
 import { LayoutTemplate, X, Sparkles } from "lucide-react";
 import { Button, Modal, Input } from "@pos/ui";
-import { useBranches } from "../../branches/hooks/useBranches";
-import { notifySuccess } from "../../../shared/lib/notify";
-import { useMenuTemplates } from "../hooks/useMenuTemplates";
-import { useDeleteTemplate } from "../hooks/useDeleteTemplate";
-import { useApplyTemplate } from "../hooks/useApplyTemplate";
-import { useSaveTemplateFromCategory } from "../hooks/useSaveTemplateFromCategory";
+import { useBranches } from "@/features/branches/hooks/useBranches";
+import { notifySuccess } from "@/shared/lib/notify";
+import { useMenuTemplates } from "@/features/menu/hooks/useMenuTemplates";
+import { useDeleteTemplate } from "@/features/menu/hooks/useDeleteTemplate";
+import { useApplyTemplate } from "@/features/menu/hooks/useApplyTemplate";
+import { useSaveTemplateFromCategory } from "@/features/menu/hooks/useSaveTemplateFromCategory";
 import type { MenuTemplate } from "@pos/types";
 
-export function TemplatesSection() {
+export const TemplatesSection = () => {
   const [applyingTemplate, setApplyingTemplate] = useState<MenuTemplate | null>(
     null,
   );
@@ -100,7 +100,7 @@ export function TemplatesSection() {
       )}
     </div>
   );
-}
+};
 
 function ApplyTemplateModal({
   template,
@@ -184,13 +184,13 @@ function ApplyTemplateModal({
   );
 }
 
-export function SaveTemplateModal({
+export const SaveTemplateModal = ({
   category,
   onClose,
 }: {
   category: { id: string; name: string };
   onClose: () => void;
-}) {
+}) => {
   const {
     register,
     handleSubmit,
@@ -247,4 +247,4 @@ export function SaveTemplateModal({
       </form>
     </Modal>
   );
-}
+};

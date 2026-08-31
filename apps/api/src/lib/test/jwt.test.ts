@@ -22,7 +22,9 @@ describe("jwt helpers", () => {
       roles: ["OWNER"],
       permissions: ["tenant:read"],
     });
-    expect((payload as unknown as Record<string, unknown>).tenantId).toBeUndefined();
+    expect(
+      (payload as unknown as Record<string, unknown>).tenantId,
+    ).toBeUndefined();
   });
 
   it("rejects malformed access tokens", () => {

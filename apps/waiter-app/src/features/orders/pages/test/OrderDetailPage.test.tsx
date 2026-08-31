@@ -29,7 +29,7 @@ vi.mock("../../hooks/useTransferTable", () => ({
 vi.mock("../../../menu/hooks/useTables", () => ({
   useTables: vi.fn(() => ({ data: [] })),
 }));
-import { OrderDetailPage } from "../OrderDetailPage";
+import { OrderDetailPage } from "@/features/orders/pages/OrderDetailPage";
 describe("OrderDetailPage", () => {
   it("renders loading state", () => {
     const html = renderToStaticMarkup(

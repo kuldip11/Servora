@@ -2,20 +2,23 @@ import { useEffect, useState } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { Building2, ChevronRight, Plus } from "lucide-react";
 import { Button, Input, toast } from "@pos/ui";
-import { extractApiError } from "../../../shared/lib/api-client";
 import type { AvailableMembership, OrganizationSummary } from "@pos/types";
-import { authService } from "../services/auth.service";
-import { useAuthStore } from "../../../store/auth";
 
-export function ContextPage() {
+import { extractApiError } from "@/shared/lib/api-client";
+import { useAuthStore } from "@/store/auth";
+import { authService } from "@/features/auth/services/auth.service";
+
+export const ContextPage = () => {
   const router = useRouter();
   const { memberships, setContext } = useAuthStore();
   const [items, setItems] = useState<AvailableMembership[]>(memberships);
   const [loading, setLoading] = useState(!memberships.length);
-  const [businessName, setBusinessName] = useState("");
+  const [franchiseName, setFranchiseName] = useState("");
   const [organizations, setOrganizations] = useState<OrganizationSummary[]>([]);
   const [organizationId, setOrganizationId] = useState("");
-  const [creating, setCreating] = useState(false);
+  const [organizationName, setOrganizationName] = useState("");
+  const [creatingOrganization, setCreatingOrganization] = useState(false);
+  const [creatingFranchise, setCreatingFranchise] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -25,13 +28,13 @@ export function ContextPage() {
       authService.organizations(),
     ])
       .then(([nextMemberships, nextOrganizations]) => {
+        const activeOrganizations = nextOrganizations.filter(
+          (item) => item.isActive,
+        );
         setItems(nextMemberships);
-        setOrganizations(nextOrganizations.filter((item) => item.isActive));
+        setOrganizations(activeOrganizations);
         setOrganizationId(
-          (current) =>
-            current ||
-            nextOrganizations.find((item) => item.isActive)?.id ||
-            "",
+          (current) => current || activeOrganizations[0]?.id || "",
         );
       })
       .catch(() =>
@@ -40,7 +43,7 @@ export function ContextPage() {
       .finally(() => setLoading(false));
   }, [memberships]);
 
-  function activate(membership: AvailableMembership) {
+  const activate = (membership: AvailableMembership) => {
     const branchId =
       membership.isGlobalOwner ||
       membership.roles.some((role) => role.scope === "TENANT")
@@ -53,20 +56,36 @@ export function ContextPage() {
       branchId,
     });
     router.navigate({ to: "/dashboard" });
-  }
+  };
 
-  async function createBusiness() {
-    if (!businessName.trim()) return;
-    setCreating(true);
+  const createOrganization = async () => {
+    const name = organizationName.trim();
+    if (!name) return;
+
+    setCreatingOrganization(true);
     try {
-      if (!organizationId) {
-        toast({ title: "Select an organization first", tone: "danger" });
-        return;
-      }
-      const created = await authService.createTenant(
-        businessName.trim(),
-        organizationId,
-      );
+      const created = await authService.createOrganization(name);
+      setOrganizations((current) => [...current, created.organization]);
+      setOrganizationId(created.organization.id);
+      setOrganizationName("");
+      toast({
+        title: "Organization created. You can now create a franchise.",
+        tone: "success",
+      });
+    } catch (err: unknown) {
+      toast({ title: extractApiError(err), tone: "danger" });
+    } finally {
+      setCreatingOrganization(false);
+    }
+  };
+
+  const createFranchise = async () => {
+    const name = franchiseName.trim();
+    if (!name || !organizationId) return;
+
+    setCreatingFranchise(true);
+    try {
+      const created = await authService.createTenant(name, organizationId);
       const next = await authService.memberships();
       setContext({
         membershipId: created.membershipId,
@@ -76,35 +95,38 @@ export function ContextPage() {
         branchId: null,
       });
       toast({
-        title: "Business created. Add a branch to get started.",
+        title: "Franchise created. Add a branch to get started.",
         tone: "success",
       });
       router.navigate({ to: "/branches" });
     } catch (err: unknown) {
       toast({ title: extractApiError(err), tone: "danger" });
     } finally {
-      setCreating(false);
+      setCreatingFranchise(false);
     }
-  }
+  };
 
-  if (loading)
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-text-secondary">
         Loading your businesses…
       </div>
     );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-lg bg-surface border border-border rounded-xl shadow-card p-8 space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">
-            Choose a business
+            Choose a franchise
           </h1>
           <p className="text-sm text-text-secondary mt-1">
-            Your access is managed through memberships.
+            Select an existing franchise or create your organization and first
+            franchise.
           </p>
         </div>
+
         {items.length > 0 && (
           <div className="space-y-3">
             {items.map((membership) => (
@@ -119,7 +141,7 @@ export function ContextPage() {
                     {membership.tenant.name}
                   </strong>
                   <span className="text-xs text-text-secondary">
-                    {membership.roles.map((r) => r.name).join(", ")}
+                    {membership.roles.map((role) => role.name).join(", ")}
                   </span>
                 </span>
                 <ChevronRight className="w-4 h-4 text-text-disabled" />
@@ -127,47 +149,80 @@ export function ContextPage() {
             ))}
           </div>
         )}
-        <div className="border-t border-border pt-5 space-y-3">
-          <h2 className="font-semibold text-text-primary">
-            Create a franchise
-          </h2>
-          <label
-            htmlFor="context-page-organization"
-            className="block text-sm font-medium text-text-primary"
-          >
-            Organization
-          </label>
-          <select
-            id="context-page-organization"
-            value={organizationId}
-            onChange={(e) => setOrganizationId(e.target.value)}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-text-primary"
-            disabled={!organizations.length}
-          >
-            <option value="">Select organization</option>
-            {organizations.map((organization) => (
-              <option key={organization.id} value={organization.id}>
-                {organization.name}
-              </option>
-            ))}
-          </select>
-          <Input
-            label="Business name"
-            value={businessName}
-            onChange={(e) => setBusinessName(e.target.value)}
-            placeholder="My Restaurant"
-          />
-          <Button
-            loading={creating}
-            onClick={createBusiness}
-            disabled={!businessName.trim() || !organizationId}
-            className="w-full"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create business
-          </Button>
+
+        <div className="border-t border-border pt-5 space-y-4">
+          <div className="space-y-3">
+            <h2 className="font-semibold text-text-primary">Organization</h2>
+            {organizations.length > 0 && (
+              <label className="block text-sm font-medium text-text-primary">
+                Existing organization
+                <select
+                  value={organizationId}
+                  onChange={(event) => setOrganizationId(event.target.value)}
+                  className="mt-1.5 w-full rounded-lg border border-border bg-background px-3 py-2 text-text-primary"
+                >
+                  <option value="">Select organization</option>
+                  {organizations.map((organization) => (
+                    <option key={organization.id} value={organization.id}>
+                      {organization.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <div className="flex items-end gap-2">
+              <Input
+                label={
+                  organizations.length
+                    ? "New organization name"
+                    : "Organization name"
+                }
+                value={organizationName}
+                onChange={(event) => setOrganizationName(event.target.value)}
+                placeholder="My Restaurant Group"
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                loading={creatingOrganization}
+                disabled={!organizationName.trim()}
+                onClick={createOrganization}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create
+              </Button>
+            </div>
+            {!organizations.length && (
+              <p className="text-xs text-text-secondary">
+                Create an organization first. It will be selected automatically
+                for your franchise.
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-3 border-t border-border pt-4">
+            <h2 className="font-semibold text-text-primary">
+              Create a franchise
+            </h2>
+            <Input
+              label="Franchise name"
+              value={franchiseName}
+              onChange={(event) => setFranchiseName(event.target.value)}
+              placeholder="My Restaurant"
+            />
+            <Button
+              type="button"
+              loading={creatingFranchise}
+              onClick={createFranchise}
+              disabled={!franchiseName.trim() || !organizationId}
+              className="w-full"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create franchise
+            </Button>
+          </div>
         </div>
       </div>
     </div>
   );
-}
+};

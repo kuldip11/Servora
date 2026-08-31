@@ -1,8 +1,8 @@
-import type { AuthContext } from "../../core/auth";
+import type { AuthContext } from "@/core/auth";
 import {
   createdResponse,
   successResponse,
-} from "../../core/response/response-helpers";
+} from "@/core/response/response-helpers";
 import { tenantService } from "./tenant.service";
 
 export const tenantController = {

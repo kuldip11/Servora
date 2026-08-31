@@ -17,13 +17,13 @@ export interface ContainerProps extends HTMLAttributes<HTMLDivElement> {
   as?: ElementType;
 }
 
-export function Container({
+export const Container = ({
   children,
   size = "xl",
   as: Tag = "div",
   className,
   ...props
-}: ContainerProps) {
+}: ContainerProps) => {
   return (
     <Tag
       className={cn(
@@ -36,4 +36,4 @@ export function Container({
       {children}
     </Tag>
   );
-}
+};

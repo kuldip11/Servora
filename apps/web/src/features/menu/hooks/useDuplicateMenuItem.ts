@@ -1,10 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
-import { menuItemsService } from "../services/menu-items.service";
-import { menuKeys } from "../query-keys";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
+import { menuItemsService } from "@/features/menu/services/menu-items.service";
+import { menuKeys } from "@/features/menu/query-keys";
 
-export function useDuplicateMenuItem() {
+export const useDuplicateMenuItem = () => {
   return useMutation({
     mutationFn: (id: string) => menuItemsService.duplicateItem(id),
     onSuccess: () => {
@@ -13,4 +13,4 @@ export function useDuplicateMenuItem() {
     },
     onError: (err) => notifyError(err, "Failed to duplicate item"),
   });
-}
+};

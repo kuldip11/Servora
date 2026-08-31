@@ -28,12 +28,12 @@ export interface StatusBadgeProps {
   className?: string;
 }
 
-export function StatusBadge({
+export const StatusBadge = ({
   label,
   tone = "neutral",
   dot = true,
   className,
-}: StatusBadgeProps) {
+}: StatusBadgeProps) => {
   return (
     <span
       className={cn(
@@ -51,4 +51,4 @@ export function StatusBadge({
       {label}
     </span>
   );
-}
+};

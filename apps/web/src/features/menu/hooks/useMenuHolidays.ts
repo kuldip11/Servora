@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { menuHolidaysQuery } from "../query-options";
+import { menuHolidaysQuery } from "@/features/menu/query-options";
 
-export function useMenuHolidays() {
+export const useMenuHolidays = () => {
   return useQuery(menuHolidaysQuery());
-}
+};

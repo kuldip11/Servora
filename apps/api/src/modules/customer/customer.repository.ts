@@ -1,5 +1,5 @@
 import { and, eq, isNull, or, notInArray } from "drizzle-orm";
-import { db } from "../../db";
+import { db } from "@/db";
 import {
   branches,
   customerSessions,
@@ -8,11 +8,11 @@ import {
   restaurantTables,
   orders,
   kitchenTickets,
-} from "../../db/schema";
+} from "@/db/schema";
 import {
   withEffectiveMenuItemAvailability,
   withEffectiveModifierAvailability,
-} from "../menu/availability/availability-view";
+} from "@/modules/menu/availability/availability-view";
 
 export const customerRepository = {
   async findBranchByTakeawayQrToken(token: string) {

@@ -50,7 +50,7 @@ vi.mock("../auth.controller", () => ({
 }));
 vi.mock("../../../core/auth", () => ({ requireAuthPlugin: () => ({}) }));
 vi.mock("../auth.service", () => ({ authService: { login, refresh, logout } }));
-import { authRouter, authMeRouter } from "../auth.route";
+import { authRouter, authMeRouter } from "@/modules/auth/auth.route";
 describe("auth routes", () => {
   it("registers public signup/login/refresh routes", () => {
     expect((authRouter as any).routes).toEqual(

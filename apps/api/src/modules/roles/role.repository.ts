@@ -1,6 +1,6 @@
 import { and, eq, isNull, or, sql } from "drizzle-orm";
-import { db } from "../../db";
-import { membershipRoles, roles } from "../../db/schema";
+import { db } from "@/db";
+import { membershipRoles, roles } from "@/db/schema";
 
 export const roleRepository = {
   listForTenant(tenantId: string) {

@@ -16,9 +16,13 @@ export interface BillItemAllocation {
 
 export type SeatSplitResult =
   | { status: "CREATED"; bills: unknown[] }
-  | { status: "MANUAL_REQUIRED"; allocations: BillItemAllocation[]; sharedItemIds: string[] };
+  | {
+      status: "MANUAL_REQUIRED";
+      allocations: BillItemAllocation[];
+      sharedItemIds: string[];
+    };
 
-export function createBillingApi(client: DomainHttpClient) {
+export const createBillingApi = (client: DomainHttpClient) => {
   return {
     collectPayment(input: CollectPaymentInput): Promise<void> {
       return voidDomainRequest(client.post("/payments", input));
@@ -27,13 +31,27 @@ export function createBillingApi(client: DomainHttpClient) {
       return getDomainData<T>(client, `/orders/${orderId}/bills`);
     },
     splitOrder<T = unknown>(orderId: string, ways: number): Promise<T> {
-      return postDomainData<T>(client, `/orders/${orderId}/bills/split`, { ways });
+      return postDomainData<T>(client, `/orders/${orderId}/bills/split`, {
+        ways,
+      });
     },
-    splitOrderByItems<T = unknown>(orderId: string, allocations: BillItemAllocation[]): Promise<T> {
-      return postDomainData<T>(client, `/orders/${orderId}/bills/split-items`, { allocations });
+    splitOrderByItems<T = unknown>(
+      orderId: string,
+      allocations: BillItemAllocation[],
+    ): Promise<T> {
+      return postDomainData<T>(client, `/orders/${orderId}/bills/split-items`, {
+        allocations,
+      });
     },
-    splitOrderBySeat(orderId: string, sharedItemStrategy: "EVEN_SPLIT" | "MANUAL"): Promise<SeatSplitResult> {
-      return postDomainData<SeatSplitResult>(client, `/orders/${orderId}/bills/split-seat`, { sharedItemStrategy });
+    splitOrderBySeat(
+      orderId: string,
+      sharedItemStrategy: "EVEN_SPLIT" | "MANUAL",
+    ): Promise<SeatSplitResult> {
+      return postDomainData<SeatSplitResult>(
+        client,
+        `/orders/${orderId}/bills/split-seat`,
+        { sharedItemStrategy },
+      );
     },
   };
-}
+};

@@ -15,7 +15,7 @@ export interface BreadcrumbsProps {
   className?: string | undefined;
 }
 
-export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
+export const Breadcrumbs = ({ items, className }: BreadcrumbsProps) => {
   return (
     <nav
       aria-label="Breadcrumb"
@@ -61,4 +61,4 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
       </ol>
     </nav>
   );
-}
+};

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 const api = vi.hoisted(() => ({ post: vi.fn() }));
 vi.mock("../../../../shared/lib/api-client", () => ({ apiClient: api }));
-import { billingService } from "../billing.service";
+import { billingService } from "@/features/billing/services/billing.service";
 
 describe("billingService", () => {
   it("records payment through the atomic billing API", async () => {

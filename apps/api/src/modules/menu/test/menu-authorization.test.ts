@@ -3,7 +3,7 @@ import {
   assertMenuQueryBranch,
   assertMenuResourceBranch,
   resolveMenuBranch,
-} from "../menu-authorization";
+} from "@/modules/menu/menu-authorization";
 
 const tenantWide: any = {
   tenantWide: true,

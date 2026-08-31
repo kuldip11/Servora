@@ -116,7 +116,6 @@ export interface MenuTemplate {
   items: MenuTemplateItem[];
 }
 
-
 export interface RecipeIngredientInput {
   inventoryItemId?: string | null;
   subRecipeId?: string | null;

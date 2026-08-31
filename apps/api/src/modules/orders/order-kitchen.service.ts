@@ -1,18 +1,29 @@
 import type { KitchenTicket, Order } from "@pos/types";
-import type { AuthContext } from "../../core/auth";
-import { requireOrdersPermission, assertOrderResourceAccess } from "./orders-authorization";
-import { ValidationError } from "../../core/errors";
-import { writeAudit } from "../../core/audit";
-import { ticketRepository } from "../kitchen-tickets/ticket.repository";
-import { inventoryService } from "../inventory/inventory.service";
-import { eventBus } from "../../lib/event-bus";
+import type { AuthContext } from "@/core/auth";
+import {
+  requireOrdersPermission,
+  assertOrderResourceAccess,
+} from "./orders-authorization";
+import { ValidationError } from "@/core/errors";
+import { writeAudit } from "@/core/audit";
+import { ticketRepository } from "@/modules/kitchen-tickets/ticket.repository";
+import { inventoryService } from "@/modules/inventory/inventory.service";
+import { eventBus } from "@/lib/event-bus";
 import { orderRepository } from "./order.repository";
 import type { PricedLine } from "./pricing/pricing-pipeline";
 import { snapshotOrderLines } from "./order-line-snapshot.service";
-import { promotionRepository } from "../menu/promotions/promotion.repository";
-import { finalizeWholeActiveOrder, storedOrderLineToStage4Snapshot, type StoredOrderLineForRepricing } from "./active-order-pricing";
+import { promotionRepository } from "@/modules/menu/promotions/promotion.repository";
+import {
+  finalizeWholeActiveOrder,
+  storedOrderLineToStage4Snapshot,
+  type StoredOrderLineForRepricing,
+} from "./active-order-pricing";
 import { isBillableOrderItem } from "./order-item-billing";
-import { orderNotFound, orderItemNotFound, orderItemCannotBeRefired } from "./order.errors";
+import {
+  orderNotFound,
+  orderItemNotFound,
+  orderItemCannotBeRefired,
+} from "./order.errors";
 
 export const orderKitchenService = {
   async refireItem(
@@ -23,7 +34,7 @@ export const orderKitchenService = {
     alsoCompOriginal = true,
   ) {
     requireOrdersPermission(auth, "orders:update");
-      if (alsoCompOriginal) requireOrdersPermission(auth, "orders:comp");
+    if (alsoCompOriginal) requireOrdersPermission(auth, "orders:comp");
     if (!reason.trim())
       throw new ValidationError("A refire reason is required");
     const order = await orderRepository.findById(auth.tenantId, orderId);
@@ -208,7 +219,14 @@ export const orderKitchenService = {
                     weightQuantity: item.weightQuantity,
                     weightUnit: item.weightUnit,
                     selectedOptions: item.modifiers.flatMap((modifier) =>
-                      modifier.modifierId == null ? [] : [{ optionId: modifier.modifierId, quantity: modifier.quantity }],
+                      modifier.modifierId == null
+                        ? []
+                        : [
+                            {
+                              optionId: modifier.modifierId,
+                              quantity: modifier.quantity,
+                            },
+                          ],
                     ),
                   },
                 ],
@@ -228,7 +246,7 @@ export const orderKitchenService = {
 
   async refillItem(auth: AuthContext, orderId: string, orderItemId: string) {
     requireOrdersPermission(auth, "orders:update");
-      const order = await orderRepository.findById(auth.tenantId, orderId);
+    const order = await orderRepository.findById(auth.tenantId, orderId);
     if (!order) throw orderNotFound(orderId);
     assertOrderResourceAccess(auth, order.branchId);
     if (order.status !== "OPEN")
@@ -354,7 +372,14 @@ export const orderKitchenService = {
                     weightQuantity: item.weightQuantity,
                     weightUnit: item.weightUnit,
                     selectedOptions: item.modifiers.flatMap((modifier) =>
-                      modifier.modifierId == null ? [] : [{ optionId: modifier.modifierId, quantity: modifier.quantity }],
+                      modifier.modifierId == null
+                        ? []
+                        : [
+                            {
+                              optionId: modifier.modifierId,
+                              quantity: modifier.quantity,
+                            },
+                          ],
                     ),
                   },
                 ],
@@ -386,5 +411,4 @@ export const orderKitchenService = {
     });
     return fullOrder;
   },
-
 };

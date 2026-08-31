@@ -1,10 +1,8 @@
-
-
-import type { AuthContext } from "../../core/auth";
-import { ValidationError } from "../../core/errors";
-import { eventBus } from "../../lib/event-bus";
+import type { AuthContext } from "@/core/auth";
+import { ValidationError } from "@/core/errors";
+import { eventBus } from "@/lib/event-bus";
 import type { InventoryUnit } from "@pos/types";
-import { availabilityService } from "../menu/availability/availability.service";
+import { availabilityService } from "@/modules/menu/availability/availability.service";
 import {
   assertInventoryResourceBranch,
   requireInventoryPermission,
@@ -21,13 +19,16 @@ import {
   weightRecipeScale,
   type ResolvedRawNeed,
 } from "./inventory-recipe.engine";
-import type { InventoryOrderItemInput, RecipeNeedItemInput } from "./inventory.types";
+import type {
+  InventoryOrderItemInput,
+  RecipeNeedItemInput,
+} from "./inventory.types";
 
 type RequiredRecipeRow = Awaited<
   ReturnType<typeof inventoryRepository.findRequiredRecipeLines>
 >[number];
 
-async function resolveSubRecipeNeed(
+const resolveSubRecipeNeed = async (
   tenantId: string,
   branchId: string,
   subRecipeId: string,
@@ -35,18 +36,30 @@ async function resolveSubRecipeNeed(
   preparedUnit: InventoryUnit,
   depth = 1,
   path = new Set<string>(),
-  subRecipeCache = new Map<string, Awaited<ReturnType<typeof inventoryRepository.findSubRecipeWithIngredients>> | null>(),
-): Promise<ResolvedRawNeed[]> {
-  if (depth > 3) throw new ValidationError("Sub-recipe depth exceeds supported maximum");
-  if (path.has(subRecipeId)) throw new ValidationError("Circular sub-recipe reference detected");
+  subRecipeCache = new Map<
+    string,
+    Awaited<
+      ReturnType<typeof inventoryRepository.findSubRecipeWithIngredients>
+    > | null
+  >(),
+): Promise<ResolvedRawNeed[]> => {
+  if (depth > 3)
+    throw new ValidationError("Sub-recipe depth exceeds supported maximum");
+  if (path.has(subRecipeId))
+    throw new ValidationError("Circular sub-recipe reference detected");
   let subRecipe = subRecipeCache.get(subRecipeId);
   if (subRecipe === undefined) {
-    subRecipe = await inventoryRepository.findSubRecipeWithIngredients(tenantId, subRecipeId);
+    subRecipe = await inventoryRepository.findSubRecipeWithIngredients(
+      tenantId,
+      subRecipeId,
+    );
     subRecipeCache.set(subRecipeId, subRecipe ?? null);
   }
   if (!subRecipe) throw new ValidationError("Sub-recipe could not be resolved");
   if (subRecipe.branchId !== branchId) {
-    throw new ValidationError(`Sub-recipe ${subRecipe.name ?? subRecipeId} is not compatible with the active branch`);
+    throw new ValidationError(
+      `Sub-recipe ${subRecipe.name ?? subRecipeId} is not compatible with the active branch`,
+    );
   }
   const nextPath = new Set(path);
   nextPath.add(subRecipeId);
@@ -57,13 +70,18 @@ async function resolveSubRecipeNeed(
     subRecipe.yieldUnit,
     `Sub-recipe ${subRecipe.name ?? subRecipeId}`,
   );
-  const scale = normalizedPreparedQuantity / yieldQuantity / recipeYieldFactor(subRecipe.yieldPercent);
+  const scale =
+    normalizedPreparedQuantity /
+    yieldQuantity /
+    recipeYieldFactor(subRecipe.yieldPercent);
   const needs: ResolvedRawNeed[] = [];
   for (const ingredient of subRecipe.ingredients) {
     const quantity = Number(ingredient.quantityRequired) * scale;
     if (ingredient.inventoryItemId && ingredient.inventoryItem) {
       if (ingredient.inventoryItem.tenantId !== tenantId) {
-        throw new ValidationError(`Sub-recipe ${subRecipe.name ?? subRecipeId} references inventory outside this tenant`);
+        throw new ValidationError(
+          `Sub-recipe ${subRecipe.name ?? subRecipeId} references inventory outside this tenant`,
+        );
       }
       if (ingredient.inventoryItem.branchId !== branchId) {
         throw new ValidationError(
@@ -85,39 +103,53 @@ async function resolveSubRecipeNeed(
         costPerUnit: Number(ingredient.inventoryItem.costPerUnit),
       });
     } else if (ingredient.ingredientSubRecipeId) {
-      needs.push(...await resolveSubRecipeNeed(
-        tenantId,
-        branchId,
-        ingredient.ingredientSubRecipeId,
-        quantity,
-        ingredient.unit,
-        depth + 1,
-        nextPath,
-        subRecipeCache,
-      ));
+      needs.push(
+        ...(await resolveSubRecipeNeed(
+          tenantId,
+          branchId,
+          ingredient.ingredientSubRecipeId,
+          quantity,
+          ingredient.unit,
+          depth + 1,
+          nextPath,
+          subRecipeCache,
+        )),
+      );
     }
   }
   return needs;
-}
+};
 
-async function resolveOrderItemRecipeNeeds(
+const resolveOrderItemRecipeNeeds = async (
   tenantId: string,
   branchId: string,
   rows: RequiredRecipeRow[],
   item: RecipeNeedItemInput,
   requireRecipeDeductionEnabled = true,
-  subRecipeCache = new Map<string, Awaited<ReturnType<typeof inventoryRepository.findSubRecipeWithIngredients>> | null>(),
-): Promise<ResolvedRawNeed[]> {
+  subRecipeCache = new Map<
+    string,
+    Awaited<
+      ReturnType<typeof inventoryRepository.findSubRecipeWithIngredients>
+    > | null
+  >(),
+): Promise<ResolvedRawNeed[]> => {
   const needs: ResolvedRawNeed[] = [];
   for (const { row, multiplier } of applicableRecipeRows(
     rows,
     item,
     requireRecipeDeductionEnabled,
   )) {
-    const quantity = Number(row.quantityRequired) * item.quantity * multiplier * weightRecipeScale(item.weightQuantity, item.weightUnit) / recipeYieldFactor(row.yieldPercent);
+    const quantity =
+      (Number(row.quantityRequired) *
+        item.quantity *
+        multiplier *
+        weightRecipeScale(item.weightQuantity, item.weightUnit)) /
+      recipeYieldFactor(row.yieldPercent);
     if (row.inventoryItemId && row.inventoryItem) {
       if (row.inventoryItem.branchId !== branchId) {
-        throw new ValidationError(`Recipe ingredient ${row.inventoryItem.name} is not compatible with the active branch`);
+        throw new ValidationError(
+          `Recipe ingredient ${row.inventoryItem.name} is not compatible with the active branch`,
+        );
       }
       const neededQuantity = convertRecipeQuantity(
         quantity,
@@ -134,39 +166,62 @@ async function resolveOrderItemRecipeNeeds(
         costPerUnit: Number(row.inventoryItem.costPerUnit),
       });
     } else if (row.subRecipeId) {
-      needs.push(...await resolveSubRecipeNeed(
-        tenantId,
-        branchId,
-        row.subRecipeId,
-        quantity,
-        row.unit,
-        1,
-        new Set<string>(),
-        subRecipeCache,
-      ));
+      needs.push(
+        ...(await resolveSubRecipeNeed(
+          tenantId,
+          branchId,
+          row.subRecipeId,
+          quantity,
+          row.unit,
+          1,
+          new Set<string>(),
+          subRecipeCache,
+        )),
+      );
     }
   }
   return needs;
-}
+};
 
 export const inventoryRecipeService = {
   async getRecipeImpact(auth: AuthContext, inventoryItemId: string) {
     requireInventoryPermission(auth, "inventory:read");
-    const inventoryItem = await inventoryRepository.findById(auth.tenantId, inventoryItemId);
+    const inventoryItem = await inventoryRepository.findById(
+      auth.tenantId,
+      inventoryItemId,
+    );
     if (!inventoryItem) throw inventoryItemNotFound(inventoryItemId);
     assertInventoryResourceBranch(auth, inventoryItem.branchId);
     const branchId = inventoryItem.branchId;
 
-    const menuItemIds = await inventoryRepository.findAllRecipeMenuItemIds(auth.tenantId, branchId);
+    const menuItemIds = await inventoryRepository.findAllRecipeMenuItemIds(
+      auth.tenantId,
+      branchId,
+    );
     if (!menuItemIds.length) {
-      return { inventoryItemId, inventoryItemName: inventoryItem.name, impacts: [] };
+      return {
+        inventoryItemId,
+        inventoryItemName: inventoryItem.name,
+        impacts: [],
+      };
     }
 
     const [recipeRows, menuItems, variants, options] = await Promise.all([
-      inventoryRepository.findRequiredRecipeLines(auth.tenantId, branchId, menuItemIds),
-      inventoryRepository.findMenuItemsForAvailability(auth.tenantId, branchId, menuItemIds),
+      inventoryRepository.findRequiredRecipeLines(
+        auth.tenantId,
+        branchId,
+        menuItemIds,
+      ),
+      inventoryRepository.findMenuItemsForAvailability(
+        auth.tenantId,
+        branchId,
+        menuItemIds,
+      ),
       inventoryRepository.findScopedRecipeVariants(auth.tenantId, branchId),
-      inventoryRepository.findScopedRecipeModifierOptions(auth.tenantId, branchId),
+      inventoryRepository.findScopedRecipeModifierOptions(
+        auth.tenantId,
+        branchId,
+      ),
     ]);
 
     const impacts: Array<{
@@ -180,13 +235,19 @@ export const inventoryRecipeService = {
 
     for (const item of menuItems) {
       if (!item.enableRecipeDeduction) continue;
-      const baseRows = recipeRows.filter((row) =>
-        row.menuItemId === item.id && !row.variantId && !row.modifierOptionId,
+      const baseRows = recipeRows.filter(
+        (row) =>
+          row.menuItemId === item.id && !row.variantId && !row.modifierOptionId,
       );
-      const needs = await resolveOrderItemRecipeNeeds(auth.tenantId, branchId, baseRows, {
-        menuItemId: item.id,
-        quantity: 1,
-      });
+      const needs = await resolveOrderItemRecipeNeeds(
+        auth.tenantId,
+        branchId,
+        baseRows,
+        {
+          menuItemId: item.id,
+          quantity: 1,
+        },
+      );
       if (needs.some((need) => need.inventoryItemId === inventoryItemId)) {
         impacts.push({
           kind: "ITEM",
@@ -200,12 +261,19 @@ export const inventoryRecipeService = {
     }
 
     for (const variant of variants) {
-      const scopedRows = recipeRows.filter((row) => row.variantId === variant.id);
-      const needs = await resolveOrderItemRecipeNeeds(auth.tenantId, branchId, scopedRows, {
-        menuItemId: variant.menuItemId,
-        variantId: variant.id,
-        quantity: 1,
-      });
+      const scopedRows = recipeRows.filter(
+        (row) => row.variantId === variant.id,
+      );
+      const needs = await resolveOrderItemRecipeNeeds(
+        auth.tenantId,
+        branchId,
+        scopedRows,
+        {
+          menuItemId: variant.menuItemId,
+          variantId: variant.id,
+          quantity: 1,
+        },
+      );
       if (needs.some((need) => need.inventoryItemId === inventoryItemId)) {
         impacts.push({
           kind: "VARIANT",
@@ -219,12 +287,19 @@ export const inventoryRecipeService = {
     }
 
     for (const option of options) {
-      const scopedRows = recipeRows.filter((row) => row.modifierOptionId === option.id);
-      const needs = await resolveOrderItemRecipeNeeds(auth.tenantId, branchId, scopedRows, {
-        menuItemId: option.menuItemId,
-        quantity: 1,
-        selectedOptions: [{ optionId: option.id, quantity: 1 }],
-      });
+      const scopedRows = recipeRows.filter(
+        (row) => row.modifierOptionId === option.id,
+      );
+      const needs = await resolveOrderItemRecipeNeeds(
+        auth.tenantId,
+        branchId,
+        scopedRows,
+        {
+          menuItemId: option.menuItemId,
+          quantity: 1,
+          selectedOptions: [{ optionId: option.id, quantity: 1 }],
+        },
+      );
       if (needs.some((need) => need.inventoryItemId === inventoryItemId)) {
         impacts.push({
           kind: "MODIFIER_OPTION",
@@ -246,15 +321,36 @@ export const inventoryRecipeService = {
     items: RecipeNeedItemInput[],
   ): Promise<{
     valid: boolean;
-    insufficient: Array<{ menuItemId: string; inventoryItemId: string; name: string }>;
+    insufficient: Array<{
+      menuItemId: string;
+      inventoryItemId: string;
+      name: string;
+    }>;
   }> {
     const menuItemIds = items.map((item) => item.menuItemId);
     if (!menuItemIds.length) return { valid: true, insufficient: [] };
-    const recipeRows = await inventoryRepository.findRequiredRecipeLines(tenantId, branchId, menuItemIds);
+    const recipeRows = await inventoryRepository.findRequiredRecipeLines(
+      tenantId,
+      branchId,
+      menuItemIds,
+    );
 
-    const totals = new Map<string, { needed: number; available: number; name: string; menuItemIds: Set<string> }>();
+    const totals = new Map<
+      string,
+      {
+        needed: number;
+        available: number;
+        name: string;
+        menuItemIds: Set<string>;
+      }
+    >();
     for (const item of items) {
-      const needs = await resolveOrderItemRecipeNeeds(tenantId, branchId, recipeRows, item);
+      const needs = await resolveOrderItemRecipeNeeds(
+        tenantId,
+        branchId,
+        recipeRows,
+        item,
+      );
       for (const need of needs) {
         const current = totals.get(need.inventoryItemId);
         if (current) {
@@ -271,11 +367,16 @@ export const inventoryRecipeService = {
       }
     }
 
-    const insufficient: Array<{ menuItemId: string; inventoryItemId: string; name: string }> = [];
+    const insufficient: Array<{
+      menuItemId: string;
+      inventoryItemId: string;
+      name: string;
+    }> = [];
     for (const [inventoryItemId, total] of totals) {
       if (total.needed <= total.available) continue;
       const menuItemId = total.menuItemIds.values().next().value;
-      if (menuItemId) insufficient.push({ menuItemId, inventoryItemId, name: total.name });
+      if (menuItemId)
+        insufficient.push({ menuItemId, inventoryItemId, name: total.name });
     }
     return { valid: insufficient.length === 0, insufficient };
   },
@@ -292,7 +393,12 @@ export const inventoryRecipeService = {
       branchId,
       menuItemIds,
     );
-    const subRecipeCache = new Map<string, Awaited<ReturnType<typeof inventoryRepository.findSubRecipeWithIngredients>> | null>();
+    const subRecipeCache = new Map<
+      string,
+      Awaited<
+        ReturnType<typeof inventoryRepository.findSubRecipeWithIngredients>
+      > | null
+    >();
 
     const costs: number[] = [];
     for (const item of items) {
@@ -340,10 +446,17 @@ export const inventoryRecipeService = {
     kitchenTicketId: string,
     items: InventoryOrderItemInput[],
     performedBy: string | null,
-  ): Promise<{ deducted: number; short: Array<{ inventoryItemId: string; name: string }> }> {
+  ): Promise<{
+    deducted: number;
+    short: Array<{ inventoryItemId: string; name: string }>;
+  }> {
     const menuItemIds = items.map((item) => item.menuItemId);
     if (!menuItemIds.length) return { deducted: 0, short: [] };
-    const recipeRows = await inventoryRepository.findRequiredRecipeLines(tenantId, branchId, menuItemIds);
+    const recipeRows = await inventoryRepository.findRequiredRecipeLines(
+      tenantId,
+      branchId,
+      menuItemIds,
+    );
     if (!recipeRows.length) return { deducted: 0, short: [] };
 
     const lines: Array<{
@@ -355,7 +468,12 @@ export const inventoryRecipeService = {
     }> = [];
 
     for (const item of items) {
-      const needs = await resolveOrderItemRecipeNeeds(tenantId, branchId, recipeRows, item);
+      const needs = await resolveOrderItemRecipeNeeds(
+        tenantId,
+        branchId,
+        recipeRows,
+        item,
+      );
       const aggregated = new Map<string, ResolvedRawNeed>();
       for (const need of needs) {
         const existing = aggregated.get(need.inventoryItemId);
@@ -382,17 +500,36 @@ export const inventoryRecipeService = {
       else aggregated.set(key, { ...line });
     }
 
-    const { deducted, touchedInventoryItemIds, short } = await inventoryRepository.deductRecipeLines(
-      tenantId, branchId, orderId, kitchenTicketId, Array.from(aggregated.values()), performedBy,
-    );
+    const { deducted, touchedInventoryItemIds, short } =
+      await inventoryRepository.deductRecipeLines(
+        tenantId,
+        branchId,
+        orderId,
+        kitchenTicketId,
+        Array.from(aggregated.values()),
+        performedBy,
+      );
 
     if (touchedInventoryItemIds.length) {
-      await inventoryRecipeService.syncMenuItemAvailability(tenantId, branchId, touchedInventoryItemIds);
-      const touchedItems = await inventoryRepository.findByIds(tenantId, touchedInventoryItemIds);
+      await inventoryRecipeService.syncMenuItemAvailability(
+        tenantId,
+        branchId,
+        touchedInventoryItemIds,
+      );
+      const touchedItems = await inventoryRepository.findByIds(
+        tenantId,
+        touchedInventoryItemIds,
+      );
       for (const inventoryItem of touchedItems) {
-        if (parseFloat(inventoryItem.currentStock) <= parseFloat(inventoryItem.minimumStock)) {
+        if (
+          parseFloat(inventoryItem.currentStock) <=
+          parseFloat(inventoryItem.minimumStock)
+        ) {
           await eventBus.publish(
-            { type: "inventory.low_stock", payload: toRealtimeInventoryItem(inventoryItem) },
+            {
+              type: "inventory.low_stock",
+              payload: toRealtimeInventoryItem(inventoryItem),
+            },
             tenantId,
             branchId,
           );
@@ -411,13 +548,31 @@ export const inventoryRecipeService = {
       inventoryRepository.findScopedRecipeVariants(tenantId, branchId),
       inventoryRepository.findScopedRecipeModifierOptions(tenantId, branchId),
     ]);
-    await availabilityService.applyInventoryItemSignal(tenantId, branchId, menuItemId, true);
-    for (const variant of variants.filter((row) => row.menuItemId === menuItemId)) {
-      await availabilityService.applyInventoryVariantSignal(tenantId, branchId, variant.id, true);
+    await availabilityService.applyInventoryItemSignal(
+      tenantId,
+      branchId,
+      menuItemId,
+      true,
+    );
+    for (const variant of variants.filter(
+      (row) => row.menuItemId === menuItemId,
+    )) {
+      await availabilityService.applyInventoryVariantSignal(
+        tenantId,
+        branchId,
+        variant.id,
+        true,
+      );
     }
-    for (const option of options.filter((row) => row.menuItemId === menuItemId)) {
+    for (const option of options.filter(
+      (row) => row.menuItemId === menuItemId,
+    )) {
       await availabilityService.applyInventoryModifierSignal(
-        tenantId, branchId, menuItemId, option.id, true,
+        tenantId,
+        branchId,
+        menuItemId,
+        option.id,
+        true,
       );
     }
   },
@@ -429,54 +584,100 @@ export const inventoryRecipeService = {
     previousVariantIds: string[] = [],
     previousModifierOptionIds: string[] = [],
   ) {
-    const [recipeRows, items, currentVariants, currentOptions] = await Promise.all([
-      inventoryRepository.findRequiredRecipeLines(tenantId, branchId, [menuItemId]),
-      inventoryRepository.findMenuItemsForAvailability(tenantId, branchId, [menuItemId]),
-      inventoryRepository.findScopedRecipeVariants(tenantId, branchId),
-      inventoryRepository.findScopedRecipeModifierOptions(tenantId, branchId),
-    ]);
+    const [recipeRows, items, currentVariants, currentOptions] =
+      await Promise.all([
+        inventoryRepository.findRequiredRecipeLines(tenantId, branchId, [
+          menuItemId,
+        ]),
+        inventoryRepository.findMenuItemsForAvailability(tenantId, branchId, [
+          menuItemId,
+        ]),
+        inventoryRepository.findScopedRecipeVariants(tenantId, branchId),
+        inventoryRepository.findScopedRecipeModifierOptions(tenantId, branchId),
+      ]);
     const item = items.find((row) => row.id === menuItemId);
     if (!item || !item.enableRecipeDeduction) return;
 
-    const baseRows = recipeRows.filter((row) =>
-      row.menuItemId === menuItemId && !row.variantId && !row.modifierOptionId,
+    const baseRows = recipeRows.filter(
+      (row) =>
+        row.menuItemId === menuItemId &&
+        !row.variantId &&
+        !row.modifierOptionId,
     );
-    const baseNeeds = await resolveOrderItemRecipeNeeds(tenantId, branchId, baseRows, {
-      menuItemId, quantity: 1,
-    });
+    const baseNeeds = await resolveOrderItemRecipeNeeds(
+      tenantId,
+      branchId,
+      baseRows,
+      {
+        menuItemId,
+        quantity: 1,
+      },
+    );
     await availabilityService.applyInventoryItemSignal(
-      tenantId, branchId, menuItemId, canSatisfyNeeds(baseNeeds),
+      tenantId,
+      branchId,
+      menuItemId,
+      canSatisfyNeeds(baseNeeds),
     );
 
     const variantIds = new Set([
       ...previousVariantIds,
-      ...currentVariants.filter((row) => row.menuItemId === menuItemId).map((row) => row.id),
+      ...currentVariants
+        .filter((row) => row.menuItemId === menuItemId)
+        .map((row) => row.id),
     ]);
     for (const variantId of variantIds) {
       const variant = currentVariants.find((row) => row.id === variantId);
       if (variant && !variant.enableRecipeDeduction) continue;
-      const scopedRows = recipeRows.filter((row) => row.variantId === variantId);
-      const needs = await resolveOrderItemRecipeNeeds(tenantId, branchId, scopedRows, {
-        menuItemId, variantId, quantity: 1,
-      });
+      const scopedRows = recipeRows.filter(
+        (row) => row.variantId === variantId,
+      );
+      const needs = await resolveOrderItemRecipeNeeds(
+        tenantId,
+        branchId,
+        scopedRows,
+        {
+          menuItemId,
+          variantId,
+          quantity: 1,
+        },
+      );
       await availabilityService.applyInventoryVariantSignal(
-        tenantId, branchId, variantId, canSatisfyNeeds(needs),
+        tenantId,
+        branchId,
+        variantId,
+        canSatisfyNeeds(needs),
       );
     }
 
     const modifierIds = new Set([
       ...previousModifierOptionIds,
-      ...currentOptions.filter((row) => row.menuItemId === menuItemId).map((row) => row.id),
+      ...currentOptions
+        .filter((row) => row.menuItemId === menuItemId)
+        .map((row) => row.id),
     ]);
     for (const optionId of modifierIds) {
       const option = currentOptions.find((row) => row.id === optionId);
       if (option && !option.enableRecipeDeduction) continue;
-      const scopedRows = recipeRows.filter((row) => row.modifierOptionId === optionId);
-      const needs = await resolveOrderItemRecipeNeeds(tenantId, branchId, scopedRows, {
-        menuItemId, quantity: 1, selectedOptions: [{ optionId, quantity: 1 }],
-      });
+      const scopedRows = recipeRows.filter(
+        (row) => row.modifierOptionId === optionId,
+      );
+      const needs = await resolveOrderItemRecipeNeeds(
+        tenantId,
+        branchId,
+        scopedRows,
+        {
+          menuItemId,
+          quantity: 1,
+          selectedOptions: [{ optionId, quantity: 1 }],
+        },
+      );
       await availabilityService.applyInventoryModifierSignal(
-        tenantId, branchId, menuItemId, optionId, canSatisfyNeeds(needs),
+        tenantId,
+        branchId,
+        menuItemId,
+        optionId,
+        canSatisfyNeeds(needs),
       );
     }
   },
@@ -488,46 +689,97 @@ export const inventoryRecipeService = {
   ) {
     if (!inventoryItemIds.length) return;
 
-    const menuItemIds = await inventoryRepository.findAllRecipeMenuItemIds(tenantId, branchId);
+    const menuItemIds = await inventoryRepository.findAllRecipeMenuItemIds(
+      tenantId,
+      branchId,
+    );
     if (!menuItemIds.length) return;
-    const recipeRows = await inventoryRepository.findRequiredRecipeLines(tenantId, branchId, menuItemIds);
-    const items = await inventoryRepository.findMenuItemsForAvailability(tenantId, branchId, menuItemIds);
+    const recipeRows = await inventoryRepository.findRequiredRecipeLines(
+      tenantId,
+      branchId,
+      menuItemIds,
+    );
+    const items = await inventoryRepository.findMenuItemsForAvailability(
+      tenantId,
+      branchId,
+      menuItemIds,
+    );
 
     for (const item of items) {
       if (!item.enableRecipeDeduction) continue;
-      const baseRows = recipeRows.filter((row) =>
-        row.menuItemId === item.id && !row.variantId && !row.modifierOptionId,
+      const baseRows = recipeRows.filter(
+        (row) =>
+          row.menuItemId === item.id && !row.variantId && !row.modifierOptionId,
       );
-      const needs = await resolveOrderItemRecipeNeeds(tenantId, branchId, baseRows, {
-        menuItemId: item.id, quantity: 1,
-      });
+      const needs = await resolveOrderItemRecipeNeeds(
+        tenantId,
+        branchId,
+        baseRows,
+        {
+          menuItemId: item.id,
+          quantity: 1,
+        },
+      );
       await availabilityService.applyInventoryItemSignal(
-        tenantId, branchId, item.id, canSatisfyNeeds(needs),
+        tenantId,
+        branchId,
+        item.id,
+        canSatisfyNeeds(needs),
       );
     }
 
-    const variants = await inventoryRepository.findScopedRecipeVariants(tenantId, branchId);
+    const variants = await inventoryRepository.findScopedRecipeVariants(
+      tenantId,
+      branchId,
+    );
     for (const variant of variants) {
       if (!variant.enableRecipeDeduction) continue;
-      const scopedRows = recipeRows.filter((row) => row.variantId === variant.id);
-      const needs = await resolveOrderItemRecipeNeeds(tenantId, branchId, scopedRows, {
-        menuItemId: variant.menuItemId, variantId: variant.id, quantity: 1,
-      });
+      const scopedRows = recipeRows.filter(
+        (row) => row.variantId === variant.id,
+      );
+      const needs = await resolveOrderItemRecipeNeeds(
+        tenantId,
+        branchId,
+        scopedRows,
+        {
+          menuItemId: variant.menuItemId,
+          variantId: variant.id,
+          quantity: 1,
+        },
+      );
       await availabilityService.applyInventoryVariantSignal(
-        tenantId, branchId, variant.id, canSatisfyNeeds(needs),
+        tenantId,
+        branchId,
+        variant.id,
+        canSatisfyNeeds(needs),
       );
     }
 
-    const options = await inventoryRepository.findScopedRecipeModifierOptions(tenantId, branchId);
+    const options = await inventoryRepository.findScopedRecipeModifierOptions(
+      tenantId,
+      branchId,
+    );
     for (const option of options) {
       if (!option.enableRecipeDeduction) continue;
-      const scopedRows = recipeRows.filter((row) => row.modifierOptionId === option.id);
-      const needs = await resolveOrderItemRecipeNeeds(tenantId, branchId, scopedRows, {
-        menuItemId: option.menuItemId, quantity: 1,
-        selectedOptions: [{ optionId: option.id, quantity: 1 }],
-      });
+      const scopedRows = recipeRows.filter(
+        (row) => row.modifierOptionId === option.id,
+      );
+      const needs = await resolveOrderItemRecipeNeeds(
+        tenantId,
+        branchId,
+        scopedRows,
+        {
+          menuItemId: option.menuItemId,
+          quantity: 1,
+          selectedOptions: [{ optionId: option.id, quantity: 1 }],
+        },
+      );
       await availabilityService.applyInventoryModifierSignal(
-        tenantId, branchId, option.menuItemId, option.id, canSatisfyNeeds(needs),
+        tenantId,
+        branchId,
+        option.menuItemId,
+        option.id,
+        canSatisfyNeeds(needs),
       );
     }
   },

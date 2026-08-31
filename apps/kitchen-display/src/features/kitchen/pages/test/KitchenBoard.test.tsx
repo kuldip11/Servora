@@ -27,7 +27,7 @@ vi.mock("../../hooks/useUpdateTicketStatus", () => ({
 vi.mock("../../hooks/useKitchenRealtime", () => ({
   useKitchenRealtime: () => ({ connected: true }),
 }));
-import { KitchenBoard } from "../KitchenBoard";
+import { KitchenBoard } from "@/features/kitchen/pages/KitchenBoard";
 describe("KitchenBoard", () =>
   it("renders board shell", () => {
     const h = renderToStaticMarkup(<KitchenBoard onLogout={() => {}} />);

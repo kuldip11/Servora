@@ -2,8 +2,13 @@ import { useState } from "react";
 import type { CancellationReason } from "@pos/types";
 import { Button, Input, Modal } from "@pos/ui";
 
-export function ReasonDialog({
-  open, title, reasons, loading, onClose, onSubmit,
+export const ReasonDialog = ({
+  open,
+  title,
+  reasons,
+  loading,
+  onClose,
+  onSubmit,
 }: {
   open: boolean;
   title: string;
@@ -11,7 +16,7 @@ export function ReasonDialog({
   loading?: boolean;
   onClose: () => void;
   onSubmit: (input: { cancellationReasonId?: string; reason?: string }) => void;
-}) {
+}) => {
   const [reasonId, setReasonId] = useState("");
   const [other, setOther] = useState("");
   const valid = Boolean(reasonId || other.trim());
@@ -26,18 +31,38 @@ export function ReasonDialog({
             onChange={(event) => setReasonId(event.target.value)}
           >
             <option value="">Other</option>
-            {reasons.map((reason) => <option key={reason.id} value={reason.id}>{reason.label}</option>)}
+            {reasons.map((reason) => (
+              <option key={reason.id} value={reason.id}>
+                {reason.label}
+              </option>
+            ))}
           </select>
         </label>
-        {!reasonId && <Input label="Other reason" value={other} onChange={(event) => setOther(event.target.value)} />}
+        {!reasonId && (
+          <Input
+            label="Other reason"
+            value={other}
+            onChange={(event) => setOther(event.target.value)}
+          />
+        )}
         <div className="flex justify-end gap-2">
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button disabled={!valid} loading={Boolean(loading)} onClick={() => onSubmit({
-            ...(reasonId ? { cancellationReasonId: reasonId } : {}),
-            ...(other.trim() ? { reason: other.trim() } : {}),
-          })}>Confirm</Button>
+          <Button variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            disabled={!valid}
+            loading={Boolean(loading)}
+            onClick={() =>
+              onSubmit({
+                ...(reasonId ? { cancellationReasonId: reasonId } : {}),
+                ...(other.trim() ? { reason: other.trim() } : {}),
+              })
+            }
+          >
+            Confirm
+          </Button>
         </div>
       </div>
     </Modal>
   );
-}
+};

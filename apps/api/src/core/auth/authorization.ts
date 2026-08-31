@@ -9,9 +9,9 @@ import {
   roles,
   tenantMemberships,
   branches,
-} from "../../db/schema";
-import { ForbiddenError } from "../errors";
-import type { Database } from "../../db";
+} from "@/db/schema";
+import { ForbiddenError } from "@/core/errors";
+import type { Database } from "@/db";
 
 export type AuthorizationContext = {
   userId: string;
@@ -28,12 +28,11 @@ export type AuthorizationDecision = {
   tenantWide: boolean;
 };
 
-export async function resolveMembership(
+export const resolveMembership = async (
   db: Database,
   userId: string,
   tenantId: string,
-) {
-
+) => {
   if (!tenantId) return undefined;
 
   return db.query.tenantMemberships.findFirst({
@@ -51,12 +50,12 @@ export async function resolveMembership(
       branches: true,
     },
   });
-}
+};
 
-export async function resolveAuthorization(
+export const resolveAuthorization = async (
   db: Database,
   context: AuthorizationContext,
-): Promise<AuthorizationDecision> {
+): Promise<AuthorizationDecision> => {
   const membership = await resolveMembership(
     db,
     context.userId,
@@ -88,8 +87,7 @@ export async function resolveAuthorization(
   ];
   const tenantWide =
     membership.roles.some(
-      (item) =>
-        item.role?.scope === "GLOBAL" || item.role?.scope === "TENANT",
+      (item) => item.role?.scope === "GLOBAL" || item.role?.scope === "TENANT",
     ) || globalRoles.some((item) => item.role?.scope === "GLOBAL");
   const branchIds = membership.branches.map((item) => item.branchId);
 
@@ -131,9 +129,7 @@ export async function resolveAuthorization(
     .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
     .where(inArray(rolePermissions.roleId, roleIds));
 
-  const permissionKeys = new Set<string>(
-    rows.map((row) => row.key),
-  );
+  const permissionKeys = new Set<string>(rows.map((row) => row.key));
   for (const globalRole of globalRoles) {
     for (const rolePermission of globalRole.role?.rolePermissions ?? []) {
       if (rolePermission.permission?.key)
@@ -151,22 +147,22 @@ export async function resolveAuthorization(
     branchIds,
     tenantWide,
   };
-}
+};
 
-export async function hasPermission(
+export const hasPermission = async (
   db: Database,
   context: AuthorizationContext,
   permissionKey: string,
-) {
+) => {
   const decision = await resolveAuthorization(db, context);
   return decision.allowed && decision.permissionKeys.includes(permissionKey);
-}
+};
 
-export async function requirePermission(
+export const requirePermission = async (
   db: Database,
   context: AuthorizationContext,
   permissionKey: string,
-) {
+) => {
   const decision = await resolveAuthorization(db, context);
 
   if (!decision.allowed) {
@@ -178,13 +174,13 @@ export async function requirePermission(
   }
 
   return decision;
-}
+};
 
-export async function requireBranchAccess(
+export const requireBranchAccess = async (
   db: Database,
   context: AuthorizationContext,
   branchId: string,
-) {
+) => {
   const decision = await resolveAuthorization(db, {
     ...context,
     branchId,
@@ -195,4 +191,4 @@ export async function requireBranchAccess(
   }
 
   return decision;
-}
+};

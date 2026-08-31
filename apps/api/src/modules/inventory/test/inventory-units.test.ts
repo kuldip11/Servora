@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   areInventoryUnitsCompatible,
   convertInventoryQuantity,
-} from "../inventory-units";
+} from "@/modules/inventory/inventory-units";
 
 describe("inventory unit conversion", () => {
   it("normalizes compatible mass and volume units", () => {

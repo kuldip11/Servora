@@ -1,27 +1,31 @@
 import { useQueryClient } from "@tanstack/react-query";
 import type { KitchenTicket } from "@pos/types";
-import { useRealtimeEvent, useConnectionStatus } from "../../../shared/lib/realtime";
-import { filterTicketForStation } from "../utils/ticket";
+import { useRealtimeEvent, useConnectionStatus } from "@/shared/lib/realtime";
+import { filterTicketForStation } from "@/features/kitchen/utils/ticket";
 import { kitchenTicketsQueryKey } from "./useKitchenTickets";
 
-function isVisible(ticket: KitchenTicket) {
+const isVisible = (ticket: KitchenTicket) => {
   return ["HELD", "FIRED", "PREPARING", "READY"].includes(ticket.status);
-}
+};
 
-export function mergeKitchenTicketIntoQueue(
+export const mergeKitchenTicketIntoQueue = (
   current: KitchenTicket[] | undefined,
   incoming: KitchenTicket,
   stationId?: string,
-): KitchenTicket[] {
+): KitchenTicket[] => {
   const ticket = filterTicketForStation(incoming, stationId);
   const without = (current ?? []).filter((item) => item.id !== incoming.id);
   if (!ticket || !isVisible(ticket)) return without;
   return [...without, ticket].sort(
-    (a, b) => (a.firedAt ? new Date(a.firedAt).getTime() : 0) - (b.firedAt ? new Date(b.firedAt).getTime() : 0),
+    (a, b) =>
+      (a.firedAt ? new Date(a.firedAt).getTime() : 0) -
+      (b.firedAt ? new Date(b.firedAt).getTime() : 0),
   );
-}
+};
 
-export function useKitchenRealtime(stationId?: string): { connected: boolean } {
+export const useKitchenRealtime = (
+  stationId?: string,
+): { connected: boolean } => {
   const qc = useQueryClient();
   const connected = useConnectionStatus();
   const key = kitchenTicketsQueryKey(stationId);
@@ -34,4 +38,4 @@ export function useKitchenRealtime(stationId?: string): { connected: boolean } {
   useRealtimeEvent("kitchen.ticket.updated", (event) => upsert(event.payload));
   useRealtimeEvent("order.item.voided", (event) => upsert(event.payload));
   return { connected };
-}
+};

@@ -13,11 +13,7 @@ import {
 import { sql } from "drizzle-orm";
 import { tenants } from "./tenant.schema";
 import { branches } from "./branch.schema";
-import {
-  menuItems,
-  menuItemVariants,
-  modifierOptions,
-} from "./menu.schema";
+import { menuItems, menuItemVariants, modifierOptions } from "./menu.schema";
 import { inventoryItems, inventoryUnitEnum } from "./inventory.schema";
 
 export const subRecipes = pgTable(
@@ -28,7 +24,9 @@ export const subRecipes = pgTable(
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
 
-    branchId: uuid("branch_id").notNull().references(() => branches.id, { onDelete: "cascade" }),
+    branchId: uuid("branch_id")
+      .notNull()
+      .references(() => branches.id, { onDelete: "cascade" }),
     name: varchar("name", { length: 200 }).notNull(),
     yieldQuantity: numeric("yield_quantity", { precision: 12, scale: 3 })
       .notNull()
@@ -40,7 +38,10 @@ export const subRecipes = pgTable(
   },
   (t) => ({
     tenantIdx: index("sub_recipes_tenant_idx").on(t.tenantId),
-    tenantBranchIdx: index("sub_recipes_tenant_branch_idx").on(t.tenantId, t.branchId),
+    tenantBranchIdx: index("sub_recipes_tenant_branch_idx").on(
+      t.tenantId,
+      t.branchId,
+    ),
     yieldPercentCheck: check(
       "sub_recipes_yield_percent_check",
       sql`${t.yieldPercent} is null or (${t.yieldPercent} > 0 and ${t.yieldPercent} <= 100)`,
@@ -124,25 +125,37 @@ export const recipes = pgTable(
     inventoryItemIdx: index("recipes_inventory_item_idx").on(t.inventoryItemId),
     subRecipeIdx: index("recipes_sub_recipe_idx").on(t.subRecipeId),
     variantIdx: index("recipes_variant_idx").on(t.variantId),
-    modifierOptionIdx: index("recipes_modifier_option_idx").on(t.modifierOptionId),
+    modifierOptionIdx: index("recipes_modifier_option_idx").on(
+      t.modifierOptionId,
+    ),
     baseInventoryUnique: uniqueIndex("recipes_base_inventory_unique")
       .on(t.menuItemId, t.inventoryItemId)
-      .where(sql`${t.inventoryItemId} is not null and ${t.variantId} is null and ${t.modifierOptionId} is null`),
+      .where(
+        sql`${t.inventoryItemId} is not null and ${t.variantId} is null and ${t.modifierOptionId} is null`,
+      ),
     baseSubRecipeUnique: uniqueIndex("recipes_base_sub_recipe_unique")
       .on(t.menuItemId, t.subRecipeId)
-      .where(sql`${t.subRecipeId} is not null and ${t.variantId} is null and ${t.modifierOptionId} is null`),
+      .where(
+        sql`${t.subRecipeId} is not null and ${t.variantId} is null and ${t.modifierOptionId} is null`,
+      ),
     variantInventoryUnique: uniqueIndex("recipes_variant_inventory_unique")
       .on(t.menuItemId, t.variantId, t.inventoryItemId)
-      .where(sql`${t.variantId} is not null and ${t.inventoryItemId} is not null`),
+      .where(
+        sql`${t.variantId} is not null and ${t.inventoryItemId} is not null`,
+      ),
     variantSubRecipeUnique: uniqueIndex("recipes_variant_sub_recipe_unique")
       .on(t.menuItemId, t.variantId, t.subRecipeId)
       .where(sql`${t.variantId} is not null and ${t.subRecipeId} is not null`),
     modifierInventoryUnique: uniqueIndex("recipes_modifier_inventory_unique")
       .on(t.menuItemId, t.modifierOptionId, t.inventoryItemId)
-      .where(sql`${t.modifierOptionId} is not null and ${t.inventoryItemId} is not null`),
+      .where(
+        sql`${t.modifierOptionId} is not null and ${t.inventoryItemId} is not null`,
+      ),
     modifierSubRecipeUnique: uniqueIndex("recipes_modifier_sub_recipe_unique")
       .on(t.menuItemId, t.modifierOptionId, t.subRecipeId)
-      .where(sql`${t.modifierOptionId} is not null and ${t.subRecipeId} is not null`),
+      .where(
+        sql`${t.modifierOptionId} is not null and ${t.subRecipeId} is not null`,
+      ),
     sourceCheck: check(
       "recipes_source_check",
       sql`((${t.inventoryItemId} is not null)::int + (${t.subRecipeId} is not null)::int) = 1`,

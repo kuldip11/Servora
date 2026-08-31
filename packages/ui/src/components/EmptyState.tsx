@@ -21,14 +21,14 @@ export interface EmptyStateProps {
   className?: string | undefined;
 }
 
-export function EmptyState({
+export const EmptyState = ({
   icon: Icon,
   title,
   description,
   action,
   size = "md",
   className,
-}: EmptyStateProps) {
+}: EmptyStateProps) => {
   const s = SIZE_CLASSES[size];
   return (
     <div
@@ -57,4 +57,4 @@ export function EmptyState({
       {action}
     </div>
   );
-}
+};

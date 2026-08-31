@@ -8,7 +8,7 @@ const { list, create, update, deactivate } = vi.hoisted(() => ({
 vi.mock("../branch.service", () => ({
   branchService: { list, create, update, deactivate },
 }));
-import { branchController } from "../branch.controller";
+import { branchController } from "@/modules/branches/branch.controller";
 const auth = {
   userId: "u1",
   tenantId: "t1",

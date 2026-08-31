@@ -20,8 +20,8 @@ vi.mock("../../../orders/pricing/pricing-pipeline", () => ({
 }));
 vi.mock("../../../../core/auth", () => ({ requirePermission: vi.fn() }));
 
-import { InternalError } from "../../../../core/errors";
-import { orderExplainService } from "../order-explain.service";
+import { InternalError } from "@/core/errors";
+import { orderExplainService } from "@/modules/menu/explain/order-explain.service";
 
 const auth = {
   tenantId: "tenant",
@@ -31,7 +31,11 @@ const auth = {
   permissions: [],
 } as never;
 
-function line(id: string, cause: string, source: "PRICE_RULE" | "BRANCH_OVERRIDE" | "MENU_ITEM") {
+const line = (
+  id: string,
+  cause: string,
+  source: "PRICE_RULE" | "BRANCH_OVERRIDE" | "MENU_ITEM",
+) => {
   const menuItemId = `menu-${id}`;
   return {
     id,
@@ -92,10 +96,14 @@ function line(id: string, cause: string, source: "PRICE_RULE" | "BRANCH_OVERRIDE
       BASE_PRICE: 10,
       VARIANT: 0,
       MODIFIER: 0,
-      PRICE_SOURCE: { kind: source, id: `source-${id}`, description: `${source} won` },
+      PRICE_SOURCE: {
+        kind: source,
+        id: `source-${id}`,
+        description: `${source} won`,
+      },
     },
   };
-}
+};
 
 describe("H1 point-in-time order explanation", () => {
   beforeEach(() => {
@@ -150,10 +158,22 @@ describe("H1 point-in-time order explanation", () => {
       asOf: new Date("2026-08-30T10:00:00.000Z"),
       historicalReplay: expect.any(Object),
     });
-    expect(explained.lines[0]!.availabilityAtOrder).toMatchObject({ cause: "SCHEDULE" });
-    expect(explained.lines[2]!.pricingReplay.priceSource).toMatchObject({ kind: "PRICE_RULE" });
-    expect(explained.lines.every((entry) => entry.authoritativePricingReplay?.matchesSnapshot)).toBe(true);
-    expect(explained.lines.every((entry) => entry.authoritativeAvailabilityReplay?.matchesSnapshot)).toBe(true);
+    expect(explained.lines[0]!.availabilityAtOrder).toMatchObject({
+      cause: "SCHEDULE",
+    });
+    expect(explained.lines[2]!.pricingReplay.priceSource).toMatchObject({
+      kind: "PRICE_RULE",
+    });
+    expect(
+      explained.lines.every(
+        (entry) => entry.authoritativePricingReplay?.matchesSnapshot,
+      ),
+    ).toBe(true);
+    expect(
+      explained.lines.every(
+        (entry) => entry.authoritativeAvailabilityReplay?.matchesSnapshot,
+      ),
+    ).toBe(true);
   });
 
   it("rejects persisted menu-item lines that are missing mandatory replay evidence", async () => {
@@ -165,18 +185,28 @@ describe("H1 point-in-time order explanation", () => {
       customerGroupId: null,
       resolutionAsOf: new Date("2026-08-30T10:00:00.000Z"),
       createdAt: new Date("2026-08-30T10:00:01.000Z"),
-      subtotal: "10.00", discountAmount: "0.00", taxAmount: "0.50",
-      serviceChargeAmount: "0.00", roundingAdjustment: "0.00", totalAmount: "10.50",
+      subtotal: "10.00",
+      discountAmount: "0.00",
+      taxAmount: "0.50",
+      serviceChargeAmount: "0.00",
+      roundingAdjustment: "0.00",
+      totalAmount: "10.50",
       items: [broken],
     });
 
-    await expect(orderExplainService.explainOrder(auth, "order")).rejects.toBeInstanceOf(InternalError);
+    await expect(
+      orderExplainService.explainOrder(auth, "order"),
+    ).rejects.toBeInstanceOf(InternalError);
     expect(getEffectiveItem).not.toHaveBeenCalled();
     expect(price).not.toHaveBeenCalled();
   });
 
   it("uses the exact resolution timestamp rather than the later database createdAt timestamp", async () => {
     const explained = await orderExplainService.explainOrder(auth, "order");
-    expect(explained.lines.every((entry) => entry.asOf === "2026-08-30T10:00:00.000Z")).toBe(true);
+    expect(
+      explained.lines.every(
+        (entry) => entry.asOf === "2026-08-30T10:00:00.000Z",
+      ),
+    ).toBe(true);
   });
 });

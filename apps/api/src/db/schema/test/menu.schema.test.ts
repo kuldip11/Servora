@@ -25,15 +25,15 @@ import {
   menus,
   menuStatusEnum,
   menuMemberships,
-} from "../menu.schema";
-import { priceRules } from "../pricing.schema";
+} from "@/db/schema/menu.schema";
+import { priceRules } from "@/db/schema/pricing.schema";
 
-function expectTable(table: any, name: string, columns: string[]) {
+const expectTable = (table: any, name: string, columns: string[]) => {
   expect(getTableConfig(table).name).toBe(name);
   const actual = Object.keys(table[Symbol.for("drizzle:Columns")]);
   expect(actual).toEqual(expect.arrayContaining(columns));
   expect(actual).toHaveLength(columns.length);
-}
+};
 
 describe("menu.schema.ts", () => {
   const cases: [any, string, string[]][] = [
@@ -132,7 +132,17 @@ describe("menu.schema.ts", () => {
     [
       menuItemVariants,
       "menu_item_variants",
-      ["id", "menuItemId", "name", "price", "status", "manualOverrideStatus", "manualOverrideReason", "manualStockCount", "manualStockCountUpdatedAt"],
+      [
+        "id",
+        "menuItemId",
+        "name",
+        "price",
+        "status",
+        "manualOverrideStatus",
+        "manualOverrideReason",
+        "manualStockCount",
+        "manualStockCountUpdatedAt",
+      ],
     ],
     [
       modifierGroups,

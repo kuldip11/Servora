@@ -1,5 +1,5 @@
 import type { OrdersListFilters } from "./services/orders.service";
-import { branchQueryContextKey } from "../../shared/lib/query-context";
+import { branchQueryContextKey } from "@/shared/lib/query-context";
 
 export const orderKeys = {
   all: ["orders"] as const,

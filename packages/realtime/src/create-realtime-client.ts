@@ -1,7 +1,6 @@
 import type { RealtimeClientConfig } from "./types";
 
 export interface RealtimeClient<E extends { type: string }> {
-
   subscribe(handler: (event: E) => void): () => void;
   isConnected(): boolean;
 
@@ -53,9 +52,7 @@ export function createRealtimeClient<E extends { type: string }>(
       try {
         const event = JSON.parse(e.data) as E;
         handlers.forEach((h) => h(event));
-      } catch {
-
-      }
+      } catch {}
     };
 
     ws.onclose = () => {

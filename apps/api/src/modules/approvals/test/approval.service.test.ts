@@ -1,13 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { findThreshold, tokenReturning, tokenWhere, tokenSet, update } = vi.hoisted(() => {
-  const findThreshold = vi.fn();
-  const tokenReturning = vi.fn();
-  const tokenWhere = vi.fn(() => ({ returning: tokenReturning }));
-  const tokenSet = vi.fn(() => ({ where: tokenWhere }));
-  const update = vi.fn(() => ({ set: tokenSet }));
-  return { findThreshold, tokenReturning, tokenWhere, tokenSet, update };
-});
+const { findThreshold, tokenReturning, tokenWhere, tokenSet, update } =
+  vi.hoisted(() => {
+    const findThreshold = vi.fn();
+    const tokenReturning = vi.fn();
+    const tokenWhere = vi.fn(() => ({ returning: tokenReturning }));
+    const tokenSet = vi.fn(() => ({ where: tokenWhere }));
+    const update = vi.fn(() => ({ set: tokenSet }));
+    return { findThreshold, tokenReturning, tokenWhere, tokenSet, update };
+  });
 vi.mock("../../../db", () => ({
   db: {
     query: {
@@ -21,7 +22,7 @@ vi.mock("../../../core/auth", () => ({ requirePermission: vi.fn() }));
 vi.mock("../../../core/audit", () => ({ writeAudit: vi.fn() }));
 vi.mock("bcryptjs", () => ({ default: { compare: vi.fn() } }));
 
-import { approvalService } from "../approval.service";
+import { approvalService } from "@/modules/approvals/approval.service";
 
 describe("H6 approval-token behavior", () => {
   beforeEach(() => {
@@ -39,8 +40,20 @@ describe("H6 approval-token behavior", () => {
   });
 
   it("does not consume approval below or exactly at the threshold", async () => {
-    await approvalService.assertApproved("tenant", "COMP", "order", "item", 499.99);
-    await approvalService.assertApproved("tenant", "COMP", "order", "item", 500);
+    await approvalService.assertApproved(
+      "tenant",
+      "COMP",
+      "order",
+      "item",
+      499.99,
+    );
+    await approvalService.assertApproved(
+      "tenant",
+      "COMP",
+      "order",
+      "item",
+      500,
+    );
     expect(update).not.toHaveBeenCalled();
   });
 
@@ -52,16 +65,32 @@ describe("H6 approval-token behavior", () => {
 
   it("atomically consumes a valid single-use token", async () => {
     await expect(
-      approvalService.assertApproved("tenant", "VOID", "order", "item", 700, "token"),
+      approvalService.assertApproved(
+        "tenant",
+        "VOID",
+        "order",
+        "item",
+        700,
+        "token",
+      ),
     ).resolves.toBeUndefined();
     expect(update).toHaveBeenCalledOnce();
-    expect(tokenSet).toHaveBeenCalledWith(expect.objectContaining({ usedAt: expect.any(Date) }));
+    expect(tokenSet).toHaveBeenCalledWith(
+      expect.objectContaining({ usedAt: expect.any(Date) }),
+    );
   });
 
   it("rejects an expired, stale, wrong-scope, or already-used token when the atomic update matches no row", async () => {
     tokenReturning.mockResolvedValue([]);
     await expect(
-      approvalService.assertApproved("tenant", "VOID", "order", "item", 700, "token"),
+      approvalService.assertApproved(
+        "tenant",
+        "VOID",
+        "order",
+        "item",
+        700,
+        "token",
+      ),
     ).rejects.toThrow("Manager approval is invalid, expired, or already used");
   });
 });

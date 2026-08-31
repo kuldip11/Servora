@@ -18,7 +18,7 @@ const { findFirst, findMany, insert, update, tx, db } = vi.hoisted(() => {
   return { findFirst, findMany, insert, update, tx, db };
 });
 vi.mock("../../../db", () => ({ db }));
-import { authRepository } from "../auth.repository";
+import { authRepository } from "@/modules/auth/auth.repository";
 const returning = (rows: any[]) => vi.fn().mockResolvedValue(rows);
 beforeEach(() => {
   vi.clearAllMocks();

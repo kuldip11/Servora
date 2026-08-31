@@ -1,8 +1,8 @@
 import { Elysia, t } from "elysia";
-import { requireAuthPlugin } from "../../core/auth";
+import { requireAuthPlugin } from "@/core/auth";
 import { customerRequestService } from "./customer-requests";
-import { CustomerSessionRequiredError } from "../../core/errors";
-import { createdResponse, successResponse } from "../../core/response";
+import { CustomerSessionRequiredError } from "@/core/errors";
+import { createdResponse, successResponse } from "@/core/response";
 
 const customerRequestType = t.Union([
   t.Literal("CALL_WAITER"),

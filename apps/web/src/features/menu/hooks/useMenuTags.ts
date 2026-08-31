@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { menuTagsQuery } from "../query-options";
+import { menuTagsQuery } from "@/features/menu/query-options";
 
-export function useMenuTags() {
+export const useMenuTags = () => {
   return useQuery(menuTagsQuery());
-}
+};

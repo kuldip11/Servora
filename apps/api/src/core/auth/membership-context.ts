@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
-import { ForbiddenError } from "../errors";
-import type { Database } from "../../db";
+import { ForbiddenError } from "@/core/errors";
+import type { Database } from "@/db";
 
 import type { AvailableMembership } from "@pos/types";
 import {
@@ -8,14 +8,14 @@ import {
   tenantMemberships,
   users,
   globalUserRoles,
-} from "../../db/schema";
+} from "@/db/schema";
 import { type ActiveAuthContext } from "./membership-session";
 import { resolveMembership } from "./authorization";
 
-export async function listUserMemberships(
+export const listUserMemberships = async (
   db: Database,
   userId: string,
-): Promise<AvailableMembership[]> {
+): Promise<AvailableMembership[]> => {
   const [memberships, user] = await Promise.all([
     db.query.tenantMemberships.findMany({
       where: and(
@@ -42,8 +42,7 @@ export async function listUserMemberships(
 
   const isGlobalOwner = Boolean(
     user?.globalUserRoles?.some(
-      (item) =>
-        item.role?.name === "OWNER" && item.role?.scope === "GLOBAL",
+      (item) => item.role?.name === "OWNER" && item.role?.scope === "GLOBAL",
     ),
   );
 
@@ -83,13 +82,13 @@ export async function listUserMemberships(
       };
     }),
   );
-}
+};
 
-export async function resolveActiveBranch(
+export const resolveActiveBranch = async (
   db: Database,
   context: ActiveAuthContext,
   branchId: string,
-): Promise<ActiveAuthContext> {
+): Promise<ActiveAuthContext> => {
   const membership = await resolveMembership(
     db,
     context.userId,
@@ -118,8 +117,7 @@ export async function resolveActiveBranch(
   });
   const tenantWide =
     membership.roles.some(
-      (item) =>
-        item.role?.scope === "GLOBAL" || item.role?.scope === "TENANT",
+      (item) => item.role?.scope === "GLOBAL" || item.role?.scope === "TENANT",
     ) || globalRoles.some((item) => item.role?.scope === "GLOBAL");
 
   if (!tenantWide) {
@@ -136,4 +134,4 @@ export async function resolveActiveBranch(
     ...context,
     branchId,
   };
-}
+};

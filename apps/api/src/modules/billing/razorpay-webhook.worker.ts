@@ -1,14 +1,14 @@
 import Redis from "ioredis";
 import { and, inArray, lte, or, isNull } from "drizzle-orm";
-import { db } from "../../db";
-import { paymentWebhookEvents } from "../../db/schema";
+import { db } from "@/db";
+import { paymentWebhookEvents } from "@/db/schema";
 import { razorpayWebhookService } from "./razorpay-webhook.service";
-import { metrics } from "../../core/observability/metrics";
+import { metrics } from "@/core/observability/metrics";
 
 import { RAZORPAY_WEBHOOK_QUEUE } from "./constants";
 const queueUrl = process.env["REDIS_URL"];
 
-async function recoverDurableEvents() {
+const recoverDurableEvents = async () => {
   const now = new Date();
   const events = await db.query.paymentWebhookEvents.findMany({
     where: and(
@@ -27,7 +27,8 @@ async function recoverDurableEvents() {
     enableReadyCheck: true,
   });
   try {
-    for (const event of events) await redis.lpush(RAZORPAY_WEBHOOK_QUEUE, event.eventId);
+    for (const event of events)
+      await redis.lpush(RAZORPAY_WEBHOOK_QUEUE, event.eventId);
     await db
       .update(paymentWebhookEvents)
       .set({ nextAttemptAt: new Date(Date.now() + 30_000) })
@@ -40,9 +41,9 @@ async function recoverDurableEvents() {
   } finally {
     await redis.quit();
   }
-}
+};
 
-export function startRazorpayWebhookWorker() {
+export const startRazorpayWebhookWorker = () => {
   if (!queueUrl) {
     throw new Error("REDIS_URL environment variable is required");
   }
@@ -63,12 +64,16 @@ export function startRazorpayWebhookWorker() {
         try {
           await razorpayWebhookService.processEvent(eventId);
         } catch (error) {
-          metrics.increment("servora_payment_webhook_failures_total", { stage: "worker" });
+          metrics.increment("servora_payment_webhook_failures_total", {
+            stage: "worker",
+          });
           console.error(`[Razorpay Worker] Failed event ${eventId}`, error);
         }
       } catch (error) {
         if (!stopped) {
-          metrics.increment("servora_payment_webhook_failures_total", { stage: "queue" });
+          metrics.increment("servora_payment_webhook_failures_total", {
+            stage: "queue",
+          });
           console.error("[Razorpay Worker] Redis error", error);
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }
@@ -91,4 +96,4 @@ export function startRazorpayWebhookWorker() {
     if (recoveryTimer) clearInterval(recoveryTimer);
     void workerRedis.quit();
   };
-}
+};

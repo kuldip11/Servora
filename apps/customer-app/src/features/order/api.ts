@@ -1,4 +1,4 @@
-import { request } from "../../shared/api/client";
+import { request } from "@/shared/api/client";
 
 export type CustomerOrder = {
   id: string;
@@ -54,7 +54,11 @@ export type CreateCustomerOrderInput = {
     quantity: number;
     chefNotes?: string;
     fulfillmentType?: "DINE_IN" | "TAKEAWAY";
-    selectedOptions?: Array<{ optionId: string; quantity?: number; zoneLabel?: "LEFT" | "RIGHT" | "WHOLE" }>;
+    selectedOptions?: Array<{
+      optionId: string;
+      quantity?: number;
+      zoneLabel?: "LEFT" | "RIGHT" | "WHOLE";
+    }>;
   }>;
   combos?: Array<{
     comboId: string;
@@ -66,10 +70,10 @@ export type CreateCustomerOrderInput = {
   loyaltyPhone?: string;
 };
 
-export function createCustomerOrder(
+export const createCustomerOrder = (
   sessionToken: string,
   input: CreateCustomerOrderInput,
-) {
+) => {
   const requestId = crypto.randomUUID();
   return request<CustomerOrder>(
     "/api/customer/orders",
@@ -80,15 +84,15 @@ export function createCustomerOrder(
     },
     sessionToken,
   );
-}
+};
 
-export function getCustomerOrder(sessionToken: string, orderId: string) {
+export const getCustomerOrder = (sessionToken: string, orderId: string) => {
   return request<CustomerOrder>(
     `/api/customer/orders/${orderId}`,
     undefined,
     sessionToken,
   );
-}
+};
 
 export type CustomerCheckout = {
   payment: {
@@ -103,7 +107,10 @@ export type CustomerCheckout = {
   method: "CASH";
 };
 
-export function checkoutCustomerOrder(sessionToken: string, orderId: string) {
+export const checkoutCustomerOrder = (
+  sessionToken: string,
+  orderId: string,
+) => {
   return request<CustomerCheckout>(
     `/api/customer/orders/${orderId}/checkout`,
     {
@@ -112,7 +119,7 @@ export function checkoutCustomerOrder(sessionToken: string, orderId: string) {
     },
     sessionToken,
   );
-}
+};
 
 export type TakeawayPaymentVerification = {
   orderId: string;
@@ -121,10 +128,10 @@ export type TakeawayPaymentVerification = {
   razorpaySignature: string;
 };
 
-export function verifyTakeawayPayment(
+export const verifyTakeawayPayment = (
   sessionToken: string,
   input: TakeawayPaymentVerification,
-) {
+) => {
   return request<CustomerOrder>(
     `/api/customer/orders/${input.orderId}/payment/verify`,
     {
@@ -137,9 +144,12 @@ export function verifyTakeawayPayment(
     },
     sessionToken,
   );
-}
+};
 
-export function initiateTakeawayPayment(sessionToken: string, orderId: string) {
+export const initiateTakeawayPayment = (
+  sessionToken: string,
+  orderId: string,
+) => {
   return request<{
     id: string;
     amount: string;
@@ -150,4 +160,4 @@ export function initiateTakeawayPayment(sessionToken: string, orderId: string) {
     { method: "POST" },
     sessionToken,
   );
-}
+};

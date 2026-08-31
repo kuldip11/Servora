@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cartItemKey, type CartItem } from "../cartTypes";
+import { cartItemKey, type CartItem } from "@/features/orders/utils/cartTypes";
 
 const item = (overrides: Partial<CartItem> = {}): CartItem => ({
   menuItemId: "item-1",

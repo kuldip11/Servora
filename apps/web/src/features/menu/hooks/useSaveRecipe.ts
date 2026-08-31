@@ -1,12 +1,12 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
 import type { RecipeIngredientInput } from "@pos/types";
-import { menuRecipesService } from "../services/menu-recipes.service";
-import { menuKeys } from "../query-keys";
-import { inventoryKeys } from "../../inventory/query-keys";
+import { menuRecipesService } from "@/features/menu/services/menu-recipes.service";
+import { menuKeys } from "@/features/menu/query-keys";
+import { inventoryKeys } from "@/features/inventory/query-keys";
 
-export function useSaveRecipe(itemId: string) {
+export const useSaveRecipe = (itemId: string) => {
   return useMutation({
     mutationFn: (ingredients: RecipeIngredientInput[]) =>
       menuRecipesService.save(itemId, ingredients),
@@ -18,4 +18,4 @@ export function useSaveRecipe(itemId: string) {
     },
     onError: () => notifyError(undefined, "Failed to save recipe"),
   });
-}
+};

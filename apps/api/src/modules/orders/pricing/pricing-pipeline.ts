@@ -1,8 +1,6 @@
-
-
-import { ValidationError } from "../../../core/errors";
-import { availabilityRepository } from "../../menu/availability/availability.repository";
-import { priceRuleRepository } from "../../menu/pricing/price-rule.repository";
+import { ValidationError } from "@/core/errors";
+import { availabilityRepository } from "@/modules/menu/availability/availability.repository";
+import { priceRuleRepository } from "@/modules/menu/pricing/price-rule.repository";
 import type { PromotionStageOptions } from "./promotion-stage";
 import { applyDiscountStages } from "./loyalty-stage";
 import { finalizePricing } from "./final-totals-stage";
@@ -34,7 +32,7 @@ export type {
   PricingResult,
 } from "./pricing.types";
 
-export function ruleSpecificity(rule: MatchingPriceRule): number {
+export const ruleSpecificity = (rule: MatchingPriceRule): number => {
   return [
     rule.variantId,
     rule.branchId,
@@ -47,21 +45,25 @@ export function ruleSpecificity(rule: MatchingPriceRule): number {
     rule.customerGroupId,
     rule.coverTier,
   ].filter((value) => value !== null && value !== undefined).length;
-}
+};
 
-function timeMatches(start: string | null, end: string | null, time: string) {
+const timeMatches = (
+  start: string | null,
+  end: string | null,
+  time: string,
+) => {
   if (start === null && end === null) return true;
   if (start !== null && end !== null && start > end) {
     return time >= start || time < end;
   }
   return (start === null || time >= start) && (end === null || time < end);
-}
+};
 
-export function selectPriceRule(
+export const selectPriceRule = (
   rules: MatchingPriceRule[],
   context: PricingContext,
   variantId?: string,
-): MatchingPriceRule | undefined {
+): MatchingPriceRule | undefined => {
   const iso = context.asOf.toISOString();
   const date = iso.slice(0, 10);
   const time = iso.slice(11, 19);
@@ -73,7 +75,8 @@ export function selectPriceRule(
         (rule.channel === null || rule.channel === context.channel) &&
         (rule.fulfillmentType === null ||
           rule.fulfillmentType === context.fulfillmentType) &&
-        (rule.customerGroupId == null || rule.customerGroupId === context.customerGroupId) &&
+        (rule.customerGroupId == null ||
+          rule.customerGroupId === context.customerGroupId) &&
         (rule.coverTier == null || rule.coverTier === context.coverTier) &&
         (rule.startDate === null || date >= rule.startDate) &&
         (rule.endDate === null || date <= rule.endDate) &&
@@ -81,40 +84,49 @@ export function selectPriceRule(
     )
     .sort(
       (a, b) =>
-        ((b.tenantId ? 2 : b.organizationId ? 1 : 0) - (a.tenantId ? 2 : a.organizationId ? 1 : 0)) ||
+        (b.tenantId ? 2 : b.organizationId ? 1 : 0) -
+          (a.tenantId ? 2 : a.organizationId ? 1 : 0) ||
         ruleSpecificity(b) - ruleSpecificity(a) ||
         b.priority - a.priority ||
         a.id.localeCompare(b.id),
     )[0];
-}
+};
 
-export function resolveBasePriceStage(
+export const resolveBasePriceStage = (
   item: PricableMenuItem,
   override?: BranchPricingOverride | undefined,
   percentOffBasePrice?: number | undefined,
-): BasePriceStageResult {
+): BasePriceStageResult => {
   const basePrice = percentOffBasePrice ?? parseFloat(item.basePrice);
-  const percentOff = override?.percentOff == null ? null : parseFloat(override.percentOff);
-  const price = percentOff === null
-    ? parseFloat(override?.price ?? item.basePrice)
-    : Math.max(0, basePrice * (1 - percentOff / 100));
+  const percentOff =
+    override?.percentOff == null ? null : parseFloat(override.percentOff);
+  const price =
+    percentOff === null
+      ? parseFloat(override?.price ?? item.basePrice)
+      : Math.max(0, basePrice * (1 - percentOff / 100));
   const taxRate = parseFloat(override?.taxRate ?? item.taxRate);
   return { price, taxRate, attribution: price };
-}
+};
 
-export function resolveVariantStage(
+export const resolveVariantStage = (
   item: PricableMenuItem,
   currentPrice: number,
   variantId?: string | undefined,
   preserveCurrentPrice = false,
   allowUnavailable = false,
-): { price: number; variantName?: string | undefined; attribution: number } {
+): { price: number; variantName?: string | undefined; attribution: number } => {
   if (!variantId) return { price: currentPrice, attribution: 0 };
 
   const variant = item.variants.find((candidate) => candidate.id === variantId);
   if (!variant) throw new ValidationError(`Variant not found on ${item.name}`);
-  const variantStatus = variant.manualOverrideStatus ?? variant.status ?? "ACTIVE";
-  if (!allowUnavailable && variant.manualOverrideStatus !== "ACTIVE" && variant.manualStockCount != null && variant.manualStockCount <= 0) {
+  const variantStatus =
+    variant.manualOverrideStatus ?? variant.status ?? "ACTIVE";
+  if (
+    !allowUnavailable &&
+    variant.manualOverrideStatus !== "ACTIVE" &&
+    variant.manualStockCount != null &&
+    variant.manualStockCount <= 0
+  ) {
     throw new ValidationError(`${variant.name} is out of stock`);
   }
   if (!allowUnavailable && variantStatus !== "ACTIVE") {
@@ -132,19 +144,33 @@ export function resolveVariantStage(
     variantName: variant.name,
     attribution: price - currentPrice,
   };
-}
+};
 
-export function resolveModifierStage(
+export const resolveModifierStage = (
   item: PricableMenuItem,
   selectedOptions: OrderItemInput["selectedOptions"],
   options: { allowIncompleteSelection?: boolean; variantId?: string } = {},
-): { modifiers: PricedLine["modifiers"]; attribution: number } {
+): { modifiers: PricedLine["modifiers"]; attribution: number } => {
   const groups = item.modifierGroupLinks.map((link) => link.group);
-  const optionLookup = new Map<string, { option: PricableMenuItem["modifierGroupLinks"][number]["group"]["options"][number]; group: PricableMenuItem["modifierGroupLinks"][number]["group"] }>();
-  for (const group of groups) for (const option of group.options ?? []) optionLookup.set(option.id, { option, group });
+  const optionLookup = new Map<
+    string,
+    {
+      option: PricableMenuItem["modifierGroupLinks"][number]["group"]["options"][number];
+      group: PricableMenuItem["modifierGroupLinks"][number]["group"];
+    }
+  >();
+  for (const group of groups)
+    for (const option of group.options ?? [])
+      optionLookup.set(option.id, { option, group });
 
-  const priceFor = (option: PricableMenuItem["modifierGroupLinks"][number]["group"]["options"][number]) => {
-    const scoped = options.variantId ? option.variantPrices?.find((price) => price.variantId === options.variantId) : undefined;
+  const priceFor = (
+    option: PricableMenuItem["modifierGroupLinks"][number]["group"]["options"][number],
+  ) => {
+    const scoped = options.variantId
+      ? option.variantPrices?.find(
+          (price) => price.variantId === options.variantId,
+        )
+      : undefined;
     return parseFloat(scoped?.additionalPrice ?? option.additionalPrice);
   };
 
@@ -153,12 +179,24 @@ export function resolveModifierStage(
     allowIncomplete: boolean,
     priceScale = 1,
   ) => {
-    const selectedByGroup = new Map<string, Array<{ optionId: string; quantity: number; zoneLabel?: string }>>();
+    const selectedByGroup = new Map<
+      string,
+      Array<{ optionId: string; quantity: number; zoneLabel?: string }>
+    >();
     for (const selection of selections) {
       const found = optionLookup.get(selection.optionId);
-      if (!found) throw new ValidationError(`Modifier option ${selection.optionId} not found on ${item.name}`);
-      if (!found.option.isAvailable) throw new ValidationError(`${found.option.name} is currently unavailable`);
-      const quantity = Math.min(selection.quantity ?? 1, found.option.maxQuantity ?? 1);
+      if (!found)
+        throw new ValidationError(
+          `Modifier option ${selection.optionId} not found on ${item.name}`,
+        );
+      if (!found.option.isAvailable)
+        throw new ValidationError(
+          `${found.option.name} is currently unavailable`,
+        );
+      const quantity = Math.min(
+        selection.quantity ?? 1,
+        found.option.maxQuantity ?? 1,
+      );
       const list = selectedByGroup.get(found.group.id) ?? [];
       list.push({
         optionId: selection.optionId,
@@ -167,42 +205,73 @@ export function resolveModifierStage(
       });
       selectedByGroup.set(found.group.id, list);
     }
-    const selectedOptionIds = new Set(selections.map((selection) => selection.optionId));
+    const selectedOptionIds = new Set(
+      selections.map((selection) => selection.optionId),
+    );
     for (const group of groups) {
       const picked = selectedByGroup.get(group.id) ?? [];
-      if (group.dependsOnOptionId && !selectedOptionIds.has(group.dependsOnOptionId)) {
-        if (picked.length) throw new ValidationError(`"${group.name}" requires its prerequisite selection on ${item.name}`);
+      if (
+        group.dependsOnOptionId &&
+        !selectedOptionIds.has(group.dependsOnOptionId)
+      ) {
+        if (picked.length)
+          throw new ValidationError(
+            `"${group.name}" requires its prerequisite selection on ${item.name}`,
+          );
         continue;
       }
-      if (!allowIncomplete && picked.length < group.minSelections) throw new ValidationError(`"${group.name}" requires at least ${group.minSelections} selection(s) on ${item.name}`);
-      if (group.maxSelections != null && picked.length > group.maxSelections) throw new ValidationError(`"${group.name}" allows at most ${group.maxSelections} selection(s) on ${item.name}`);
-      if (group.selectionType === "SINGLE" && picked.length > 1) throw new ValidationError(`"${group.name}" only allows one selection on ${item.name}`);
+      if (!allowIncomplete && picked.length < group.minSelections)
+        throw new ValidationError(
+          `"${group.name}" requires at least ${group.minSelections} selection(s) on ${item.name}`,
+        );
+      if (group.maxSelections != null && picked.length > group.maxSelections)
+        throw new ValidationError(
+          `"${group.name}" allows at most ${group.maxSelections} selection(s) on ${item.name}`,
+        );
+      if (group.selectionType === "SINGLE" && picked.length > 1)
+        throw new ValidationError(
+          `"${group.name}" only allows one selection on ${item.name}`,
+        );
     }
     const modifiers: PricedLine["modifiers"] = [];
     let attribution = 0;
-    for (const picks of selectedByGroup.values()) for (const pick of picks) {
-      const found = optionLookup.get(pick.optionId)!;
-      const price = priceFor(found.option) * priceScale;
-      modifiers.push({
-        modifierId: found.option.id,
-        modifierGroupName: found.group.name,
-        name: found.group.groupType === "SUBSTITUTION" && found.option.replacesDefaultComponent ? `~~${found.option.replacesDefaultComponent}~~ → ${found.option.name}` : found.option.name,
-        price,
-        quantity: pick.quantity,
-        zoneLabel: pick.zoneLabel,
-      });
-      attribution += price * pick.quantity;
-    }
+    for (const picks of selectedByGroup.values())
+      for (const pick of picks) {
+        const found = optionLookup.get(pick.optionId)!;
+        const price = priceFor(found.option) * priceScale;
+        modifiers.push({
+          modifierId: found.option.id,
+          modifierGroupName: found.group.name,
+          name:
+            found.group.groupType === "SUBSTITUTION" &&
+            found.option.replacesDefaultComponent
+              ? `~~${found.option.replacesDefaultComponent}~~ → ${found.option.name}`
+              : found.option.name,
+          price,
+          quantity: pick.quantity,
+          zoneLabel: pick.zoneLabel,
+        });
+        attribution += price * pick.quantity;
+      }
     return { modifiers, attribution };
   };
 
   const selections = selectedOptions ?? [];
-  if (!item.supportsZones || !selections.some((selection) => selection.zoneLabel && selection.zoneLabel !== "WHOLE")) {
+  if (
+    !item.supportsZones ||
+    !selections.some(
+      (selection) => selection.zoneLabel && selection.zoneLabel !== "WHOLE",
+    )
+  ) {
     return resolveSet(selections, options.allowIncompleteSelection ?? false);
   }
 
-  const whole = selections.filter((selection) => !selection.zoneLabel || selection.zoneLabel === "WHOLE");
-  const zoned = selections.filter((selection) => selection.zoneLabel && selection.zoneLabel !== "WHOLE");
+  const whole = selections.filter(
+    (selection) => !selection.zoneLabel || selection.zoneLabel === "WHOLE",
+  );
+  const zoned = selections.filter(
+    (selection) => selection.zoneLabel && selection.zoneLabel !== "WHOLE",
+  );
   const byZone = new Map<string, typeof zoned>();
   for (const selection of zoned) {
     const label = selection.zoneLabel!;
@@ -211,27 +280,43 @@ export function resolveModifierStage(
     byZone.set(label, list);
   }
   const wholeResult = resolveSet(whole, true);
-  const rawZoneResults = [...byZone.entries()].map(([label, zoneSelections]) => ({ label, result: resolveSet(zoneSelections, true) }));
+  const rawZoneResults = [...byZone.entries()].map(
+    ([label, zoneSelections]) => ({
+      label,
+      result: resolveSet(zoneSelections, true),
+    }),
+  );
   const rawTotals = rawZoneResults.map(({ result }) => result.attribution);
   const rule = item.zonePricingRule ?? "HIGHER";
   let scaleByZone = new Map<string, number>();
   if (rule === "HIGHER") {
     const max = Math.max(0, ...rawTotals);
-    const winner = rawZoneResults.find(({ result }) => result.attribution === max)?.label;
-    for (const { label } of rawZoneResults) scaleByZone.set(label, label === winner ? 1 : 0);
+    const winner = rawZoneResults.find(
+      ({ result }) => result.attribution === max,
+    )?.label;
+    for (const { label } of rawZoneResults)
+      scaleByZone.set(label, label === winner ? 1 : 0);
   } else {
-    const scale = rule === "AVERAGE" ? 1 / Math.max(1, rawZoneResults.length) : 0.5;
+    const scale =
+      rule === "AVERAGE" ? 1 / Math.max(1, rawZoneResults.length) : 0.5;
     for (const { label } of rawZoneResults) scaleByZone.set(label, scale);
   }
   const zoneModifiers: PricedLine["modifiers"] = [];
   let zoneAttribution = 0;
   for (const [label, zoneSelections] of byZone) {
-    const result = resolveSet(zoneSelections, true, scaleByZone.get(label) ?? 0);
+    const result = resolveSet(
+      zoneSelections,
+      true,
+      scaleByZone.get(label) ?? 0,
+    );
     zoneModifiers.push(...result.modifiers);
     zoneAttribution += result.attribution;
   }
-  return { modifiers: [...wholeResult.modifiers, ...zoneModifiers], attribution: wholeResult.attribution + zoneAttribution };
-}
+  return {
+    modifiers: [...wholeResult.modifiers, ...zoneModifiers],
+    attribution: wholeResult.attribution + zoneAttribution,
+  };
+};
 
 export const pricingPipeline = {
   async price(
@@ -243,7 +328,9 @@ export const pricingPipeline = {
     }
     const menuItemIds = requestedLines.map((line) => line.menuItemId);
     if (context.historicalReplay && requestedLines.length !== 1) {
-      throw new ValidationError("Historical pricing replay accepts exactly one line");
+      throw new ValidationError(
+        "Historical pricing replay accepts exactly one line",
+      );
     }
     const items: PricableMenuItem[] = context.historicalReplay
       ? [context.historicalReplay.item]
@@ -303,10 +390,19 @@ export const pricingPipeline = {
           `Menu item ${requestedLine.menuItemId} not found`,
         );
       }
-      if (!context.allowUnavailable && item.manualOverrideStatus !== "ACTIVE" && item.manualStockCount != null && item.manualStockCount <= 0) {
+      if (
+        !context.allowUnavailable &&
+        item.manualOverrideStatus !== "ACTIVE" &&
+        item.manualStockCount != null &&
+        item.manualStockCount <= 0
+      ) {
         throw new ValidationError(`${item.name} is out of stock`);
       }
-      if (!context.allowUnavailable && !item.isAvailable && item.manualOverrideStatus !== "ACTIVE") {
+      if (
+        !context.allowUnavailable &&
+        !item.isAvailable &&
+        item.manualOverrideStatus !== "ACTIVE"
+      ) {
         throw new ValidationError(`${item.name} is not available`);
       }
 
@@ -318,7 +414,9 @@ export const pricingPipeline = {
         (rule) =>
           !rule.isPerCover &&
           (rule.menuItemId === requestedLine.menuItemId ||
-            (!!item.sku && rule.organizationId != null && rule.menuItemSku === item.sku)),
+            (!!item.sku &&
+              rule.organizationId != null &&
+              rule.menuItemSku === item.sku)),
       );
       const selectedRule = selectPriceRule(
         candidateRulesForLine,
@@ -328,13 +426,14 @@ export const pricingPipeline = {
       const selectedRuleWon = Boolean(
         selectedRule && (!branchOverride || ruleSpecificity(selectedRule) > 1),
       );
-      const effectiveOverride: BranchPricingOverride | undefined = selectedRuleWon
-        ? {
-            ...selectedRule!,
+      const effectiveOverride: BranchPricingOverride | undefined =
+        selectedRuleWon
+          ? {
+              ...selectedRule!,
 
-            taxRate: selectedRule!.taxRate ?? branchOverride?.taxRate ?? null,
-          }
-        : branchOverride;
+              taxRate: selectedRule!.taxRate ?? branchOverride?.taxRate ?? null,
+            }
+          : branchOverride;
       const selectedVariantRuleWon = Boolean(
         selectedRuleWon &&
         selectedRule!.variantId !== null &&
@@ -344,7 +443,9 @@ export const pricingPipeline = {
         selectedRuleWon && selectedRule!.percentOff != null,
       );
       const requestedVariant = requestedLine.variantId
-        ? item.variants.find((variant) => variant.id === requestedLine.variantId)
+        ? item.variants.find(
+            (variant) => variant.id === requestedLine.variantId,
+          )
         : undefined;
 
       const percentOffBasePrice = selectedPercentRuleWon
@@ -369,23 +470,49 @@ export const pricingPipeline = {
       const modifier = resolveModifierStage(
         item,
         requestedLine.selectedOptions,
-        { allowIncompleteSelection: context.allowIncompleteModifierSelection ?? false, ...(requestedLine.variantId !== undefined ? { variantId: requestedLine.variantId } : {}) },
+        {
+          allowIncompleteSelection:
+            context.allowIncompleteModifierSelection ?? false,
+          ...(requestedLine.variantId !== undefined
+            ? { variantId: requestedLine.variantId }
+            : {}),
+        },
       );
       let resolvedCorePrice = variant.price;
       if ((item.pricingMode ?? "FIXED") === "WEIGHT_BASED") {
-        if (!item.weightUnit) throw new ValidationError(`${item.name} is missing a weight unit`);
-        if (requestedLine.weightQuantity == null || !Number.isFinite(requestedLine.weightQuantity) || requestedLine.weightQuantity <= 0) {
-          throw new ValidationError(`A positive weightQuantity is required for ${item.name}`);
+        if (!item.weightUnit)
+          throw new ValidationError(`${item.name} is missing a weight unit`);
+        if (
+          requestedLine.weightQuantity == null ||
+          !Number.isFinite(requestedLine.weightQuantity) ||
+          requestedLine.weightQuantity <= 0
+        ) {
+          throw new ValidationError(
+            `A positive weightQuantity is required for ${item.name}`,
+          );
         }
         resolvedCorePrice = variant.price * requestedLine.weightQuantity;
       } else if ((item.pricingMode ?? "FIXED") === "OPEN") {
-        if (requestedLine.manualPrice == null || !Number.isFinite(requestedLine.manualPrice) || requestedLine.manualPrice < 0) {
-          throw new ValidationError(`A valid manualPrice is required for ${item.name}`);
+        if (
+          requestedLine.manualPrice == null ||
+          !Number.isFinite(requestedLine.manualPrice) ||
+          requestedLine.manualPrice < 0
+        ) {
+          throw new ValidationError(
+            `A valid manualPrice is required for ${item.name}`,
+          );
         }
-        const min = item.openPriceMin == null ? null : parseFloat(item.openPriceMin);
-        const max = item.openPriceMax == null ? null : parseFloat(item.openPriceMax);
-        if ((min != null && requestedLine.manualPrice < min) || (max != null && requestedLine.manualPrice > max)) {
-          throw new ValidationError(`Manual price for ${item.name} is outside the configured sanity band`);
+        const min =
+          item.openPriceMin == null ? null : parseFloat(item.openPriceMin);
+        const max =
+          item.openPriceMax == null ? null : parseFloat(item.openPriceMax);
+        if (
+          (min != null && requestedLine.manualPrice < min) ||
+          (max != null && requestedLine.manualPrice > max)
+        ) {
+          throw new ValidationError(
+            `Manual price for ${item.name} is outside the configured sanity band`,
+          );
         }
         resolvedCorePrice = requestedLine.manualPrice;
       }
@@ -428,7 +555,9 @@ export const pricingPipeline = {
             : branchOverride
               ? {
                   kind: "BRANCH_OVERRIDE",
-                  id: branchOverride.id ?? `branch:${context.branchId}:${requestedLine.menuItemId}`,
+                  id:
+                    branchOverride.id ??
+                    `branch:${context.branchId}:${requestedLine.menuItemId}`,
                   description: `Branch override ${branchOverride.id ?? `${context.branchId}/${requestedLine.menuItemId}`} supplied the scoped price`,
                 }
               : {
@@ -440,14 +569,18 @@ export const pricingPipeline = {
         pricingReplayEvidence: context.historicalReplay ?? {
           requestedLine: {
             ...requestedLine,
-            selectedOptions: requestedLine.selectedOptions?.map((option) => ({ ...option })),
+            selectedOptions: requestedLine.selectedOptions?.map((option) => ({
+              ...option,
+            })),
           },
           item,
           branchOverride: branchOverride ?? null,
           priceRules: priceRules.filter(
             (rule) =>
               rule.menuItemId === requestedLine.menuItemId ||
-              (!!item.sku && rule.organizationId != null && rule.menuItemSku === item.sku),
+              (!!item.sku &&
+                rule.organizationId != null &&
+                rule.menuItemSku === item.sku),
           ),
         },
       } satisfies PricedLine;
@@ -460,10 +593,19 @@ export const pricingPipeline = {
     context: PricingContext,
     ruleId: string,
   ): Promise<{ ruleId: string; rate: number; taxRate: number }> {
-    const rule = await priceRuleRepository.findPerCoverRule(context.tenantId, ruleId) as MatchingPriceRule | undefined;
-    if (!rule || !rule.isPerCover) throw new ValidationError("Per-cover price rule not found or unavailable");
+    const rule = (await priceRuleRepository.findPerCoverRule(
+      context.tenantId,
+      ruleId,
+    )) as MatchingPriceRule | undefined;
+    if (!rule || !rule.isPerCover)
+      throw new ValidationError(
+        "Per-cover price rule not found or unavailable",
+      );
     const selected = selectPriceRule([rule], context);
-    if (!selected || selected.price == null) throw new ValidationError("Per-cover price rule is not active for this order context");
+    if (!selected || selected.price == null)
+      throw new ValidationError(
+        "Per-cover price rule is not active for this order context",
+      );
     return {
       ruleId: selected.id,
       rate: Number(selected.price),

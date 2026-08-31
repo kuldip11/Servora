@@ -21,7 +21,7 @@ vi.mock("../../query-keys", () => ({
   },
 }));
 
-import { useOrdersRealtimeSync } from "../useOrdersRealtimeSync";
+import { useOrdersRealtimeSync } from "@/features/orders/hooks/useOrdersRealtimeSync";
 
 describe("order realtime synchronization", () => {
   beforeEach(() => {

@@ -1,7 +1,7 @@
 import {
   loyaltyRepository,
   type LoyaltyTierRow,
-} from "../../loyalty/loyalty.repository";
+} from "@/modules/loyalty/loyalty.repository";
 import type { PricedLine, PricingContext } from "./pricing.types";
 import {
   allocateCents,
@@ -14,7 +14,7 @@ export interface LoyaltyStageResult extends PromotionStageResult {
   loyaltyDiscountAmount: number;
 }
 
-function cloneLines(lines: PricedLine[]) {
+const cloneLines = (lines: PricedLine[]) => {
   return lines.map((line) => ({
     ...line,
     pricingAttribution: {
@@ -24,16 +24,16 @@ function cloneLines(lines: PricedLine[]) {
         : {}),
     },
   }));
-}
+};
 
-function linePromotionDiscount(line: PricedLine) {
+const linePromotionDiscount = (line: PricedLine) => {
   return Math.max(0, -(line.pricingAttribution.PROMOTION ?? 0));
-}
+};
 
-export function applyLoyaltyDiscount(
+export const applyLoyaltyDiscount = (
   linesInput: PricedLine[],
   tier: LoyaltyTierRow,
-) {
+) => {
   const lines = cloneLines(linesInput);
   const remainingCents = lines.map((line) =>
     Math.max(
@@ -64,9 +64,9 @@ export function applyLoyaltyDiscount(
     };
   });
   return { lines, loyaltyDiscountAmount };
-}
+};
 
-function recomputeExclusiveTax(lines: PricedLine[]) {
+const recomputeExclusiveTax = (lines: PricedLine[]) => {
   return lines.reduce((sum, line) => {
     const promotionDiscount = linePromotionDiscount(line);
     const loyaltyDiscount = Math.max(
@@ -79,13 +79,13 @@ function recomputeExclusiveTax(lines: PricedLine[]) {
     );
     return sum + (taxable * line.taxRate) / 100;
   }, 0);
-}
+};
 
-export async function applyDiscountStages(
+export const applyDiscountStages = async (
   context: PricingContext,
   inputLines: PricedLine[],
   options: PromotionStageOptions = {},
-): Promise<LoyaltyStageResult> {
+): Promise<LoyaltyStageResult> => {
   const promotions = await applyPromotionStage(context, inputLines, options);
   const customerId = options.customerId ?? context.customerId;
   if (!customerId) return { ...promotions, loyaltyDiscountAmount: 0 };
@@ -140,4 +140,4 @@ export async function applyDiscountStages(
     taxAmount: recomputeExclusiveTax(loyalty.lines),
     loyaltyDiscountAmount: loyalty.loyaltyDiscountAmount,
   };
-}
+};

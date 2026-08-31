@@ -1,10 +1,8 @@
-
-
 import { eq, and, notInArray, inArray, sql } from "drizzle-orm";
 import type { OrderType } from "@pos/types";
-import { db } from "../../db";
-import { branches, orders } from "../../db/schema";
-import { compact } from "../../lib/object-utils";
+import { db } from "@/db";
+import { branches, orders } from "@/db/schema";
+import { compact } from "@/lib/object-utils";
 
 export type BranchCapabilities = {
   dineInEnabled: boolean;
@@ -68,7 +66,6 @@ export const branchRepository = {
     onlineEnabled?: boolean | undefined;
     tablesEnabled?: boolean | undefined;
   }) {
-
     const [branch] = await db
       .insert(branches)
       .values(

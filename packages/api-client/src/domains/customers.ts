@@ -1,6 +1,11 @@
 import { voidDomainRequest } from "./shared";
 import type { CustomerGroup, LoyaltyCustomer } from "@pos/types";
-import { getDomainData, patchDomainData, postDomainData, type DomainHttpClient } from "./shared";
+import {
+  getDomainData,
+  patchDomainData,
+  postDomainData,
+  type DomainHttpClient,
+} from "./shared";
 
 export interface CreateLoyaltyCustomerInput {
   name: string;
@@ -15,7 +20,7 @@ export interface CustomerGroupInput {
   discountFixed?: number | null;
 }
 
-export function createCustomersApi(client: DomainHttpClient) {
+export const createCustomersApi = (client: DomainHttpClient) => {
   return {
     list(): Promise<LoyaltyCustomer[]> {
       return getDomainData<LoyaltyCustomer[]>(client, "/loyalty/customers");
@@ -24,10 +29,21 @@ export function createCustomersApi(client: DomainHttpClient) {
       return getDomainData<LoyaltyCustomer[]>(client, "/loyalty/customers");
     },
     create(input: CreateLoyaltyCustomerInput): Promise<LoyaltyCustomer> {
-      return postDomainData<LoyaltyCustomer>(client, "/loyalty/customers", input);
+      return postDomainData<LoyaltyCustomer>(
+        client,
+        "/loyalty/customers",
+        input,
+      );
     },
-    assignTier(id: string, loyaltyTierId: string | null): Promise<LoyaltyCustomer> {
-      return patchDomainData<LoyaltyCustomer>(client, `/loyalty/customers/${id}`, { loyaltyTierId });
+    assignTier(
+      id: string,
+      loyaltyTierId: string | null,
+    ): Promise<LoyaltyCustomer> {
+      return patchDomainData<LoyaltyCustomer>(
+        client,
+        `/loyalty/customers/${id}`,
+        { loyaltyTierId },
+      );
     },
     listGroups(): Promise<CustomerGroup[]> {
       return getDomainData<CustomerGroup[]>(client, "/customer-groups");
@@ -36,16 +52,22 @@ export function createCustomersApi(client: DomainHttpClient) {
       return postDomainData<CustomerGroup>(client, "/customer-groups", input);
     },
     updateGroup(id: string, input: CustomerGroupInput): Promise<CustomerGroup> {
-      return patchDomainData<CustomerGroup>(client, `/customer-groups/${id}`, input);
+      return patchDomainData<CustomerGroup>(
+        client,
+        `/customer-groups/${id}`,
+        input,
+      );
     },
     deleteGroup(id: string): Promise<void> {
       return voidDomainRequest(client.delete(`/customer-groups/${id}`));
     },
     resolveRequest(id: string): Promise<void> {
-      return voidDomainRequest(client.patch(`/customer/requests/${id}`, { status: "RESOLVED" }));
+      return voidDomainRequest(
+        client.patch(`/customer/requests/${id}`, { status: "RESOLVED" }),
+      );
     },
     listRequests<T>(): Promise<T[]> {
       return getDomainData<T[]>(client, "/customer/requests");
     },
   };
-}
+};

@@ -6,7 +6,7 @@ import {
   tablesDisabledForBranch,
   tableHasActiveOrder,
   tableHasOpenOrder,
-} from "../table.errors";
+} from "@/modules/tables/table.errors";
 describe("table errors", () => {
   it("preserves not-found and missing-branch taxonomy", () => {
     expect(tableNotFound("t1").toJSON()).toMatchObject({ code: "NOT_FOUND" });

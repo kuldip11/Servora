@@ -1,6 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { list, findById, create, createMany, update, remove, organizationIdForTenant, listOrganization } = vi.hoisted(() => ({
+const {
+  list,
+  findById,
+  create,
+  createMany,
+  update,
+  remove,
+  organizationIdForTenant,
+  listOrganization,
+} = vi.hoisted(() => ({
   list: vi.fn(),
   findById: vi.fn(),
   create: vi.fn(),
@@ -10,26 +19,45 @@ const { list, findById, create, createMany, update, remove, organizationIdForTen
   organizationIdForTenant: vi.fn(),
   listOrganization: vi.fn(),
 }));
-const { record } = vi.hoisted(() => ({ record: vi.fn().mockResolvedValue({ id: "event1" }) }));
-const { findByIdItem, findCategory, findIdsByCategory, findIdsByMenu } = vi.hoisted(() => ({
-  findByIdItem: vi.fn(),
-  findCategory: vi.fn(),
-  findIdsByCategory: vi.fn(),
-  findIdsByMenu: vi.fn(),
+const { record } = vi.hoisted(() => ({
+  record: vi.fn().mockResolvedValue({ id: "event1" }),
 }));
+const { findByIdItem, findCategory, findIdsByCategory, findIdsByMenu } =
+  vi.hoisted(() => ({
+    findByIdItem: vi.fn(),
+    findCategory: vi.fn(),
+    findIdsByCategory: vi.fn(),
+    findIdsByMenu: vi.fn(),
+  }));
 
 vi.mock("../price-rule.repository", () => ({
-  priceRuleRepository: { list, findById, create, createMany, update, remove, organizationIdForTenant, listOrganization },
+  priceRuleRepository: {
+    list,
+    findById,
+    create,
+    createMany,
+    update,
+    remove,
+    organizationIdForTenant,
+    listOrganization,
+  },
 }));
 vi.mock("../../items/item.repository", () => ({
-  itemRepository: { findById: findByIdItem, findCategory, findIdsByCategory, findIdsByMenu },
+  itemRepository: {
+    findById: findByIdItem,
+    findCategory,
+    findIdsByCategory,
+    findIdsByMenu,
+  },
 }));
 vi.mock("../../change-log/menu-change-log", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("../../change-log/menu-change-log")>()),
+  ...(await importOriginal<
+    typeof import("../../change-log/menu-change-log")
+  >()),
   menuChangeLog: { record },
 }));
 
-import { priceRuleService } from "../price-rule.service";
+import { priceRuleService } from "@/modules/menu/pricing/price-rule.service";
 
 const auth = {
   userId: "u1",
@@ -50,8 +78,13 @@ beforeEach(() => {
   vi.clearAllMocks();
   findByIdItem.mockResolvedValue({ id: "item1", branchId: null, variants: [] });
   list.mockResolvedValue([]);
-  create.mockImplementation(async (data: unknown) => ({ id: "new-rule", ...(data as object) }));
-  createMany.mockImplementation(async (rows: unknown[]) => rows.map((row, index) => ({ id: `bulk-${index + 1}`, ...(row as object) })));
+  create.mockImplementation(async (data: unknown) => ({
+    id: "new-rule",
+    ...(data as object),
+  }));
+  createMany.mockImplementation(async (rows: unknown[]) =>
+    rows.map((row, index) => ({ id: `bulk-${index + 1}`, ...(row as object) })),
+  );
   findCategory.mockResolvedValue({ id: "cat1", branchId: null });
   findIdsByCategory.mockResolvedValue(["item1", "item2"]);
   findIdsByMenu.mockResolvedValue(["item1", "item2"]);
@@ -168,7 +201,11 @@ describe("price-rule service ambiguity validation (D1)", () => {
   });
 
   it("rejects an overnight window overlapping a same-scope daytime rule", async () => {
-    findByIdItem.mockResolvedValue({ id: "item1", branchId: "b1", variants: [] });
+    findByIdItem.mockResolvedValue({
+      id: "item1",
+      branchId: "b1",
+      variants: [],
+    });
     list.mockResolvedValue([
       {
         id: "existing1",
@@ -277,10 +314,15 @@ describe("price-rule service ambiguity validation (D1)", () => {
   });
 });
 
-
 describe("price-rule happy-hour bulk authoring (D4)", () => {
   it("creates one percent-off rule per item in the selected category", async () => {
-    findByIdItem.mockImplementation(async (_tenantId: string, itemId: string) => ({ id: itemId, branchId: null, variants: [] }));
+    findByIdItem.mockImplementation(
+      async (_tenantId: string, itemId: string) => ({
+        id: itemId,
+        branchId: null,
+        variants: [],
+      }),
+    );
     const created = await priceRuleService.createHappyHour(auth, {
       categoryId: "cat1",
       percentOff: 20,
@@ -289,27 +331,67 @@ describe("price-rule happy-hour bulk authoring (D4)", () => {
     });
     expect(created).toHaveLength(2);
     expect(createMany).toHaveBeenCalledWith([
-      expect.objectContaining({ tenantId: "t1", menuItemId: "item1", price: null, percentOff: "20", startTime: "16:00:00", endTime: "18:00:00" }),
-      expect.objectContaining({ tenantId: "t1", menuItemId: "item2", price: null, percentOff: "20", startTime: "16:00:00", endTime: "18:00:00" }),
+      expect.objectContaining({
+        tenantId: "t1",
+        menuItemId: "item1",
+        price: null,
+        percentOff: "20",
+        startTime: "16:00:00",
+        endTime: "18:00:00",
+      }),
+      expect.objectContaining({
+        tenantId: "t1",
+        menuItemId: "item2",
+        price: null,
+        percentOff: "20",
+        startTime: "16:00:00",
+        endTime: "18:00:00",
+      }),
     ]);
   });
 
   it("requires exactly one category/menu scope", async () => {
-    await expect(priceRuleService.createHappyHour(auth, {
-      percentOff: 20, startTime: "16:00:00", endTime: "18:00:00",
-    })).rejects.toThrow(/exactly one/i);
-    await expect(priceRuleService.createHappyHour(auth, {
-      categoryId: "cat1", menuId: "menu1", percentOff: 20, startTime: "16:00:00", endTime: "18:00:00",
-    })).rejects.toThrow(/exactly one/i);
+    await expect(
+      priceRuleService.createHappyHour(auth, {
+        percentOff: 20,
+        startTime: "16:00:00",
+        endTime: "18:00:00",
+      }),
+    ).rejects.toThrow(/exactly one/i);
+    await expect(
+      priceRuleService.createHappyHour(auth, {
+        categoryId: "cat1",
+        menuId: "menu1",
+        percentOff: 20,
+        startTime: "16:00:00",
+        endTime: "18:00:00",
+      }),
+    ).rejects.toThrow(/exactly one/i);
   });
 });
 
 describe("G7 organization price-rule authorization", () => {
   const orgRule = {
-    id: "org-rule", tenantId: null, organizationId: "org-1", menuItemId: null, menuItemSku: "PIZZA-1",
-    variantId: null, branchId: null, channel: null, fulfillmentType: null, customerGroupId: null, coverTier: null,
-    startDate: null, endDate: null, startTime: null, endTime: null, priority: 0,
-    price: "90", percentOff: null, taxRate: null, isActive: true,
+    id: "org-rule",
+    tenantId: null,
+    organizationId: "org-1",
+    menuItemId: null,
+    menuItemSku: "PIZZA-1",
+    variantId: null,
+    branchId: null,
+    channel: null,
+    fulfillmentType: null,
+    customerGroupId: null,
+    coverTier: null,
+    startDate: null,
+    endDate: null,
+    startTime: null,
+    endTime: null,
+    priority: 0,
+    price: "90",
+    percentOff: null,
+    taxRate: null,
+    isActive: true,
   };
 
   beforeEach(() => {
@@ -320,20 +402,31 @@ describe("G7 organization price-rule authorization", () => {
   });
 
   it("blocks update/delete of organization rules without organization:manage", async () => {
-    await expect(priceRuleService.update(auth, "org-rule", { price: 85 } as never)).rejects.toThrow(/permission/i);
-    await expect(priceRuleService.remove(auth, "org-rule")).rejects.toThrow(/permission/i);
+    await expect(
+      priceRuleService.update(auth, "org-rule", { price: 85 } as never),
+    ).rejects.toThrow(/permission/i);
+    await expect(priceRuleService.remove(auth, "org-rule")).rejects.toThrow(
+      /permission/i,
+    );
     expect(update).not.toHaveBeenCalled();
     expect(remove).not.toHaveBeenCalled();
   });
 
   it("allows organization rule deletion only from a tenant in that organization", async () => {
-    const orgAuth = { ...auth, permissions: [...auth.permissions, "organization:manage"] };
+    const orgAuth = {
+      ...auth,
+      permissions: [...auth.permissions, "organization:manage"],
+    };
     organizationIdForTenant.mockResolvedValue("org-2");
-    await expect(priceRuleService.remove(orgAuth, "org-rule")).rejects.toThrow(/outside the active tenant organization/i);
+    await expect(priceRuleService.remove(orgAuth, "org-rule")).rejects.toThrow(
+      /outside the active tenant organization/i,
+    );
     expect(remove).not.toHaveBeenCalled();
 
     organizationIdForTenant.mockResolvedValue("org-1");
-    await expect(priceRuleService.remove(orgAuth, "org-rule")).resolves.toBeUndefined();
+    await expect(
+      priceRuleService.remove(orgAuth, "org-rule"),
+    ).resolves.toBeUndefined();
     expect(remove).toHaveBeenCalledWith("t1", "org-rule");
   });
 });

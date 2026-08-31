@@ -1,7 +1,7 @@
 import { type ReactNode, useId } from "react";
 import { cn } from "../../utils/cn";
 
-export function useFieldIds(idProp?: string) {
+export const useFieldIds = (idProp?: string) => {
   const autoId = useId();
   const fieldId = idProp ?? autoId;
   return {
@@ -9,20 +9,20 @@ export function useFieldIds(idProp?: string) {
     hintId: `${fieldId}-hint`,
     errorId: `${fieldId}-error`,
   };
-}
+};
 
-export function describedBy(
+export const describedBy = (
   hintId: string,
   errorId: string,
   hint?: string | undefined,
   error?: string | undefined,
-) {
+) => {
   if (error) return errorId;
   if (hint) return hintId;
   return undefined;
-}
+};
 
-export function FieldLabel({
+export const FieldLabel = ({
   htmlFor,
   required,
   children,
@@ -30,7 +30,7 @@ export function FieldLabel({
   htmlFor: string;
   required?: boolean | undefined;
   children?: ReactNode | undefined;
-}) {
+}) => {
   if (!children) return null;
   return (
     <label htmlFor={htmlFor} className="text-sm font-medium text-text-primary">
@@ -42,9 +42,9 @@ export function FieldLabel({
       )}
     </label>
   );
-}
+};
 
-export function FieldFooter({
+export const FieldFooter = ({
   hint,
   error,
   hintId,
@@ -58,7 +58,7 @@ export function FieldFooter({
   errorId: string;
   charCount?: number | undefined;
   maxLength?: number | undefined;
-}) {
+}) => {
   const hasMessage = !!error || !!hint;
   const hasCount = charCount !== undefined;
   if (!hasMessage && !hasCount) return null;
@@ -92,9 +92,9 @@ export function FieldFooter({
       )}
     </div>
   );
-}
+};
 
-export function fieldBaseClasses(hasError: boolean) {
+export const fieldBaseClasses = (hasError: boolean) => {
   return cn(
     "block w-full text-sm text-text-primary bg-surface border rounded-md",
     "placeholder:text-text-disabled transition-colors duration-fast ease-standard",
@@ -104,4 +104,4 @@ export function fieldBaseClasses(hasError: boolean) {
       ? "border-danger focus:ring-danger"
       : "border-border focus:ring-primary",
   );
-}
+};

@@ -4,8 +4,10 @@ export interface BillableOrderItemLike {
   billingExcluded?: boolean | null | undefined;
 }
 
-export function isBillableOrderItem(item: BillableOrderItemLike): boolean {
+export const isBillableOrderItem = (item: BillableOrderItemLike): boolean => {
   if (item.billingExcluded) return false;
-  return item.itemStatus === "ACTIVE" ||
-    (item.itemStatus === "REFIRED" && !item.compedAt);
-}
+  return (
+    item.itemStatus === "ACTIVE" ||
+    (item.itemStatus === "REFIRED" && !item.compedAt)
+  );
+};

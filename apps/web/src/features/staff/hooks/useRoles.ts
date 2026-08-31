@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { rolesListQuery } from "../query-options";
+import { rolesListQuery } from "@/features/staff/query-options";
 
-export function useRoles() {
+export const useRoles = () => {
   return useQuery(rolesListQuery());
-}
+};

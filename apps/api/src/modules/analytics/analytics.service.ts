@@ -1,5 +1,4 @@
-
-import type { AuthContext } from "../../core/auth";
+import type { AuthContext } from "@/core/auth";
 import type {
   CostMarginRow,
   MenuEngineeringQuadrant,
@@ -10,22 +9,22 @@ import {
   assertAnalyticsScope,
   requireAnalyticsPermission,
 } from "./analytics-authorization";
-import { ValidationError } from "../../core/errors";
-import { inventoryService } from "../inventory/inventory.service";
-import { pricingPipeline } from "../orders/pricing/pricing-pipeline";
+import { ValidationError } from "@/core/errors";
+import { inventoryService } from "@/modules/inventory/inventory.service";
+import { pricingPipeline } from "@/modules/orders/pricing/pricing-pipeline";
 
-function startOfToday(): Date {
+const startOfToday = (): Date => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   return today;
-}
+};
 
-export function classifyMenuEngineering(
+export const classifyMenuEngineering = (
   margin: number,
   volume: number,
   marginThreshold: number,
   volumeThreshold: number,
-): MenuEngineeringQuadrant {
+): MenuEngineeringQuadrant => {
   const highMargin = margin >= marginThreshold;
   const highVolume = volume >= volumeThreshold;
   return highMargin
@@ -35,7 +34,7 @@ export function classifyMenuEngineering(
     : highVolume
       ? "PLOWHORSE"
       : "DOG";
-}
+};
 
 export const analyticsService = {
   async getDashboard(auth: AuthContext) {

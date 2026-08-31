@@ -1,7 +1,5 @@
-
-
-import type { AuthContext } from "../../core/auth";
-import { successResponse, createdResponse } from "../../core/response";
+import type { AuthContext } from "@/core/auth";
+import { successResponse, createdResponse } from "@/core/response";
 import {
   inventoryService,
   type CreateInventoryItemInput,
@@ -39,15 +37,21 @@ export const inventoryController = {
   },
 
   async recipeImpact(auth: AuthContext, itemId: string) {
-    return successResponse(await inventoryService.getRecipeImpact(auth, itemId));
+    return successResponse(
+      await inventoryService.getRecipeImpact(auth, itemId),
+    );
   },
 
   async listWasteReasons(auth: AuthContext, includeInactive = false) {
-    return successResponse(await inventoryService.listWasteReasons(auth, includeInactive));
+    return successResponse(
+      await inventoryService.listWasteReasons(auth, includeInactive),
+    );
   },
 
   async createWasteReason(auth: AuthContext, input: { label: string }) {
-    return createdResponse(await inventoryService.createWasteReason(auth, input.label));
+    return createdResponse(
+      await inventoryService.createWasteReason(auth, input.label),
+    );
   },
 
   async updateWasteReason(
@@ -55,14 +59,22 @@ export const inventoryController = {
     id: string,
     input: { label?: string | undefined; isActive?: boolean | undefined },
   ) {
-    return successResponse(await inventoryService.updateWasteReason(auth, id, input));
+    return successResponse(
+      await inventoryService.updateWasteReason(auth, id, input),
+    );
   },
 
   async logWaste(
     auth: AuthContext,
     itemId: string,
-    input: { quantity: number; wasteReasonId: string; notes?: string | undefined },
+    input: {
+      quantity: number;
+      wasteReasonId: string;
+      notes?: string | undefined;
+    },
   ) {
-    return successResponse(await inventoryService.logWaste(auth, itemId, input));
+    return successResponse(
+      await inventoryService.logWaste(auth, itemId, input),
+    );
   },
 };

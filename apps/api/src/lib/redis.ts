@@ -1,5 +1,5 @@
 import Redis from "ioredis";
-import { metrics } from "../core/observability/metrics";
+import { metrics } from "@/core/observability/metrics";
 
 const redisUrl = process.env["REDIS_URL"];
 if (!redisUrl) {
@@ -34,9 +34,9 @@ redis.on("connect", () => {
 });
 redis.on("close", () => metrics.setGauge("servora_redis_available", 0));
 
-export async function closeRedisConnections(): Promise<void> {
+export const closeRedisConnections = async (): Promise<void> => {
   await Promise.allSettled([redis.quit(), publisher.quit(), subscriber.quit()]);
-}
+};
 
 export const CACHE_TTL = {
   SHORT: 60,

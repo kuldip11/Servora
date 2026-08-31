@@ -1,10 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
-import { tablesService } from "../services/tables.service";
-import { tableKeys } from "../query-keys";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
+import { tablesService } from "@/features/tables/services/tables.service";
+import { tableKeys } from "@/features/tables/query-keys";
 
-export function useRegenerateTableQr() {
+export const useRegenerateTableQr = () => {
   return useMutation({
     mutationFn: (id: string) => tablesService.regenerateQr(id),
     onSuccess: () => {
@@ -13,4 +13,4 @@ export function useRegenerateTableQr() {
     },
     onError: (err) => notifyError(err, "Failed to regenerate QR code"),
   });
-}
+};

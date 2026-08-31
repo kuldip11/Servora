@@ -1,6 +1,5 @@
-
 import { eq, and, isNull, or } from "drizzle-orm";
-import { db } from "../../../db";
+import { db } from "@/db";
 import {
   menuItems,
   menuCategories,
@@ -8,7 +7,7 @@ import {
   recipes,
   menus,
   menuMemberships,
-} from "../../../db/schema";
+} from "@/db/schema";
 import type { MenuItemStatus, FoodType, SpiceLevel } from "@pos/types";
 
 export interface CommitRowData {
@@ -27,7 +26,6 @@ export interface CommitRowData {
 }
 
 export const importExportRepository = {
-
   async findItemsForExport(tenantId: string, branchId?: string | undefined) {
     return db.query.menuItems.findMany({
       where: and(
@@ -118,10 +116,22 @@ export const importExportRepository = {
     tenantId: string,
     branchId: string | undefined,
     rows: Array<{ action: "insert" | "update"; data: CommitRowData }>,
-  ): Promise<{ inserted: number; updated: number; touched: Array<{ id: string; action: "insert" | "update"; data: CommitRowData }> }> {
+  ): Promise<{
+    inserted: number;
+    updated: number;
+    touched: Array<{
+      id: string;
+      action: "insert" | "update";
+      data: CommitRowData;
+    }>;
+  }> {
     let inserted = 0;
     let updated = 0;
-    const touched: Array<{ id: string; action: "insert" | "update"; data: CommitRowData }> = [];
+    const touched: Array<{
+      id: string;
+      action: "insert" | "update";
+      data: CommitRowData;
+    }> = [];
 
     await db.transaction(async (tx) => {
       for (const r of rows) {
@@ -151,33 +161,40 @@ export const importExportRepository = {
           updated++;
           touched.push({ id: r.data.id, action: "update", data: r.data });
         } else {
-          const [created] = await tx.insert(menuItems).values({
-            tenantId,
-            branchId: branchId ?? null,
-            categoryId: r.data.categoryId,
-            name: r.data.name,
-            description: r.data.description,
-            basePrice: r.data.basePrice,
-            taxRate: r.data.taxRate,
-            foodType: r.data.foodType,
-            spiceLevel: r.data.spiceLevel,
-            sku: r.data.sku,
-            status: r.data.status,
-            hsnCode: r.data.hsnCode,
-            prepTimeMinutes: r.data.prepTimeMinutes,
-            sortOrder: 0,
-            enableRecipeDeduction: true,
-          }).returning({ id: menuItems.id });
+          const [created] = await tx
+            .insert(menuItems)
+            .values({
+              tenantId,
+              branchId: branchId ?? null,
+              categoryId: r.data.categoryId,
+              name: r.data.name,
+              description: r.data.description,
+              basePrice: r.data.basePrice,
+              taxRate: r.data.taxRate,
+              foodType: r.data.foodType,
+              spiceLevel: r.data.spiceLevel,
+              sku: r.data.sku,
+              status: r.data.status,
+              hsnCode: r.data.hsnCode,
+              prepTimeMinutes: r.data.prepTimeMinutes,
+              sortOrder: 0,
+              enableRecipeDeduction: true,
+            })
+            .returning({ id: menuItems.id });
           if (created) {
             const defaultMenu = await tx.query.menus.findFirst({
-              where: and(eq(menus.tenantId, tenantId), eq(menus.isDefault, true)),
+              where: and(
+                eq(menus.tenantId, tenantId),
+                eq(menus.isDefault, true),
+              ),
               columns: { id: true },
             });
-            if (defaultMenu) await tx.insert(menuMemberships).values({
-              menuId: defaultMenu.id,
-              menuItemId: created.id,
-              categoryId: r.data.categoryId,
-            });
+            if (defaultMenu)
+              await tx.insert(menuMemberships).values({
+                menuId: defaultMenu.id,
+                menuItemId: created.id,
+                categoryId: r.data.categoryId,
+              });
             touched.push({ id: created.id, action: "insert", data: r.data });
           }
           inserted++;

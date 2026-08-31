@@ -9,7 +9,6 @@ const PADDING = {
 } as const;
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
-
   children?: ReactNode;
 
   padding?: keyof typeof PADDING;
@@ -18,14 +17,14 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   as?: ElementType;
 }
 
-export function Card({
+export const Card = ({
   children,
   padding = "lg",
   interactive = false,
   as: Tag = "div",
   className,
   ...props
-}: CardProps) {
+}: CardProps) => {
   return (
     <Tag
       className={cn(
@@ -40,4 +39,4 @@ export function Card({
       {children}
     </Tag>
   );
-}
+};

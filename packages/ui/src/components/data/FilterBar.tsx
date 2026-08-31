@@ -10,7 +10,11 @@ export interface FilterBarProps {
   className?: string | undefined;
 }
 
-export function FilterBar({ children, onClearAll, className }: FilterBarProps) {
+export const FilterBar = ({
+  children,
+  onClearAll,
+  className,
+}: FilterBarProps) => {
   return (
     <div className={cn("flex items-center gap-3 flex-wrap", className)}>
       {children}
@@ -22,4 +26,4 @@ export function FilterBar({ children, onClearAll, className }: FilterBarProps) {
       )}
     </div>
   );
-}
+};

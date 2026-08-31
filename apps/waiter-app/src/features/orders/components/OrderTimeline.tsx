@@ -7,7 +7,7 @@ interface Props {
   order: Order;
 }
 
-export function OrderTimeline({ order }: Props) {
+export const OrderTimeline = ({ order }: Props) => {
   if (!order.statusHistory || order.statusHistory.length === 0) return null;
 
   return (
@@ -31,4 +31,4 @@ export function OrderTimeline({ order }: Props) {
       </div>
     </Card>
   );
-}
+};

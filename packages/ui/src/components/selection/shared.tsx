@@ -29,7 +29,7 @@ type Row =
   | { kind: "header"; key: string; label: string }
   | { kind: "option"; key: string; option: SelectOption; optionIndex: number };
 
-export function buildRows(options: readonly SelectOption[]): Row[] {
+export const buildRows = (options: readonly SelectOption[]): Row[] => {
   const hasAnyGroup = options.some((o) => o.group);
   if (!hasAnyGroup) {
     return options.map((option, optionIndex) => ({
@@ -55,20 +55,20 @@ export function buildRows(options: readonly SelectOption[]): Row[] {
     rows.push({ kind: "option", key: option.value, option, optionIndex });
   });
   return rows;
-}
+};
 
-function optionRowIndices(rows: Row[]): number[] {
+const optionRowIndices = (rows: Row[]): number[] => {
   const out: number[] = [];
   rows.forEach((r, i) => {
     if (r.kind === "option") out.push(i);
   });
   return out;
-}
+};
 
-export function useVirtualRows(
+export const useVirtualRows = (
   count: number,
   containerRef: RefObject<HTMLElement | null>,
-) {
+) => {
   const [scrollTop, setScrollTop] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(0);
 
@@ -101,12 +101,12 @@ export function useVirtualRows(
     endIndex,
     offsetY: startIndex * ROW_HEIGHT,
   };
-}
+};
 
-export function filterOptions(
+export const filterOptions = (
   options: readonly SelectOption[],
   query: string,
-): SelectOption[] {
+): SelectOption[] => {
   if (!query.trim()) return [...options];
   const q = query.trim().toLowerCase();
   return options.filter(
@@ -114,11 +114,11 @@ export function filterOptions(
       o.label.toLowerCase().includes(q) ||
       o.description?.toLowerCase().includes(q),
   );
-}
+};
 
-export function rowDomId(listboxId: string, rowIndex: number) {
+export const rowDomId = (listboxId: string, rowIndex: number) => {
   return `${listboxId}-row-${rowIndex}`;
-}
+};
 
 export const popoverContentClasses = cn(
   "z-50 overflow-hidden rounded-md border border-border bg-surface shadow-dropdown",
@@ -131,7 +131,7 @@ export const triggerBaseClasses = cn(
   "disabled:bg-surface-secondary disabled:text-text-disabled disabled:cursor-not-allowed",
 );
 
-function HeaderRow({ label }: { label: string }) {
+const HeaderRow = ({ label }: { label: string }) => {
   return (
     <li
       role="presentation"
@@ -141,9 +141,9 @@ function HeaderRow({ label }: { label: string }) {
       {label}
     </li>
   );
-}
+};
 
-function OptionRow({
+const OptionRow = ({
   option,
   selected,
   active,
@@ -157,10 +157,9 @@ function OptionRow({
   domId: string;
   onClick: () => void;
   leading?: ReactNode;
-}) {
+}) => {
   const Icon = option.icon;
   return (
-
     // eslint-disable-next-line jsx-a11y/click-events-have-key-events
     <li
       id={domId}
@@ -194,9 +193,9 @@ function OptionRow({
       )}
     </li>
   );
-}
+};
 
-export function VirtualListbox({
+export const VirtualListbox = ({
   rows,
   listboxId,
   listRef,
@@ -220,7 +219,7 @@ export function VirtualListbox({
   emptyMessage?: string | undefined;
 
   multiselectable?: boolean | undefined;
-}) {
+}) => {
   const { totalHeight, startIndex, endIndex, offsetY } = useVirtualRows(
     rows.length,
     listRef,
@@ -265,12 +264,12 @@ export function VirtualListbox({
       )}
     </ul>
   );
-}
+};
 
-export function useActiveRow(
+export const useActiveRow = (
   rows: Row[],
   onCommit: (rowIndex: number) => void,
-) {
+) => {
   const selectable = optionRowIndices(rows).filter((i) => {
     const r = rows[i];
     return r?.kind === "option" && !r.option.disabled;
@@ -282,7 +281,6 @@ export function useActiveRow(
   useEffect(() => {
     if (!selectable.includes(activeRowIndex))
       setActiveRowIndex(selectable[0] ?? -1);
-
   }, [rows.length]);
 
   function move(dir: 1 | -1) {
@@ -333,9 +331,9 @@ export function useActiveRow(
   }
 
   return { activeRowIndex, setActiveRowIndex, onKeyDown, typeahead };
-}
+};
 
-export function useTypeaheadBuffer(onPrefix: (prefix: string) => void) {
+export const useTypeaheadBuffer = (onPrefix: (prefix: string) => void) => {
   const [buffer, setBuffer] = useState("");
   useEffect(() => {
     if (!buffer) return;
@@ -358,13 +356,13 @@ export function useTypeaheadBuffer(onPrefix: (prefix: string) => void) {
   }
 
   return { onKeyDown };
-}
+};
 
-export function useScrollActiveIntoView(
+export const useScrollActiveIntoView = (
   containerRef: RefObject<HTMLElement | null>,
   activeRowIndex: number,
   open: boolean,
-) {
+) => {
   useEffect(() => {
     if (!open || activeRowIndex < 0) return;
     const el = containerRef.current;
@@ -375,7 +373,7 @@ export function useScrollActiveIntoView(
     else if (bottom > el.scrollTop + el.clientHeight)
       el.scrollTop = bottom - el.clientHeight;
   }, [activeRowIndex, open, containerRef]);
-}
+};
 
 export function useDebouncedValue<T>(value: T, delayMs: number): T {
   const [debounced, setDebounced] = useState(value);

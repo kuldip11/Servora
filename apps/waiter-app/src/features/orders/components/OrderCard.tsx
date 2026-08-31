@@ -7,7 +7,7 @@ import {
   shortOrderId,
   formatCurrency,
   isOrderReady,
-} from "../utils/orderHelpers";
+} from "@/features/orders/utils/orderHelpers";
 
 interface Props {
   order: Order;

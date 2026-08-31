@@ -9,7 +9,12 @@ export interface ToolbarProps {
   className?: string | undefined;
 }
 
-export function Toolbar({ title, subtitle, actions, className }: ToolbarProps) {
+export const Toolbar = ({
+  title,
+  subtitle,
+  actions,
+  className,
+}: ToolbarProps) => {
   return (
     <div
       className={cn(
@@ -32,4 +37,4 @@ export function Toolbar({ title, subtitle, actions, className }: ToolbarProps) {
       )}
     </div>
   );
-}
+};

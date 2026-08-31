@@ -1,9 +1,9 @@
 import { ChefHat } from "lucide-react";
-import { useLogin } from "../hooks/useLogin";
-import { LoginForm } from "../components/LoginForm";
-import { BranchSelector } from "../components/BranchSelector";
-import { MembershipSelector } from "../components/MembershipSelector";
-export function KitchenLogin({ onLogin }: { onLogin: () => void }) {
+import { useLogin } from "@/features/auth/hooks/useLogin";
+import { LoginForm } from "@/features/auth/components/LoginForm";
+import { BranchSelector } from "@/features/auth/components/BranchSelector";
+import { MembershipSelector } from "@/features/auth/components/MembershipSelector";
+export const KitchenLogin = ({ onLogin }: { onLogin: () => void }) => {
   const auth = useLogin(onLogin);
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
@@ -41,4 +41,4 @@ export function KitchenLogin({ onLogin }: { onLogin: () => void }) {
       </div>
     </div>
   );
-}
+};

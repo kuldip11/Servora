@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import { requireAuthPlugin } from "../../core/auth";
+import { requireAuthPlugin } from "@/core/auth";
 import { organizationController } from "./organization.controller";
 import {
   createOrganizationBody,
@@ -10,7 +10,10 @@ import {
   createOrganizationMenuBody,
   updateOrganizationMenuBody,
 } from "./organization.validator";
-import { loyaltyTierBody, updateLoyaltyTierBody } from "../loyalty/loyalty.validator";
+import {
+  loyaltyTierBody,
+  updateLoyaltyTierBody,
+} from "@/modules/loyalty/loyalty.validator";
 
 export const organizationsRouter = new Elysia({ prefix: "/api/organizations" })
   .use(requireAuthPlugin())
@@ -43,7 +46,12 @@ export const organizationsRouter = new Elysia({ prefix: "/api/organizations" })
   .patch(
     "/:id/loyalty-tiers/:tierId",
     ({ auth, params, body }) =>
-      organizationController.updateLoyaltyTier(auth, params.id, params.tierId, body),
+      organizationController.updateLoyaltyTier(
+        auth,
+        params.id,
+        params.tierId,
+        body,
+      ),
     { params: organizationLoyaltyTierParams, body: updateLoyaltyTierBody },
   )
   .delete(

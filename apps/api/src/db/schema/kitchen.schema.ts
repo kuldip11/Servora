@@ -19,7 +19,15 @@ import { tenants } from "./tenant.schema";
 import { branches } from "./branch.schema";
 import { users } from "./auth.schema";
 import { orders, orderStatusEnum } from "./order.schema";
-import { menuItems, menuItemVariants, modifierOptions, menuChangeEvents, combos, comboSlotOptions, weightUnitEnum } from "./menu.schema";
+import {
+  menuItems,
+  menuItemVariants,
+  modifierOptions,
+  menuChangeEvents,
+  combos,
+  comboSlotOptions,
+  weightUnitEnum,
+} from "./menu.schema";
 import { sql } from "drizzle-orm";
 import { taxModeEnum } from "./tax.schema";
 
@@ -27,8 +35,12 @@ export const kitchenStations = pgTable(
   "kitchen_stations",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
-    branchId: uuid("branch_id").notNull().references(() => branches.id, { onDelete: "cascade" }),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    branchId: uuid("branch_id")
+      .notNull()
+      .references(() => branches.id, { onDelete: "cascade" }),
     name: varchar("name", { length: 100 }).notNull(),
     printerIdentifier: varchar("printer_identifier", { length: 200 }),
     sortOrder: integer("sort_order").notNull().default(0),
@@ -36,8 +48,14 @@ export const kitchenStations = pgTable(
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => ({
-    tenantBranchIdx: index("kitchen_stations_tenant_branch_idx").on(t.tenantId, t.branchId),
-    branchNameUnique: uniqueIndex("kitchen_stations_branch_name_unique").on(t.branchId, t.name),
+    tenantBranchIdx: index("kitchen_stations_tenant_branch_idx").on(
+      t.tenantId,
+      t.branchId,
+    ),
+    branchNameUnique: uniqueIndex("kitchen_stations_branch_name_unique").on(
+      t.branchId,
+      t.name,
+    ),
   }),
 );
 
@@ -45,9 +63,16 @@ export const itemStationRouting = pgTable(
   "item_station_routing",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    menuItemId: uuid("menu_item_id").notNull().references(() => menuItems.id, { onDelete: "cascade" }),
-    stationId: uuid("station_id").notNull().references(() => kitchenStations.id, { onDelete: "cascade" }),
-    modifierOptionId: uuid("modifier_option_id").references(() => modifierOptions.id, { onDelete: "cascade" }),
+    menuItemId: uuid("menu_item_id")
+      .notNull()
+      .references(() => menuItems.id, { onDelete: "cascade" }),
+    stationId: uuid("station_id")
+      .notNull()
+      .references(() => kitchenStations.id, { onDelete: "cascade" }),
+    modifierOptionId: uuid("modifier_option_id").references(
+      () => modifierOptions.id,
+      { onDelete: "cascade" },
+    ),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
@@ -75,16 +100,24 @@ export const orderCourses = pgTable(
   "order_courses",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    orderId: uuid("order_id").notNull().references(() => orders.id, { onDelete: "cascade" }),
+    orderId: uuid("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
     courseNumber: integer("course_number").notNull(),
     name: varchar("name", { length: 100 }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => ({
-    orderCourseUnique: uniqueIndex("order_courses_order_number_unique").on(t.orderId, t.courseNumber),
+    orderCourseUnique: uniqueIndex("order_courses_order_number_unique").on(
+      t.orderId,
+      t.courseNumber,
+    ),
     orderIdx: index("order_courses_order_idx").on(t.orderId),
-    numberPositive: check("order_courses_number_positive", sql`${t.courseNumber} > 0`),
+    numberPositive: check(
+      "order_courses_number_positive",
+      sql`${t.courseNumber} > 0`,
+    ),
   }),
 );
 
@@ -104,7 +137,9 @@ export const kitchenTickets = pgTable(
 
     ticketNumber: integer("ticket_number").notNull(),
     status: kitchenTicketStatusEnum("status").notNull().default("FIRED"),
-    courseId: uuid("course_id").references(() => orderCourses.id, { onDelete: "set null" }),
+    courseId: uuid("course_id").references(() => orderCourses.id, {
+      onDelete: "set null",
+    }),
 
     notes: text("notes"),
     customerRequestId: varchar("customer_request_id", { length: 128 }),
@@ -142,15 +177,22 @@ export const cancellationReasons = pgTable(
   "cancellation_reasons",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    tenantId: uuid("tenant_id").notNull().references(() => tenants.id, { onDelete: "cascade" }),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
     label: varchar("label", { length: 120 }).notNull(),
     isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => ({
-    tenantLabelUnique: uniqueIndex("cancellation_reasons_tenant_label_unique").on(t.tenantId, t.label),
-    tenantActiveIdx: index("cancellation_reasons_tenant_active_idx").on(t.tenantId, t.isActive),
+    tenantLabelUnique: uniqueIndex(
+      "cancellation_reasons_tenant_label_unique",
+    ).on(t.tenantId, t.label),
+    tenantActiveIdx: index("cancellation_reasons_tenant_active_idx").on(
+      t.tenantId,
+      t.isActive,
+    ),
   }),
 );
 
@@ -165,80 +207,113 @@ export const refireTypeEnum = pgEnum("refire_type", ["REFIRE", "REFILL"]);
 export const orderItems = pgTable(
   "order_items",
   {
-  id: uuid("id").primaryKey().defaultRandom(),
-  orderId: uuid("order_id")
-    .notNull()
-    .references(() => orders.id, { onDelete: "cascade" }),
-  kitchenTicketId: uuid("kitchen_ticket_id")
-    .notNull()
-    .references(() => kitchenTickets.id, { onDelete: "cascade" }),
+    id: uuid("id").primaryKey().defaultRandom(),
+    orderId: uuid("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    kitchenTicketId: uuid("kitchen_ticket_id")
+      .notNull()
+      .references(() => kitchenTickets.id, { onDelete: "cascade" }),
 
-  menuItemId: uuid("menu_item_id")
-    .references(() => menuItems.id),
-  comboId: uuid("combo_id").references(() => combos.id),
-  comboGroupId: uuid("combo_group_id"),
-  comboSlotOptionId: uuid("combo_slot_option_id").references(() => comboSlotOptions.id, { onDelete: "set null" }),
-  menuItemName: varchar("menu_item_name", { length: 200 }).notNull(),
-  variantId: uuid("variant_id").references(() => menuItemVariants.id),
+    menuItemId: uuid("menu_item_id").references(() => menuItems.id),
+    comboId: uuid("combo_id").references(() => combos.id),
+    comboGroupId: uuid("combo_group_id"),
+    comboSlotOptionId: uuid("combo_slot_option_id").references(
+      () => comboSlotOptions.id,
+      { onDelete: "set null" },
+    ),
+    menuItemName: varchar("menu_item_name", { length: 200 }).notNull(),
+    variantId: uuid("variant_id").references(() => menuItemVariants.id),
 
-  variantName: varchar("variant_name", { length: 100 }),
-  quantity: integer("quantity").notNull(),
-  weightQuantity: numeric("weight_quantity", { precision: 12, scale: 4 }),
-  weightUnit: weightUnitEnum("weight_unit"),
-  manualPrice: numeric("manual_price", { precision: 10, scale: 2 }),
-  billingExcluded: boolean("billing_excluded").notNull().default(false),
-  unitPrice: numeric("unit_price", { precision: 10, scale: 2 }).notNull(),
-  subtotal: numeric("subtotal", { precision: 10, scale: 2 }).notNull(),
-  taxRate: numeric("tax_rate", { precision: 5, scale: 2 })
-    .notNull()
-    .default("0"),
-  taxMode: taxModeEnum("tax_mode").notNull().default("EXCLUSIVE"),
-  pricingAttribution: jsonb("pricing_attribution").$type<{
-    BASE_PRICE: number;
-    VARIANT: number;
-    MODIFIER: number;
-    COMBO?: number;
-    PROMOTION?: number;
-    PROMOTION_DETAILS?: Array<{ promotionId: string; name: string; discountAmount: number }>;
-    LOYALTY?: number;
-    LOYALTY_DETAILS?: { tierId: string; name: string; discountAmount: number };
-    TAXABLE_BASE?: number;
-    PRICE_SOURCE?: { kind: "PRICE_RULE" | "BRANCH_OVERRIDE" | "MENU_ITEM"; id: string; description: string };
-  }>(),
-  chefNotes: text("chef_notes"),
-  seatLabel: varchar("seat_label", { length: 50 }),
-  fulfillmentType: orderItemFulfillmentTypeEnum("fulfillment_type")
-    .notNull()
-    .default("DINE_IN"),
-  stationId: uuid("station_id").references(() => kitchenStations.id, { onDelete: "set null" }),
-  menuChangeEventId: uuid("menu_change_event_id").references(
-    () => menuChangeEvents.id,
-    { onDelete: "set null" },
-  ),
+    variantName: varchar("variant_name", { length: 100 }),
+    quantity: integer("quantity").notNull(),
+    weightQuantity: numeric("weight_quantity", { precision: 12, scale: 4 }),
+    weightUnit: weightUnitEnum("weight_unit"),
+    manualPrice: numeric("manual_price", { precision: 10, scale: 2 }),
+    billingExcluded: boolean("billing_excluded").notNull().default(false),
+    unitPrice: numeric("unit_price", { precision: 10, scale: 2 }).notNull(),
+    subtotal: numeric("subtotal", { precision: 10, scale: 2 }).notNull(),
+    taxRate: numeric("tax_rate", { precision: 5, scale: 2 })
+      .notNull()
+      .default("0"),
+    taxMode: taxModeEnum("tax_mode").notNull().default("EXCLUSIVE"),
+    pricingAttribution: jsonb("pricing_attribution").$type<{
+      BASE_PRICE: number;
+      VARIANT: number;
+      MODIFIER: number;
+      COMBO?: number;
+      PROMOTION?: number;
+      PROMOTION_DETAILS?: Array<{
+        promotionId: string;
+        name: string;
+        discountAmount: number;
+      }>;
+      LOYALTY?: number;
+      LOYALTY_DETAILS?: {
+        tierId: string;
+        name: string;
+        discountAmount: number;
+      };
+      TAXABLE_BASE?: number;
+      PRICE_SOURCE?: {
+        kind: "PRICE_RULE" | "BRANCH_OVERRIDE" | "MENU_ITEM";
+        id: string;
+        description: string;
+      };
+    }>(),
+    chefNotes: text("chef_notes"),
+    seatLabel: varchar("seat_label", { length: 50 }),
+    fulfillmentType: orderItemFulfillmentTypeEnum("fulfillment_type")
+      .notNull()
+      .default("DINE_IN"),
+    stationId: uuid("station_id").references(() => kitchenStations.id, {
+      onDelete: "set null",
+    }),
+    menuChangeEventId: uuid("menu_change_event_id").references(
+      () => menuChangeEvents.id,
+      { onDelete: "set null" },
+    ),
 
-  resolutionAsOf: timestamp("resolution_as_of"),
-  availabilitySnapshot: jsonb("availability_snapshot").$type<{
-    asOf: string; branchId: string; channel: "UNSCOPED" | "STAFF" | "CUSTOMER_QR";
-    fulfillmentType: "UNSCOPED" | "DINE_IN" | "TAKEAWAY" | "DELIVERY" | "ONLINE";
-    effectiveStatus: string; isHidden: boolean; reason: string | null; cause: string;
-  } | null>(),
-  pricingReplayEvidence: jsonb("pricing_replay_evidence").$type<unknown>(),
-  availabilityReplayEvidence: jsonb("availability_replay_evidence").$type<unknown>(),
-  itemStatus: orderItemStatusEnum("item_status").notNull().default("ACTIVE"),
-  refiresOrderItemId: uuid("refires_order_item_id").references((): AnyPgColumn => orderItems.id, { onDelete: "set null" }),
-  refireReason: text("refire_reason"),
-  refireType: refireTypeEnum("refire_type"),
-  refiredBy: uuid("refired_by").references(() => users.id),
-  refiredAt: timestamp("refired_at"),
-  voidedReason: text("voided_reason"),
-  voidedBy: uuid("voided_by").references(() => users.id),
-  voidedAt: timestamp("voided_at"),
-  voidedReasonId: uuid("voided_reason_id").references(() => cancellationReasons.id, { onDelete: "set null" }),
-  compedReason: text("comped_reason"),
-  compedBy: uuid("comped_by").references(() => users.id),
-  compedAt: timestamp("comped_at"),
-  compedReasonId: uuid("comped_reason_id").references(() => cancellationReasons.id, { onDelete: "set null" }),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+    resolutionAsOf: timestamp("resolution_as_of"),
+    availabilitySnapshot: jsonb("availability_snapshot").$type<{
+      asOf: string;
+      branchId: string;
+      channel: "UNSCOPED" | "STAFF" | "CUSTOMER_QR";
+      fulfillmentType:
+        "UNSCOPED" | "DINE_IN" | "TAKEAWAY" | "DELIVERY" | "ONLINE";
+      effectiveStatus: string;
+      isHidden: boolean;
+      reason: string | null;
+      cause: string;
+    } | null>(),
+    pricingReplayEvidence: jsonb("pricing_replay_evidence").$type<unknown>(),
+    availabilityReplayEvidence: jsonb(
+      "availability_replay_evidence",
+    ).$type<unknown>(),
+    itemStatus: orderItemStatusEnum("item_status").notNull().default("ACTIVE"),
+    refiresOrderItemId: uuid("refires_order_item_id").references(
+      (): AnyPgColumn => orderItems.id,
+      { onDelete: "set null" },
+    ),
+    refireReason: text("refire_reason"),
+    refireType: refireTypeEnum("refire_type"),
+    refiredBy: uuid("refired_by").references(() => users.id),
+    refiredAt: timestamp("refired_at"),
+    voidedReason: text("voided_reason"),
+    voidedBy: uuid("voided_by").references(() => users.id),
+    voidedAt: timestamp("voided_at"),
+    voidedReasonId: uuid("voided_reason_id").references(
+      () => cancellationReasons.id,
+      { onDelete: "set null" },
+    ),
+    compedReason: text("comped_reason"),
+    compedBy: uuid("comped_by").references(() => users.id),
+    compedAt: timestamp("comped_at"),
+    compedReasonId: uuid("comped_reason_id").references(
+      () => cancellationReasons.id,
+      { onDelete: "set null" },
+    ),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => ({
     comboGroupIdx: index("order_items_combo_group_idx").on(t.comboGroupId),
@@ -273,7 +348,9 @@ export const orderItemSeatShares = pgTable(
   "order_item_seat_shares",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    orderItemId: uuid("order_item_id").notNull().references(() => orderItems.id, { onDelete: "cascade" }),
+    orderItemId: uuid("order_item_id")
+      .notNull()
+      .references(() => orderItems.id, { onDelete: "cascade" }),
     seatLabel: varchar("seat_label", { length: 50 }).notNull(),
     shareRatio: numeric("share_ratio", { precision: 8, scale: 6 }).notNull(),
     createdAt: timestamp("created_at").notNull().defaultNow(),

@@ -23,12 +23,12 @@ import {
   Modal,
   Input,
 } from "@pos/ui";
-import { formatCurrency } from "../../../shared/utils";
-import { FoodTypeDot } from "../components/FoodTypeDot";
-import { StatusBadge } from "../components/StatusBadge";
-import { MENU_ITEM_STATUS_OPTIONS } from "../constants";
-import { PublishBadge } from "../components/PublishBadge";
-import { BulkActionsToolbar } from "../components/BulkActionsToolbar";
+import { formatCurrency } from "@/shared/utils";
+import { FoodTypeDot } from "@/features/menu/components/FoodTypeDot";
+import { StatusBadge } from "@/features/menu/components/StatusBadge";
+import { MENU_ITEM_STATUS_OPTIONS } from "@/features/menu/constants";
+import { PublishBadge } from "@/features/menu/components/PublishBadge";
+import { BulkActionsToolbar } from "@/features/menu/components/BulkActionsToolbar";
 import type {
   MenuItem,
   FoodType,
@@ -77,7 +77,7 @@ export interface MenuItemsContentProps {
   };
   publishMutation: { mutate: (v: { id: string; publish: boolean }) => void };
 }
-export function MenuItemsContent({
+export const MenuItemsContent = ({
   itemSearch,
   setItemSearch,
   selectMode,
@@ -97,8 +97,10 @@ export function MenuItemsContent({
   deleteItemMutation,
   duplicateItemMutation,
   publishMutation,
-}: MenuItemsContentProps) {
-  const [manualOverrideItem, setManualOverrideItem] = useState<MenuItem | null>(null);
+}: MenuItemsContentProps) => {
+  const [manualOverrideItem, setManualOverrideItem] = useState<MenuItem | null>(
+    null,
+  );
   const [manualOverrideReason, setManualOverrideReason] = useState("");
 
   const priceDisplay = (item: MenuItem) => {
@@ -288,7 +290,6 @@ export function MenuItemsContent({
                                 )}
                             </div>
                             {!selectMode && (
-
                               // eslint-disable-next-line jsx-a11y/no-static-element-interactions
                               <div
                                 className="flex items-center gap-0.5"
@@ -375,9 +376,11 @@ export function MenuItemsContent({
                                 Manual override
                               </span>
                             )}
-                            {(item.manualOverrideReason ?? item.availabilityReason) && (
+                            {(item.manualOverrideReason ??
+                              item.availabilityReason) && (
                               <span className="ml-1.5 text-[11px] text-text-disabled">
-                                {item.manualOverrideReason ?? item.availabilityReason}
+                                {item.manualOverrideReason ??
+                                  item.availabilityReason}
                               </span>
                             )}
                           </div>
@@ -429,8 +432,8 @@ export function MenuItemsContent({
         >
           <div className="space-y-4">
             <p className="text-sm text-text-secondary">
-              This manual override stays in effect even if inventory or a schedule
-              would otherwise make the item available.
+              This manual override stays in effect even if inventory or a
+              schedule would otherwise make the item available.
             </p>
             <Input
               aria-label="Manual override reason"
@@ -439,7 +442,10 @@ export function MenuItemsContent({
               placeholder="Reason (required)"
             />
             <div className="flex justify-end gap-2">
-              <Button variant="secondary" onClick={() => setManualOverrideItem(null)}>
+              <Button
+                variant="secondary"
+                onClick={() => setManualOverrideItem(null)}
+              >
                 Cancel
               </Button>
               <Button
@@ -461,4 +467,4 @@ export function MenuItemsContent({
       )}
     </div>
   );
-}
+};

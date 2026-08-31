@@ -1,9 +1,7 @@
-
-
 import type { TableStatus } from "@pos/types";
-import type { AuthContext } from "../../core/auth";
+import type { AuthContext } from "@/core/auth";
 import { tableRepository } from "./table.repository";
-import { branchRepository } from "../branches/branch.repository";
+import { branchRepository } from "@/modules/branches/branch.repository";
 import {
   tableNotFound,
   branchNotFound,
@@ -34,7 +32,6 @@ export interface UpdateTableInput {
 }
 
 export const tableService = {
-
   async list(auth: AuthContext) {
     requireTablesPermission(auth, "tables:read");
     assertTableListScope(auth);

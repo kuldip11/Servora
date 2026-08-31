@@ -3,7 +3,7 @@ import {
   extractApiError,
   type TokenStorageAdapter,
 } from "@pos/api-client";
-import { useAuthStore } from "../../store/auth";
+import { useAuthStore } from "@/store/auth";
 import { queryClient } from "./query-client";
 
 const webStorageAdapter: TokenStorageAdapter = {

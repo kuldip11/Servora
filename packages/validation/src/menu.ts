@@ -113,18 +113,43 @@ export const advancedMenuItemPricingSchema = z
   })
   .superRefine((value, ctx) => {
     if (value.pricingMode === "WEIGHT_BASED" && !value.weightUnit) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["weightUnit"], message: "Weight-based items require a weight unit" });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["weightUnit"],
+        message: "Weight-based items require a weight unit",
+      });
     }
     if (value.pricingMode !== "WEIGHT_BASED" && value.weightUnit != null) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["weightUnit"], message: "weightUnit is only valid for weight-based items" });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["weightUnit"],
+        message: "weightUnit is only valid for weight-based items",
+      });
     }
-    if (value.pricingMode !== "OPEN" && (value.openPriceMin != null || value.openPriceMax != null)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["openPriceMin"], message: "Open-price limits are only valid for open-priced items" });
+    if (
+      value.pricingMode !== "OPEN" &&
+      (value.openPriceMin != null || value.openPriceMax != null)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["openPriceMin"],
+        message: "Open-price limits are only valid for open-priced items",
+      });
     }
-    if (value.openPriceMin != null && value.openPriceMax != null && value.openPriceMin > value.openPriceMax) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["openPriceMax"], message: "Open-price maximum must be greater than or equal to the minimum" });
+    if (
+      value.openPriceMin != null &&
+      value.openPriceMax != null &&
+      value.openPriceMin > value.openPriceMax
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["openPriceMax"],
+        message:
+          "Open-price maximum must be greater than or equal to the minimum",
+      });
     }
   });
 
-export type AdvancedMenuItemPricingInput = z.infer<typeof advancedMenuItemPricingSchema>;
-
+export type AdvancedMenuItemPricingInput = z.infer<
+  typeof advancedMenuItemPricingSchema
+>;

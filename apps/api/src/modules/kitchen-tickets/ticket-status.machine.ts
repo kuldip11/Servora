@@ -1,6 +1,5 @@
-
 import type { KitchenTicketStatus } from "@pos/types";
-import { DomainRuleError } from "../../core/errors";
+import { DomainRuleError } from "@/core/errors";
 
 export const KITCHEN_TICKET_TRANSITIONS: Record<
   KitchenTicketStatus,
@@ -14,21 +13,34 @@ export const KITCHEN_TICKET_TRANSITIONS: Record<
   SERVED: [],
 };
 
-export function canTransition(from: KitchenTicketStatus, to: KitchenTicketStatus): boolean {
+export const canTransition = (
+  from: KitchenTicketStatus,
+  to: KitchenTicketStatus,
+): boolean => {
   return (KITCHEN_TICKET_TRANSITIONS[from] ?? []).includes(to);
-}
+};
 
-export function assertValidTransition(from: KitchenTicketStatus, to: KitchenTicketStatus): void {
+export const assertValidTransition = (
+  from: KitchenTicketStatus,
+  to: KitchenTicketStatus,
+): void => {
   if (!canTransition(from, to)) {
-    throw new DomainRuleError(`Cannot transition kitchen ticket from ${from} to ${to}`, { from, to });
+    throw new DomainRuleError(
+      `Cannot transition kitchen ticket from ${from} to ${to}`,
+      { from, to },
+    );
   }
-}
+};
 
-export type TicketTimestampPatch = Partial<Record<"firedAt" | "readyAt" | "servedAt", Date | null>>;
+export type TicketTimestampPatch = Partial<
+  Record<"firedAt" | "readyAt" | "servedAt", Date | null>
+>;
 
-export function timestampFieldsFor(status: KitchenTicketStatus): TicketTimestampPatch {
+export const timestampFieldsFor = (
+  status: KitchenTicketStatus,
+): TicketTimestampPatch => {
   if (status === "FIRED") return { firedAt: new Date() };
   if (status === "READY") return { readyAt: new Date() };
   if (status === "SERVED") return { servedAt: new Date() };
   return {};
-}
+};

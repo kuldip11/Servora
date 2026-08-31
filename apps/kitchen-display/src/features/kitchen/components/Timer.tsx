@@ -1,10 +1,10 @@
-import { formatTicketAge, isUrgent } from "../utils/ticket";
+import { formatTicketAge, isUrgent } from "@/features/kitchen/utils/ticket";
 
 interface Props {
   firedAt: string | null;
 }
 
-export function Timer({ firedAt }: Props) {
+export const Timer = ({ firedAt }: Props) => {
   const urgent = isUrgent(firedAt);
   const age = formatTicketAge(firedAt);
 
@@ -15,4 +15,4 @@ export function Timer({ firedAt }: Props) {
       {age}
     </p>
   );
-}
+};

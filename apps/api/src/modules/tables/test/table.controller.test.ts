@@ -12,7 +12,7 @@ const { list, create, update, updateStatus, remove, regenerateQr } = vi.hoisted(
 vi.mock("../table.service", () => ({
   tableService: { list, create, update, updateStatus, remove, regenerateQr },
 }));
-import { tableController } from "../table.controller";
+import { tableController } from "@/modules/tables/table.controller";
 const auth: any = { tenantId: "t1", branchId: "b1" };
 beforeEach(() => {
   vi.clearAllMocks();

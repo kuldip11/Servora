@@ -6,9 +6,11 @@
     "moduleResolution": "bundler",
     "types": ["bun-types"],
     "paths": {
+      "@/*": ["./src/*"],
       "@pos/types": ["../../packages/types/src/index.ts"],
       "@pos/validation": ["../../packages/validation/src/index.ts"]
-    }
+    },
+    "baseUrl": "."
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import { requireAuthPlugin } from "../../core/auth";
+import { requireAuthPlugin } from "@/core/auth";
 import { analyticsController } from "./analytics.controller";
 
 export const analyticsRouter = new Elysia()

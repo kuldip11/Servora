@@ -9,16 +9,18 @@ export type AvailabilityCause =
   | "RECIPE_DRIVEN"
   | "BASE_STATUS";
 
-function isScheduleReason(reason: string) {
+const isScheduleReason = (reason: string) => {
   return (
     reason.startsWith("Daily window") ||
     reason.startsWith("Scheduled") ||
     reason.startsWith("Holiday:") ||
     /^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday) /.test(reason)
   );
-}
+};
 
-export function resolveEffectiveAvailability(evidence: AvailabilityReplayEvidence) {
+export const resolveEffectiveAvailability = (
+  evidence: AvailabilityReplayEvidence,
+) => {
   const { item, resolvedStatus } = evidence;
   const branchOverride = evidence.branchOverride ?? undefined;
   const channelOverride = evidence.channelOverride ?? undefined;
@@ -29,7 +31,9 @@ export function resolveEffectiveAvailability(evidence: AvailabilityReplayEvidenc
     ? item.manualOverrideStatus
     : countDepleted
       ? resolvedStatus.status
-      : (channelOverride?.status ?? branchOverride?.status ?? resolvedStatus.status);
+      : (channelOverride?.status ??
+        branchOverride?.status ??
+        resolvedStatus.status);
 
   const availabilityCause: AvailabilityCause = item.manualOverrideStatus
     ? "MANUAL_OVERRIDE"
@@ -63,4 +67,4 @@ export function resolveEffectiveAvailability(evidence: AvailabilityReplayEvidenc
     availabilityCause,
     overrideApplied: Boolean(branchOverride || channelOverride),
   };
-}
+};

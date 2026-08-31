@@ -8,9 +8,11 @@ vi.mock("../availability.repository", () => ({
   availabilityRepository: { listDashboardItems, loadDashboardResolutionData },
 }));
 vi.mock("../../../../core/audit", () => ({ writeAudit: vi.fn() }));
-vi.mock("../../../../lib/event-bus", () => ({ eventBus: { publish: vi.fn() } }));
+vi.mock("../../../../lib/event-bus", () => ({
+  eventBus: { publish: vi.fn() },
+}));
 
-import { availabilityService } from "../availability.service";
+import { availabilityService } from "@/modules/menu/availability/availability.service";
 
 const baseItem = {
   id: "item-1",

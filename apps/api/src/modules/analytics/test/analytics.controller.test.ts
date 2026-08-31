@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 const { getDashboard } = vi.hoisted(() => ({ getDashboard: vi.fn() }));
 vi.mock("../analytics.service", () => ({ analyticsService: { getDashboard } }));
-import { ForbiddenError } from "../../../core/errors";
-import { analyticsController } from "../analytics.controller";
+import { ForbiddenError } from "@/core/errors";
+import { analyticsController } from "@/modules/analytics/analytics.controller";
 const auth = {
   userId: "u1",
   tenantId: "t1",

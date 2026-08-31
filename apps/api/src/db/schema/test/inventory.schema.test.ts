@@ -7,13 +7,13 @@ import {
   wasteReasons,
   inventoryUnitEnum,
   inventoryTransactionTypeEnum,
-} from "../inventory.schema";
-function expectTable(table: any, name: string, columns: string[]) {
+} from "@/db/schema/inventory.schema";
+const expectTable = (table: any, name: string, columns: string[]) => {
   const actual = Object.keys(table[Symbol.for("drizzle:Columns")]);
   expect(getTableConfig(table).name).toBe(name);
   expect(actual).toEqual(expect.arrayContaining(columns));
   expect(actual).toHaveLength(columns.length);
-}
+};
 describe("inventory.schema.ts", () => {
   it("defines inventory_items", () =>
     expectTable(inventoryItems, "inventory_items", [

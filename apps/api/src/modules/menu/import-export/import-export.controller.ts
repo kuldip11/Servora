@@ -1,27 +1,24 @@
-
-
-import type { AuthContext } from "../../../core/auth";
-import { successResponse } from "../../../core/response";
+import type { AuthContext } from "@/core/auth";
+import { successResponse } from "@/core/response";
 import {
   importExportService,
   type ExportFormat,
 } from "./import-export.service";
 import { emptyImportFile } from "./import-export.errors";
 
-function fileResponse(
+const fileResponse = (
   file: { content: string | Buffer; contentType: string },
   filename: string,
-): Response {
+): Response => {
   return new Response(file.content, {
     headers: {
       "Content-Type": file.contentType,
       "Content-Disposition": `attachment; filename="${filename}"`,
     },
   });
-}
+};
 
 export const importExportController = {
-
   async exportItems(
     auth: AuthContext,
     format: ExportFormat,

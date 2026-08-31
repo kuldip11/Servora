@@ -1,11 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
-import { tablesService } from "../services/tables.service";
-import { tableKeys } from "../query-keys";
-import type { TableFormInput } from "../types";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
+import { tablesService } from "@/features/tables/services/tables.service";
+import { tableKeys } from "@/features/tables/query-keys";
+import type { TableFormInput } from "@/features/tables/types";
 
-export function useUpdateTable() {
+export const useUpdateTable = () => {
   return useMutation({
     mutationFn: ({
       id,
@@ -20,4 +20,4 @@ export function useUpdateTable() {
     },
     onError: (err) => notifyError(err, "Failed to update table"),
   });
-}
+};

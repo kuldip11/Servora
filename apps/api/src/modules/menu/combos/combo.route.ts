@@ -1,14 +1,14 @@
 import { Elysia, t } from "elysia";
 import { eq, and } from "drizzle-orm";
-import { db } from "../../../db";
-import { combos, comboSlots, comboSlotOptions } from "../../../db/schema";
-import { requireAuthPlugin, requirePermission } from "../../../core/auth";
-import { createdResponse, successResponse } from "../../../core/response";
-import { ValidationError } from "../../../core/errors";
+import { db } from "@/db";
+import { combos, comboSlots, comboSlotOptions } from "@/db/schema";
+import { requireAuthPlugin, requirePermission } from "@/core/auth";
+import { createdResponse, successResponse } from "@/core/response";
+import { ValidationError } from "@/core/errors";
 import { previewComboConfiguration } from "./combo-builder.service";
-import { writeAudit } from "../../../core/audit";
-import { itemRepository } from "../items/item.repository";
-import { assertMenuResourceBranch } from "../menu-authorization";
+import { writeAudit } from "@/core/audit";
+import { itemRepository } from "@/modules/menu/items/item.repository";
+import { assertMenuResourceBranch } from "@/modules/menu/menu-authorization";
 
 const body = t.Object({
   name: t.String({ minLength: 1 }),
@@ -66,7 +66,10 @@ export const combosRouter = new Elysia({ prefix: "/api/menu/combos" })
     },
     {
       body: t.Object({
-        pricePolicy: t.Union([t.Literal("FIXED"), t.Literal("PERCENT_OFF_SUM")]),
+        pricePolicy: t.Union([
+          t.Literal("FIXED"),
+          t.Literal("PERCENT_OFF_SUM"),
+        ]),
         fixedPrice: t.Optional(t.Number({ minimum: 0 })),
         percentOff: t.Optional(t.Number({ minimum: 0, maximum: 100 })),
         slots: t.Array(
@@ -106,15 +109,28 @@ export const combosRouter = new Elysia({ prefix: "/api/menu/combos" })
         throw new ValidationError("A percent-off value is required");
       for (const slot of input.slots) {
         if (slot.minSelections > slot.maxSelections)
-          throw new ValidationError(`${slot.name} has invalid selection limits`);
+          throw new ValidationError(
+            `${slot.name} has invalid selection limits`,
+          );
         if (slot.options.length < slot.minSelections)
-          throw new ValidationError(`${slot.name} does not have enough options`);
+          throw new ValidationError(
+            `${slot.name} does not have enough options`,
+          );
         for (const option of slot.options) {
-          const item = await itemRepository.findById(auth.tenantId, option.menuItemId);
-          if (!item) throw new ValidationError("Combo option menu item not found");
+          const item = await itemRepository.findById(
+            auth.tenantId,
+            option.menuItemId,
+          );
+          if (!item)
+            throw new ValidationError("Combo option menu item not found");
           assertMenuResourceBranch(auth, item.branchId, { allowShared: true });
-          if (option.variantId && !item.variants.some((variant) => variant.id === option.variantId))
-            throw new ValidationError("Combo option variant does not belong to the selected item");
+          if (
+            option.variantId &&
+            !item.variants.some((variant) => variant.id === option.variantId)
+          )
+            throw new ValidationError(
+              "Combo option variant does not belong to the selected item",
+            );
         }
       }
       const created = await db.transaction(async (tx) => {
@@ -144,17 +160,15 @@ export const combosRouter = new Elysia({ prefix: "/api/menu/combos" })
             })
             .returning();
           if (slotInput.options.length)
-            await tx
-              .insert(comboSlotOptions)
-              .values(
-                slotInput.options.map((option) => ({
-                  slotId: slot!.id,
-                  menuItemId: option.menuItemId,
-                  variantId: option.variantId ?? null,
-                  upcharge: String(option.upcharge ?? 0),
-                  isUnlimitedRefill: option.isUnlimitedRefill ?? false,
-                })),
-              );
+            await tx.insert(comboSlotOptions).values(
+              slotInput.options.map((option) => ({
+                slotId: slot!.id,
+                menuItemId: option.menuItemId,
+                variantId: option.variantId ?? null,
+                upcharge: String(option.upcharge ?? 0),
+                isUnlimitedRefill: option.isUnlimitedRefill ?? false,
+              })),
+            );
         }
         return combo!;
       });

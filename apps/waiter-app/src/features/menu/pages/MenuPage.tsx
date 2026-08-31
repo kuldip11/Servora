@@ -2,33 +2,42 @@ import { useState, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { X, ShoppingBag } from "lucide-react";
 import { IconButton, toast } from "@pos/ui";
-import { useRealtimeEvent } from "../../../shared/lib/realtime";
-import { useCreateOrder } from "../../orders/hooks/useCreateOrder";
-import { useAddOrderItems } from "../../orders/hooks/useAddOrderItems";
-import { useMenuCategories } from "../hooks/useMenuCategories";
-import { useMyBranch } from "../hooks/useMyBranch";
-import { useTables } from "../hooks/useTables";
-import { useCustomerSearch } from "../hooks/useCustomerSearch";
-import { ALL_ORDER_TYPES } from "../constants";
-import type { CartItem } from "../types";
-import type { AddOrderItemInput } from "../../orders/api/orders";
-import type { CreateOrderInput } from "../../orders/api/createOrder";
-import type { WaiterCombo, WaiterComboCartLine, WaiterComboMenuItem, WaiterComboSelection } from "../combo";
-import { comboLineKey, estimateComboSubtotal } from "../combo";
+import { useRealtimeEvent } from "@/shared/lib/realtime";
+import { useCreateOrder } from "@/features/orders/hooks/useCreateOrder";
+import { useAddOrderItems } from "@/features/orders/hooks/useAddOrderItems";
+import { useMenuCategories } from "@/features/menu/hooks/useMenuCategories";
+import { useMyBranch } from "@/features/menu/hooks/useMyBranch";
+import { useTables } from "@/features/menu/hooks/useTables";
+import { useCustomerSearch } from "@/features/menu/hooks/useCustomerSearch";
+import { ALL_ORDER_TYPES } from "@/features/menu/constants";
+import type { CartItem } from "@/features/menu/types";
+import type { AddOrderItemInput } from "@/features/orders/api/orders";
+import type { CreateOrderInput } from "@/features/orders/api/createOrder";
+import type {
+  WaiterCombo,
+  WaiterComboCartLine,
+  WaiterComboMenuItem,
+  WaiterComboSelection,
+} from "@/features/menu/combo";
+import { comboLineKey, estimateComboSubtotal } from "@/features/menu/combo";
 import { addOrderItemsSchema, createOrderSchema } from "@pos/validation";
-import { cartItemKey } from "../utils/cart";
-import { ItemCustomiser } from "../components/ItemCustomiser";
-import { SearchBar } from "../components/SearchBar";
-import { CategoryTabs } from "../components/CategoryTabs";
-import { MenuGrid } from "../components/MenuGrid";
-import { OrderOptionsPanel } from "../components/OrderOptionsPanel";
-import { CartSummary } from "../components/CartSummary";
-import { ComboCustomiser } from "../components/ComboCustomiser";
-import { apiClient } from "../../../shared/lib/api-client";
-import { createAuthApi, createCustomersApi, createMenuApi } from "@pos/api-client";
-import { STORAGE_KEYS } from "../../../shared/constants/storage-keys";
+import { cartItemKey } from "@/features/menu/utils/cart";
+import { ItemCustomiser } from "@/features/menu/components/ItemCustomiser";
+import { SearchBar } from "@/features/menu/components/SearchBar";
+import { CategoryTabs } from "@/features/menu/components/CategoryTabs";
+import { MenuGrid } from "@/features/menu/components/MenuGrid";
+import { OrderOptionsPanel } from "@/features/menu/components/OrderOptionsPanel";
+import { CartSummary } from "@/features/menu/components/CartSummary";
+import { ComboCustomiser } from "@/features/menu/components/ComboCustomiser";
+import { apiClient } from "@/shared/lib/api-client";
+import {
+  createAuthApi,
+  createCustomersApi,
+  createMenuApi,
+} from "@pos/api-client";
+import { STORAGE_KEYS } from "@/shared/constants/storage-keys";
 import type { OrderableMenuItem, Tenant } from "@pos/types";
-import type { WaiterMenuCategory } from "../api/menu";
+import type { WaiterMenuCategory } from "@/features/menu/api/menu";
 
 const menuApi = createMenuApi(apiClient);
 const customersApi = createCustomersApi(apiClient);
@@ -47,16 +56,22 @@ interface Props {
   existingOrderId?: string;
 }
 
-export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
+export const MenuPage = ({ onBack, onOrderPlaced, existingOrderId }: Props) => {
   const qc = useQueryClient();
   const isAddingToExisting = !!existingOrderId;
 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [comboCart, setComboCart] = useState<WaiterComboCartLine[]>([]);
-  const [customisingCombo, setCustomisingCombo] = useState<WaiterCombo | null>(null);
-  const [comboSelections, setComboSelections] = useState<WaiterComboSelection[]>([]);
+  const [customisingCombo, setCustomisingCombo] = useState<WaiterCombo | null>(
+    null,
+  );
+  const [comboSelections, setComboSelections] = useState<
+    WaiterComboSelection[]
+  >([]);
   const [couponCode, setCouponCode] = useState("");
-  const [selectedPromotionIds, setSelectedPromotionIds] = useState<string[]>([]);
+  const [selectedPromotionIds, setSelectedPromotionIds] = useState<string[]>(
+    [],
+  );
   const [orderType, setOrderType] = useState<
     "DINE_IN" | "TAKEAWAY" | "DELIVERY"
   >("DINE_IN");
@@ -64,13 +79,17 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
   const [customerId, setCustomerId] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [customerGroupId, setCustomerGroupId] = useState("");
-  const [billingMode, setBillingMode] = useState<"LINE_ITEMS" | "PER_COVER">("LINE_ITEMS");
+  const [billingMode, setBillingMode] = useState<"LINE_ITEMS" | "PER_COVER">(
+    "LINE_ITEMS",
+  );
   const [coverCount, setCoverCount] = useState(1);
   const [perCoverPriceRuleId, setPerCoverPriceRuleId] = useState("");
   const [orderNotes, setOrderNotes] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showCart, setShowCart] = useState(false);
-  const [customising, setCustomising] = useState<{ item: OrderableMenuItem } | null>(null);
+  const [customising, setCustomising] = useState<{
+    item: OrderableMenuItem;
+  } | null>(null);
   const [customerSearch, setCustomerSearch] = useState("");
   const [menuSearch, setMenuSearch] = useState("");
   const [foodTypeFilter, setFoodTypeFilter] = useState<
@@ -81,51 +100,107 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
   const [roundCourseNumber, setRoundCourseNumber] = useState(1);
 
   const { data: categories, isLoading: menuLoading } = useMenuCategories();
-  const { data: activeMenus = [], isLoading: activeMenusLoading } = useQuery<ActiveMenu[]>({
+  const { data: activeMenus = [], isLoading: activeMenusLoading } = useQuery<
+    ActiveMenu[]
+  >({
     queryKey: ["menus", "active", orderType],
     queryFn: () => menuApi.listActiveMenus<ActiveMenu>(orderType),
   });
   useEffect(() => {
-    if (!activeMenus.some((menu) => menu.id === selectedMenuId)) setSelectedMenuId(activeMenus[0]?.id ?? "");
+    if (!activeMenus.some((menu) => menu.id === selectedMenuId))
+      setSelectedMenuId(activeMenus[0]?.id ?? "");
   }, [activeMenus, selectedMenuId]);
-  const visibleIds = new Set(activeMenus.filter((menu) => !selectedMenuId || menu.id === selectedMenuId).flatMap((menu) => menu.memberships.map((membership) => membership.menuItemId)));
+  const visibleIds = new Set(
+    activeMenus
+      .filter((menu) => !selectedMenuId || menu.id === selectedMenuId)
+      .flatMap((menu) =>
+        menu.memberships.map((membership) => membership.menuItemId),
+      ),
+  );
   const scopedCategories = activeMenusLoading
     ? categories
-    : categories?.map((category) => ({ ...category, menuItems: (category.menuItems ?? []).filter((item) => visibleIds.has(item.id)) })).filter((category) => category.menuItems.length > 0);
+    : categories
+        ?.map((category) => ({
+          ...category,
+          menuItems: (category.menuItems ?? []).filter((item) =>
+            visibleIds.has(item.id),
+          ),
+        }))
+        .filter((category) => category.menuItems.length > 0);
   const tenantId = localStorage.getItem(STORAGE_KEYS.tenant);
   const { data: tenantSettings } = useQuery<Tenant | null>({
     queryKey: ["tenant-settings", tenantId],
     enabled: !!tenantId,
     queryFn: async () => {
       const memberships = await authApi.listTenants();
-      return memberships.find((entry) => entry.tenant.id === tenantId)?.tenant ?? null;
+      return (
+        memberships.find((entry) => entry.tenant.id === tenantId)?.tenant ??
+        null
+      );
     },
   });
-  const courseSequencingAvailable = tenantSettings?.courseSequencingEnabled === true;
+  const courseSequencingAvailable =
+    tenantSettings?.courseSequencingEnabled === true;
 
   const { data: combos = [] } = useQuery<WaiterCombo[]>({
     queryKey: ["menu-combos"],
     queryFn: () => menuApi.listCombos<WaiterCombo>(),
     enabled: !isAddingToExisting,
   });
-  const { data: promotions = [] } = useQuery<Array<{ id: string; name: string; couponCode: string | null; isActive: boolean }>>({
+  const { data: promotions = [] } = useQuery<
+    Array<{
+      id: string;
+      name: string;
+      couponCode: string | null;
+      isActive: boolean;
+    }>
+  >({
     queryKey: ["menu-promotions"],
-    queryFn: () => menuApi.listPromotions<{ id: string; name: string; couponCode: string | null; isActive: boolean }>(),
+    queryFn: () =>
+      menuApi.listPromotions<{
+        id: string;
+        name: string;
+        couponCode: string | null;
+        isActive: boolean;
+      }>(),
   });
-  const { data: customerGroups = [] } = useQuery<Array<{ id: string; name: string }>>({
+  const { data: customerGroups = [] } = useQuery<
+    Array<{ id: string; name: string }>
+  >({
     queryKey: ["customer-groups"],
     queryFn: () => customersApi.listGroups(),
     enabled: !isAddingToExisting,
   });
-  const { data: priceRules = [] } = useQuery<Array<{ id: string; isPerCover?: boolean; coverTier?: "ADULT" | "CHILD" | null; price: string | number | null }>>({
+  const { data: priceRules = [] } = useQuery<
+    Array<{
+      id: string;
+      isPerCover?: boolean;
+      coverTier?: "ADULT" | "CHILD" | null;
+      price: string | number | null;
+    }>
+  >({
     queryKey: ["menu-price-rules", "per-cover"],
-    queryFn: () => menuApi.listPriceRules<{ id: string; isPerCover?: boolean; coverTier?: "ADULT" | "CHILD" | null; price: string | number | null }>(),
+    queryFn: () =>
+      menuApi.listPriceRules<{
+        id: string;
+        isPerCover?: boolean;
+        coverTier?: "ADULT" | "CHILD" | null;
+        price: string | number | null;
+      }>(),
     enabled: !isAddingToExisting,
   });
   const perCoverRules = priceRules.filter((rule) => rule.isPerCover);
   const activeCombos = combos.filter((combo) => combo.status === "ACTIVE");
   const menuById = useMemo(
-    () => new Map<string, WaiterComboMenuItem>((scopedCategories?.flatMap((category: { menuItems?: WaiterComboMenuItem[] }) => category.menuItems ?? []) ?? []).map((item) => [item.id, item])),
+    () =>
+      new Map<string, WaiterComboMenuItem>(
+        (
+          scopedCategories?.flatMap(
+            (category: { menuItems?: WaiterComboMenuItem[] }) =>
+              category.menuItems ?? [],
+          ) ?? []
+        ).map((item) => [item.id, item]),
+      ),
     [scopedCategories],
   );
 
@@ -168,8 +243,11 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
 
   function handleItemTap(item: OrderableMenuItem) {
     const hasOptions =
-      item.variants?.length > 0 || item.modifierGroupLinks?.length > 0 ||
-      item.supportsZones === true || item.pricingMode === "WEIGHT_BASED" || item.pricingMode === "OPEN";
+      item.variants?.length > 0 ||
+      item.modifierGroupLinks?.length > 0 ||
+      item.supportsZones === true ||
+      item.pricingMode === "WEIGHT_BASED" ||
+      item.pricingMode === "OPEN";
     if (hasOptions) {
       setCustomising({ item });
       return;
@@ -214,59 +292,107 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
 
   function openCombo(combo: WaiterCombo) {
     setCustomisingCombo(combo);
-    setComboSelections(combo.slots.map((slot) => ({ slotId: slot.id, optionIds: [] })));
+    setComboSelections(
+      combo.slots.map((slot) => ({ slotId: slot.id, optionIds: [] })),
+    );
   }
 
   function toggleComboOption(slotId: string, optionId: string) {
     if (!customisingCombo) return;
     const slot = customisingCombo.slots.find((value) => value.id === slotId);
     if (!slot) return;
-    setComboSelections((previous) => previous.map((selection) => {
-      if (selection.slotId !== slotId) return selection;
-      if (selection.optionIds.includes(optionId)) {
-        return { ...selection, optionIds: selection.optionIds.filter((id) => id !== optionId) };
-      }
-      if (selection.optionIds.length >= slot.maxSelections) {
-        if (slot.maxSelections === 1) return { ...selection, optionIds: [optionId] };
-        return selection;
-      }
-      return { ...selection, optionIds: [...selection.optionIds, optionId] };
-    }));
+    setComboSelections((previous) =>
+      previous.map((selection) => {
+        if (selection.slotId !== slotId) return selection;
+        if (selection.optionIds.includes(optionId)) {
+          return {
+            ...selection,
+            optionIds: selection.optionIds.filter((id) => id !== optionId),
+          };
+        }
+        if (selection.optionIds.length >= slot.maxSelections) {
+          if (slot.maxSelections === 1)
+            return { ...selection, optionIds: [optionId] };
+          return selection;
+        }
+        return { ...selection, optionIds: [...selection.optionIds, optionId] };
+      }),
+    );
   }
 
   function addSelectedCombo() {
     if (!customisingCombo) return;
-    const line: WaiterComboCartLine = { combo: customisingCombo, quantity: 1, selections: comboSelections, ...(courseMode && !isAddingToExisting ? { courseNumber: 1 } : {}) };
+    const line: WaiterComboCartLine = {
+      combo: customisingCombo,
+      quantity: 1,
+      selections: comboSelections,
+      ...(courseMode && !isAddingToExisting ? { courseNumber: 1 } : {}),
+    };
     const key = comboLineKey(line);
     setComboCart((previous) => {
       const existing = previous.find((value) => comboLineKey(value) === key);
-      if (existing) return previous.map((value) => comboLineKey(value) === key ? { ...value, quantity: value.quantity + 1 } : value);
+      if (existing)
+        return previous.map((value) =>
+          comboLineKey(value) === key
+            ? { ...value, quantity: value.quantity + 1 }
+            : value,
+        );
       return [...previous, line];
     });
     setCustomisingCombo(null);
     setComboSelections([]);
-    toast({ title: `${customisingCombo.name} added`, tone: "success", duration: 1000 });
+    toast({
+      title: `${customisingCombo.name} added`,
+      tone: "success",
+      duration: 1000,
+    });
   }
 
   function updateComboQty(key: string, delta: number) {
-    setComboCart((previous) => previous
-      .map((value) => comboLineKey(value) === key ? { ...value, quantity: value.quantity + delta } : value)
-      .filter((value) => value.quantity > 0));
+    setComboCart((previous) =>
+      previous
+        .map((value) =>
+          comboLineKey(value) === key
+            ? { ...value, quantity: value.quantity + delta }
+            : value,
+        )
+        .filter((value) => value.quantity > 0),
+    );
   }
 
   function setCourseModeEnabled(enabled: boolean) {
     setCourseMode(enabled);
     if (isAddingToExisting) return;
-    setCart((current) => current.map((item) => enabled ? { ...item, course: item.course ?? 1 } : (({ course: _course, ...rest }) => rest)(item)));
-    setComboCart((current) => current.map((line) => enabled ? { ...line, courseNumber: line.courseNumber ?? 1 } : (({ courseNumber: _courseNumber, ...rest }) => rest)(line)));
+    setCart((current) =>
+      current.map((item) =>
+        enabled
+          ? { ...item, course: item.course ?? 1 }
+          : (({ course: _course, ...rest }) => rest)(item),
+      ),
+    );
+    setComboCart((current) =>
+      current.map((line) =>
+        enabled
+          ? { ...line, courseNumber: line.courseNumber ?? 1 }
+          : (({ courseNumber: _courseNumber, ...rest }) => rest)(line),
+      ),
+    );
   }
 
   function updateItemCourse(key: string, course: number) {
-    setCart((current) => current.map((item) => cartItemKey(item) === key ? { ...item, course } : item));
+    setCart((current) =>
+      current.map((item) =>
+        cartItemKey(item) === key ? { ...item, course } : item,
+      ),
+    );
   }
 
   function updateComboCourse(key: string, courseNumber: number) {
-    setComboCart((current) => current.map((line) => comboLineKey(line) === key ? { ...line, courseNumber } : line));
+    setComboCart((current) =>
+      current.map((line) =>
+        comboLineKey(line) === key ? { ...line, courseNumber } : line,
+      ),
+    );
   }
 
   function handleSubmit() {
@@ -279,9 +405,13 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
       if (i.variantId) item.variantId = i.variantId;
       if (i.chefNotes) item.chefNotes = i.chefNotes;
       if (i.seatLabel) item.seatLabel = i.seatLabel;
-      if (i.weightQuantity !== undefined) item.weightQuantity = i.weightQuantity;
+      if (i.weightQuantity !== undefined)
+        item.weightQuantity = i.weightQuantity;
       if (i.manualPrice !== undefined) item.manualPrice = i.manualPrice;
-      if (courseMode) item.courseNumber = isAddingToExisting ? roundCourseNumber : (i.course ?? 1);
+      if (courseMode)
+        item.courseNumber = isAddingToExisting
+          ? roundCourseNumber
+          : (i.course ?? 1);
       if (i.modifiers.length) {
         item.selectedOptions = i.modifiers.map((m) => ({
           optionId: m.optionId,
@@ -298,7 +428,13 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         comboId: line.combo.id,
         quantity: line.quantity,
         selections: line.selections,
-        ...(courseMode ? { courseNumber: isAddingToExisting ? roundCourseNumber : (line.courseNumber ?? 1) } : {}),
+        ...(courseMode
+          ? {
+              courseNumber: isAddingToExisting
+                ? roundCourseNumber
+                : (line.courseNumber ?? 1),
+            }
+          : {}),
       }));
       const validated = addOrderItemsSchema.safeParse({
         ...(items.length ? { items } : {}),
@@ -316,7 +452,9 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
           combos,
           ...(orderNotes ? { notes: orderNotes } : {}),
           ...(couponCode.trim() ? { couponCode: couponCode.trim() } : {}),
-          ...(selectedPromotionIds.length ? { promotionIds: selectedPromotionIds } : {}),
+          ...(selectedPromotionIds.length
+            ? { promotionIds: selectedPromotionIds }
+            : {}),
         },
         { onSuccess: () => onOrderPlaced(existingOrderId!) },
       );
@@ -325,7 +463,13 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         comboId: line.combo.id,
         quantity: line.quantity,
         selections: line.selections,
-        ...(courseMode ? { courseNumber: isAddingToExisting ? roundCourseNumber : (line.courseNumber ?? 1) } : {}),
+        ...(courseMode
+          ? {
+              courseNumber: isAddingToExisting
+                ? roundCourseNumber
+                : (line.courseNumber ?? 1),
+            }
+          : {}),
       }));
       const validated = createOrderSchema.safeParse({
         type: orderType,
@@ -333,10 +477,14 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         ...(customerId ? { customerId } : {}),
         ...(customerGroupId ? { customerGroupId } : {}),
         billingMode,
-        ...(billingMode === "PER_COVER" ? { coverCount, perCoverPriceRuleId } : {}),
+        ...(billingMode === "PER_COVER"
+          ? { coverCount, perCoverPriceRuleId }
+          : {}),
         ...(orderNotes ? { notes: orderNotes } : {}),
         ...(couponCode.trim() ? { couponCode: couponCode.trim() } : {}),
-        ...(selectedPromotionIds.length ? { promotionIds: selectedPromotionIds } : {}),
+        ...(selectedPromotionIds.length
+          ? { promotionIds: selectedPromotionIds }
+          : {}),
         ...(items.length ? { items } : {}),
         ...(combos.length ? { combos } : {}),
       });
@@ -350,14 +498,18 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         ...(items.length ? { items } : {}),
         ...(combos.length ? { combos } : {}),
         ...(couponCode.trim() ? { couponCode: couponCode.trim() } : {}),
-        ...(selectedPromotionIds.length ? { promotionIds: selectedPromotionIds } : {}),
+        ...(selectedPromotionIds.length
+          ? { promotionIds: selectedPromotionIds }
+          : {}),
         ...(validated.data.tableId ? { tableId: validated.data.tableId } : {}),
         ...(validated.data.customerId
           ? { customerId: validated.data.customerId }
           : {}),
         ...(customerGroupId ? { customerGroupId } : {}),
         billingMode,
-        ...(billingMode === "PER_COVER" ? { coverCount, perCoverPriceRuleId } : {}),
+        ...(billingMode === "PER_COVER"
+          ? { coverCount, perCoverPriceRuleId }
+          : {}),
         ...(validated.data.notes ? { notes: validated.data.notes } : {}),
       };
       createOrderMutation.mutate(orderInput, {
@@ -366,30 +518,41 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
     }
   }
 
-  const totalItems = cart.reduce((s, i) => s + i.quantity, 0) + comboCart.reduce((s, line) => s + line.quantity, 0);
-  const lineItemTotal = cart.reduce((s, i) => s + i.unitPrice * i.quantity, 0) + comboCart.reduce((sum, line) => sum + estimateComboSubtotal(line, menuById), 0);
-  const selectedCoverRule = perCoverRules.find((rule) => rule.id === perCoverPriceRuleId);
+  const totalItems =
+    cart.reduce((s, i) => s + i.quantity, 0) +
+    comboCart.reduce((s, line) => s + line.quantity, 0);
+  const lineItemTotal =
+    cart.reduce((s, i) => s + i.unitPrice * i.quantity, 0) +
+    comboCart.reduce(
+      (sum, line) => sum + estimateComboSubtotal(line, menuById),
+      0,
+    );
+  const selectedCoverRule = perCoverRules.find(
+    (rule) => rule.id === perCoverPriceRuleId,
+  );
   const selectedCoverRate = Number(selectedCoverRule?.price ?? 0);
-  const totalPrice = !isAddingToExisting && billingMode === "PER_COVER" ? coverCount * selectedCoverRate : lineItemTotal;
-  const allItems = scopedCategories?.flatMap((c: WaiterMenuCategory) => c.menuItems ?? []) ?? [];
+  const totalPrice =
+    !isAddingToExisting && billingMode === "PER_COVER"
+      ? coverCount * selectedCoverRate
+      : lineItemTotal;
+  const allItems =
+    scopedCategories?.flatMap((c: WaiterMenuCategory) => c.menuItems ?? []) ??
+    [];
   const activeItems: OrderableMenuItem[] = (
     menuSearch.length >= 2
       ? allItems.filter((i) =>
           i.name.toLowerCase().includes(menuSearch.toLowerCase()),
         )
-      : (scopedCategories
-          ?.find((c) => c.id === activeCategory)
-          ?.menuItems ?? [])
-  ).filter(
-    (i) => foodTypeFilter === "ALL" || i.foodType === foodTypeFilter,
-  );
+      : (scopedCategories?.find((c) => c.id === activeCategory)?.menuItems ??
+        [])
+  ).filter((i) => foodTypeFilter === "ALL" || i.foodType === foodTypeFilter);
 
   const isPending = addItemsMutation.isPending || createOrderMutation.isPending;
   const needsTable = !isAddingToExisting && orderType === "DINE_IN" && !tableId;
 
   return (
     <div className="flex flex-col h-screen bg-surface-secondary">
-      {            }
+      {}
       <div className="bg-surface border-b border-border px-4 py-3 flex items-center gap-3">
         <IconButton
           icon={X}
@@ -412,7 +575,7 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         )}
       </div>
 
-      {                                     }
+      {}
       {!isAddingToExisting && (
         <OrderOptionsPanel
           availableOrderTypes={availableOrderTypes}
@@ -455,7 +618,7 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         />
       )}
 
-      {                            }
+      {}
       <div className="bg-surface border-b border-border">
         {activeMenus.length > 1 && (
           <div className="px-4 pt-3">
@@ -470,7 +633,9 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
                 }}
               >
                 {activeMenus.map((menu) => (
-                  <option key={menu.id} value={menu.id}>{menu.name}</option>
+                  <option key={menu.id} value={menu.id}>
+                    {menu.name}
+                  </option>
                 ))}
               </select>
             </label>
@@ -489,7 +654,9 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
 
       {!isAddingToExisting && activeCombos.length > 0 && (
         <section className="bg-surface border-b border-border px-4 py-3">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-disabled">Combos</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-disabled">
+            Combos
+          </p>
           <div className="flex gap-2 overflow-x-auto pb-1">
             {activeCombos.map((combo) => (
               <button
@@ -498,9 +665,14 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
                 onClick={() => openCombo(combo)}
                 className="min-w-48 rounded-xl border border-border bg-surface-secondary p-3 text-left"
               >
-                <span className="block text-sm font-semibold text-text-primary">{combo.name}</span>
+                <span className="block text-sm font-semibold text-text-primary">
+                  {combo.name}
+                </span>
                 <span className="mt-1 block text-xs text-text-secondary">
-                  {combo.pricePolicy === "FIXED" ? `₹${Number(combo.fixedPrice ?? 0).toFixed(2)}` : `${Number(combo.percentOff ?? 0)}% off components`} · customize
+                  {combo.pricePolicy === "FIXED"
+                    ? `₹${Number(combo.fixedPrice ?? 0).toFixed(2)}`
+                    : `${Number(combo.percentOff ?? 0)}% off components`}{" "}
+                  · customize
                 </span>
               </button>
             ))}
@@ -508,7 +680,7 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         </section>
       )}
 
-      {           }
+      {}
       <MenuGrid
         items={activeItems}
         cart={cart}
@@ -518,7 +690,7 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         onQtyChange={updateQty}
       />
 
-      {                }
+      {}
       {totalItems > 0 && (
         <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-border px-4 py-4">
           <button
@@ -534,7 +706,7 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         </div>
       )}
 
-      {                      }
+      {}
       {customising && (
         <ItemCustomiser
           item={customising.item}
@@ -551,11 +723,14 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
           selections={comboSelections}
           onToggle={toggleComboOption}
           onAdd={addSelectedCombo}
-          onClose={() => { setCustomisingCombo(null); setComboSelections([]); }}
+          onClose={() => {
+            setCustomisingCombo(null);
+            setComboSelections([]);
+          }}
         />
       )}
 
-      {                }
+      {}
       {showCart && (
         <CartSummary
           cart={cart}
@@ -573,9 +748,17 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
           onOrderNotesChange={setOrderNotes}
           couponCode={couponCode}
           onCouponCodeChange={setCouponCode}
-          promotions={promotions.filter((promotion) => promotion.isActive && !promotion.couponCode)}
+          promotions={promotions.filter(
+            (promotion) => promotion.isActive && !promotion.couponCode,
+          )}
           selectedPromotionIds={selectedPromotionIds}
-          onTogglePromotion={(id) => setSelectedPromotionIds((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id])}
+          onTogglePromotion={(id) =>
+            setSelectedPromotionIds((current) =>
+              current.includes(id)
+                ? current.filter((value) => value !== id)
+                : [...current, id],
+            )
+          }
           totalItems={totalItems}
           totalPrice={totalPrice}
           isPending={isPending}
@@ -588,4 +771,4 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
       )}
     </div>
   );
-}
+};

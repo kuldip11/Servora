@@ -1,7 +1,5 @@
-
-
-import type { AuthContext } from "../../../core/auth";
-import { successResponse } from "../../../core/response";
+import type { AuthContext } from "@/core/auth";
+import { successResponse } from "@/core/response";
 import type { RecipeIngredientInput } from "@pos/types";
 import { recipesService } from "./recipes.service";
 

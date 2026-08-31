@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createActiveAuthContext } from "../membership-session";
+import { createActiveAuthContext } from "@/core/auth/membership-session";
 
 describe("createActiveAuthContext", () => {
   it("creates an active context and defaults an omitted branch to null", () => {

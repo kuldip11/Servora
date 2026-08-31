@@ -1,8 +1,10 @@
 import type { OrderType } from "@pos/types";
-import type { AvailabilityChannel } from "../../menu/availability/availability.service";
+import type { AvailabilityChannel } from "@/modules/menu/availability/availability.service";
 
-export type PricingReplayPriceRule = Omit<MatchingPriceRule, "effectiveFrom"> & {
-
+export type PricingReplayPriceRule = Omit<
+  MatchingPriceRule,
+  "effectiveFrom"
+> & {
   effectiveFrom?: Date | string | null;
 };
 
@@ -41,7 +43,11 @@ export interface OrderItemInput {
   courseNumber?: number | undefined;
   fulfillmentType?: "DINE_IN" | "TAKEAWAY" | undefined;
   selectedOptions?:
-    | Array<{ optionId: string; quantity?: number | undefined; zoneLabel?: string | undefined }>
+    | Array<{
+        optionId: string;
+        quantity?: number | undefined;
+        zoneLabel?: string | undefined;
+      }>
     | undefined;
 }
 
@@ -63,7 +69,15 @@ export interface PricableMenuItem {
   sku?: string | null;
   taxRate: string;
   taxMode?: "INCLUSIVE" | "EXCLUSIVE" | null;
-  variants: Array<{ id: string; name: string; price: string; status?: string; manualOverrideStatus?: string | null; manualOverrideReason?: string | null; manualStockCount?: number | null }>;
+  variants: Array<{
+    id: string;
+    name: string;
+    price: string;
+    status?: string;
+    manualOverrideStatus?: string | null;
+    manualOverrideReason?: string | null;
+    manualStockCount?: number | null;
+  }>;
   modifierGroupLinks: Array<{
     group: {
       id: string;
@@ -121,7 +135,11 @@ export interface PricingAttribution {
   MODIFIER: number;
   COMBO?: number;
   PROMOTION?: number;
-  PROMOTION_DETAILS?: Array<{ promotionId: string; name: string; discountAmount: number }>;
+  PROMOTION_DETAILS?: Array<{
+    promotionId: string;
+    name: string;
+    discountAmount: number;
+  }>;
   LOYALTY?: number;
   LOYALTY_DETAILS?: { tierId: string; name: string; discountAmount: number };
   TAXABLE_BASE?: number;
@@ -135,7 +153,6 @@ export interface PricingAttribution {
 }
 
 export interface PricedLine {
-
   menuItemId: string | null;
   menuItemName: string;
   variantId?: string | undefined;
@@ -194,4 +211,3 @@ export interface BasePriceStageResult {
   taxRate: number;
   attribution: number;
 }
-

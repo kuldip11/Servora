@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classifyMenuEngineering } from "../analytics.service";
+import { classifyMenuEngineering } from "@/modules/analytics/analytics.service";
 
 describe("H3 menu engineering", () => {
   it.each([

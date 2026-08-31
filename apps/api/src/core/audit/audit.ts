@@ -1,5 +1,5 @@
-import { db } from "../../db";
-import { auditLogs } from "../../db/schema";
+import { db } from "@/db";
+import { auditLogs } from "@/db/schema";
 
 export type AuditAction =
   | "TENANT_CREATED"
@@ -61,7 +61,7 @@ export interface AuditInput {
   ipAddress?: string | null | undefined;
 }
 
-export async function writeAudit(input: AuditInput) {
+export const writeAudit = async (input: AuditInput) => {
   const metadataBranchId =
     typeof input.metadata?.branchId === "string"
       ? input.metadata.branchId
@@ -81,4 +81,4 @@ export async function writeAudit(input: AuditInput) {
     })
     .returning();
   return entry!;
-}
+};

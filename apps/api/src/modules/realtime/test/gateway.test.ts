@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ForbiddenError } from "../../../core/errors";
+import { ForbiddenError } from "@/core/errors";
 
 const { resolveMembership } = vi.hoisted(() => ({
   resolveMembership: vi.fn(),
@@ -26,7 +26,10 @@ vi.mock("../../../core/auth/authorization", () => ({
 }));
 vi.mock("../../../lib/jwt", () => ({ verifyAccessToken: vi.fn() }));
 
-import { forwardTenantRealtimeMessage, resolveRealtimeContext } from "../gateway";
+import {
+  forwardTenantRealtimeMessage,
+  resolveRealtimeContext,
+} from "@/modules/realtime/gateway";
 
 const payload = { sub: "u1" } as any;
 
@@ -44,10 +47,14 @@ beforeEach(() => {
 
 describe("realtime gateway context", () => {
   it("requires an explicit tenant and an active membership", async () => {
-    await expect(resolveRealtimeContext(payload, "")).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(resolveRealtimeContext(payload, "")).rejects.toBeInstanceOf(
+      ForbiddenError,
+    );
 
     resolveMembership.mockResolvedValue(undefined);
-    await expect(resolveRealtimeContext(payload, "t1")).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(resolveRealtimeContext(payload, "t1")).rejects.toBeInstanceOf(
+      ForbiddenError,
+    );
     expect(resolveMembership).toHaveBeenCalledWith({}, "u1", "t1");
   });
 
@@ -58,7 +65,9 @@ describe("realtime gateway context", () => {
       branchIds: ["b1"],
       tenantWide: false,
     });
-    await expect(resolveRealtimeContext(payload, "t1", "b1")).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(
+      resolveRealtimeContext(payload, "t1", "b1"),
+    ).rejects.toBeInstanceOf(ForbiddenError);
 
     resolveAuthorization.mockResolvedValue({
       allowed: true,
@@ -80,7 +89,9 @@ describe("realtime gateway context", () => {
       branchIds: ["b1"],
       tenantWide: false,
     });
-    await expect(resolveRealtimeContext(payload, "t1", "b2")).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(
+      resolveRealtimeContext(payload, "t1", "b2"),
+    ).rejects.toBeInstanceOf(ForbiddenError);
 
     resolveAuthorization.mockResolvedValue({
       allowed: true,
@@ -103,11 +114,15 @@ describe("realtime gateway context", () => {
     const b2 = { __branchId: "b2", send: vi.fn() };
     const all = { __branchId: null, send: vi.fn() };
     const registry = new Map([["t1", new Set([b1, b2, all])]]);
-    const message = JSON.stringify({ type: "order.item.voided", tenantId: "t1", branchId: "b1", payload: { id: "kt1" } });
+    const message = JSON.stringify({
+      type: "order.item.voided",
+      tenantId: "t1",
+      branchId: "b1",
+      payload: { id: "kt1" },
+    });
     forwardTenantRealtimeMessage(message, registry);
     expect(b1.send).toHaveBeenCalledWith(message);
     expect(all.send).toHaveBeenCalledWith(message);
     expect(b2.send).not.toHaveBeenCalled();
   });
-
 });

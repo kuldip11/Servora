@@ -1,13 +1,18 @@
 import { and, eq, inArray } from "drizzle-orm";
-import type { AuthContext } from "../../core/auth";
-import { ValidationError, ForbiddenError } from "../../core/errors";
-import { db } from "../../db";
-import { customerRequests } from "../../db/schema/customer-request.schema";
-import { orders } from "../../db/schema/order.schema";
-import type { CustomerRequest, CustomerRequestStatus, CustomerRequestType, Order } from "@pos/types";
+import type { AuthContext } from "@/core/auth";
+import { ValidationError, ForbiddenError } from "@/core/errors";
+import { db } from "@/db";
+import { customerRequests } from "@/db/schema/customer-request.schema";
+import { orders } from "@/db/schema/order.schema";
+import type {
+  CustomerRequest,
+  CustomerRequestStatus,
+  CustomerRequestType,
+  Order,
+} from "@pos/types";
 import { customerService } from "./customer.service";
-import { eventBus } from "../../lib/event-bus";
-import { ticketRepository } from "../kitchen-tickets/ticket.repository";
+import { eventBus } from "@/lib/event-bus";
+import { ticketRepository } from "@/modules/kitchen-tickets/ticket.repository";
 
 const activeStatuses: CustomerRequestStatus[] = ["OPEN", "ACKNOWLEDGED"];
 
@@ -83,7 +88,10 @@ export const customerRequestService = {
     }
 
     await eventBus.publish(
-      { type: "customer.request.created", payload: request as unknown as CustomerRequest },
+      {
+        type: "customer.request.created",
+        payload: request as unknown as CustomerRequest,
+      },
       session.tenantId,
       session.branchId,
     );
@@ -135,7 +143,10 @@ export const customerRequestService = {
       .where(eq(customerRequests.id, id))
       .returning();
     await eventBus.publish(
-      { type: "customer.request.updated", payload: updated as unknown as CustomerRequest },
+      {
+        type: "customer.request.updated",
+        payload: updated as unknown as CustomerRequest,
+      },
       current.tenantId,
       current.branchId,
     );

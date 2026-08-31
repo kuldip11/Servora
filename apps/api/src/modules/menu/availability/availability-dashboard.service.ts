@@ -1,7 +1,10 @@
 import type { MenuItemStatus } from "@pos/types";
 import { availabilityRepository } from "./availability.repository";
 import { resolveEffectiveAvailability } from "./availability-resolution";
-import { highestPriorityActiveSchedule, scheduleDate } from "./schedule-precedence";
+import {
+  highestPriorityActiveSchedule,
+  scheduleDate,
+} from "./schedule-precedence";
 import type {
   AvailabilityChannel,
   AvailabilityFulfillmentType,
@@ -24,7 +27,7 @@ type DashboardFilters = {
 
 import { AVAILABILITY_DAY_NAMES } from "./constants";
 
-function describeSchedule(schedule: Schedule): string {
+const describeSchedule = (schedule: Schedule): string => {
   switch (schedule.scheduleType) {
     case "DAILY":
       return `Daily window ${schedule.startTime}–${schedule.endTime}`;
@@ -35,9 +38,9 @@ function describeSchedule(schedule: Schedule): string {
     case "HOLIDAY":
       return `Holiday: ${schedule.holidayName}`;
   }
-}
+};
 
-function variantAvailability(variant: DashboardItem["variants"][number]) {
+const variantAvailability = (variant: DashboardItem["variants"][number]) => {
   if (variant.manualOverrideStatus) {
     return {
       effectiveStatus: variant.manualOverrideStatus,
@@ -58,11 +61,11 @@ function variantAvailability(variant: DashboardItem["variants"][number]) {
     availabilityReason: variant.manualOverrideReason,
     cause: "COMPUTED_STATUS",
   } as const;
-}
+};
 
-function key(...parts: Array<string | null>) {
+const key = (...parts: Array<string | null>) => {
   return parts.map((part) => part ?? "*").join("|");
-}
+};
 
 export const availabilityDashboardService = {
   async getUnavailableDashboard(
@@ -95,7 +98,10 @@ export const availabilityDashboardService = {
       schedulesByItem.set(schedule.menuItemId, entries);
     }
     const branchOverrides = new Map(
-      data.branchOverrides.map((row) => [key(row.menuItemId, row.branchId), row]),
+      data.branchOverrides.map((row) => [
+        key(row.menuItemId, row.branchId),
+        row,
+      ]),
     );
     const channelOverrides = new Map(
       data.channelOverrides.map((row) => [
@@ -113,7 +119,8 @@ export const availabilityDashboardService = {
         if (item.branchId && item.branchId !== branchId) continue;
 
         const schedules = (schedulesByItem.get(item.id) ?? []).filter(
-          (schedule) => schedule.branchId === null || schedule.branchId === branchId,
+          (schedule) =>
+            schedule.branchId === null || schedule.branchId === branchId,
         );
         let resolvedStatus: { status: MenuItemStatus; reason: string };
         if (item.manualOverrideStatus) {
@@ -121,7 +128,10 @@ export const availabilityDashboardService = {
             status: item.manualOverrideStatus,
             reason: item.manualOverrideReason ?? "Manual availability override",
           };
-        } else if (item.manualStockCount !== null && item.manualStockCount <= 0) {
+        } else if (
+          item.manualStockCount !== null &&
+          item.manualStockCount <= 0
+        ) {
           resolvedStatus = {
             status: "OUT_OF_STOCK",
             reason: "Manual stock count depleted",
@@ -133,7 +143,10 @@ export const availabilityDashboardService = {
             async (name) => holidayNames.has(name),
           );
           resolvedStatus = best
-            ? { status: best.statusDuringPeriod, reason: describeSchedule(best) }
+            ? {
+                status: best.statusDuringPeriod,
+                reason: describeSchedule(best),
+              }
             : {
                 status: item.status,
                 reason:
@@ -189,7 +202,8 @@ export const availabilityDashboardService = {
                     name: `${item.name} — ${variant.name}`,
                     status: variantResolved.effectiveStatus,
                     reason:
-                      variantResolved.availabilityReason ?? "Variant unavailable",
+                      variantResolved.availabilityReason ??
+                      "Variant unavailable",
                     cause: variantResolved.cause,
                     branchId,
                     channel,
@@ -202,7 +216,8 @@ export const availabilityDashboardService = {
             for (const link of item.modifierGroupLinks) {
               for (const option of link.group.options) {
                 const effectiveAvailability =
-                  option.manualOverrideAvailability ?? option.computedAvailability;
+                  option.manualOverrideAvailability ??
+                  option.computedAvailability;
                 if (!effectiveAvailability) {
                   const cause =
                     option.manualOverrideAvailability !== null

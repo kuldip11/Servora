@@ -14,9 +14,7 @@ createRoot(root).render(
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <WaiterApp />
-        {
-
-                                                                       }
+        {}
         <Toaster />
       </QueryClientProvider>
     </ThemeProvider>

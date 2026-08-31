@@ -15,8 +15,8 @@ import {
   SearchInput,
   ThemeSwitcher,
 } from "@pos/ui";
-import type { CustomerCombo, CustomerMenuItem } from "../../api";
-import { formatMoney } from "../../shared/utils/money";
+import type { CustomerCombo, CustomerMenuItem } from "@/api";
+import { formatMoney } from "@/shared/utils/money";
 import { MenuCard } from "./MenuCard";
 
 export interface CustomerMenuSessionView {
@@ -46,7 +46,7 @@ interface CustomerMenuViewProps {
   onOpenItem: (item: CustomerMenuItem) => void;
 }
 
-export function CustomerMenuView({
+export const CustomerMenuView = ({
   session,
   placedOrder,
   itemCount,
@@ -64,7 +64,7 @@ export function CustomerMenuView({
   onCart,
   onOpenCombo,
   onOpenItem,
-}: CustomerMenuViewProps) {
+}: CustomerMenuViewProps) => {
   return (
     <div className="min-h-screen bg-background text-text-primary selection:bg-primary-surface">
       <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur-xl">
@@ -159,7 +159,8 @@ export function CustomerMenuView({
                   Good choice for the table.
                 </h2>
                 <p className="mt-1 text-sm leading-6 opacity-80">
-                  Order directly from your table. Your order goes straight to the kitchen.
+                  Order directly from your table. Your order goes straight to
+                  the kitchen.
                 </p>
               </div>
               <Utensils className="mt-1 h-6 w-6 opacity-75" />
@@ -168,29 +169,52 @@ export function CustomerMenuView({
         )}
         <div className="mb-4 flex items-end justify-between">
           <div>
-            <p className="text-xs font-medium uppercase tracking-[0.14em] text-text-secondary">Menu</p>
-            <h2 className="mt-1 text-2xl font-semibold tracking-tight">{category}</h2>
+            <p className="text-xs font-medium uppercase tracking-[0.14em] text-text-secondary">
+              Menu
+            </p>
+            <h2 className="mt-1 text-2xl font-semibold tracking-tight">
+              {category}
+            </h2>
           </div>
-          <span className="text-sm text-text-secondary">{visibleItems.length} items</span>
+          <span className="text-sm text-text-secondary">
+            {visibleItems.length} items
+          </span>
         </div>
         {combos.length > 0 && !search && (
           <section className="mb-6">
             <div className="mb-3 flex items-end justify-between">
               <div>
-                <p className="text-xs font-medium uppercase tracking-[0.14em] text-text-secondary">Set meals</p>
-                <h3 className="mt-1 text-lg font-semibold text-text-primary">Combos</h3>
+                <p className="text-xs font-medium uppercase tracking-[0.14em] text-text-secondary">
+                  Set meals
+                </p>
+                <h3 className="mt-1 text-lg font-semibold text-text-primary">
+                  Combos
+                </h3>
               </div>
-              <span className="text-xs text-text-secondary">Built step by step</span>
+              <span className="text-xs text-text-secondary">
+                Built step by step
+              </span>
             </div>
             <div className="space-y-2">
               {combos.map((combo) => (
-                <button key={combo.id} type="button" onClick={() => onOpenCombo(combo)} className="w-full text-left">
-                  <Card padding="md" className="transition-colors hover:border-primary">
+                <button
+                  key={combo.id}
+                  type="button"
+                  onClick={() => onOpenCombo(combo)}
+                  className="w-full text-left"
+                >
+                  <Card
+                    padding="md"
+                    className="transition-colors hover:border-primary"
+                  >
                     <div className="flex items-center justify-between gap-4">
                       <div>
-                        <p className="font-semibold text-text-primary">{combo.name}</p>
+                        <p className="font-semibold text-text-primary">
+                          {combo.name}
+                        </p>
                         <p className="mt-1 text-sm text-text-secondary">
-                          {combo.description ?? `${combo.slots.length} guided choice${combo.slots.length === 1 ? "" : "s"}`}
+                          {combo.description ??
+                            `${combo.slots.length} guided choice${combo.slots.length === 1 ? "" : "s"}`}
                         </p>
                       </div>
                       <span className="shrink-0 text-sm font-semibold text-primary">
@@ -241,14 +265,16 @@ export function CustomerMenuView({
             className="mx-auto flex h-14 w-full max-w-2xl items-center justify-between px-5"
           >
             <span className="flex items-center gap-2 text-sm">
-              <ShoppingBag className="h-4 w-4" /> {itemCount} {itemCount === 1 ? "item" : "items"}
+              <ShoppingBag className="h-4 w-4" /> {itemCount}{" "}
+              {itemCount === 1 ? "item" : "items"}
             </span>
             <span className="flex items-center gap-2 text-sm">
-              View order · {formatMoney(total)} <ChevronRight className="h-4 w-4" />
+              View order · {formatMoney(total)}{" "}
+              <ChevronRight className="h-4 w-4" />
             </span>
           </Button>
         </div>
       )}
     </div>
   );
-}
+};

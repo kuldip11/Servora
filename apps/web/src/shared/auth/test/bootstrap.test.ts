@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { bootstrapAuthSession } from "../bootstrap";
-import { authService } from "../../../features/auth/services/auth.service";
-import { useAuthStore } from "../../../store/auth";
+import { bootstrapAuthSession } from "@/shared/auth/bootstrap";
+import { authService } from "@/features/auth/services/auth.service";
+import { useAuthStore } from "@/store/auth";
 
 vi.mock("../../../features/auth/services/auth.service", () => ({
   authService: { refresh: vi.fn() },

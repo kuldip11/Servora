@@ -32,7 +32,10 @@ export const orderStatusEnum = pgEnum("order_status", [
   "CANCELLED",
 ]);
 
-export const billingModeEnum = pgEnum("billing_mode", ["LINE_ITEMS", "PER_COVER"]);
+export const billingModeEnum = pgEnum("billing_mode", [
+  "LINE_ITEMS",
+  "PER_COVER",
+]);
 
 export const orders = pgTable(
   "orders",
@@ -46,7 +49,10 @@ export const orders = pgTable(
       .references(() => branches.id, { onDelete: "cascade" }),
     tableId: uuid("table_id").references(() => restaurantTables.id),
     customerId: uuid("customer_id"),
-    customerGroupId: uuid("customer_group_id").references(() => customerGroups.id, { onDelete: "set null" }),
+    customerGroupId: uuid("customer_group_id").references(
+      () => customerGroups.id,
+      { onDelete: "set null" },
+    ),
     mergedIntoOrderId: uuid("merged_into_order_id").references(
       (): AnyPgColumn => orders.id,
       { onDelete: "set null" },
@@ -58,7 +64,9 @@ export const orders = pgTable(
     ),
     status: orderStatusEnum("status").notNull().default("OPEN"),
     type: orderTypeEnum("type").notNull(),
-    billingMode: billingModeEnum("billing_mode").notNull().default("LINE_ITEMS"),
+    billingMode: billingModeEnum("billing_mode")
+      .notNull()
+      .default("LINE_ITEMS"),
     coverCount: integer("cover_count"),
     perCoverPriceRuleId: uuid("per_cover_price_rule_id").references(
       () => priceRules.id,
@@ -74,10 +82,16 @@ export const orders = pgTable(
     discountAmount: numeric("discount_amount", { precision: 10, scale: 2 })
       .notNull()
       .default("0"),
-    serviceChargeAmount: numeric("service_charge_amount", { precision: 10, scale: 2 })
+    serviceChargeAmount: numeric("service_charge_amount", {
+      precision: 10,
+      scale: 2,
+    })
       .notNull()
       .default("0"),
-    roundingAdjustment: numeric("rounding_adjustment", { precision: 10, scale: 2 })
+    roundingAdjustment: numeric("rounding_adjustment", {
+      precision: 10,
+      scale: 2,
+    })
       .notNull()
       .default("0"),
     totalAmount: numeric("total_amount", { precision: 10, scale: 2 })
@@ -112,7 +126,9 @@ export const orders = pgTable(
       t.tenantId,
       t.billingMode,
     ),
-    resolutionAsOfIdx: index("orders_resolution_as_of_idx").on(t.resolutionAsOf),
+    resolutionAsOfIdx: index("orders_resolution_as_of_idx").on(
+      t.resolutionAsOf,
+    ),
     perCoverFieldsValid: check(
       "orders_per_cover_fields_valid",
       sql`(${t.billingMode} = 'LINE_ITEMS' AND ${t.coverCount} IS NULL AND ${t.perCoverRate} IS NULL) OR (${t.billingMode} = 'PER_COVER' AND ${t.coverCount} > 0 AND ${t.perCoverPriceRuleId} IS NOT NULL AND ${t.perCoverRate} IS NOT NULL)`,

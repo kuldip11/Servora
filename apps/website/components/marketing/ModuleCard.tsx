@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { Module } from "@/content/modules";
 import { track } from "@/lib/analytics";
 
-export function ModuleCard({ module }: { module: Module }) {
+export const ModuleCard = ({ module }: { module: Module }) => {
   return (
     <Link
       onClick={() =>
@@ -32,4 +32,4 @@ export function ModuleCard({ module }: { module: Module }) {
       </ul>
     </Link>
   );
-}
+};

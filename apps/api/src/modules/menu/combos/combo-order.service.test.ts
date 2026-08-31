@@ -145,10 +145,14 @@ describe("D2 combo order integration", () => {
       fulfillmentType: "TAKEAWAY",
     });
     expect(children.every((line) => line.comboId === combo.id)).toBe(true);
-    expect(children.every((line) => line.comboGroupId === parent!.comboGroupId)).toBe(true);
+    expect(
+      children.every((line) => line.comboGroupId === parent!.comboGroupId),
+    ).toBe(true);
     expect(children.reduce((sum, line) => sum + line.subtotal, 0)).toBe(219);
     expect(result.subtotal).toBe(219);
-    expect(result.lines.reduce((sum, line) => sum + line.subtotal, 0)).toBe(219);
+    expect(result.lines.reduce((sum, line) => sum + line.subtotal, 0)).toBe(
+      219,
+    );
     expect(result.taxAmount).toBeCloseTo(
       children.reduce(
         (sum, line) => sum + (line.subtotal * line.taxRate) / 100,

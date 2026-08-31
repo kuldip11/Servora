@@ -1,14 +1,22 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@pos/ui";
-import { updateOrderStatus } from "../api/orders";
-import { orderKeys } from "../constants";
+import { updateOrderStatus } from "@/features/orders/api/orders";
+import { orderKeys } from "@/features/orders/constants";
 
-export function useUpdateOrderStatus() {
+export const useUpdateOrderStatus = () => {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, status, ...reason }: { id: string; status: string; cancellationReasonId?: string; reason?: string }) =>
-      updateOrderStatus(id, status, reason),
+    mutationFn: ({
+      id,
+      status,
+      ...reason
+    }: {
+      id: string;
+      status: string;
+      cancellationReasonId?: string;
+      reason?: string;
+    }) => updateOrderStatus(id, status, reason),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: orderKeys.all });
       qc.invalidateQueries({ queryKey: ["order"] });
@@ -17,4 +25,4 @@ export function useUpdateOrderStatus() {
     },
     onError: () => toast({ title: "Failed to update", tone: "danger" }),
   });
-}
+};

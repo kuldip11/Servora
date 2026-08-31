@@ -1,27 +1,27 @@
 import { Check, Clock3, ReceiptText, WifiOff, BellRing } from "lucide-react";
 import { Badge, Button, Card } from "@pos/ui";
-import type { CustomerOrder, CustomerRequestType } from "../../api";
-import { formatMoney } from "../../shared/utils/money";
+import type { CustomerOrder, CustomerRequestType } from "@/api";
+import { formatMoney } from "@/shared/utils/money";
 
 import { CUSTOMER_ORDER_TICKET_STEPS } from "./constants";
 
-function statusLabel(status: string) {
+const statusLabel = (status: string) => {
   if (status === "SERVED") return "Served";
   if (status === "READY") return "Ready for you";
   if (status === "PREPARING") return "Preparing your food";
   return "Order received";
-}
+};
 
-function orderStatusLabel(status: string) {
+const orderStatusLabel = (status: string) => {
   if (status === "BILL_REQUESTED") return "Bill requested";
   if (status === "PAID") return "Paid";
   if (status === "CLOSED") return "Completed";
   if (status === "CANCELLED") return "Cancelled";
   if (status === "PENDING_PAYMENT") return "Payment required";
   return "Open";
-}
+};
 
-export function OrderStatus({
+export const OrderStatus = ({
   order,
   mode,
   table,
@@ -45,12 +45,15 @@ export function OrderStatus({
   requestMessage: string | null;
   onPay?: () => void;
   payBusy?: boolean;
-}) {
+}) => {
   const latestTicket = order.kitchenTickets.at(-1);
   const latestStatus = latestTicket?.status ?? "FIRED";
   const displayStatus =
     latestStatus === "PENDING_PAYMENT" ? "FIRED" : latestStatus;
-  const activeStep = Math.max(0, CUSTOMER_ORDER_TICKET_STEPS.indexOf(displayStatus));
+  const activeStep = Math.max(
+    0,
+    CUSTOMER_ORDER_TICKET_STEPS.indexOf(displayStatus),
+  );
   const terminal =
     order.status === "PAID" ||
     order.status === "CLOSED" ||
@@ -218,12 +221,33 @@ export function OrderStatus({
               <span>{formatMoney(Number(order.subtotal))}</span>
             </div>
             <div className="mt-2 flex justify-between">
-              <span className="text-text-secondary">{order.items.some((item) => item.taxMode === "INCLUSIVE") ? (order.items.some((item) => item.taxMode === "EXCLUSIVE") ? "Tax (mixed included/exclusive)" : "Tax included") : "Tax"}</span>
+              <span className="text-text-secondary">
+                {order.items.some((item) => item.taxMode === "INCLUSIVE")
+                  ? order.items.some((item) => item.taxMode === "EXCLUSIVE")
+                    ? "Tax (mixed included/exclusive)"
+                    : "Tax included"
+                  : "Tax"}
+              </span>
               <span>{formatMoney(Number(order.taxAmount))}</span>
             </div>
-            {Number(order.discountAmount) > 0 && <div className="mt-2 flex justify-between text-success"><span>Discount</span><span>-{formatMoney(Number(order.discountAmount))}</span></div>}
-            {Number(order.serviceChargeAmount ?? 0) > 0 && <div className="mt-2 flex justify-between"><span className="text-text-secondary">Service charge</span><span>{formatMoney(Number(order.serviceChargeAmount))}</span></div>}
-            {Math.abs(Number(order.roundingAdjustment ?? 0)) >= 0.005 && <div className="mt-2 flex justify-between"><span className="text-text-secondary">Rounding</span><span>{formatMoney(Number(order.roundingAdjustment))}</span></div>}
+            {Number(order.discountAmount) > 0 && (
+              <div className="mt-2 flex justify-between text-success">
+                <span>Discount</span>
+                <span>-{formatMoney(Number(order.discountAmount))}</span>
+              </div>
+            )}
+            {Number(order.serviceChargeAmount ?? 0) > 0 && (
+              <div className="mt-2 flex justify-between">
+                <span className="text-text-secondary">Service charge</span>
+                <span>{formatMoney(Number(order.serviceChargeAmount))}</span>
+              </div>
+            )}
+            {Math.abs(Number(order.roundingAdjustment ?? 0)) >= 0.005 && (
+              <div className="mt-2 flex justify-between">
+                <span className="text-text-secondary">Rounding</span>
+                <span>{formatMoney(Number(order.roundingAdjustment))}</span>
+              </div>
+            )}
             <div className="mt-2 flex justify-between text-base font-semibold">
               <span>Total</span>
               <span>{formatMoney(Number(order.totalAmount))}</span>
@@ -337,4 +361,4 @@ export function OrderStatus({
       </div>
     </main>
   );
-}
+};

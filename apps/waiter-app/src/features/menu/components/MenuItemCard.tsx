@@ -1,9 +1,9 @@
 import { memo } from "react";
 import { Plus, Minus } from "lucide-react";
 import { Card } from "@pos/ui";
-import type { CartItem } from "../types";
-import { FOOD_TYPE_DOT_CLASSES } from "../constants";
-import { priceLabel } from "../utils/cart";
+import type { CartItem } from "@/features/menu/types";
+import { FOOD_TYPE_DOT_CLASSES } from "@/features/menu/constants";
+import { priceLabel } from "@/features/menu/utils/cart";
 import type { OrderableMenuItem } from "@pos/types";
 
 interface Props {
@@ -22,8 +22,11 @@ export const MenuItemCard = memo(function MenuItemCard({
   onQtyChange,
 }: Props) {
   const hasOptions =
-    item.variants?.length > 0 || item.modifierGroupLinks?.length > 0 ||
-    item.supportsZones === true || item.pricingMode === "WEIGHT_BASED" || item.pricingMode === "OPEN";
+    item.variants?.length > 0 ||
+    item.modifierGroupLinks?.length > 0 ||
+    item.supportsZones === true ||
+    item.pricingMode === "WEIGHT_BASED" ||
+    item.pricingMode === "OPEN";
   const foodTypeClasses =
     FOOD_TYPE_DOT_CLASSES[
       item.foodType as keyof typeof FOOD_TYPE_DOT_CLASSES
@@ -58,7 +61,9 @@ export const MenuItemCard = memo(function MenuItemCard({
             <p className="text-xs text-text-disabled">Options ▾</p>
           )}
           {item.manualStockCount != null && item.manualStockCount <= 5 && (
-            <p className="text-xs font-semibold text-warning">{item.manualStockCount} left</p>
+            <p className="text-xs font-semibold text-warning">
+              {item.manualStockCount} left
+            </p>
           )}
         </div>
       </div>

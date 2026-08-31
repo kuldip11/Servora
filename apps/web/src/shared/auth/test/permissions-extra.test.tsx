@@ -11,9 +11,9 @@ import {
   getUserPermissions,
   userHasPermission,
   usePermissions,
-} from "../permissions";
+} from "@/shared/auth/permissions";
 
-function renderPermissions() {
+const renderPermissions = () => {
   const container = document.createElement("div");
   document.body.appendChild(container);
   let value!: ReturnType<typeof usePermissions>;
@@ -24,7 +24,7 @@ function renderPermissions() {
   const root = createRoot(container);
   act(() => root.render(createElement(Probe)));
   return { value, unmount: () => act(() => root.unmount()) };
-}
+};
 
 describe("permission helpers", () => {
   it("deduplicates role permissions and handles a missing user", () => {

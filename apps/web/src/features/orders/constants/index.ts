@@ -1,11 +1,25 @@
 export const ALL_ORDER_TYPES = [
-  { value: "DINE_IN", label: "Dine In", capabilityKey: "dineInEnabled" as const },
-  { value: "TAKEAWAY", label: "Takeaway", capabilityKey: "takeawayEnabled" as const },
-  { value: "DELIVERY", label: "Delivery", capabilityKey: "deliveryEnabled" as const },
+  {
+    value: "DINE_IN",
+    label: "Dine In",
+    capabilityKey: "dineInEnabled" as const,
+  },
+  {
+    value: "TAKEAWAY",
+    label: "Takeaway",
+    capabilityKey: "takeawayEnabled" as const,
+  },
+  {
+    value: "DELIVERY",
+    label: "Delivery",
+    capabilityKey: "deliveryEnabled" as const,
+  },
   { value: "ONLINE", label: "Online", capabilityKey: "onlineEnabled" as const },
 ] as const;
 
-export const ORDER_STATUS_TONE: Partial<Record<string, "info" | "warning" | "neutral" | "danger">> = {
+export const ORDER_STATUS_TONE: Partial<
+  Record<string, "info" | "warning" | "neutral" | "danger">
+> = {
   OPEN: "info",
   BILL_REQUESTED: "warning",
   CLOSED: "neutral",

@@ -9,7 +9,7 @@ vi.mock("../../../store/auth", () => ({
   useAuthStore: { getState: () => ({ franchiseId: "fr-1", branchId: "br-1" }) },
 }));
 
-import { dashboardStatsQuery } from "../query-options";
+import { dashboardStatsQuery } from "@/features/analytics/query-options";
 
 describe("dashboardStatsQuery", () => {
   it("returns the dashboard query definition with the default interval", () => {

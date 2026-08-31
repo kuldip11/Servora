@@ -13,7 +13,7 @@ vi.mock("../../orders/order.repository", () => ({
   orderRepository: { findById: vi.fn() },
 }));
 
-import { billingService } from "../billing.service";
+import { billingService } from "@/modules/billing/billing.service";
 
 const baseAuth = {
   userId: "u1",

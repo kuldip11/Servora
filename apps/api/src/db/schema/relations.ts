@@ -43,7 +43,11 @@ import {
   modifierOptionVariantPrices,
   organizationMenuItems,
 } from "./menu.schema";
-import { recipes, subRecipes, subRecipeIngredients } from "./menu-recipe.schema";
+import {
+  recipes,
+  subRecipes,
+  subRecipeIngredients,
+} from "./menu-recipe.schema";
 import {
   inventoryItems,
   inventoryTransactions,
@@ -61,7 +65,12 @@ import {
   cancellationReasons,
   orderItemSeatShares,
 } from "./kitchen.schema";
-import { bills, billOrderItems, payments, paymentRefunds } from "./billing.schema";
+import {
+  bills,
+  billOrderItems,
+  payments,
+  paymentRefunds,
+} from "./billing.schema";
 import { customerSessions } from "./customer-session.schema";
 import { customerLoyaltyTiers, customers } from "./loyalty.schema";
 import { customerGroups } from "./customer-group.schema";
@@ -139,14 +148,21 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
     fields: [orders.customerId],
     references: [customers.id],
   }),
-  customerGroup: one(customerGroups, { fields: [orders.customerGroupId], references: [customerGroups.id] }),
+  customerGroup: one(customerGroups, {
+    fields: [orders.customerGroupId],
+    references: [customerGroups.id],
+  }),
   items: many(orderItems),
   kitchenTickets: many(kitchenTickets),
   courses: many(orderCourses),
   statusHistory: many(orderStatusHistory),
   bills: many(bills),
   payments: many(payments),
-  mergedInto: one(orders, { fields: [orders.mergedIntoOrderId], references: [orders.id], relationName: "orderMerge" }),
+  mergedInto: one(orders, {
+    fields: [orders.mergedIntoOrderId],
+    references: [orders.id],
+    relationName: "orderMerge",
+  }),
   mergedOrders: many(orders, { relationName: "orderMerge" }),
 }));
 
@@ -169,22 +185,43 @@ export const customerSessionsRelations = relations(
   }),
 );
 
-export const customerLoyaltyTiersRelations = relations(customerLoyaltyTiers, ({ one, many }) => ({
-  tenant: one(tenants, { fields: [customerLoyaltyTiers.tenantId], references: [tenants.id] }),
-  organization: one(organizations, { fields: [customerLoyaltyTiers.organizationId], references: [organizations.id] }),
-  customers: many(customers),
-}));
+export const customerLoyaltyTiersRelations = relations(
+  customerLoyaltyTiers,
+  ({ one, many }) => ({
+    tenant: one(tenants, {
+      fields: [customerLoyaltyTiers.tenantId],
+      references: [tenants.id],
+    }),
+    organization: one(organizations, {
+      fields: [customerLoyaltyTiers.organizationId],
+      references: [organizations.id],
+    }),
+    customers: many(customers),
+  }),
+);
 
 export const customersRelations = relations(customers, ({ one, many }) => ({
-  tenant: one(tenants, { fields: [customers.tenantId], references: [tenants.id] }),
-  loyaltyTier: one(customerLoyaltyTiers, { fields: [customers.loyaltyTierId], references: [customerLoyaltyTiers.id] }),
+  tenant: one(tenants, {
+    fields: [customers.tenantId],
+    references: [tenants.id],
+  }),
+  loyaltyTier: one(customerLoyaltyTiers, {
+    fields: [customers.loyaltyTierId],
+    references: [customerLoyaltyTiers.id],
+  }),
   orders: many(orders),
 }));
 
-export const orderCoursesRelations = relations(orderCourses, ({ one, many }) => ({
-  order: one(orders, { fields: [orderCourses.orderId], references: [orders.id] }),
-  tickets: many(kitchenTickets),
-}));
+export const orderCoursesRelations = relations(
+  orderCourses,
+  ({ one, many }) => ({
+    order: one(orders, {
+      fields: [orderCourses.orderId],
+      references: [orders.id],
+    }),
+    tickets: many(kitchenTickets),
+  }),
+);
 
 export const kitchenTicketsRelations = relations(
   kitchenTickets,
@@ -232,7 +269,10 @@ export const orderItemsRelations = relations(orderItems, ({ one, many }) => ({
   modifiers: many(orderItemModifiers),
   seatShares: many(orderItemSeatShares),
   billAssignments: many(billOrderItems),
-  comboSlotOption: one(comboSlotOptions, { fields: [orderItems.comboSlotOptionId], references: [comboSlotOptions.id] }),
+  comboSlotOption: one(comboSlotOptions, {
+    fields: [orderItems.comboSlotOptionId],
+    references: [comboSlotOptions.id],
+  }),
 }));
 
 export const billsRelations = relations(bills, ({ one, many }) => ({
@@ -243,7 +283,10 @@ export const billsRelations = relations(bills, ({ one, many }) => ({
 
 export const billOrderItemsRelations = relations(billOrderItems, ({ one }) => ({
   bill: one(bills, { fields: [billOrderItems.billId], references: [bills.id] }),
-  orderItem: one(orderItems, { fields: [billOrderItems.orderItemId], references: [orderItems.id] }),
+  orderItem: one(orderItems, {
+    fields: [billOrderItems.orderItemId],
+    references: [orderItems.id],
+  }),
 }));
 
 export const paymentsRelations = relations(payments, ({ one, many }) => ({
@@ -290,19 +333,31 @@ export const menuItemsRelations = relations(menuItems, ({ one, many }) => ({
 
 export const menusRelations = relations(menus, ({ one, many }) => ({
   tenant: one(tenants, { fields: [menus.tenantId], references: [tenants.id] }),
-  organization: one(organizations, { fields: [menus.organizationId], references: [organizations.id] }),
+  organization: one(organizations, {
+    fields: [menus.organizationId],
+    references: [organizations.id],
+  }),
   memberships: many(menuMemberships),
   organizationItems: many(organizationMenuItems),
   schedules: many(menuSchedules),
 }));
 
-export const organizationMenuItemsRelations = relations(organizationMenuItems, ({ one }) => ({
-  menu: one(menus, { fields: [organizationMenuItems.menuId], references: [menus.id] }),
-}));
+export const organizationMenuItemsRelations = relations(
+  organizationMenuItems,
+  ({ one }) => ({
+    menu: one(menus, {
+      fields: [organizationMenuItems.menuId],
+      references: [menus.id],
+    }),
+  }),
+);
 
 export const menuSchedulesRelations = relations(menuSchedules, ({ one }) => ({
   menu: one(menus, { fields: [menuSchedules.menuId], references: [menus.id] }),
-  tenant: one(tenants, { fields: [menuSchedules.tenantId], references: [tenants.id] }),
+  tenant: one(tenants, {
+    fields: [menuSchedules.tenantId],
+    references: [tenants.id],
+  }),
 }));
 
 export const menuMembershipsRelations = relations(
@@ -368,10 +423,19 @@ export const modifierOptionsRelations = relations(
   }),
 );
 
-export const modifierOptionVariantPricesRelations = relations(modifierOptionVariantPrices, ({ one }) => ({
-  option: one(modifierOptions, { fields: [modifierOptionVariantPrices.modifierOptionId], references: [modifierOptions.id] }),
-  variant: one(menuItemVariants, { fields: [modifierOptionVariantPrices.variantId], references: [menuItemVariants.id] }),
-}));
+export const modifierOptionVariantPricesRelations = relations(
+  modifierOptionVariantPrices,
+  ({ one }) => ({
+    option: one(modifierOptions, {
+      fields: [modifierOptionVariantPrices.modifierOptionId],
+      references: [modifierOptions.id],
+    }),
+    variant: one(menuItemVariants, {
+      fields: [modifierOptionVariantPrices.variantId],
+      references: [menuItemVariants.id],
+    }),
+  }),
+);
 
 export const menuItemModifierGroupsRelations = relations(
   menuItemModifierGroups,
@@ -565,7 +629,9 @@ export const subRecipesRelations = relations(subRecipes, ({ one, many }) => ({
     references: [branches.id],
   }),
   ingredients: many(subRecipeIngredients, { relationName: "parentSubRecipe" }),
-  usedByIngredients: many(subRecipeIngredients, { relationName: "nestedSubRecipe" }),
+  usedByIngredients: many(subRecipeIngredients, {
+    relationName: "nestedSubRecipe",
+  }),
   recipeLinks: many(recipes),
 }));
 
@@ -623,7 +689,10 @@ export const orderInventoryDeductionsRelations = relations(
       fields: [orderInventoryDeductions.kitchenTicketId],
       references: [kitchenTickets.id],
     }),
-    orderItem: one(orderItems, { fields: [orderInventoryDeductions.orderItemId], references: [orderItems.id] }),
+    orderItem: one(orderItems, {
+      fields: [orderInventoryDeductions.orderItemId],
+      references: [orderItems.id],
+    }),
     menuItem: one(menuItems, {
       fields: [orderInventoryDeductions.menuItemId],
       references: [menuItems.id],
@@ -657,10 +726,16 @@ export const inventoryTransactionsRelations = relations(
   }),
 );
 
-export const wasteReasonsRelations = relations(wasteReasons, ({ one, many }) => ({
-  tenant: one(tenants, { fields: [wasteReasons.tenantId], references: [tenants.id] }),
-  transactions: many(inventoryTransactions),
-}));
+export const wasteReasonsRelations = relations(
+  wasteReasons,
+  ({ one, many }) => ({
+    tenant: one(tenants, {
+      fields: [wasteReasons.tenantId],
+      references: [tenants.id],
+    }),
+    transactions: many(inventoryTransactions),
+  }),
+);
 
 export const orderStatusHistoryRelations = relations(
   orderStatusHistory,
@@ -680,9 +755,15 @@ export const orderStatusHistoryRelations = relations(
   }),
 );
 
-export const orderItemSeatSharesRelations = relations(orderItemSeatShares, ({ one }) => ({
-  orderItem: one(orderItems, { fields: [orderItemSeatShares.orderItemId], references: [orderItems.id] }),
-}));
+export const orderItemSeatSharesRelations = relations(
+  orderItemSeatShares,
+  ({ one }) => ({
+    orderItem: one(orderItems, {
+      fields: [orderItemSeatShares.orderItemId],
+      references: [orderItems.id],
+    }),
+  }),
+);
 
 export const orderItemModifiersRelations = relations(
   orderItemModifiers,
@@ -744,14 +825,45 @@ export const menuItemBranchOverridesRelations = relations(
   }),
 );
 
-export const menuItemChannelOverridesRelations = relations(menuItemChannelOverrides, ({ one }) => ({
-  tenant: one(tenants, { fields: [menuItemChannelOverrides.tenantId], references: [tenants.id] }),
-  menuItem: one(menuItems, { fields: [menuItemChannelOverrides.menuItemId], references: [menuItems.id] }),
-}));
+export const menuItemChannelOverridesRelations = relations(
+  menuItemChannelOverrides,
+  ({ one }) => ({
+    tenant: one(tenants, {
+      fields: [menuItemChannelOverrides.tenantId],
+      references: [tenants.id],
+    }),
+    menuItem: one(menuItems, {
+      fields: [menuItemChannelOverrides.menuItemId],
+      references: [menuItems.id],
+    }),
+  }),
+);
 
-export const combosRelations = relations(combos, ({ one, many }) => ({ tenant: one(tenants, { fields: [combos.tenantId], references: [tenants.id] }), slots: many(comboSlots) }));
-export const comboSlotsRelations = relations(comboSlots, ({ one, many }) => ({ combo: one(combos, { fields: [comboSlots.comboId], references: [combos.id] }), options: many(comboSlotOptions) }));
-export const comboSlotOptionsRelations = relations(comboSlotOptions, ({ one }) => ({ slot: one(comboSlots, { fields: [comboSlotOptions.slotId], references: [comboSlots.id] }), menuItem: one(menuItems, { fields: [comboSlotOptions.menuItemId], references: [menuItems.id] }), variant: one(menuItemVariants, { fields: [comboSlotOptions.variantId], references: [menuItemVariants.id] }) }));
+export const combosRelations = relations(combos, ({ one, many }) => ({
+  tenant: one(tenants, { fields: [combos.tenantId], references: [tenants.id] }),
+  slots: many(comboSlots),
+}));
+export const comboSlotsRelations = relations(comboSlots, ({ one, many }) => ({
+  combo: one(combos, { fields: [comboSlots.comboId], references: [combos.id] }),
+  options: many(comboSlotOptions),
+}));
+export const comboSlotOptionsRelations = relations(
+  comboSlotOptions,
+  ({ one }) => ({
+    slot: one(comboSlots, {
+      fields: [comboSlotOptions.slotId],
+      references: [comboSlots.id],
+    }),
+    menuItem: one(menuItems, {
+      fields: [comboSlotOptions.menuItemId],
+      references: [menuItems.id],
+    }),
+    variant: one(menuItemVariants, {
+      fields: [comboSlotOptions.variantId],
+      references: [menuItemVariants.id],
+    }),
+  }),
+);
 
 export const menuTemplatesRelations = relations(
   menuTemplates,
@@ -774,7 +886,13 @@ export const menuTemplateItemsRelations = relations(
   }),
 );
 
-export const customerGroupsRelations = relations(customerGroups, ({ one, many }) => ({
-  tenant: one(tenants, { fields: [customerGroups.tenantId], references: [tenants.id] }),
-  orders: many(orders),
-}));
+export const customerGroupsRelations = relations(
+  customerGroups,
+  ({ one, many }) => ({
+    tenant: one(tenants, {
+      fields: [customerGroups.tenantId],
+      references: [tenants.id],
+    }),
+    orders: many(orders),
+  }),
+);

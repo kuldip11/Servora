@@ -9,7 +9,7 @@ const api = vi.hoisted(() => ({
 }));
 vi.mock("../../../../shared/lib/api-client", () => ({ apiClient: api }));
 
-import { menuItemsService } from "../menu-items.service";
+import { menuItemsService } from "@/features/menu/services/menu-items.service";
 
 const payload = {
   categoryId: "cat-1",
@@ -83,11 +83,13 @@ describe("menuItemsService", () => {
     await menuItemsService.setPublished("item-1", true);
     await menuItemsService.setPublished("item-1", false);
 
-    expect(api.put).toHaveBeenCalledWith(
+    expect(api.put).toHaveBeenCalledWith("/menu/items/item-1/manual-override", {
+      status: "OUT_OF_STOCK",
+      reason: "Chef 86",
+    });
+    expect(api.delete).toHaveBeenCalledWith(
       "/menu/items/item-1/manual-override",
-      { status: "OUT_OF_STOCK", reason: "Chef 86" },
     );
-    expect(api.delete).toHaveBeenCalledWith("/menu/items/item-1/manual-override");
     expect(api.delete).toHaveBeenCalledWith("/menu/items/item-1");
     expect(api.post).toHaveBeenCalledWith("/menu/items/item-1/duplicate");
     expect(api.patch).toHaveBeenLastCalledWith("/menu/items/item-1/unpublish");

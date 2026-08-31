@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { ClipboardList, RefreshCw, Bell } from "lucide-react";
 import { Spinner, IconButton, EmptyState } from "@pos/ui";
-import { useOrders } from "../hooks/useOrders";
-import { OrderCard } from "../components/OrderCard";
+import { useOrders } from "@/features/orders/hooks/useOrders";
+import { OrderCard } from "@/features/orders/components/OrderCard";
 
 interface Props {
   onSelectOrder: (id: string) => void;
 }
 
-export function OrdersPage({ onSelectOrder }: Props) {
+export const OrdersPage = ({ onSelectOrder }: Props) => {
   const [filter, setFilter] = useState<"active" | "all">("active");
   const { data: orders, isLoading, refetch, isFetching } = useOrders();
 
@@ -22,7 +22,7 @@ export function OrdersPage({ onSelectOrder }: Props) {
 
   return (
     <div className="flex flex-col h-full">
-      {            }
+      {}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface">
         <div>
           <h2 className="font-bold text-text-primary">Orders</h2>
@@ -30,9 +30,7 @@ export function OrdersPage({ onSelectOrder }: Props) {
             {orders?.length ?? 0} total today
           </p>
         </div>
-        {
-
-                                                                       }
+        {}
         <IconButton
           icon={RefreshCw}
           aria-label="Refresh orders"
@@ -41,7 +39,7 @@ export function OrdersPage({ onSelectOrder }: Props) {
         />
       </div>
 
-      {                 }
+      {}
       <div className="flex gap-2 px-4 py-3 bg-surface border-b border-border">
         {(["active", "all"] as const).map((f) => (
           <button
@@ -58,7 +56,7 @@ export function OrdersPage({ onSelectOrder }: Props) {
         ))}
       </div>
 
-      {                  }
+      {}
       {ready.length > 0 && (
         <div className="mx-3 mt-3 bg-success-surface border border-success/20 rounded-2xl p-3 flex items-center gap-3">
           <Bell className="w-5 h-5 text-success animate-bounce flex-shrink-0" />
@@ -68,14 +66,13 @@ export function OrdersPage({ onSelectOrder }: Props) {
         </div>
       )}
 
-      {          }
+      {}
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="flex justify-center py-12">
             <Spinner className="w-6 h-6" />
           </div>
         ) : display.length === 0 ? (
-
           <EmptyState
             icon={ClipboardList}
             title="No orders"
@@ -100,4 +97,4 @@ export function OrdersPage({ onSelectOrder }: Props) {
       </div>
     </div>
   );
-}
+};

@@ -17,13 +17,13 @@ export interface DropdownMenuProps {
   className?: string | undefined;
 }
 
-export function DropdownMenu({
+export const DropdownMenu = ({
   trigger,
   items,
   align = "start",
   disabled,
   className,
-}: DropdownMenuProps) {
+}: DropdownMenuProps) => {
   return (
     <RadixDropdownMenu.Root>
       <RadixDropdownMenu.Trigger asChild disabled={disabled}>
@@ -58,4 +58,4 @@ export function DropdownMenu({
       </RadixDropdownMenu.Portal>
     </RadixDropdownMenu.Root>
   );
-}
+};

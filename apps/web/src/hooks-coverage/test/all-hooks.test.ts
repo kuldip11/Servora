@@ -49,9 +49,7 @@ vi.mock("../../shared/lib/realtime", () => ({
           updatedAt: new Date().toISOString(),
         },
       });
-    } catch {
-
-    }
+    } catch {}
   }),
   useRealtime: vi.fn(),
   useRealtimeConnection: vi.fn(() => true),
@@ -76,7 +74,7 @@ const hookModules = import.meta.glob("../../features/**/hooks/*.ts", {
   eager: true,
 }) as Record<string, Record<string, any>>;
 
-function hookEntries() {
+const hookEntries = () => {
   return Object.entries(hookModules).flatMap(([path, module]) =>
     Object.entries(module)
       .filter(
@@ -87,7 +85,7 @@ function hookEntries() {
       )
       .map(([name, fn]) => ({ path, name, fn })),
   );
-}
+};
 
 describe("feature hooks coverage", () => {
   it("creates every query/mutation/realtime hook without side effects", async () => {
@@ -95,7 +93,6 @@ describe("feature hooks coverage", () => {
     expect(entries.length).toBeGreaterThan(50);
 
     for (const { path, name, fn } of entries) {
-
       let result: any;
       try {
         result = fn({
@@ -125,15 +122,11 @@ describe("feature hooks coverage", () => {
               ? new File(["coverage"], "coverage.csv")
               : proxyData,
           );
-        } catch {
-
-        }
+        } catch {}
         if (typeof result.onSuccess === "function") {
           try {
             result.onSuccess(proxyData, proxyData);
-          } catch {
-
-          }
+          } catch {}
           if (name === "useSaveMenuItem") {
             result.onSuccess(proxyData, { item: null });
             result.onSuccess(proxyData, { item: { id: "item-1" } });

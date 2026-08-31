@@ -15,19 +15,19 @@ export interface AppUrlEnv {
 const fallback = (value: string | undefined, fallbackValue: string) =>
   value?.trim() || fallbackValue;
 
-export function resolveAppUrls(env: AppUrlEnv): ServoraAppUrls {
+export const resolveAppUrls = (env: AppUrlEnv): ServoraAppUrls => {
   return {
     web: fallback(env.WEB_APP_URL, "/app"),
     kitchen: fallback(env.KITCHEN_APP_URL, "/kitchen"),
     waiter: fallback(env.WAITER_APP_URL, "/waiter"),
     customer: fallback(env.CUSTOMER_APP_URL, "/order"),
   };
-}
+};
 
-export function assertHttpUrl(value: string, name: string): string {
+export const assertHttpUrl = (value: string, name: string): string => {
   const url = new URL(value);
   if (url.protocol !== "http:" && url.protocol !== "https:") {
     throw new Error(`${name} must use http or https`);
   }
   return value;
-}
+};

@@ -37,7 +37,7 @@ export interface StackProps extends HTMLAttributes<HTMLDivElement> {
   as?: ElementType;
 }
 
-export function Stack({
+export const Stack = ({
   children,
   direction = "column",
   gap = "md",
@@ -47,7 +47,7 @@ export function Stack({
   as: Tag = "div",
   className,
   ...props
-}: StackProps) {
+}: StackProps) => {
   return (
     <Tag
       className={cn(
@@ -64,4 +64,4 @@ export function Stack({
       {children}
     </Tag>
   );
-}
+};

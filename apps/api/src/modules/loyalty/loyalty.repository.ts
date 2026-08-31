@@ -1,7 +1,7 @@
 import { and, eq, inArray, or } from "drizzle-orm";
-import { db } from "../../db";
-import { customerLoyaltyTiers, customers, tenants } from "../../db/schema";
-import { compact } from "../../lib/object-utils";
+import { db } from "@/db";
+import { customerLoyaltyTiers, customers, tenants } from "@/db/schema";
+import { compact } from "@/lib/object-utils";
 
 export type LoyaltyTierRow = Omit<
   typeof customerLoyaltyTiers.$inferSelect,
@@ -12,7 +12,6 @@ export type NewLoyaltyTier = typeof customerLoyaltyTiers.$inferInsert;
 export type NewCustomer = typeof customers.$inferInsert;
 
 export const loyaltyRepository = {
-
   async listApplicableTiers(tenantId: string) {
     const tenant = await db.query.tenants.findFirst({
       where: eq(tenants.id, tenantId),
@@ -182,19 +181,32 @@ export const loyaltyRepository = {
   ) {
     const [row] = await db
       .update(customerLoyaltyTiers)
-      .set(compact({ ...data, tenantId: null, organizationId, updatedAt: new Date() }))
-      .where(and(
-        eq(customerLoyaltyTiers.organizationId, organizationId),
-        eq(customerLoyaltyTiers.id, id),
-      ))
+      .set(
+        compact({
+          ...data,
+          tenantId: null,
+          organizationId,
+          updatedAt: new Date(),
+        }),
+      )
+      .where(
+        and(
+          eq(customerLoyaltyTiers.organizationId, organizationId),
+          eq(customerLoyaltyTiers.id, id),
+        ),
+      )
       .returning();
     return row;
   },
   async removeOrganizationTier(organizationId: string, id: string) {
-    await db.delete(customerLoyaltyTiers).where(and(
-      eq(customerLoyaltyTiers.organizationId, organizationId),
-      eq(customerLoyaltyTiers.id, id),
-    ));
+    await db
+      .delete(customerLoyaltyTiers)
+      .where(
+        and(
+          eq(customerLoyaltyTiers.organizationId, organizationId),
+          eq(customerLoyaltyTiers.id, id),
+        ),
+      );
   },
   async findCustomersByPhone(tenantId: string, phone: string) {
     const local = await db.query.customers.findMany({
@@ -264,7 +276,10 @@ export const loyaltyRepository = {
       .returning();
     if (!created) return [];
     const hydrated = await db.query.customers.findFirst({
-      where: and(eq(customers.tenantId, tenantId), eq(customers.id, created.id)),
+      where: and(
+        eq(customers.tenantId, tenantId),
+        eq(customers.id, created.id),
+      ),
       with: { loyaltyTier: true },
     });
     return hydrated ? [hydrated] : [];
@@ -294,17 +309,29 @@ export const loyaltyRepository = {
     const identityId = match.organizationCustomerId ?? match.id;
 
     if (!match.organizationCustomerId) {
-      await db.update(customers)
+      await db
+        .update(customers)
         .set({ organizationCustomerId: identityId, updatedAt: new Date() })
-        .where(and(eq(customers.tenantId, match.tenantId), eq(customers.id, match.id)));
+        .where(
+          and(
+            eq(customers.tenantId, match.tenantId),
+            eq(customers.id, match.id),
+          ),
+        );
     }
     return identityId;
   },
-  async setOrganizationCustomerIdentity(tenantId: string, customerId: string, organizationCustomerId: string | null) {
+  async setOrganizationCustomerIdentity(
+    tenantId: string,
+    customerId: string,
+    organizationCustomerId: string | null,
+  ) {
     const [row] = await db
       .update(customers)
       .set({ organizationCustomerId, updatedAt: new Date() })
-      .where(and(eq(customers.tenantId, tenantId), eq(customers.id, customerId)))
+      .where(
+        and(eq(customers.tenantId, tenantId), eq(customers.id, customerId)),
+      )
       .returning();
     return row;
   },

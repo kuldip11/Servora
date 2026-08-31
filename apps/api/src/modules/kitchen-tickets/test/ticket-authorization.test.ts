@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   assertKitchenTicketAccess,
   requireKitchenPermission,
-} from "../ticket-authorization";
+} from "@/modules/kitchen-tickets/ticket-authorization";
 const auth = (overrides: any = {}) => ({
   userId: "u1",
   tenantId: "t1",

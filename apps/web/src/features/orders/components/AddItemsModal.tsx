@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { Plus, Minus, Trash2 } from "lucide-react";
 import { Modal, Button } from "@pos/ui";
-import { formatCurrency } from "../../../shared/utils/format";
-import { useMenuCategories } from "../../menu/hooks/useMenuCategories";
-import { useAddOrderItems } from "../hooks/useAddOrderItems";
-import { toCartItemPayload } from "../services/orders.service";
+import { formatCurrency } from "@/shared/utils/format";
+import { useMenuCategories } from "@/features/menu/hooks/useMenuCategories";
+import { useAddOrderItems } from "@/features/orders/hooks/useAddOrderItems";
+import { toCartItemPayload } from "@/features/orders/services/orders.service";
 import { ItemCustomizerModal } from "./ItemCustomizerModal";
-import { cartItemKey, type CartItem } from "../utils/cartTypes";
+import { cartItemKey, type CartItem } from "@/features/orders/utils/cartTypes";
 import type { FoodType, MenuCategory, MenuItem } from "@pos/types";
 import { addOrderItemsSchema } from "@pos/validation";
-import { useCourseSequencingEnabled } from "../hooks/useCourseSequencingEnabled";
+import { useCourseSequencingEnabled } from "@/features/orders/hooks/useCourseSequencingEnabled";
 
 const FOOD_TYPE_FILTERS: { value: FoodType | "ALL"; label: string }[] = [
   { value: "ALL", label: "All" },
@@ -18,7 +18,7 @@ const FOOD_TYPE_FILTERS: { value: FoodType | "ALL"; label: string }[] = [
   { value: "EGG", label: "Egg" },
 ];
 
-function itemPriceLabel(item: MenuItem): string {
+const itemPriceLabel = (item: MenuItem): string => {
   if (!item.variants?.length) return formatCurrency(Number(item.basePrice));
   const prices = item.variants.map((v) => Number(v.price));
   const min = Math.min(...prices);
@@ -26,15 +26,15 @@ function itemPriceLabel(item: MenuItem): string {
   return min === max
     ? formatCurrency(min)
     : `${formatCurrency(min)} – ${formatCurrency(max)}`;
-}
+};
 
-export function AddItemsModal({
+export const AddItemsModal = ({
   orderId,
   onClose,
 }: {
   orderId: string;
   onClose: () => void;
-}) {
+}) => {
   const [items, setItems] = useState<CartItem[]>([]);
   const [notes, setNotes] = useState("");
   const [foodTypeFilter, setFoodTypeFilter] = useState<FoodType | "ALL">("ALL");
@@ -108,7 +108,10 @@ export function AddItemsModal({
   function handleSubmit() {
     const parsed = addOrderItemsSchema.safeParse({
       ...(notes && { notes }),
-      items: items.map((item) => ({ ...toCartItemPayload(item), ...(assignCourse ? { courseNumber: roundCourseNumber } : {}) })),
+      items: items.map((item) => ({
+        ...toCartItemPayload(item),
+        ...(assignCourse ? { courseNumber: roundCourseNumber } : {}),
+      })),
     });
     if (!parsed.success) {
       setValidationError(
@@ -139,11 +142,37 @@ export function AddItemsModal({
       <p className="text-xs text-text-disabled -mt-2 mb-4">
         These items will be fired to the kitchen as a new round.
       </p>
-      {courseSequencingAvailable && <div className="mb-4 flex items-center gap-3 rounded-md border border-border bg-surface-secondary px-3 py-2 text-sm"><label className="flex items-center gap-2 text-text-secondary"><input type="checkbox" checked={assignCourse} onChange={(event) => setAssignCourse(event.target.checked)} /> Assign this round to a course</label>{assignCourse && <select className="rounded border border-border bg-surface px-2 py-1" value={roundCourseNumber} onChange={(event) => setRoundCourseNumber(Number(event.target.value))}>{[1,2,3,4,5].map((course) => <option key={course} value={course}>Course {course}</option>)}</select>}</div>}
+      {courseSequencingAvailable && (
+        <div className="mb-4 flex items-center gap-3 rounded-md border border-border bg-surface-secondary px-3 py-2 text-sm">
+          <label className="flex items-center gap-2 text-text-secondary">
+            <input
+              type="checkbox"
+              checked={assignCourse}
+              onChange={(event) => setAssignCourse(event.target.checked)}
+            />{" "}
+            Assign this round to a course
+          </label>
+          {assignCourse && (
+            <select
+              className="rounded border border-border bg-surface px-2 py-1"
+              value={roundCourseNumber}
+              onChange={(event) =>
+                setRoundCourseNumber(Number(event.target.value))
+              }
+            >
+              {[1, 2, 3, 4, 5].map((course) => (
+                <option key={course} value={course}>
+                  Course {course}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+      )}
       <div className="grid grid-cols-2 gap-6">
-        {                }
+        {}
         <div>
-          {                                }
+          {}
           <div className="flex items-center gap-2 mb-3">
             {FOOD_TYPE_FILTERS.map((f) => (
               <button
@@ -200,7 +229,7 @@ export function AddItemsModal({
           </div>
         </div>
 
-        {                 }
+        {}
         <div className="flex flex-col">
           <p className="text-sm font-semibold text-text-primary mb-3">
             New Items ({items.length})
@@ -321,4 +350,4 @@ export function AddItemsModal({
       )}
     </Modal>
   );
-}
+};

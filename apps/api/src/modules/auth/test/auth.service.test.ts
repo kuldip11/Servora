@@ -65,7 +65,7 @@ const { signAccessToken } = vi.hoisted(() => ({
 }));
 vi.mock("../../../lib/jwt", () => ({ signAccessToken }));
 vi.mock("../../../db", () => ({ db: {} }));
-import { authService } from "../auth.service";
+import { authService } from "@/modules/auth/auth.service";
 const user: any = {
   id: "u1",
   firstName: "A",

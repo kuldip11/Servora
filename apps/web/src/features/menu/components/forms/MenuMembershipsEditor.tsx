@@ -2,19 +2,19 @@ import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import type { MenuCategory, MenuItem } from "@pos/types";
 import { Select } from "@pos/ui";
-import { queryClient } from "../../../../shared/lib/query-client";
-import { notifyError } from "../../../../shared/lib/notify";
-import { useMenus } from "../../hooks/useMenus";
-import { menuKeys } from "../../query-keys";
-import { menusService } from "../../services/menus.service";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError } from "@/shared/lib/notify";
+import { useMenus } from "@/features/menu/hooks/useMenus";
+import { menuKeys } from "@/features/menu/query-keys";
+import { menusService } from "@/features/menu/services/menus.service";
 
-export function MenuMembershipsEditor({
+export const MenuMembershipsEditor = ({
   item,
   categories,
 }: {
   item: MenuItem;
   categories: MenuCategory[];
-}) {
+}) => {
   const { data: menus } = useMenus();
   const [categoryByMenu, setCategoryByMenu] = useState(
     () =>
@@ -54,9 +54,12 @@ export function MenuMembershipsEditor({
   return (
     <section className="space-y-2 rounded-lg border border-border p-3">
       <div>
-        <h3 className="text-sm font-semibold text-text-primary">Menu assignments</h3>
+        <h3 className="text-sm font-semibold text-text-primary">
+          Menu assignments
+        </h3>
         <p className="text-xs text-text-secondary">
-          Choose the category this item uses within each menu. “Not included” removes it from that menu.
+          Choose the category this item uses within each menu. “Not included”
+          removes it from that menu.
         </p>
       </div>
       {menus?.map((menu) => {
@@ -85,4 +88,4 @@ export function MenuMembershipsEditor({
       })}
     </section>
   );
-}
+};

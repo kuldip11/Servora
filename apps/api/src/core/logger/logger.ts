@@ -1,5 +1,3 @@
-
-
 export interface LogContext {
   requestId?: string;
   tenantId?: string;
@@ -20,7 +18,7 @@ const SENSITIVE_KEYS = [
   "ssn",
 ];
 
-function sanitize(value: unknown): unknown {
+const sanitize = (value: unknown): unknown => {
   if (!value || typeof value !== "object") return value;
   if (Array.isArray(value)) return value.map(sanitize);
 
@@ -35,7 +33,7 @@ function sanitize(value: unknown): unknown {
     }
   }
   return sanitized;
-}
+};
 
 export class Logger {
   constructor(

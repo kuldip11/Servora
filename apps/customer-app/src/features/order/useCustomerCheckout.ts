@@ -1,14 +1,19 @@
-import { useCallback, useState, type Dispatch, type SetStateAction } from "react";
+import {
+  useCallback,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import {
   createCustomerOrder,
   initiateTakeawayPayment,
   verifyTakeawayPayment,
   type CustomerOrder,
-} from "../../api";
-import type { ComboCartLine } from "../cart/combo";
-import { clearPersistedCart } from "../cart/persistence";
-import type { CartLine } from "../cart/pricing";
-import type { CustomerSessionState } from "../session/useCustomerSession";
+} from "@/api";
+import type { ComboCartLine } from "@/features/cart/combo";
+import { clearPersistedCart } from "@/features/cart/persistence";
+import type { CartLine } from "@/features/cart/pricing";
+import type { CustomerSessionState } from "@/features/session/useCustomerSession";
 import { createOrderPayload } from "./payload";
 
 type UseCustomerCheckoutInput = {
@@ -35,13 +40,16 @@ type RazorpayCheckout = {
   open: () => void;
 };
 
-type RazorpayConstructor = new (options: Record<string, unknown>) => RazorpayCheckout;
+type RazorpayConstructor = new (
+  options: Record<string, unknown>,
+) => RazorpayCheckout;
 
-function getRazorpay(): RazorpayConstructor | undefined {
-  return (window as typeof window & { Razorpay?: RazorpayConstructor }).Razorpay;
-}
+const getRazorpay = (): RazorpayConstructor | undefined => {
+  return (window as typeof window & { Razorpay?: RazorpayConstructor })
+    .Razorpay;
+};
 
-async function ensureRazorpayScript() {
+const ensureRazorpayScript = async () => {
   const scriptId = "razorpay-checkout";
   if (document.getElementById(scriptId)) return;
   await new Promise<void>((resolve, reject) => {
@@ -52,9 +60,9 @@ async function ensureRazorpayScript() {
     script.onerror = () => reject(new Error("Unable to load payment checkout"));
     document.head.appendChild(script);
   });
-}
+};
 
-export function useCustomerCheckout({
+export const useCustomerCheckout = ({
   session,
   cart,
   comboCart,
@@ -66,7 +74,7 @@ export function useCustomerCheckout({
   setPlacedOrder,
   clearCart,
   onPlaced,
-}: UseCustomerCheckoutInput) {
+}: UseCustomerCheckoutInput) => {
   const [couponCode, setCouponCode] = useState("");
   const [loyaltyPhone, setLoyaltyPhone] = useState("");
 
@@ -76,7 +84,8 @@ export function useCustomerCheckout({
       const key = import.meta.env.VITE_RAZORPAY_KEY_ID;
       if (!key) throw new Error("Online takeaway payment is not configured");
       const pending = order.payments.find(
-        (payment) => payment.method === "RAZORPAY" && payment.status === "PENDING",
+        (payment) =>
+          payment.method === "RAZORPAY" && payment.status === "PENDING",
       );
       const payment = pending?.reference
         ? pending
@@ -123,7 +132,8 @@ export function useCustomerCheckout({
   );
 
   const retryTakeawayPayment = useCallback(async () => {
-    if (!session || !placedOrder || session.mode !== "TAKEAWAY" || loading) return;
+    if (!session || !placedOrder || session.mode !== "TAKEAWAY" || loading)
+      return;
     try {
       setLoading(true);
       setError(null);
@@ -149,7 +159,8 @@ export function useCustomerCheckout({
   ]);
 
   const placeOrder = useCallback(async () => {
-    if (!session || (cart.length === 0 && comboCart.length === 0) || loading) return;
+    if (!session || (cart.length === 0 && comboCart.length === 0) || loading)
+      return;
     try {
       setLoading(true);
       setError(null);
@@ -179,7 +190,9 @@ export function useCustomerCheckout({
       setCouponCode("");
       onPlaced();
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Unable to place order");
+      setError(
+        error instanceof Error ? error.message : "Unable to place order",
+      );
     } finally {
       setLoading(false);
     }
@@ -207,4 +220,4 @@ export function useCustomerCheckout({
     placeOrder,
     retryTakeawayPayment,
   };
-}
+};

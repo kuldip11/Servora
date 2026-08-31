@@ -5,15 +5,15 @@ import { useRouter } from "@tanstack/react-router";
 import { ChefHat } from "lucide-react";
 import { z } from "zod";
 
-import { authService } from "../services/auth.service";
-import { useAuthStore } from "../../../store/auth";
+import { authService } from "@/features/auth/services/auth.service";
+import { useAuthStore } from "@/store/auth";
 import { Button, Card, Input, toast } from "@pos/ui";
-import { extractApiError } from "../../../shared/lib/api-client";
+import { extractApiError } from "@/shared/lib/api-client";
 import { signupSchema } from "@pos/validation";
 
 type SignupFormValues = z.infer<typeof signupSchema>;
 
-export function SignupPage() {
+export const SignupPage = () => {
   const router = useRouter();
   const { setAuth } = useAuthStore();
   const [loading, setLoading] = useState(false);
@@ -127,4 +127,4 @@ export function SignupPage() {
       </div>
     </div>
   );
-}
+};

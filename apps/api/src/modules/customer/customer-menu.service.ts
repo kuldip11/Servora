@@ -1,6 +1,6 @@
-import { db } from "../../db";
-import { availabilityService } from "../menu/availability/availability.service";
-import { menuResolver } from "../menu/menus/menu-resolver.service";
+import { db } from "@/db";
+import { availabilityService } from "@/modules/menu/availability/availability.service";
+import { menuResolver } from "@/modules/menu/menus/menu-resolver.service";
 import { customerRepository } from "./customer.repository";
 import { customerSessionService } from "./customer-session.service";
 
@@ -8,9 +8,17 @@ export const customerMenuService = {
   async getMenu(token: string) {
     const session = await customerSessionService.getSession(token);
     const activeMenus = await menuResolver.getActiveMenus(
-      session.tenantId, session.branchId, "CUSTOMER_QR", session.mode, new Date(),
+      session.tenantId,
+      session.branchId,
+      "CUSTOMER_QR",
+      session.mode,
+      new Date(),
     );
-    const activeItemIds = new Set(activeMenus.flatMap((menu) => menu.memberships.map((membership) => membership.menuItemId)));
+    const activeItemIds = new Set(
+      activeMenus.flatMap((menu) =>
+        menu.memberships.map((membership) => membership.menuItemId),
+      ),
+    );
     const menu = await customerRepository.listMenu(
       session.tenantId,
       session.branchId,
@@ -75,8 +83,9 @@ export const customerMenuService = {
           ),
         ),
       items: effectiveItems.filter(
-        (item): item is NonNullable<typeof item> => item !== null && activeItemIds.has(item.id),
+        (item): item is NonNullable<typeof item> =>
+          item !== null && activeItemIds.has(item.id),
       ),
     };
-  }
+  },
 };

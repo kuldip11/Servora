@@ -1,6 +1,6 @@
 import { Elysia, t } from "elysia";
-import { requireAuthPlugin } from "../../core/auth";
-import { createdResponse, successResponse } from "../../core/response";
+import { requireAuthPlugin } from "@/core/auth";
+import { createdResponse, successResponse } from "@/core/response";
 import { approvalService } from "./approval.service";
 
 const action = t.Union([t.Literal("VOID"), t.Literal("COMP")]);

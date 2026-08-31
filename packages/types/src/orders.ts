@@ -111,7 +111,8 @@ export interface OrderItem {
     asOf: string;
     branchId: string;
     channel: "UNSCOPED" | "STAFF" | "CUSTOMER_QR";
-    fulfillmentType: "UNSCOPED" | "DINE_IN" | "TAKEAWAY" | "DELIVERY" | "ONLINE";
+    fulfillmentType:
+      "UNSCOPED" | "DINE_IN" | "TAKEAWAY" | "DELIVERY" | "ONLINE";
     effectiveStatus: string;
     isHidden: boolean;
     reason: string | null;
@@ -133,7 +134,11 @@ export interface OrderItem {
   compedReasonId: string | null;
   station?: { id: string; name: string } | null;
   modifiers: OrderItemModifier[];
-  seatShares?: Array<{ id?: string; seatLabel: string; shareRatio: number | string }>;
+  seatShares?: Array<{
+    id?: string;
+    seatLabel: string;
+    shareRatio: number | string;
+  }>;
   createdAt?: string;
 }
 

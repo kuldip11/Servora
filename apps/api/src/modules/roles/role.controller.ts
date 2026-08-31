@@ -1,5 +1,5 @@
-import type { AuthContext } from "../../core/auth";
-import { createdResponse, successResponse } from "../../core/response";
+import type { AuthContext } from "@/core/auth";
+import { createdResponse, successResponse } from "@/core/response";
 import { roleService } from "./role.service";
 
 export const roleController = {

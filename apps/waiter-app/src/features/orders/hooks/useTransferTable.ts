@@ -1,13 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@pos/ui";
-import { transferOrderTable } from "../api/orders";
-import { orderKeys } from "../constants";
+import { transferOrderTable } from "@/features/orders/api/orders";
+import { orderKeys } from "@/features/orders/constants";
 
-export function useTransferTable(orderId: string) {
+export const useTransferTable = (orderId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ newTableId, reason }: { newTableId: string; reason?: string }) =>
-      transferOrderTable(orderId, newTableId, reason),
+    mutationFn: ({
+      newTableId,
+      reason,
+    }: {
+      newTableId: string;
+      reason?: string;
+    }) => transferOrderTable(orderId, newTableId, reason),
     onSuccess: (order) => {
       queryClient.setQueryData(orderKeys.detail(orderId), order);
       queryClient.invalidateQueries({ queryKey: orderKeys.all });
@@ -16,4 +21,4 @@ export function useTransferTable(orderId: string) {
     },
     onError: () => toast({ title: "Failed to transfer table", tone: "danger" }),
   });
-}
+};

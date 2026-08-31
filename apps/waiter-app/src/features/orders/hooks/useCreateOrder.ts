@@ -1,15 +1,22 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@pos/ui";
-import { createOrder, type CreateOrderInput } from "../api/createOrder";
-import { orderKeys } from "../constants";
+import {
+  createOrder,
+  type CreateOrderInput,
+} from "@/features/orders/api/createOrder";
+import { orderKeys } from "@/features/orders/constants";
 
-function mutationErrorMessage(error: unknown, fallback: string): string {
-  if (typeof error !== "object" || error === null || !("response" in error)) return fallback;
-  const response = (error as { response?: { data?: { message?: unknown } } }).response;
-  return typeof response?.data?.message === "string" ? response.data.message : fallback;
-}
+const mutationErrorMessage = (error: unknown, fallback: string): string => {
+  if (typeof error !== "object" || error === null || !("response" in error))
+    return fallback;
+  const response = (error as { response?: { data?: { message?: unknown } } })
+    .response;
+  return typeof response?.data?.message === "string"
+    ? response.data.message
+    : fallback;
+};
 
-export function useCreateOrder() {
+export const useCreateOrder = () => {
   const qc = useQueryClient();
 
   return useMutation({
@@ -25,4 +32,4 @@ export function useCreateOrder() {
         tone: "danger",
       }),
   });
-}
+};

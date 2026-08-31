@@ -1,25 +1,39 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  ensureDefaults: vi.fn(), list: vi.fn(), findById: vi.fn(), findActiveByIds: vi.fn(),
-  create: vi.fn(), update: vi.fn(),
+  ensureDefaults: vi.fn(),
+  list: vi.fn(),
+  findById: vi.fn(),
+  findActiveByIds: vi.fn(),
+  create: vi.fn(),
+  update: vi.fn(),
 }));
 vi.mock("../cancellation-reason.repository", () => ({
   cancellationReasonRepository: mocks,
 }));
-import { cancellationReasonService } from "../cancellation-reason.service";
+import { cancellationReasonService } from "@/modules/orders/cancellation-reasons/cancellation-reason.service";
 
-const auth = (permissions = ["orders:read", "settings:update"]) => ({
-  userId: "u1", tenantId: "t1", branchId: null, email: "u@example.com",
-  roles: [], permissions, tenantWide: true,
-}) as any;
+const auth = (permissions = ["orders:read", "settings:update"]) =>
+  ({
+    userId: "u1",
+    tenantId: "t1",
+    branchId: null,
+    email: "u@example.com",
+    roles: [],
+    permissions,
+    tenantWide: true,
+  }) as any;
 
-beforeEach(() => { vi.clearAllMocks(); });
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 describe("cancellation reason service", () => {
   it("seeds and lists tenant reasons", async () => {
     mocks.list.mockResolvedValue([{ id: "r1", label: "Kitchen error" }]);
-    await expect(cancellationReasonService.list(auth(), true)).resolves.toHaveLength(1);
+    await expect(
+      cancellationReasonService.list(auth(), true),
+    ).resolves.toHaveLength(1);
     expect(mocks.ensureDefaults).toHaveBeenCalledWith("t1");
     expect(mocks.list).toHaveBeenCalledWith("t1", true);
   });
@@ -34,17 +48,22 @@ describe("cancellation reason service", () => {
   });
 
   it("requires admin permission for writes and rejects cross-tenant ids", async () => {
-    await expect(cancellationReasonService.create(auth(["orders:read"]), "Custom"))
-      .rejects.toThrow("Insufficient permissions");
+    await expect(
+      cancellationReasonService.create(auth(["orders:read"]), "Custom"),
+    ).rejects.toThrow("Insufficient permissions");
     mocks.findById.mockResolvedValue(undefined);
-    await expect(cancellationReasonService.update(auth(), "foreign", { isActive: false }))
-      .rejects.toThrow("Cancellation reason");
+    await expect(
+      cancellationReasonService.update(auth(), "foreign", { isActive: false }),
+    ).rejects.toThrow("Cancellation reason");
   });
 
   it("validates active structured reason ids", async () => {
     mocks.findActiveByIds.mockResolvedValue([]);
-    await expect(cancellationReasonService.assertUsable("t1", "inactive"))
-      .rejects.toThrow("invalid or inactive");
-    await expect(cancellationReasonService.assertUsable("t1", undefined)).resolves.toBeUndefined();
+    await expect(
+      cancellationReasonService.assertUsable("t1", "inactive"),
+    ).rejects.toThrow("invalid or inactive");
+    await expect(
+      cancellationReasonService.assertUsable("t1", undefined),
+    ).resolves.toBeUndefined();
   });
 });

@@ -4,7 +4,7 @@ import {
   exportItemsQuery,
   exportQuery,
   importFileBody,
-} from "../import-export.validator";
+} from "@/modules/menu/import-export/import-export.validator";
 
 describe("import-export.validator validators", () => {
   it("allows optional export query fields", () => {

@@ -9,7 +9,7 @@ vi.mock("@pos/api-client", () => ({
   createApiClient: mocks.createApiClient,
 }));
 
-import { apiClient } from "../api-client";
+import { apiClient } from "@/shared/lib/api-client";
 
 describe("api client", () => {
   it("creates client with storage", () => {

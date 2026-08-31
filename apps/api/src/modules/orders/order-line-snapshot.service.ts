@@ -1,7 +1,10 @@
 import type { OrderType } from "@pos/types";
-import { availabilityService, type AvailabilityChannel } from "../menu/availability/availability.service";
-import { menuChangeLog } from "../menu/change-log/menu-change-log";
-import { stationResolver } from "../kitchen-tickets/stations/station.service";
+import {
+  availabilityService,
+  type AvailabilityChannel,
+} from "@/modules/menu/availability/availability.service";
+import { menuChangeLog } from "@/modules/menu/change-log/menu-change-log";
+import { stationResolver } from "@/modules/kitchen-tickets/stations/station.service";
 import type { PricedLine } from "./pricing/pricing.types";
 
 export interface OrderLineSnapshotContext {
@@ -11,11 +14,11 @@ export interface OrderLineSnapshotContext {
   asOf: Date;
 }
 
-export async function snapshotOrderLines(
+export const snapshotOrderLines = async (
   tenantId: string,
   lines: PricedLine[],
   context: OrderLineSnapshotContext,
-): Promise<PricedLine[]> {
+): Promise<PricedLine[]> => {
   const menuItemIds = lines.flatMap((line) =>
     line.menuItemId === null ? [] : [line.menuItemId],
   );
@@ -73,4 +76,4 @@ export async function snapshotOrderLines(
       };
     }),
   );
-}
+};

@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { RotateCcw } from "lucide-react";
-import { MENU_ITEM_STATUS_OPTIONS } from "../constants";
-import { useBranches } from "../../branches/hooks/useBranches";
-import { useMenuItemBranchOverrides } from "../hooks/useMenuItemBranchOverrides";
-import { useSaveBranchOverride } from "../hooks/useSaveBranchOverride";
-import { useResetBranchOverride } from "../hooks/useResetBranchOverride";
+import { MENU_ITEM_STATUS_OPTIONS } from "@/features/menu/constants";
+import { useBranches } from "@/features/branches/hooks/useBranches";
+import { useMenuItemBranchOverrides } from "@/features/menu/hooks/useMenuItemBranchOverrides";
+import { useSaveBranchOverride } from "@/features/menu/hooks/useSaveBranchOverride";
+import { useResetBranchOverride } from "@/features/menu/hooks/useResetBranchOverride";
 import type { MenuItemBranchOverride, MenuItemStatus } from "@pos/types";
 
 interface Props {
@@ -23,7 +23,7 @@ interface RowDraft {
   availabilityReason: string;
 }
 
-function toDraft(o: MenuItemBranchOverride | undefined): RowDraft {
+const toDraft = (o: MenuItemBranchOverride | undefined): RowDraft => {
   return {
     price: o?.price != null ? String(o.price) : "",
     taxRate: o?.taxRate != null ? String(o.taxRate) : "",
@@ -33,15 +33,14 @@ function toDraft(o: MenuItemBranchOverride | undefined): RowDraft {
     isHidden: o?.isHidden ?? false,
     availabilityReason: o?.availabilityReason ?? "",
   };
-}
+};
 
-export function BranchOverridesPanel({
+export const BranchOverridesPanel = ({
   itemId,
   basePrice,
   baseTaxRate,
   basePrepTimeMinutes,
-}: Props) {
-
+}: Props) => {
   const { data: branches } = useBranches();
   const { data: overrides, isLoading } = useMenuItemBranchOverrides(itemId);
 
@@ -237,4 +236,4 @@ export function BranchOverridesPanel({
       </div>
     </div>
   );
-}
+};

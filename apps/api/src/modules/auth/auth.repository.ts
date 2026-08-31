@@ -1,8 +1,8 @@
 import type { RoleName } from "@pos/types";
 
 import { eq, and, isNull, gt, lt } from "drizzle-orm";
-import { db } from "../../db";
-import { ServiceUnavailableError } from "../../core/errors";
+import { db } from "@/db";
+import { ServiceUnavailableError } from "@/core/errors";
 import {
   users,
   roles,
@@ -12,7 +12,7 @@ import {
   rolePermissions,
   tenantMemberships,
   userSessions,
-} from "../../db/schema";
+} from "@/db/schema";
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 

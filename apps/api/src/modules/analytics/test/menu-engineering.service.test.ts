@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { salesVolumeByItem } = vi.hoisted(() => ({ salesVolumeByItem: vi.fn() }));
+const { salesVolumeByItem } = vi.hoisted(() => ({
+  salesVolumeByItem: vi.fn(),
+}));
 vi.mock("../analytics.repository", () => ({
   analyticsRepository: { salesVolumeByItem },
 }));
@@ -9,9 +11,11 @@ vi.mock("../analytics-authorization", () => ({
   assertAnalyticsScope: vi.fn(),
 }));
 vi.mock("../../inventory/inventory.service", () => ({ inventoryService: {} }));
-vi.mock("../../orders/pricing/pricing-pipeline", () => ({ pricingPipeline: {} }));
+vi.mock("../../orders/pricing/pricing-pipeline", () => ({
+  pricingPipeline: {},
+}));
 
-import { analyticsService } from "../analytics.service";
+import { analyticsService } from "@/modules/analytics/analytics.service";
 
 const auth = {
   tenantId: "tenant",

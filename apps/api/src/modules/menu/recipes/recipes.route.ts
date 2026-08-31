@@ -1,10 +1,7 @@
 import { Elysia } from "elysia";
-import { requireAuthPlugin } from "../../../core/auth";
+import { requireAuthPlugin } from "@/core/auth";
 import { recipesController } from "./recipes.controller";
-import {
-  setRecipeBody,
-  itemIdParams,
-} from "./recipes.validator";
+import { setRecipeBody, itemIdParams } from "./recipes.validator";
 
 export const menuRecipesRouter = new Elysia({ prefix: "/api/menu" })
   .use(requireAuthPlugin())

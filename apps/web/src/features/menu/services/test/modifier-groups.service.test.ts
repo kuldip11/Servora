@@ -8,7 +8,7 @@ const api = vi.hoisted(() => ({
 }));
 vi.mock("../../../../shared/lib/api-client", () => ({ apiClient: api }));
 
-import { modifierGroupsService } from "../modifier-groups.service";
+import { modifierGroupsService } from "@/features/menu/services/modifier-groups.service";
 
 describe("modifierGroupsService", () => {
   beforeEach(() => {

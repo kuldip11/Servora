@@ -42,8 +42,8 @@ vi.mock("../../../inventory/inventory.service", () => ({
   inventoryService: { syncRecipeConfigurationAvailability },
 }));
 
-import { recipesService } from "../recipes.service";
-import type { AuthContext } from "../../../../core/auth";
+import { recipesService } from "@/modules/menu/recipes/recipes.service";
+import type { AuthContext } from "@/core/auth";
 
 const auth: AuthContext = {
   userId: "u1",
@@ -57,7 +57,11 @@ const auth: AuthContext = {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  findItem.mockResolvedValue({ id: "m1", branchId: "b1", enableRecipeDeduction: true });
+  findItem.mockResolvedValue({
+    id: "m1",
+    branchId: "b1",
+    enableRecipeDeduction: true,
+  });
   findOwnedInventorySources.mockResolvedValue([]);
   findOwnedSubRecipeSources.mockResolvedValue([]);
   getItemRecipe.mockResolvedValue([]);
@@ -117,5 +121,4 @@ describe("recipesService source validation", () => {
     ).rejects.toThrow("Duplicate recipe source");
     expect(replaceRecipe).not.toHaveBeenCalled();
   });
-
 });

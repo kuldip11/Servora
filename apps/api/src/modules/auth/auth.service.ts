@@ -1,15 +1,10 @@
-
-
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { authRepository } from "./auth.repository";
-import { listUserMemberships } from "../../core/auth/membership-context";
-import { db } from "../../db";
-import {
-  ConflictError,
-  ForbiddenError,
-} from "../../core/errors";
-import { signAccessToken } from "../../lib/jwt";
+import { listUserMemberships } from "@/core/auth/membership-context";
+import { db } from "@/db";
+import { ConflictError, ForbiddenError } from "@/core/errors";
+import { signAccessToken } from "@/lib/jwt";
 import type { SignupInput, LoginInput } from "@pos/validation";
 import {
   invalidCredentials,
@@ -19,13 +14,12 @@ import {
   accountTemporarilyLocked,
 } from "./auth.errors";
 
-function hashToken(token: string): string {
+const hashToken = (token: string): string => {
   return crypto.createHash("sha256").update(token).digest("hex");
-}
+};
 
 export const authService = {
   async signup(input: SignupInput) {
-
     const normalizedEmail = input.email.trim().toLowerCase();
     const existing =
       await authRepository.findStandaloneUserByEmail(normalizedEmail);

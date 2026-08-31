@@ -20,7 +20,7 @@ vi.mock("elysia", () => {
   }
   return { Elysia: FakeElysia };
 });
-import { menuAuthorizationPlugin } from "../menu-authorization-plugin";
+import { menuAuthorizationPlugin } from "@/modules/menu/menu-authorization-plugin";
 describe("menu authorization plugin", () => {
   it("creates the named Elysia plugin", () => {
     const plugin: any = menuAuthorizationPlugin();

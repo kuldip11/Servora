@@ -1,12 +1,12 @@
 import Link from "next/link";
 
-export function CtaBanner({
+export const CtaBanner = ({
   title = "See Servora in action.",
   text = "Walk through your restaurant workflow with the team and see where Servora fits.",
 }: {
   title?: string;
   text?: string;
-}) {
+}) => {
   return (
     <section className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
       <div className="overflow-hidden rounded-3xl bg-[var(--text-primary)] px-7 py-12 text-[var(--surface)] sm:px-12 lg:flex lg:items-center lg:justify-between">
@@ -25,4 +25,4 @@ export function CtaBanner({
       </div>
     </section>
   );
-}
+};

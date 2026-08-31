@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { searchCustomers } from "../api/customers";
+import { searchCustomers } from "@/features/menu/api/customers";
 
-export function useCustomerSearch(query: string) {
+export const useCustomerSearch = (query: string) => {
   return useQuery({
     queryKey: ["customer-search", query],
     queryFn: () => searchCustomers(query),
     enabled: query.length >= 2,
   });
-}
+};

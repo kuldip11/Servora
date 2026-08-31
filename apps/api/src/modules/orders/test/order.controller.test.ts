@@ -18,7 +18,7 @@ vi.mock("../order.service", () => ({
     fireTicket,
   },
 }));
-import { orderController } from "../order.controller";
+import { orderController } from "@/modules/orders/order.controller";
 
 const auth = {
   userId: "u1",

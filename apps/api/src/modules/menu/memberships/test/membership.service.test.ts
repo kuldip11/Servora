@@ -1,20 +1,30 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { listForItem, listItems, findResources, upsert, remove } = vi.hoisted(() => ({
-  listForItem: vi.fn(),
-  listItems: vi.fn(),
-  findResources: vi.fn(),
-  upsert: vi.fn(),
-  remove: vi.fn(),
+const { listForItem, listItems, findResources, upsert, remove } = vi.hoisted(
+  () => ({
+    listForItem: vi.fn(),
+    listItems: vi.fn(),
+    findResources: vi.fn(),
+    upsert: vi.fn(),
+    remove: vi.fn(),
+  }),
+);
+const { record } = vi.hoisted(() => ({
+  record: vi.fn().mockResolvedValue({ id: "event1" }),
 }));
-const { record } = vi.hoisted(() => ({ record: vi.fn().mockResolvedValue({ id: "event1" }) }));
 vi.mock("../membership.repository", () => ({
-  membershipRepository: { listForItem, listItems, findResources, upsert, remove },
+  membershipRepository: {
+    listForItem,
+    listItems,
+    findResources,
+    upsert,
+    remove,
+  },
 }));
 vi.mock("../../change-log/menu-change-log", () => ({
   menuChangeLog: { record },
 }));
-import { membershipService } from "../membership.service";
+import { membershipService } from "@/modules/menu/memberships/membership.service";
 
 const auth = (permissions: string[]) => ({
   userId: "u1",

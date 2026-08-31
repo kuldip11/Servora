@@ -18,15 +18,15 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
-function isTheme(value: string | null): value is Theme {
+const isTheme = (value: string | null): value is Theme => {
   return value !== null && (THEMES as string[]).includes(value);
-}
+};
 
-function getInitialTheme(defaultTheme: Theme): Theme {
+const getInitialTheme = (defaultTheme: Theme): Theme => {
   if (typeof window === "undefined") return defaultTheme;
   const stored = window.localStorage.getItem(STORAGE_KEY);
   return isTheme(stored) ? stored : defaultTheme;
-}
+};
 
 export interface ThemeProviderProps {
   children: ReactNode;
@@ -34,10 +34,10 @@ export interface ThemeProviderProps {
   defaultTheme?: Theme;
 }
 
-export function ThemeProvider({
+export const ThemeProvider = ({
   children,
   defaultTheme = "light",
-}: ThemeProviderProps) {
+}: ThemeProviderProps) => {
   const [theme, setThemeState] = useState<Theme>(() =>
     getInitialTheme(defaultTheme),
   );
@@ -52,12 +52,12 @@ export function ThemeProvider({
       {children}
     </ThemeContext.Provider>
   );
-}
+};
 
-export function useTheme(): ThemeContextValue {
+export const useTheme = (): ThemeContextValue => {
   const ctx = useContext(ThemeContext);
   if (!ctx) {
     throw new Error("useTheme must be used within a <ThemeProvider>");
   }
   return ctx;
-}
+};

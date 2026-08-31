@@ -1,8 +1,6 @@
-
-
-import type { AuthContext } from "../../../core/auth";
-import { successResponse, createdResponse } from "../../../core/response";
-import { requirePermission } from "../../../core/auth";
+import type { AuthContext } from "@/core/auth";
+import { successResponse, createdResponse } from "@/core/response";
+import { requirePermission } from "@/core/auth";
 import {
   availabilityService,
   type CreateScheduleInput,
@@ -11,9 +9,9 @@ import {
   type ManualOverrideInput,
   type UpsertChannelOverrideInput,
 } from "./availability.service";
-import { writeAudit } from "../../../core/audit";
-import { menuChangeLog } from "../change-log/menu-change-log";
-import { branchRepository } from "../../branches/branch.repository";
+import { writeAudit } from "@/core/audit";
+import { menuChangeLog } from "@/modules/menu/change-log/menu-change-log";
+import { branchRepository } from "@/modules/branches/branch.repository";
 
 export const availabilityController = {
   async dashboard(
@@ -40,7 +38,10 @@ export const availabilityController = {
       new Date(),
     );
     const branchNames = new Map(
-      branches.map((branch) => [branch.id, "name" in branch ? branch.name : branch.id] as const),
+      branches.map(
+        (branch) =>
+          [branch.id, "name" in branch ? branch.name : branch.id] as const,
+      ),
     );
     return successResponse({
       ...dashboard,

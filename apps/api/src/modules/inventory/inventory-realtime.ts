@@ -1,6 +1,6 @@
 import type { InventoryItem, InventoryUnit } from "@pos/types";
 
-export function toRealtimeInventoryItem(item: {
+export const toRealtimeInventoryItem = (item: {
   id: string;
   tenantId: string;
   branchId: string;
@@ -11,7 +11,7 @@ export function toRealtimeInventoryItem(item: {
   reorderPoint: string;
   costPerUnit: string;
   isActive: boolean;
-}): InventoryItem {
+}): InventoryItem => {
   return {
     id: item.id,
     tenantId: item.tenantId,
@@ -24,4 +24,4 @@ export function toRealtimeInventoryItem(item: {
     costPerUnit: Number(item.costPerUnit),
     isActive: item.isActive,
   };
-}
+};

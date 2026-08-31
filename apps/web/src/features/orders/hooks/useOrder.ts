@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { orderDetailQuery } from "../query-options";
+import { orderDetailQuery } from "@/features/orders/query-options";
 
-export function useOrder(orderId: string) {
+export const useOrder = (orderId: string) => {
   return useQuery(orderDetailQuery(orderId));
-}
+};

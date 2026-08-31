@@ -3,12 +3,12 @@ import { Building2, Check, ChevronDown, Plus } from "lucide-react";
 import { Button, Dialog, Input, toast } from "@pos/ui";
 import type { AvailableMembership } from "@pos/types";
 import { useRouter } from "@tanstack/react-router";
-import { authService } from "../../../features/auth/services/auth.service";
-import { useAuthStore } from "../../../store/auth";
-import { cn } from "../../utils";
-import { extractApiError } from "../../lib/api-client";
+import { authService } from "@/features/auth/services/auth.service";
+import { useAuthStore } from "@/store/auth";
+import { cn } from "@/shared/utils";
+import { extractApiError } from "@/shared/lib/api-client";
 
-export function TenantSwitcher() {
+export const TenantSwitcher = () => {
   const router = useRouter();
   const { user, membershipId, memberships, setContext } = useAuthStore();
   const [items, setItems] = useState<AvailableMembership[]>(memberships);
@@ -58,9 +58,7 @@ export function TenantSwitcher() {
           });
         }
       })
-      .catch(() => {
-
-      });
+      .catch(() => {});
   }, [user, canRead, membershipId, setContext]);
 
   async function activate(membership: AvailableMembership) {
@@ -297,4 +295,4 @@ export function TenantSwitcher() {
       </Dialog>
     </>
   );
-}
+};

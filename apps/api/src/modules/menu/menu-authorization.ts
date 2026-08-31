@@ -1,21 +1,26 @@
-import type { AuthContext } from "../../core/auth";
-import { requirePermission, requireBranch } from "../../core/auth";
-import { ForbiddenError } from "../../core/errors";
+import type { AuthContext } from "@/core/auth";
+import { requirePermission, requireBranch } from "@/core/auth";
+import { ForbiddenError } from "@/core/errors";
 
 export type MenuPermission =
-  "menu:read" | "menu:create" | "menu:update" | "menu:delete" | "menu:publish" | "menu:pricing:write";
+  | "menu:read"
+  | "menu:create"
+  | "menu:update"
+  | "menu:delete"
+  | "menu:publish"
+  | "menu:pricing:write";
 
-export function requireMenuPermission(
+export const requireMenuPermission = (
   auth: AuthContext,
   permission: MenuPermission,
-): void {
+): void => {
   requirePermission(auth, permission);
-}
+};
 
-export function resolveMenuBranch(
+export const resolveMenuBranch = (
   auth: AuthContext,
   requestedBranchId?: string | null,
-): string | undefined {
+): string | undefined => {
   const branchId = requestedBranchId ?? auth.branchId ?? undefined;
   if (auth.tenantWide) return branchId;
   const resolved = requireBranch(auth, "Please select a specific branch.");
@@ -23,13 +28,13 @@ export function resolveMenuBranch(
     throw new ForbiddenError("Branch access denied");
   }
   return resolved;
-}
+};
 
-export function assertMenuResourceBranch(
+export const assertMenuResourceBranch = (
   auth: AuthContext,
   resourceBranchId: string | null | undefined,
   options: { allowShared?: boolean } = {},
-): void {
+): void => {
   if (auth.tenantWide) return;
   if (!resourceBranchId) {
     if (options.allowShared) return;
@@ -41,11 +46,11 @@ export function assertMenuResourceBranch(
   if (auth.branchId && auth.branchId !== resourceBranchId) {
     throw new ForbiddenError("Branch access denied");
   }
-}
+};
 
-export function assertMenuQueryBranch(
+export const assertMenuQueryBranch = (
   auth: AuthContext,
   requestedBranchId?: string | null,
-): string | undefined {
+): string | undefined => {
   return resolveMenuBranch(auth, requestedBranchId);
-}
+};

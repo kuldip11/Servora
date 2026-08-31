@@ -1,9 +1,8 @@
-
-export function resolveClientIp(
+export const resolveClientIp = (
   headers: Record<string, string | undefined>,
   directIp: string | undefined,
   trustedProxyHops: number,
-): string | undefined {
+): string | undefined => {
   if (trustedProxyHops <= 0) return directIp;
 
   const forwarded = (headers["x-forwarded-for"] ?? "")
@@ -16,4 +15,4 @@ export function resolveClientIp(
   }
 
   return headers["x-real-ip"]?.trim() || directIp;
-}
+};

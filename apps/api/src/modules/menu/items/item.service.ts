@@ -1,18 +1,19 @@
-
-
 import type { FoodType, MenuItemStatus, SpiceLevel } from "@pos/types";
-import type { AuthContext } from "../../../core/auth";
-import { requirePermission } from "../../../core/auth";
-import { ValidationError } from "../../../core/errors";
+import type { AuthContext } from "@/core/auth";
+import { requirePermission } from "@/core/auth";
+import { ValidationError } from "@/core/errors";
 import {
   assertMenuResourceBranch,
   resolveMenuBranch,
-} from "../menu-authorization";
+} from "@/modules/menu/menu-authorization";
 import { itemRepository } from "./item.repository";
-import { modifierRepository } from "../modifiers/modifier.repository";
+import { modifierRepository } from "@/modules/menu/modifiers/modifier.repository";
 import { itemNotFound } from "./item.errors";
-import { buildDiff, menuChangeLog } from "../change-log/menu-change-log";
-import { inventoryService } from "../../inventory/inventory.service";
+import {
+  buildDiff,
+  menuChangeLog,
+} from "@/modules/menu/change-log/menu-change-log";
+import { inventoryService } from "@/modules/inventory/inventory.service";
 
 export interface CreateItemInput {
   categoryId: string;
@@ -85,12 +86,12 @@ export interface DuplicateItemInput {
   copyModifiers?: boolean | undefined;
 }
 
-async function validateReferences(
+const validateReferences = async (
   tenantId: string,
   branchId: string | null | undefined,
   tagIds: string[] | undefined,
   modifierGroupIds: string[] | undefined,
-) {
+) => {
   if (tagIds?.length) {
     const ownedTags = await modifierRepository.findOwnedTagIds(
       tenantId,
@@ -98,7 +99,9 @@ async function validateReferences(
     );
     const invalid = tagIds.filter((id) => !ownedTags.has(id));
     if (invalid.length)
-      throw new ValidationError("One or more menu tags do not belong to this tenant");
+      throw new ValidationError(
+        "One or more menu tags do not belong to this tenant",
+      );
   }
 
   if (modifierGroupIds?.length) {
@@ -113,17 +116,52 @@ async function validateReferences(
         "One or more modifier groups are outside the active tenant or branch",
       );
   }
-}
+};
 
-function validateAdvancedPricing(input: { pricingMode?: "FIXED" | "WEIGHT_BASED" | "OPEN" | undefined; weightUnit?: "G" | "KG" | "LB" | "OZ" | null | undefined; openPriceMin?: number | null | undefined; openPriceMax?: number | null | undefined; supportsZones?: boolean | undefined; zonePricingRule?: "AVERAGE" | "HIGHER" | "SUM_HALF" | undefined; manualStockCount?: number | null | undefined }, fallback?: { pricingMode?: string; weightUnit?: string | null; openPriceMin?: string | null; openPriceMax?: string | null }) {
+const validateAdvancedPricing = (
+  input: {
+    pricingMode?: "FIXED" | "WEIGHT_BASED" | "OPEN" | undefined;
+    weightUnit?: "G" | "KG" | "LB" | "OZ" | null | undefined;
+    openPriceMin?: number | null | undefined;
+    openPriceMax?: number | null | undefined;
+    supportsZones?: boolean | undefined;
+    zonePricingRule?: "AVERAGE" | "HIGHER" | "SUM_HALF" | undefined;
+    manualStockCount?: number | null | undefined;
+  },
+  fallback?: {
+    pricingMode?: string;
+    weightUnit?: string | null;
+    openPriceMin?: string | null;
+    openPriceMax?: string | null;
+  },
+) => {
   const mode = input.pricingMode ?? fallback?.pricingMode ?? "FIXED";
-  const weightUnit = input.weightUnit === undefined ? fallback?.weightUnit : input.weightUnit;
-  if (mode === "WEIGHT_BASED" && !weightUnit) throw new ValidationError("Weight-based items require a weight unit");
-  const min = input.openPriceMin === undefined ? (fallback?.openPriceMin == null ? null : Number(fallback.openPriceMin)) : input.openPriceMin;
-  const max = input.openPriceMax === undefined ? (fallback?.openPriceMax == null ? null : Number(fallback.openPriceMax)) : input.openPriceMax;
-  if (min != null && max != null && min > max) throw new ValidationError("Open-price minimum cannot exceed maximum");
-  if (input.manualStockCount != null && (!Number.isInteger(input.manualStockCount) || input.manualStockCount < 0)) throw new ValidationError("Manual stock count must be a non-negative integer");
-}
+  const weightUnit =
+    input.weightUnit === undefined ? fallback?.weightUnit : input.weightUnit;
+  if (mode === "WEIGHT_BASED" && !weightUnit)
+    throw new ValidationError("Weight-based items require a weight unit");
+  const min =
+    input.openPriceMin === undefined
+      ? fallback?.openPriceMin == null
+        ? null
+        : Number(fallback.openPriceMin)
+      : input.openPriceMin;
+  const max =
+    input.openPriceMax === undefined
+      ? fallback?.openPriceMax == null
+        ? null
+        : Number(fallback.openPriceMax)
+      : input.openPriceMax;
+  if (min != null && max != null && min > max)
+    throw new ValidationError("Open-price minimum cannot exceed maximum");
+  if (
+    input.manualStockCount != null &&
+    (!Number.isInteger(input.manualStockCount) || input.manualStockCount < 0)
+  )
+    throw new ValidationError(
+      "Manual stock count must be a non-negative integer",
+    );
+};
 
 export const itemService = {
   async getById(auth: AuthContext, itemId: string) {
@@ -143,7 +181,9 @@ export const itemService = {
     );
     if (!category) throw itemNotFound(input.categoryId);
     if (category.branchId && category.branchId !== branchId) {
-      throw new ValidationError("Category branch does not match the active menu branch");
+      throw new ValidationError(
+        "Category branch does not match the active menu branch",
+      );
     }
     validateAdvancedPricing(input);
     await validateReferences(
@@ -157,17 +197,31 @@ export const itemService = {
       ...input,
       branchId,
       basePrice: String(input.basePrice),
-      openPriceMin: input.openPriceMin === undefined ? undefined : String(input.openPriceMin),
-      openPriceMax: input.openPriceMax === undefined ? undefined : String(input.openPriceMax),
+      openPriceMin:
+        input.openPriceMin === undefined
+          ? undefined
+          : String(input.openPriceMin),
+      openPriceMax:
+        input.openPriceMax === undefined
+          ? undefined
+          : String(input.openPriceMax),
       taxRate: input.taxRate !== undefined ? String(input.taxRate) : "0",
-      effectiveFrom: input.effectiveFrom ? new Date(input.effectiveFrom) : undefined,
+      effectiveFrom: input.effectiveFrom
+        ? new Date(input.effectiveFrom)
+        : undefined,
       variants: input.variants?.map((v) => ({
         name: v.name,
         price: String(v.price),
       })),
     });
     if (!created) throw new Error("Menu item could not be created");
-    await menuChangeLog.record(auth, "MENU_ITEM", created.id, "CREATED", buildDiff(null, created));
+    await menuChangeLog.record(
+      auth,
+      "MENU_ITEM",
+      created.id,
+      "CREATED",
+      buildDiff(null, created),
+    );
     return created;
   },
 
@@ -196,10 +250,26 @@ export const itemService = {
         itemFields.taxRate !== undefined
           ? String(itemFields.taxRate)
           : undefined,
-      openPriceMin: itemFields.openPriceMin === undefined ? undefined : itemFields.openPriceMin === null ? null : String(itemFields.openPriceMin),
-      openPriceMax: itemFields.openPriceMax === undefined ? undefined : itemFields.openPriceMax === null ? null : String(itemFields.openPriceMax),
-      manualStockCountUpdatedAt: itemFields.manualStockCount === undefined ? undefined : new Date(),
-      effectiveFrom: itemFields.effectiveFrom === undefined ? undefined : itemFields.effectiveFrom ? new Date(itemFields.effectiveFrom) : null,
+      openPriceMin:
+        itemFields.openPriceMin === undefined
+          ? undefined
+          : itemFields.openPriceMin === null
+            ? null
+            : String(itemFields.openPriceMin),
+      openPriceMax:
+        itemFields.openPriceMax === undefined
+          ? undefined
+          : itemFields.openPriceMax === null
+            ? null
+            : String(itemFields.openPriceMax),
+      manualStockCountUpdatedAt:
+        itemFields.manualStockCount === undefined ? undefined : new Date(),
+      effectiveFrom:
+        itemFields.effectiveFrom === undefined
+          ? undefined
+          : itemFields.effectiveFrom
+            ? new Date(itemFields.effectiveFrom)
+            : null,
     });
     if (!updated) throw itemNotFound(itemId);
 
@@ -218,18 +288,28 @@ export const itemService = {
 
     const result = await itemRepository.findById(auth.tenantId, itemId);
     if (!result) throw itemNotFound(itemId);
-    await menuChangeLog.record(auth, "MENU_ITEM", itemId, "UPDATED", buildDiff(existing, result));
+    await menuChangeLog.record(
+      auth,
+      "MENU_ITEM",
+      itemId,
+      "UPDATED",
+      buildDiff(existing, result),
+    );
     if (
       existing.enableRecipeDeduction !== result.enableRecipeDeduction &&
       result.branchId
     ) {
       if (result.enableRecipeDeduction) {
         await inventoryService.syncRecipeConfigurationAvailability(
-          auth.tenantId, result.branchId, itemId,
+          auth.tenantId,
+          result.branchId,
+          itemId,
         );
       } else {
         await inventoryService.clearRecipeAvailabilitySignals(
-          auth.tenantId, result.branchId, itemId,
+          auth.tenantId,
+          result.branchId,
+          itemId,
         );
       }
     }
@@ -242,7 +322,13 @@ export const itemService = {
     if (!existing) return;
     assertMenuResourceBranch(auth, existing.branchId);
     await itemRepository.softDelete(auth.tenantId, itemId);
-    await menuChangeLog.record(auth, "MENU_ITEM", itemId, "DELETED", buildDiff(existing, null));
+    await menuChangeLog.record(
+      auth,
+      "MENU_ITEM",
+      itemId,
+      "DELETED",
+      buildDiff(existing, null),
+    );
   },
 
   async duplicate(
@@ -256,7 +342,13 @@ export const itemService = {
     assertMenuResourceBranch(auth, existing.branchId);
     const copy = await itemRepository.duplicate(auth.tenantId, itemId, input);
     if (!copy) throw itemNotFound(itemId);
-    await menuChangeLog.record(auth, "MENU_ITEM", copy.id, "CREATED", buildDiff(null, copy));
+    await menuChangeLog.record(
+      auth,
+      "MENU_ITEM",
+      copy.id,
+      "CREATED",
+      buildDiff(null, copy),
+    );
     return copy;
   },
 
@@ -267,7 +359,13 @@ export const itemService = {
     assertMenuResourceBranch(auth, existing.branchId);
     const item = await itemRepository.publish(auth.tenantId, itemId);
     if (!item) throw itemNotFound(itemId);
-    await menuChangeLog.record(auth, "MENU_ITEM", itemId, "PUBLISHED", buildDiff(existing, item));
+    await menuChangeLog.record(
+      auth,
+      "MENU_ITEM",
+      itemId,
+      "PUBLISHED",
+      buildDiff(existing, item),
+    );
     return item;
   },
 
@@ -278,7 +376,13 @@ export const itemService = {
     assertMenuResourceBranch(auth, existing.branchId);
     const item = await itemRepository.unpublish(auth.tenantId, itemId);
     if (!item) throw itemNotFound(itemId);
-    await menuChangeLog.record(auth, "MENU_ITEM", itemId, "ARCHIVED", buildDiff(existing, item));
+    await menuChangeLog.record(
+      auth,
+      "MENU_ITEM",
+      itemId,
+      "ARCHIVED",
+      buildDiff(existing, item),
+    );
     return item;
   },
 
@@ -299,7 +403,13 @@ export const itemService = {
       reason,
     );
     if (!item) throw itemNotFound(itemId);
-    await menuChangeLog.record(auth, "MENU_ITEM", itemId, "UPDATED", buildDiff(existing, item));
+    await menuChangeLog.record(
+      auth,
+      "MENU_ITEM",
+      itemId,
+      "UPDATED",
+      buildDiff(existing, item),
+    );
     return item;
   },
 
@@ -320,7 +430,13 @@ export const itemService = {
       reason,
     );
     if (!item) throw itemNotFound(itemId);
-    await menuChangeLog.record(auth, "MENU_ITEM", itemId, "UPDATED", buildDiff(existing, item));
+    await menuChangeLog.record(
+      auth,
+      "MENU_ITEM",
+      itemId,
+      "UPDATED",
+      buildDiff(existing, item),
+    );
     return item;
   },
 

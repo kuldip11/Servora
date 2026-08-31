@@ -8,8 +8,8 @@ import {
   type CustomerMenuItem,
   type CustomerOrder,
   type CustomerRequestType,
-} from "../../api";
-import type { CartLine } from "../cart/pricing";
+} from "@/api";
+import type { CartLine } from "@/features/cart/pricing";
 import {
   clearPersistedOrderId,
   clearPersistedSession,
@@ -20,8 +20,8 @@ import {
   savePersistedCart,
   savePersistedOrderId,
   savePersistedSession,
-} from "../cart/persistence";
-import { useCustomerOrderRealtime } from "../ordering/useCustomerOrderRealtime";
+} from "@/features/cart/persistence";
+import { useCustomerOrderRealtime } from "@/features/ordering/useCustomerOrderRealtime";
 
 export type CustomerSessionState = {
   token: string;
@@ -33,7 +33,7 @@ export type CustomerSessionState = {
   expiresAt: string;
 };
 
-export function useCustomerSession() {
+export const useCustomerSession = () => {
   const qrToken = useMemo(
     () => new URLSearchParams(window.location.search).get("qr"),
     [],
@@ -45,7 +45,9 @@ export function useCustomerSession() {
   const [session, setSession] = useState<CustomerSessionState | null>(null);
   const [menu, setMenu] = useState<CustomerMenuItem[]>([]);
   const [combos, setCombos] = useState<CustomerCombo[]>([]);
-  const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
+  const [categories, setCategories] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [placedOrder, setPlacedOrder] = useState<CustomerOrder | null>(null);
   const [loading, setLoading] = useState(Boolean(qrToken));
@@ -71,10 +73,14 @@ export function useCustomerSession() {
         setLoading(true);
         setCartHydrated(false);
         setError(null);
-        const persisted = storageScope ? loadPersistedSession(storageScope) : null;
+        const persisted = storageScope
+          ? loadPersistedSession(storageScope)
+          : null;
         let sessionToken = persisted?.token;
-        let created: Awaited<ReturnType<typeof createCustomerSession>> | null = null;
-        let menuResponse: Awaited<ReturnType<typeof getCustomerMenu>> | undefined;
+        let created: Awaited<ReturnType<typeof createCustomerSession>> | null =
+          null;
+        let menuResponse:
+          Awaited<ReturnType<typeof getCustomerMenu>> | undefined;
 
         if (sessionToken) {
           try {
@@ -196,9 +202,7 @@ export function useCustomerSession() {
       try {
         const refreshed = await getCustomerOrder(session.token, placedOrder.id);
         if (!cancelled) handleRealtimeOrder(refreshed);
-      } catch {
-
-      }
+      } catch {}
     }, 15_000);
     return () => {
       cancelled = true;
@@ -256,4 +260,4 @@ export function useCustomerSession() {
     requestHelp,
     retryBootstrap,
   };
-}
+};

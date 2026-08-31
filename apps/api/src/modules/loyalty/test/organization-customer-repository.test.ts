@@ -1,6 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { customerFindMany, customerFindFirst, tenantFindFirst, siblingLimit, updateWhere, insertValues, insertReturning } = vi.hoisted(() => ({
+const {
+  customerFindMany,
+  customerFindFirst,
+  tenantFindFirst,
+  siblingLimit,
+  updateWhere,
+  insertValues,
+  insertReturning,
+} = vi.hoisted(() => ({
   customerFindMany: vi.fn(),
   customerFindFirst: vi.fn(),
   tenantFindFirst: vi.fn(),
@@ -25,12 +33,14 @@ vi.mock("../../../db", () => ({
     })),
     update: vi.fn(() => ({ set: vi.fn(() => ({ where: updateWhere })) })),
     insert: vi.fn(() => ({
-      values: insertValues.mockImplementation(() => ({ returning: insertReturning })),
+      values: insertValues.mockImplementation(() => ({
+        returning: insertReturning,
+      })),
     })),
   },
 }));
 
-import { loyaltyRepository } from "../loyalty.repository";
+import { loyaltyRepository } from "@/modules/loyalty/loyalty.repository";
 
 describe("H5 organization customer first-visit recognition", () => {
   beforeEach(() => {
@@ -51,29 +61,31 @@ describe("H5 organization customer first-visit recognition", () => {
   });
 
   it("materializes a tenant-local customer linked to the sibling identity", async () => {
-    customerFindMany
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([]);
-    siblingLimit.mockResolvedValue([{
-      id: "customer-a",
-      tenantId: "tenant-a",
-      name: "Guest",
-      email: "guest@example.com",
-      phone: "+919999999999",
-      organizationCustomerId: null,
-    }]);
+    customerFindMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+    siblingLimit.mockResolvedValue([
+      {
+        id: "customer-a",
+        tenantId: "tenant-a",
+        name: "Guest",
+        email: "guest@example.com",
+        phone: "+919999999999",
+        organizationCustomerId: null,
+      },
+    ]);
 
     const result = await loyaltyRepository.findCustomersByPhone(
       "tenant-b",
       "+919999999999",
     );
 
-    expect(insertValues).toHaveBeenCalledWith(expect.objectContaining({
-      tenantId: "tenant-b",
-      phone: "+919999999999",
-      organizationCustomerId: "customer-a",
-      loyaltyTierId: null,
-    }));
+    expect(insertValues).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tenantId: "tenant-b",
+        phone: "+919999999999",
+        organizationCustomerId: "customer-a",
+        loyaltyTierId: null,
+      }),
+    );
     expect(updateWhere).toHaveBeenCalledOnce();
     expect(result).toEqual([expect.objectContaining({ id: "customer-b" })]);
   });
@@ -81,8 +93,22 @@ describe("H5 organization customer first-visit recognition", () => {
   it("does not guess when the phone matches multiple sibling identities", async () => {
     customerFindMany.mockResolvedValueOnce([]);
     siblingLimit.mockResolvedValue([
-      { id: "customer-a", tenantId: "tenant-a", name: "A", email: null, phone: "+919999999999", organizationCustomerId: "identity-a" },
-      { id: "customer-c", tenantId: "tenant-c", name: "C", email: null, phone: "+919999999999", organizationCustomerId: "identity-c" },
+      {
+        id: "customer-a",
+        tenantId: "tenant-a",
+        name: "A",
+        email: null,
+        phone: "+919999999999",
+        organizationCustomerId: "identity-a",
+      },
+      {
+        id: "customer-c",
+        tenantId: "tenant-c",
+        name: "C",
+        email: null,
+        phone: "+919999999999",
+        organizationCustomerId: "identity-c",
+      },
     ]);
 
     const result = await loyaltyRepository.findCustomersByPhone(

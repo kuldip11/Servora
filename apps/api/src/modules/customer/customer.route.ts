@@ -7,7 +7,7 @@ import {
   customerOrderIdParams,
   takeawayPaymentVerificationBody,
 } from "./customer.validator";
-import { CustomerSessionRequiredError } from "../../core/errors";
+import { CustomerSessionRequiredError } from "@/core/errors";
 
 const sessionToken = (headers: Record<string, string | undefined>) =>
   headers["x-customer-session"];

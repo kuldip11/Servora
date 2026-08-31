@@ -5,16 +5,16 @@ const WINDOW_MS = 10 * 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = 8;
 const requestLog = new Map<string, number[]>();
 
-function clientKey(request: Request) {
+const clientKey = (request: Request) => {
   const forwarded = request.headers.get("x-forwarded-for");
   return (
     forwarded?.split(",")[0]?.trim() ||
     request.headers.get("x-real-ip") ||
     "unknown"
   );
-}
+};
 
-function isRateLimited(key: string) {
+const isRateLimited = (key: string) => {
   const now = Date.now();
   const recent = (requestLog.get(key) ?? []).filter(
     (time) => now - time < WINDOW_MS,
@@ -26,9 +26,9 @@ function isRateLimited(key: string) {
   recent.push(now);
   requestLog.set(key, recent);
   return false;
-}
+};
 
-export async function POST(request: Request) {
+export const POST = async (request: Request) => {
   try {
     if (isRateLimited(clientKey(request))) {
       return NextResponse.json(
@@ -121,4 +121,4 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
-}
+};

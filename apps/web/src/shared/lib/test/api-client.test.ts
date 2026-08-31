@@ -33,8 +33,8 @@ vi.mock("../../../store/auth", () => ({
 
 vi.mock("../query-client", () => ({ queryClient: { clear: vi.fn() } }));
 
-import { apiClient } from "../api-client";
-import { queryClient } from "../query-client";
+import { apiClient } from "@/shared/lib/api-client";
+import { queryClient } from "@/shared/lib/query-client";
 
 const config = () => capturedConfig.current as any;
 

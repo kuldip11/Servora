@@ -1,14 +1,14 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
 import {
   billingService,
   type CollectPaymentInput,
-} from "../services/billing.service";
-import { orderKeys } from "../../orders/query-keys";
-import { tableKeys } from "../../tables/query-keys";
+} from "@/features/billing/services/billing.service";
+import { orderKeys } from "@/features/orders/query-keys";
+import { tableKeys } from "@/features/tables/query-keys";
 
-export function useCollectPayment() {
+export const useCollectPayment = () => {
   return useMutation({
     mutationFn: ({
       orderId,
@@ -24,4 +24,4 @@ export function useCollectPayment() {
     },
     onError: (err) => notifyError(err, "Payment failed"),
   });
-}
+};

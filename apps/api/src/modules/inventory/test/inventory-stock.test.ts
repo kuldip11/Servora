@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { resolveInventoryReversal, resolveStockBalance } from "../inventory-stock";
+import {
+  resolveInventoryReversal,
+  resolveStockBalance,
+} from "@/modules/inventory/inventory-stock";
 describe("inventory stock resolution", () => {
   it("adds IN stock", () =>
     expect(resolveStockBalance(10, 3, "IN")).toEqual({

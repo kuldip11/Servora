@@ -5,7 +5,7 @@ import {
   useRealtimeConnection,
 } from "@pos/realtime";
 import type { RealtimeEvent } from "@pos/types";
-import { STORAGE_KEYS } from "../constants/storage-keys";
+import { STORAGE_KEYS } from "@/shared/constants/storage-keys";
 
 const proto = window.location.protocol === "https:" ? "wss" : "ws";
 const wsUrl =
@@ -30,6 +30,6 @@ export function useRealtimeEvent<T extends RealtimeEvent["type"]>(
   useRealtimeEventBase(client, type, handler);
 }
 
-export function useConnectionStatus(): boolean {
+export const useConnectionStatus = (): boolean => {
   return useRealtimeConnection(client);
-}
+};

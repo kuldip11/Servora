@@ -1,5 +1,5 @@
 import type { ModifierGroup, MenuTag, MenuAllergen } from "@pos/types";
-export function ItemAssociationsSection({
+export const ItemAssociationsSection = ({
   groups,
   tags,
   allergens,
@@ -15,7 +15,7 @@ export function ItemAssociationsSection({
   selectedTagIds: string[];
   selectedAllergenIds: string[];
   toggle: (id: string, list: "groups" | "tags" | "allergens") => void;
-}) {
+}) => {
   return (
     <>
       <div role="group">
@@ -86,4 +86,4 @@ export function ItemAssociationsSection({
       </div>
     </>
   );
-}
+};

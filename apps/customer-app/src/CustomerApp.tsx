@@ -12,7 +12,7 @@ import { useCustomerSession } from "./features/session/useCustomerSession";
 
 export type View = "menu" | "cart" | "order";
 
-export function CustomerApp() {
+export const CustomerApp = () => {
   const {
     session,
     menu,
@@ -228,4 +228,4 @@ export function CustomerApp() {
       )}
     </>
   );
-}
+};

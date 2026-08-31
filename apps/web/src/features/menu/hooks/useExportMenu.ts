@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { notifyError } from "../../../shared/lib/notify";
+import { notifyError } from "@/shared/lib/notify";
 import {
   menuExportService,
   type MenuExportEntity,
   type MenuExportFormat,
-} from "../services/menu-export.service";
+} from "@/features/menu/services/menu-export.service";
 
-export function useExportMenu() {
+export const useExportMenu = () => {
   const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
 
   async function download(entity: MenuExportEntity, format: MenuExportFormat) {
@@ -22,4 +22,4 @@ export function useExportMenu() {
   }
 
   return { download, downloadingKey };
-}
+};

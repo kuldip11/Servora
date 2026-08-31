@@ -4,7 +4,7 @@ vi.mock("../../../store/auth", () => ({
   useAuthStore: { getState: () => ({ franchiseId: "fr-1", branchId: "br-1" }) },
 }));
 
-import { orderKeys } from "../query-keys";
+import { orderKeys } from "@/features/orders/query-keys";
 
 describe("orderKeys", () => {
   it("scopes list and detail keys to the active branch context", () => {

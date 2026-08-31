@@ -1,6 +1,6 @@
-import type { AuthContext } from "../../core/auth";
-import { ForbiddenError, NotFoundError, ValidationError } from "../../core/errors";
-import { eventBus } from "../../lib/event-bus";
+import type { AuthContext } from "@/core/auth";
+import { ForbiddenError, NotFoundError, ValidationError } from "@/core/errors";
+import { eventBus } from "@/lib/event-bus";
 import {
   assertInventoryResourceBranch,
   requireInventoryPermission,
@@ -11,7 +11,10 @@ import { insufficientStock, inventoryItemNotFound } from "./inventory.errors";
 import { inventoryRepository } from "./inventory.repository";
 import { toRealtimeInventoryItem } from "./inventory-realtime";
 import { inventoryRecipeService } from "./inventory-recipe.service";
-import type { CreateInventoryItemInput, UpdateStockInput } from "./inventory.types";
+import type {
+  CreateInventoryItemInput,
+  UpdateStockInput,
+} from "./inventory.types";
 
 export const inventoryStockService = {
   async list(auth: AuthContext) {
@@ -26,7 +29,10 @@ export const inventoryStockService = {
   async create(auth: AuthContext, input: CreateInventoryItemInput) {
     requireInventoryPermission(auth, "inventory:create");
     const branchId = resolveInventoryBranch(auth, input.branchId);
-    const branch = await inventoryRepository.findBranch(auth.tenantId, branchId);
+    const branch = await inventoryRepository.findBranch(
+      auth.tenantId,
+      branchId,
+    );
     if (!branch) throw new ForbiddenError("Branch access denied");
 
     const item = await inventoryRepository.create({
@@ -49,7 +55,11 @@ export const inventoryStockService = {
     return item;
   },
 
-  async updateStock(auth: AuthContext, itemId: string, input: UpdateStockInput) {
+  async updateStock(
+    auth: AuthContext,
+    itemId: string,
+    input: UpdateStockInput,
+  ) {
     requireInventoryPermission(auth, "inventory:update");
     requireInventoryTransactionPermission(auth, input.transactionType);
     const existing = await inventoryRepository.findById(auth.tenantId, itemId);
@@ -92,7 +102,8 @@ export const inventoryStockService = {
 
     const branchId = existing.branchId;
     if (
-      parseFloat(result.item.currentStock) <= parseFloat(result.item.minimumStock)
+      parseFloat(result.item.currentStock) <=
+      parseFloat(result.item.minimumStock)
     ) {
       await eventBus.publish(
         {
@@ -152,7 +163,10 @@ export const inventoryStockService = {
     input: { label?: string | undefined; isActive?: boolean | undefined },
   ) {
     requireInventoryPermission(auth, "inventory:update");
-    const existing = await inventoryRepository.findWasteReason(auth.tenantId, id);
+    const existing = await inventoryRepository.findWasteReason(
+      auth.tenantId,
+      id,
+    );
     if (!existing) throw new NotFoundError("Waste reason");
     const row = await inventoryRepository.updateWasteReason(auth.tenantId, id, {
       ...(input.label !== undefined ? { label: input.label.trim() } : {}),

@@ -1,29 +1,32 @@
 import type { KitchenTicket, Order, RestaurantTable } from "@pos/types";
-import { ValidationError } from "../../core/errors";
-import { inventoryService } from "../inventory/inventory.service";
-import { eventBus } from "../../lib/event-bus";
-import { orderRepository } from "../orders/order.repository";
+import { ValidationError } from "@/core/errors";
+import { inventoryService } from "@/modules/inventory/inventory.service";
+import { eventBus } from "@/lib/event-bus";
+import { orderRepository } from "@/modules/orders/order.repository";
 import {
   pricingPipeline,
   type OrderItemInput,
   type PricedLine,
-} from "../orders/pricing/pricing-pipeline";
+} from "@/modules/orders/pricing/pricing-pipeline";
 import { customerRepository } from "./customer.repository";
 import { customerSessionService } from "./customer-session.service";
 import { customerPaymentService } from "./customer-payment.service";
-import { tableRepository } from "../tables/table.repository";
-import { menuResolver } from "../menu/menus/menu-resolver.service";
-import { availabilityService } from "../menu/availability/availability.service";
-import { priceComboOrders, type ComboOrderSelection } from "../menu/combos/combo-order.service";
-import { promotionRepository } from "../menu/promotions/promotion.repository";
-import { loyaltyRepository } from "../loyalty/loyalty.repository";
-import { snapshotOrderLines } from "../orders/order-line-snapshot.service";
+import { tableRepository } from "@/modules/tables/table.repository";
+import { menuResolver } from "@/modules/menu/menus/menu-resolver.service";
+import { availabilityService } from "@/modules/menu/availability/availability.service";
+import {
+  priceComboOrders,
+  type ComboOrderSelection,
+} from "@/modules/menu/combos/combo-order.service";
+import { promotionRepository } from "@/modules/menu/promotions/promotion.repository";
+import { loyaltyRepository } from "@/modules/loyalty/loyalty.repository";
+import { snapshotOrderLines } from "@/modules/orders/order-line-snapshot.service";
 import {
   finalizeWholeActiveOrder,
   type ExistingLinePricingUpdate,
   type StoredOrderLineForRepricing,
-} from "../orders/active-order-pricing";
-import { isBillableOrderItem } from "../orders/order-item-billing";
+} from "@/modules/orders/active-order-pricing";
+import { isBillableOrderItem } from "@/modules/orders/order-item-billing";
 
 export type CreateCustomerOrderInput = {
   items?: OrderItemInput[];
@@ -47,12 +50,14 @@ export const customerOrderService = {
           ? ("TAKEAWAY" as const)
           : (item.fulfillmentType ?? "DINE_IN"),
     }));
-    if (normalizedItems.length === 0 && !(input.combos?.length)) {
+    if (normalizedItems.length === 0 && !input.combos?.length) {
       throw new ValidationError("Order requires at least one item or combo");
     }
 
     const existingSummary = await customerRepository.findOpenOrderBySession(
-      session.tenantId, session.branchId, session.id,
+      session.tenantId,
+      session.branchId,
+      session.id,
     );
     const existing = existingSummary
       ? await orderRepository.findById(session.tenantId, existingSummary.id)
@@ -60,17 +65,24 @@ export const customerOrderService = {
     let associatedCustomerId = existing?.customerId ?? null;
     if (input.loyaltyPhone?.trim()) {
       const loyaltyMatches = await loyaltyRepository.findCustomersByPhone(
-        session.tenantId, input.loyaltyPhone.trim(),
+        session.tenantId,
+        input.loyaltyPhone.trim(),
       );
       if (loyaltyMatches.length === 0) {
-        throw new ValidationError("No loyalty customer matches that phone number");
+        throw new ValidationError(
+          "No loyalty customer matches that phone number",
+        );
       }
       if (loyaltyMatches.length > 1) {
-        throw new ValidationError("That loyalty phone number is ambiguous; ask staff to update the customer record");
+        throw new ValidationError(
+          "That loyalty phone number is ambiguous; ask staff to update the customer record",
+        );
       }
       const loyaltyCustomer = loyaltyMatches[0]!;
       if (associatedCustomerId && associatedCustomerId !== loyaltyCustomer.id) {
-        throw new ValidationError("This open order is already linked to a different loyalty customer");
+        throw new ValidationError(
+          "This open order is already linked to a different loyalty customer",
+        );
       }
       associatedCustomerId = loyaltyCustomer.id;
     }
@@ -85,7 +97,10 @@ export const customerOrderService = {
       ...(associatedCustomerId ? { customerId: associatedCustomerId } : {}),
     };
 
-    const regular = await pricingPipeline.price(pricingContext, normalizedItems);
+    const regular = await pricingPipeline.price(
+      pricingContext,
+      normalizedItems,
+    );
     const combo = await priceComboOrders(pricingContext, input.combos ?? []);
     const unresolvedLines = [...regular.lines, ...combo.lines];
     const realLines = unresolvedLines.flatMap((line) =>
@@ -118,9 +133,7 @@ export const customerOrderService = {
         },
       );
       if (effective.effectiveStatus !== "ACTIVE" || effective.isHidden) {
-        throw new ValidationError(
-          "This item is not available right now",
-        );
+        throw new ValidationError("This item is not available right now");
       }
     }
 
@@ -138,7 +151,9 @@ export const customerOrderService = {
     const priorRedemptions = existing
       ? await promotionRepository.listRedemptionsForOrder(existing.id)
       : [];
-    const continuedPromotionIds = priorRedemptions.map((entry) => entry.promotionId);
+    const continuedPromotionIds = priorRedemptions.map(
+      (entry) => entry.promotionId,
+    );
 
     let promoted: Awaited<ReturnType<typeof pricingPipeline.finalize>>;
     let existingPricingUpdates: ExistingLinePricingUpdate[] = [];
@@ -146,11 +161,15 @@ export const customerOrderService = {
     if (existing) {
       const whole = await finalizeWholeActiveOrder(
         pricingContext,
-        existing.items.filter((item) => isBillableOrderItem(item)) as StoredOrderLineForRepricing[],
+        existing.items.filter((item) =>
+          isBillableOrderItem(item),
+        ) as StoredOrderLineForRepricing[],
         unresolvedLines,
         {
           ...(input.couponCode ? { couponCode: input.couponCode } : {}),
-          ...(continuedPromotionIds.length ? { promotionIds: continuedPromotionIds } : {}),
+          ...(continuedPromotionIds.length
+            ? { promotionIds: continuedPromotionIds }
+            : {}),
           ...(associatedCustomerId ? { customerId: associatedCustomerId } : {}),
         },
       );
@@ -222,7 +241,9 @@ export const customerOrderService = {
               },
               promotionRedemptions: promoted.redemptions,
               replacePromotionRedemptions: true,
-              ...(associatedCustomerId ? { customerId: associatedCustomerId } : {}),
+              ...(associatedCustomerId
+                ? { customerId: associatedCustomerId }
+                : {}),
             },
           );
           roundCreated = true;
@@ -262,7 +283,6 @@ export const customerOrderService = {
         createdNewOrder = true;
         roundCreated = true;
       } catch (error) {
-
         if ((error as { code?: string })?.code !== "23505") throw error;
         const concurrentOrder = await customerRepository.findOpenOrderBySession(
           session.tenantId,
@@ -280,29 +300,56 @@ export const customerOrderService = {
         }
         if (!duplicateSubmission) {
           try {
-            const concurrentFull = await orderRepository.findById(session.tenantId, concurrentOrder.id);
+            const concurrentFull = await orderRepository.findById(
+              session.tenantId,
+              concurrentOrder.id,
+            );
             if (!concurrentFull) throw error;
-            const concurrentCustomerId = concurrentFull.customerId ?? associatedCustomerId;
-            if (concurrentFull.customerId && associatedCustomerId && concurrentFull.customerId !== associatedCustomerId) {
-              throw new ValidationError("This open order is already linked to a different loyalty customer");
+            const concurrentCustomerId =
+              concurrentFull.customerId ?? associatedCustomerId;
+            if (
+              concurrentFull.customerId &&
+              associatedCustomerId &&
+              concurrentFull.customerId !== associatedCustomerId
+            ) {
+              throw new ValidationError(
+                "This open order is already linked to a different loyalty customer",
+              );
             }
             const concurrentContext = {
               ...pricingContext,
-              ...(concurrentCustomerId ? { customerId: concurrentCustomerId } : {}),
+              ...(concurrentCustomerId
+                ? { customerId: concurrentCustomerId }
+                : {}),
             };
-            const concurrentRedemptions = await promotionRepository.listRedemptionsForOrder(concurrentOrder.id);
+            const concurrentRedemptions =
+              await promotionRepository.listRedemptionsForOrder(
+                concurrentOrder.id,
+              );
             const concurrentWhole = await finalizeWholeActiveOrder(
               concurrentContext,
-              concurrentFull.items.filter((item) => isBillableOrderItem(item)) as StoredOrderLineForRepricing[],
+              concurrentFull.items.filter((item) =>
+                isBillableOrderItem(item),
+              ) as StoredOrderLineForRepricing[],
               unresolvedLines,
               {
                 ...(input.couponCode ? { couponCode: input.couponCode } : {}),
-                ...(concurrentRedemptions.length ? { promotionIds: concurrentRedemptions.map((entry) => entry.promotionId) } : {}),
-                ...(concurrentCustomerId ? { customerId: concurrentCustomerId } : {}),
+                ...(concurrentRedemptions.length
+                  ? {
+                      promotionIds: concurrentRedemptions.map(
+                        (entry) => entry.promotionId,
+                      ),
+                    }
+                  : {}),
+                ...(concurrentCustomerId
+                  ? { customerId: concurrentCustomerId }
+                  : {}),
               },
             );
             const concurrentResolved = await snapshotOrderLines(
-              session.tenantId, concurrentWhole.newLines, {
+              session.tenantId,
+              concurrentWhole.newLines,
+              {
                 branchId: session.branchId,
                 channel: "CUSTOMER_QR",
                 fulfillmentType: session.mode,
@@ -330,7 +377,9 @@ export const customerOrderService = {
                 },
                 promotionRedemptions: concurrentWhole.redemptions,
                 replacePromotionRedemptions: true,
-                ...(concurrentCustomerId ? { customerId: concurrentCustomerId } : {}),
+                ...(concurrentCustomerId
+                  ? { customerId: concurrentCustomerId }
+                  : {}),
               },
             );
             roundCreated = true;
@@ -343,7 +392,6 @@ export const customerOrderService = {
       }
 
       if (createdNewOrder && session.mode === "DINE_IN" && session.tableId) {
-
         const updatedTable = await tableRepository.update(
           session.tenantId,
           session.tableId,
@@ -389,7 +437,10 @@ export const customerOrderService = {
     if (session.mode !== "TAKEAWAY") {
       if (newestTicket) {
         await eventBus.publish(
-          { type: "kitchen.ticket.created", payload: newestTicket as unknown as KitchenTicket },
+          {
+            type: "kitchen.ticket.created",
+            payload: newestTicket as unknown as KitchenTicket,
+          },
           session.tenantId,
           session.branchId,
         );
@@ -410,15 +461,24 @@ export const customerOrderService = {
           newestTicket.items.flatMap((item) =>
             item.menuItemId === null
               ? []
-              : [{
-                  orderItemId: item.id,
-                  menuItemId: item.menuItemId,
-                  variantId: item.variantId,
-                  quantity: item.quantity,
-                  selectedOptions: item.modifiers.flatMap((modifier) =>
-                    modifier.modifierId == null ? [] : [{ optionId: modifier.modifierId, quantity: modifier.quantity }],
-                  ),
-                }],
+              : [
+                  {
+                    orderItemId: item.id,
+                    menuItemId: item.menuItemId,
+                    variantId: item.variantId,
+                    quantity: item.quantity,
+                    selectedOptions: item.modifiers.flatMap((modifier) =>
+                      modifier.modifierId == null
+                        ? []
+                        : [
+                            {
+                              optionId: modifier.modifierId,
+                              quantity: modifier.quantity,
+                            },
+                          ],
+                    ),
+                  },
+                ],
           ),
           null,
         );
@@ -431,5 +491,5 @@ export const customerOrderService = {
     }
 
     return fullOrder;
-  }
+  },
 };

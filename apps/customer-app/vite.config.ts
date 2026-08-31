@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
+      "@": path.resolve(__dirname, "./src"),
       "@pos/types": path.resolve(
         __dirname,
         "../../packages/types/src/index.ts",

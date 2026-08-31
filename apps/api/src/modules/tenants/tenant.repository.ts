@@ -1,6 +1,6 @@
 import type { RoleName } from "@pos/types";
 import { and, eq, isNull } from "drizzle-orm";
-import { db } from "../../db";
+import { db } from "@/db";
 import {
   branches,
   membershipRoles,
@@ -8,7 +8,7 @@ import {
   tenantMemberships,
   tenants,
   organizationMemberships,
-} from "../../db/schema";
+} from "@/db/schema";
 
 export const tenantRepository = {
   async findMembershipsByUserId(userId: string) {
@@ -47,7 +47,18 @@ export const tenantRepository = {
     return tenant!;
   },
 
-  async update(id: string, changes: { name?: string; isActive?: boolean; serviceChargePercent?: string | null; serviceChargeTaxable?: boolean; roundingPolicy?: "NONE" | "NEAREST_1" | "NEAREST_5" | "NEAREST_10"; defaultTaxMode?: "INCLUSIVE" | "EXCLUSIVE"; courseSequencingEnabled?: boolean }) {
+  async update(
+    id: string,
+    changes: {
+      name?: string;
+      isActive?: boolean;
+      serviceChargePercent?: string | null;
+      serviceChargeTaxable?: boolean;
+      roundingPolicy?: "NONE" | "NEAREST_1" | "NEAREST_5" | "NEAREST_10";
+      defaultTaxMode?: "INCLUSIVE" | "EXCLUSIVE";
+      courseSequencingEnabled?: boolean;
+    },
+  ) {
     const [tenant] = await db
       .update(tenants)
       .set({ ...changes, updatedAt: new Date() })

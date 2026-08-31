@@ -1,5 +1,3 @@
-
-
 export * from "./organization.schema";
 export * from "./tenant.schema";
 export * from "./branch.schema";

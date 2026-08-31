@@ -1,21 +1,21 @@
-import type { AuthContext } from "../../core/auth";
-import { requireBranch, requirePermission } from "../../core/auth";
-import { ForbiddenError } from "../../core/errors";
+import type { AuthContext } from "@/core/auth";
+import { requireBranch, requirePermission } from "@/core/auth";
+import { ForbiddenError } from "@/core/errors";
 
 export type TablesPermission =
   "tables:read" | "tables:create" | "tables:update" | "tables:delete";
 
-export function requireTablesPermission(
+export const requireTablesPermission = (
   auth: AuthContext,
   permission: TablesPermission,
-): void {
+): void => {
   requirePermission(auth, permission);
-}
+};
 
-export function resolveTableBranch(
+export const resolveTableBranch = (
   auth: AuthContext,
   requestedBranchId?: string | null,
-): string {
+): string => {
   const requested = requestedBranchId ?? auth.branchId ?? undefined;
   if (!requested) {
     return requireBranch(
@@ -37,12 +37,12 @@ export function resolveTableBranch(
     throw new ForbiddenError("Branch access denied");
   }
   return requested;
-}
+};
 
-export function assertTableResourceAccess(
+export const assertTableResourceAccess = (
   auth: AuthContext,
   resourceBranchId: string | null | undefined,
-): void {
+): void => {
   if (!resourceBranchId) throw new ForbiddenError("Branch access denied");
   if (auth.tenantWide) return;
   if (!(auth.authorizedBranchIds ?? []).includes(resourceBranchId)) {
@@ -51,10 +51,10 @@ export function assertTableResourceAccess(
   if (auth.branchId && auth.branchId !== resourceBranchId) {
     throw new ForbiddenError("Branch access denied");
   }
-}
+};
 
-export function assertTableListScope(auth: AuthContext): void {
+export const assertTableListScope = (auth: AuthContext): void => {
   if (!auth.branchId && !auth.tenantWide) {
     throw new ForbiddenError("Branch access denied");
   }
-}
+};

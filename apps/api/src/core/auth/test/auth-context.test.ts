@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { ForbiddenError, MissingBranchError } from "../../errors";
+import { ForbiddenError, MissingBranchError } from "@/core/errors";
 import {
   requireBranch,
   requirePermission,
   requireRoles,
-} from "../auth-context";
+} from "@/core/auth/auth-context";
 
 describe("auth context guards", () => {
   const base = {

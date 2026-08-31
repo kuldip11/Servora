@@ -38,7 +38,7 @@ vi.mock("elysia", async (importOriginal) => {
 });
 vi.mock("../../../../core/auth", () => ({ requireAuthPlugin: () => ({}) }));
 import { describe, expect, it, vi } from "vitest";
-import * as mod from "../bulk-ops.route";
+import * as mod from "@/modules/menu/bulk-ops/bulk-ops.route";
 
 describe("bulk-ops.route routes", () => {
   it("registers a non-empty Elysia router", () => {

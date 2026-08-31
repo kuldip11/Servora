@@ -1,5 +1,15 @@
-import type { AvailableMembership, OrganizationSummary, Tenant, User } from "@pos/types";
-import { getDomainData, patchDomainData, postDomainData, type DomainHttpClient } from "./shared";
+import type {
+  AvailableMembership,
+  OrganizationSummary,
+  Tenant,
+  User,
+} from "@pos/types";
+import {
+  getDomainData,
+  patchDomainData,
+  postDomainData,
+  type DomainHttpClient,
+} from "./shared";
 
 export interface AuthResponse {
   accessToken: string;
@@ -7,11 +17,22 @@ export interface AuthResponse {
   user: User;
 }
 
-export interface SignupInput { firstName: string; lastName: string; email: string; password: string }
-export interface LoginInput { email: string; password: string }
-export interface TenantSummary { id: string; name: string }
+export interface SignupInput {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+}
+export interface LoginInput {
+  email: string;
+  password: string;
+}
+export interface TenantSummary {
+  id: string;
+  name: string;
+}
 
-export function createAuthApi(client: DomainHttpClient) {
+export const createAuthApi = (client: DomainHttpClient) => {
   return {
     signup(input: SignupInput): Promise<{ user: User }> {
       return postDomainData<{ user: User }>(client, "/auth/signup", input);
@@ -31,20 +52,28 @@ export function createAuthApi(client: DomainHttpClient) {
     organizations(): Promise<OrganizationSummary[]> {
       return getDomainData<OrganizationSummary[]>(client, "/organizations");
     },
-    createOrganization(name: string): Promise<{ organization: OrganizationSummary; membershipId: string }> {
+    createOrganization(
+      name: string,
+    ): Promise<{ organization: OrganizationSummary; membershipId: string }> {
       return postDomainData(client, "/organizations", { name });
     },
-    createTenant(name: string, organizationId: string): Promise<{ tenant: TenantSummary; membershipId: string }> {
+    createTenant(
+      name: string,
+      organizationId: string,
+    ): Promise<{ tenant: TenantSummary; membershipId: string }> {
       return postDomainData(client, "/tenants", { name, organizationId });
     },
     me(): Promise<User> {
       return getDomainData<User>(client, "/auth/me");
     },
-    updateProfile(input: { firstName?: string; lastName?: string }): Promise<User> {
+    updateProfile(input: {
+      firstName?: string;
+      lastName?: string;
+    }): Promise<User> {
       return patchDomainData<User>(client, "/auth/me", input);
     },
     listTenants(): Promise<Array<{ tenant: Tenant }>> {
       return getDomainData<Array<{ tenant: Tenant }>>(client, "/tenants");
     },
   };
-}
+};

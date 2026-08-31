@@ -17,7 +17,7 @@ interface Props {
   onMerge?: (() => void) | undefined;
 }
 
-export function OrderActions({
+export const OrderActions = ({
   order,
   canRequestBill,
   canAddItems,
@@ -30,14 +30,12 @@ export function OrderActions({
   onTransfer,
   onSplit,
   onMerge,
-}: Props) {
+}: Props) => {
   if (!canRequestBill && !canAddItems && !canCancel) return null;
 
   return (
     <div className="bg-surface border-t border-border px-4 py-4 space-y-2">
-      {
-
-                                                                 }
+      {}
       {canRequestBill && (
         <button
           onClick={onRequestBill}
@@ -53,9 +51,7 @@ export function OrderActions({
           All rounds need to be served before requesting the bill.
         </p>
       )}
-      {
-
-                                                 }
+      {}
       {canAddItems && (
         <Button onClick={onAddItems} size="lg" className="w-full rounded-2xl">
           <Plus className="w-4 h-4" />
@@ -63,19 +59,36 @@ export function OrderActions({
         </Button>
       )}
       {onTransfer && (
-        <Button onClick={onTransfer} variant="secondary" size="lg" className="w-full rounded-2xl">
+        <Button
+          onClick={onTransfer}
+          variant="secondary"
+          size="lg"
+          className="w-full rounded-2xl"
+        >
           Transfer Table
         </Button>
       )}
       {onSplit && (
-        <Button onClick={onSplit} variant="secondary" size="lg" className="w-full rounded-2xl">
+        <Button
+          onClick={onSplit}
+          variant="secondary"
+          size="lg"
+          className="w-full rounded-2xl"
+        >
           Split Bill
         </Button>
       )}
-      {onMerge && <Button onClick={onMerge} variant="secondary" size="lg" className="w-full rounded-2xl">Merge Table</Button>}
-      {
-
-                                                                       }
+      {onMerge && (
+        <Button
+          onClick={onMerge}
+          variant="secondary"
+          size="lg"
+          className="w-full rounded-2xl"
+        >
+          Merge Table
+        </Button>
+      )}
+      {}
       {canCancel && (
         <button
           onClick={() => {
@@ -90,4 +103,4 @@ export function OrderActions({
       )}
     </div>
   );
-}
+};

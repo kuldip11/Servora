@@ -1,20 +1,16 @@
-import type { AuthContext } from "../../core/auth";
-import { loyaltyRepository } from "../loyalty/loyalty.repository";
-import type { LoyaltyTierInput } from "../loyalty/loyalty.service";
-import { requirePermission } from "../../core/auth";
-import {
-  ForbiddenError,
-  NotFoundError,
-  ValidationError,
-} from "../../core/errors";
-import { writeAudit } from "../../core/audit";
+import type { AuthContext } from "@/core/auth";
+import { loyaltyRepository } from "@/modules/loyalty/loyalty.repository";
+import type { LoyaltyTierInput } from "@/modules/loyalty/loyalty.service";
+import { requirePermission } from "@/core/auth";
+import { ForbiddenError, NotFoundError, ValidationError } from "@/core/errors";
+import { writeAudit } from "@/core/audit";
 import { organizationRepository } from "./organization.repository";
 import { organizationNotFound } from "./organization.errors";
 
-async function assertOrganizationManager(
+const assertOrganizationManager = async (
   auth: AuthContext,
   organizationId: string,
-) {
+) => {
   const [membership, activeTenant] = await Promise.all([
     organizationRepository.findMembership(auth.userId, organizationId),
     organizationRepository.findTenant(auth.tenantId),
@@ -22,20 +18,32 @@ async function assertOrganizationManager(
   if (!membership || activeTenant?.organizationId !== organizationId)
     throw organizationNotFound(organizationId);
   requirePermission(auth, "organization:manage");
-}
+};
 
-function normalizedOrganizationTier(input: LoyaltyTierInput) {
-  const hasPercent = input.discountPercent !== undefined && input.discountPercent !== null;
-  const hasFixed = input.discountFixed !== undefined && input.discountFixed !== null;
-  if (hasPercent === hasFixed) throw new ValidationError("Loyalty tier requires exactly one discount type");
-  if (hasPercent && (input.discountPercent! <= 0 || input.discountPercent! > 100)) throw new ValidationError("Loyalty percentage must be greater than 0 and at most 100%");
-  if (hasFixed && input.discountFixed! <= 0) throw new ValidationError("Loyalty fixed discount must be greater than 0");
+const normalizedOrganizationTier = (input: LoyaltyTierInput) => {
+  const hasPercent =
+    input.discountPercent !== undefined && input.discountPercent !== null;
+  const hasFixed =
+    input.discountFixed !== undefined && input.discountFixed !== null;
+  if (hasPercent === hasFixed)
+    throw new ValidationError(
+      "Loyalty tier requires exactly one discount type",
+    );
+  if (
+    hasPercent &&
+    (input.discountPercent! <= 0 || input.discountPercent! > 100)
+  )
+    throw new ValidationError(
+      "Loyalty percentage must be greater than 0 and at most 100%",
+    );
+  if (hasFixed && input.discountFixed! <= 0)
+    throw new ValidationError("Loyalty fixed discount must be greater than 0");
   return {
     name: input.name.trim(),
     discountPercent: hasPercent ? input.discountPercent!.toFixed(2) : null,
     discountFixed: hasFixed ? input.discountFixed!.toFixed(2) : null,
   };
-}
+};
 
 export interface OrganizationMenuInput {
   name: string;
@@ -52,7 +60,7 @@ export interface OrganizationMenuInput {
   }>;
 }
 
-function normalizeMenuInput(input: OrganizationMenuInput) {
+const normalizeMenuInput = (input: OrganizationMenuInput) => {
   const { effectiveFrom, ...rest } = input;
   const seen = new Set<string>();
   for (const item of input.items) {
@@ -74,7 +82,7 @@ function normalizeMenuInput(input: OrganizationMenuInput) {
       itemSku: item.itemSku.trim(),
     })),
   };
-}
+};
 
 export const organizationService = {
   async listLoyaltyTiers(auth: AuthContext, organizationId: string) {
@@ -111,8 +119,12 @@ export const organizationService = {
     patch: Partial<LoyaltyTierInput>,
   ) {
     await assertOrganizationManager(auth, organizationId);
-    const existing = await loyaltyRepository.findOrganizationTier(organizationId, tierId);
-    if (!existing) throw new NotFoundError("Organization loyalty tier not found");
+    const existing = await loyaltyRepository.findOrganizationTier(
+      organizationId,
+      tierId,
+    );
+    if (!existing)
+      throw new NotFoundError("Organization loyalty tier not found");
     const merged: LoyaltyTierInput = {
       name: patch.name ?? existing.name,
       ...(patch.discountPercent !== undefined
@@ -133,23 +145,41 @@ export const organizationService = {
     );
     if (!row) throw new NotFoundError("Organization loyalty tier not found");
     await writeAudit({
-      tenantId: auth.tenantId, userId: auth.userId, branchId: auth.branchId,
-      requestId: auth.requestId, ipAddress: auth.ipAddress,
-      action: "ORGANIZATION_LOYALTY_TIER_UPDATED", entity: "customer_loyalty_tier",
-      entityId: tierId, metadata: { organizationId },
+      tenantId: auth.tenantId,
+      userId: auth.userId,
+      branchId: auth.branchId,
+      requestId: auth.requestId,
+      ipAddress: auth.ipAddress,
+      action: "ORGANIZATION_LOYALTY_TIER_UPDATED",
+      entity: "customer_loyalty_tier",
+      entityId: tierId,
+      metadata: { organizationId },
     });
     return row;
   },
-  async deleteLoyaltyTier(auth: AuthContext, organizationId: string, tierId: string) {
+  async deleteLoyaltyTier(
+    auth: AuthContext,
+    organizationId: string,
+    tierId: string,
+  ) {
     await assertOrganizationManager(auth, organizationId);
-    const existing = await loyaltyRepository.findOrganizationTier(organizationId, tierId);
-    if (!existing) throw new NotFoundError("Organization loyalty tier not found");
+    const existing = await loyaltyRepository.findOrganizationTier(
+      organizationId,
+      tierId,
+    );
+    if (!existing)
+      throw new NotFoundError("Organization loyalty tier not found");
     await loyaltyRepository.removeOrganizationTier(organizationId, tierId);
     await writeAudit({
-      tenantId: auth.tenantId, userId: auth.userId, branchId: auth.branchId,
-      requestId: auth.requestId, ipAddress: auth.ipAddress,
-      action: "ORGANIZATION_LOYALTY_TIER_DELETED", entity: "customer_loyalty_tier",
-      entityId: tierId, metadata: { organizationId },
+      tenantId: auth.tenantId,
+      userId: auth.userId,
+      branchId: auth.branchId,
+      requestId: auth.requestId,
+      ipAddress: auth.ipAddress,
+      action: "ORGANIZATION_LOYALTY_TIER_DELETED",
+      entity: "customer_loyalty_tier",
+      entityId: tierId,
+      metadata: { organizationId },
     });
   },
   async list(auth: AuthContext) {
@@ -249,7 +279,11 @@ export const organizationService = {
               ...rest,
               ...(input.name !== undefined ? { name: input.name.trim() } : {}),
               ...(effectiveFrom !== undefined
-                ? { effectiveFrom: effectiveFrom ? new Date(effectiveFrom) : null }
+                ? {
+                    effectiveFrom: effectiveFrom
+                      ? new Date(effectiveFrom)
+                      : null,
+                  }
                 : {}),
             };
           })();

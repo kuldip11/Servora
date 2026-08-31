@@ -1,11 +1,11 @@
-import { db } from "../../../db";
-import { ValidationError } from "../../../core/errors";
+import { db } from "@/db";
+import { ValidationError } from "@/core/errors";
 import type {
   OrderItemInput,
   PricedLine,
   PricingContext,
-} from "../../orders/pricing/pricing-pipeline";
-import { pricingPipeline } from "../../orders/pricing/pricing-pipeline";
+} from "@/modules/orders/pricing/pricing-pipeline";
+import { pricingPipeline } from "@/modules/orders/pricing/pricing-pipeline";
 import { allocateComboTotal, priceCombo } from "./combo-pricing";
 
 export interface ComboOrderSelection {
@@ -16,22 +16,21 @@ export interface ComboOrderSelection {
 }
 
 export interface PricedComboOrder {
-
   lines: PricedLine[];
   subtotal: number;
   taxAmount: number;
 }
 
-function orderItemFulfillmentType(
+const orderItemFulfillmentType = (
   fulfillmentType: PricingContext["fulfillmentType"],
-): "DINE_IN" | "TAKEAWAY" {
+): "DINE_IN" | "TAKEAWAY" => {
   return fulfillmentType === "DINE_IN" ? "DINE_IN" : "TAKEAWAY";
-}
+};
 
-export async function priceComboOrders(
+export const priceComboOrders = async (
   context: PricingContext,
   requested: ComboOrderSelection[],
-): Promise<PricedComboOrder> {
+): Promise<PricedComboOrder> => {
   const allLines: PricedLine[] = [];
   let subtotal = 0;
   let taxAmount = 0;
@@ -132,10 +131,8 @@ export async function priceComboOrders(
     const stage4 = priceCombo(
       {
         pricePolicy: combo.pricePolicy,
-        fixedPrice:
-          combo.fixedPrice == null ? null : Number(combo.fixedPrice),
-        percentOff:
-          combo.percentOff == null ? null : Number(combo.percentOff),
+        fixedPrice: combo.fixedPrice == null ? null : Number(combo.fixedPrice),
+        percentOff: combo.percentOff == null ? null : Number(combo.percentOff),
         slots: pricingSlots,
       },
       request.selections,
@@ -182,4 +179,4 @@ export async function priceComboOrders(
   }
 
   return { lines: allLines, subtotal, taxAmount };
-}
+};

@@ -11,15 +11,11 @@ if (!root) throw new Error("Root element not found");
 
 createRoot(root).render(
   <StrictMode>
-    {
-
-                                                                       }
+    {}
     <ThemeProvider defaultTheme="dark">
       <QueryClientProvider client={queryClient}>
         <KitchenApp />
-        {
-
-                                                                             }
+        {}
         <Toaster />
       </QueryClientProvider>
     </ThemeProvider>

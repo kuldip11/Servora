@@ -1,5 +1,9 @@
 import { useEffect } from "react";
-import type { FieldErrors, UseFormRegister, UseFormSetValue } from "react-hook-form";
+import type {
+  FieldErrors,
+  UseFormRegister,
+  UseFormSetValue,
+} from "react-hook-form";
 import type { CreateStaffInput } from "@pos/validation";
 import { Input, Select } from "@pos/ui";
 
@@ -24,7 +28,7 @@ interface CreateFieldsProps {
   setValue: UseFormSetValue<CreateStaffInput>;
 }
 
-export function StaffFormFields({
+export const StaffFormFields = ({
   register,
   errors,
   roleId,
@@ -32,7 +36,7 @@ export function StaffFormFields({
   roles,
   branches,
   setValue,
-}: CreateFieldsProps) {
+}: CreateFieldsProps) => {
   const role = roles.find((item) => item.id === roleId);
   const branchRequired = role?.scope === "BRANCH";
 
@@ -102,4 +106,4 @@ export function StaffFormFields({
       )}
     </>
   );
-}
+};

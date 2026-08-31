@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { replayPersistedLine } from "../order-explain.service";
+import { replayPersistedLine } from "@/modules/menu/explain/order-explain.service";
 
 describe("H1 deterministic pricing replay", () => {
   it("recomputes a normal line from immutable pipeline attribution", () => {
@@ -11,7 +11,11 @@ describe("H1 deterministic pricing replay", () => {
         BASE_PRICE: 10,
         VARIANT: 2,
         MODIFIER: 2,
-        PRICE_SOURCE: { kind: "PRICE_RULE", id: "rule-1", description: "Happy hour" },
+        PRICE_SOURCE: {
+          kind: "PRICE_RULE",
+          id: "rule-1",
+          description: "Happy hour",
+        },
       },
     });
     expect(replay.matchesSnapshot).toBe(true);

@@ -1,16 +1,14 @@
-
-
 import type { InventoryTransactionType } from "@pos/types";
 
 export type StockResolution =
   | { ok: true; balanceAfter: number }
   | { ok: false; reason: "INSUFFICIENT_STOCK" };
 
-export function resolveStockBalance(
+export const resolveStockBalance = (
   currentStock: number,
   quantity: number,
   transactionType: InventoryTransactionType,
-): StockResolution {
+): StockResolution => {
   if (transactionType === "IN") {
     return { ok: true, balanceAfter: currentStock + quantity };
   }
@@ -22,8 +20,11 @@ export function resolveStockBalance(
   }
 
   return { ok: true, balanceAfter: quantity };
-}
+};
 
-export function resolveInventoryReversal(currentStock: number, quantityActuallyDeducted: number) {
+export const resolveInventoryReversal = (
+  currentStock: number,
+  quantityActuallyDeducted: number,
+) => {
   return { balanceAfter: currentStock + quantityActuallyDeducted };
-}
+};

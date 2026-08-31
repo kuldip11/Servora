@@ -2,10 +2,10 @@ import { act } from "react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { AxiosError } from "axios";
 
-import { useAuthStore } from "../../store/auth";
-import { queryClient } from "../../shared/lib/query-client";
-import { bootstrapAuthSession } from "../../shared/auth/bootstrap";
-import { authService } from "../../features/auth/services/auth.service";
+import { useAuthStore } from "@/store/auth";
+import { queryClient } from "@/shared/lib/query-client";
+import { bootstrapAuthSession } from "@/shared/auth/bootstrap";
+import { authService } from "@/features/auth/services/auth.service";
 
 vi.mock("../../features/auth/services/auth.service", () => ({
   authService: { refresh: vi.fn() },

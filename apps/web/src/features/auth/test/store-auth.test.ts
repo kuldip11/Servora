@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach } from "vitest";
-import { useAuthStore } from "../../../store/auth";
+import { useAuthStore } from "@/store/auth";
 
 const user = {
   id: "u1",

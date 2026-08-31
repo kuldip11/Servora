@@ -9,7 +9,7 @@ import {
   itemIdParams,
   itemStatusParams,
   itemStatusQuery,
-} from "../item.validator";
+} from "@/modules/menu/items/item.validator";
 
 describe("item.validator validators", () => {
   it("requires category, name, and base price for item creation", () => {

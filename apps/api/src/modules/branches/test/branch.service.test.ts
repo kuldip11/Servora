@@ -38,7 +38,7 @@ vi.mock("../../../core/auth", () => ({
       throw new Error(`Missing permission: ${p}`);
   },
 }));
-import { branchService } from "../branch.service";
+import { branchService } from "@/modules/branches/branch.service";
 const baseAuth: any = {
   userId: "u1",
   tenantId: "t1",

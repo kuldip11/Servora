@@ -11,7 +11,7 @@ import {
   ServiceUnavailableError,
   UnauthorizedError,
   ValidationError,
-} from "../app-error";
+} from "@/core/errors/app-error";
 
 describe("AppError hierarchy", () => {
   it("preserves code, status, details and serializable response shape", () => {

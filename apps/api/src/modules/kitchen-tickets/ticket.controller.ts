@@ -1,8 +1,6 @@
-
-
-import type { AuthContext } from "../../core/auth";
-import type { Logger } from "../../core/logger";
-import { successResponse } from "../../core/response";
+import type { AuthContext } from "@/core/auth";
+import type { Logger } from "@/core/logger";
+import { successResponse } from "@/core/response";
 import { ticketService } from "./ticket.service";
 import type { KitchenTicketStatus } from "@pos/types";
 
@@ -13,7 +11,9 @@ export const ticketController = {
   },
 
   async listStations(auth: AuthContext) {
-    return successResponse(await ticketService.listStationsForCurrentBranch(auth));
+    return successResponse(
+      await ticketService.listStationsForCurrentBranch(auth),
+    );
   },
 
   async updateStatus(

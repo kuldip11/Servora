@@ -1,9 +1,9 @@
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { BranchSelector } from "../BranchSelector";
-import { LoginForm } from "../LoginForm";
-import { MembershipSelector } from "../MembershipSelector";
+import { BranchSelector } from "@/features/auth/components/BranchSelector";
+import { LoginForm } from "@/features/auth/components/LoginForm";
+import { MembershipSelector } from "@/features/auth/components/MembershipSelector";
 describe("auth components", () => {
   it("renders auth UI", () => {
     expect(

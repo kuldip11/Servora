@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import * as mod from "../category.repository";
+import * as mod from "@/modules/menu/categories/category.repository";
 
 describe("category repository", () => {
   it("exposes the documented module boundary", () => {

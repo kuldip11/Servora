@@ -4,7 +4,7 @@ import {
   createBranchBody,
   updateBranchBody,
   branchIdParams,
-} from "../branch.validator";
+} from "@/modules/branches/branch.validator";
 describe("branch validators", () => {
   it("accepts valid create/update payloads and rejects invalid names", () => {
     expect(

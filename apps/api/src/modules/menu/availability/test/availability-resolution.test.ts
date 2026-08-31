@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { resolveEffectiveAvailability } from "../availability-resolution";
-import type { AvailabilityReplayEvidence } from "../availability.types";
+import { resolveEffectiveAvailability } from "@/modules/menu/availability/availability-resolution";
+import type { AvailabilityReplayEvidence } from "@/modules/menu/availability/availability.types";
 
-function evidence(
+const evidence = (
   overrides: Partial<AvailabilityReplayEvidence> = {},
-): AvailabilityReplayEvidence {
+): AvailabilityReplayEvidence => {
   return {
     item: {
       id: "item-1",
@@ -23,7 +23,7 @@ function evidence(
     channelOverride: null,
     ...overrides,
   };
-}
+};
 
 describe("resolveEffectiveAvailability", () => {
   it("prefers a human override over lower layers", () => {

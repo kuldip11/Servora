@@ -1,8 +1,6 @@
-
-
 import { eq, and, or, isNull, isNotNull, inArray, sql } from "drizzle-orm";
 import type { InventoryTransactionType, InventoryUnit } from "@pos/types";
-import { db } from "../../db";
+import { db } from "@/db";
 import {
   inventoryItems,
   inventoryTransactions,
@@ -15,8 +13,8 @@ import {
   menuItemVariants,
   modifierOptions,
   wasteReasons,
-} from "../../db/schema";
-import { effectiveModifierAvailability } from "../menu/availability/availability-view";
+} from "@/db/schema";
+import { effectiveModifierAvailability } from "@/modules/menu/availability/availability-view";
 import { resolveStockBalance } from "./inventory-stock";
 
 export type StockUpdateResult =
@@ -180,7 +178,10 @@ export const inventoryRepository = {
     return db.query.wasteReasons.findMany({
       where: includeInactive
         ? eq(wasteReasons.tenantId, tenantId)
-        : and(eq(wasteReasons.tenantId, tenantId), eq(wasteReasons.isActive, true)),
+        : and(
+            eq(wasteReasons.tenantId, tenantId),
+            eq(wasteReasons.isActive, true),
+          ),
       orderBy: wasteReasons.label,
     });
   },
@@ -192,12 +193,20 @@ export const inventoryRepository = {
   },
 
   async createWasteReason(tenantId: string, label: string) {
-    const [row] = await db.insert(wasteReasons).values({ tenantId, label }).returning();
+    const [row] = await db
+      .insert(wasteReasons)
+      .values({ tenantId, label })
+      .returning();
     return row!;
   },
 
-  async updateWasteReason(tenantId: string, id: string, data: { label?: string; isActive?: boolean }) {
-    const [row] = await db.update(wasteReasons)
+  async updateWasteReason(
+    tenantId: string,
+    id: string,
+    data: { label?: string; isActive?: boolean },
+  ) {
+    const [row] = await db
+      .update(wasteReasons)
       .set({ ...data, updatedAt: new Date() })
       .where(and(eq(wasteReasons.id, id), eq(wasteReasons.tenantId, tenantId)))
       .returning();
@@ -281,7 +290,8 @@ export const inventoryRepository = {
         rows.filter(
           (row) =>
             row.menuItem.tenantId === tenantId &&
-            (row.menuItem.branchId === null || row.menuItem.branchId === branchId) &&
+            (row.menuItem.branchId === null ||
+              row.menuItem.branchId === branchId) &&
             (!row.inventoryItem ||
               (row.inventoryItem.tenantId === tenantId &&
                 row.inventoryItem.branchId === branchId)) &&
@@ -292,7 +302,8 @@ export const inventoryRepository = {
 
   async findSubRecipeWithIngredients(tenantId: string, subRecipeId: string) {
     return db.query.subRecipes.findFirst({
-      where: (t, { and: a, eq: e }) => a(e(t.id, subRecipeId), e(t.tenantId, tenantId)),
+      where: (t, { and: a, eq: e }) =>
+        a(e(t.id, subRecipeId), e(t.tenantId, tenantId)),
       with: {
         ingredients: {
           with: { inventoryItem: true, ingredientSubRecipe: true },
@@ -324,7 +335,6 @@ export const inventoryRepository = {
     let deducted = 0;
 
     await db.transaction(async (tx) => {
-
       await tx.execute(
         sql`select pg_advisory_xact_lock(hashtext(${kitchenTicketId}))`,
       );
@@ -398,15 +408,23 @@ export const inventoryRepository = {
         });
 
         const exactTicketItem = ticket.items.find(
-          (item) => item.id === line.orderItemId && item.menuItemId === line.menuItemId,
+          (item) =>
+            item.id === line.orderItemId && item.menuItemId === line.menuItemId,
         );
         if (!exactTicketItem) {
-          throw new Error(`Order item ${line.orderItemId} is missing from kitchen ticket ${kitchenTicketId}`);
+          throw new Error(
+            `Order item ${line.orderItemId} is missing from kitchen ticket ${kitchenTicketId}`,
+          );
         }
         await tx.insert(orderInventoryDeductions).values({
-          orderId, kitchenTicketId, orderItemId: exactTicketItem.id,
-          menuItemId: line.menuItemId, inventoryItemId: line.inventoryItemId,
-          quantityDeducted: actuallyDeducted.toFixed(3), unit: line.unit, wasShort,
+          orderId,
+          kitchenTicketId,
+          orderItemId: exactTicketItem.id,
+          menuItemId: line.menuItemId,
+          inventoryItemId: line.inventoryItemId,
+          quantityDeducted: actuallyDeducted.toFixed(3),
+          unit: line.unit,
+          wasShort,
         });
 
         deducted++;
@@ -435,7 +453,13 @@ export const inventoryRepository = {
       .selectDistinct({ id: recipes.menuItemId })
       .from(recipes)
       .innerJoin(menuItems, eq(menuItems.id, recipes.menuItemId))
-      .where(and(eq(menuItems.tenantId, tenantId), or(eq(menuItems.branchId, branchId), isNull(menuItems.branchId)), isNull(menuItems.deletedAt)));
+      .where(
+        and(
+          eq(menuItems.tenantId, tenantId),
+          or(eq(menuItems.branchId, branchId), isNull(menuItems.branchId)),
+          isNull(menuItems.deletedAt),
+        ),
+      );
     return rows.map((row) => row.id);
   },
 
@@ -453,12 +477,14 @@ export const inventoryRepository = {
       .from(recipes)
       .innerJoin(menuItems, eq(menuItems.id, recipes.menuItemId))
       .innerJoin(menuItemVariants, eq(menuItemVariants.id, recipes.variantId))
-      .where(and(
-        eq(menuItems.tenantId, tenantId),
-        or(eq(menuItems.branchId, branchId), isNull(menuItems.branchId)),
-        isNull(menuItems.deletedAt),
-        isNotNull(recipes.variantId),
-      ));
+      .where(
+        and(
+          eq(menuItems.tenantId, tenantId),
+          or(eq(menuItems.branchId, branchId), isNull(menuItems.branchId)),
+          isNull(menuItems.deletedAt),
+          isNotNull(recipes.variantId),
+        ),
+      );
   },
 
   async findScopedRecipeModifierOptions(tenantId: string, branchId: string) {
@@ -474,13 +500,18 @@ export const inventoryRepository = {
       })
       .from(recipes)
       .innerJoin(menuItems, eq(menuItems.id, recipes.menuItemId))
-      .innerJoin(modifierOptions, eq(modifierOptions.id, recipes.modifierOptionId))
-      .where(and(
-        eq(menuItems.tenantId, tenantId),
-        or(eq(menuItems.branchId, branchId), isNull(menuItems.branchId)),
-        isNull(menuItems.deletedAt),
-        isNotNull(recipes.modifierOptionId),
-      ));
+      .innerJoin(
+        modifierOptions,
+        eq(modifierOptions.id, recipes.modifierOptionId),
+      )
+      .where(
+        and(
+          eq(menuItems.tenantId, tenantId),
+          or(eq(menuItems.branchId, branchId), isNull(menuItems.branchId)),
+          isNull(menuItems.deletedAt),
+          isNotNull(recipes.modifierOptionId),
+        ),
+      );
     return rows.map((row) => ({
       ...row,
       isAvailable: effectiveModifierAvailability(row),
@@ -500,7 +531,12 @@ export const inventoryRepository = {
         isNull(menuItems.deletedAt),
         or(eq(menuItems.branchId, branchId), isNull(menuItems.branchId)),
       ),
-      columns: { id: true, name: true, status: true, enableRecipeDeduction: true },
+      columns: {
+        id: true,
+        name: true,
+        status: true,
+        enableRecipeDeduction: true,
+      },
     });
   },
 
@@ -525,5 +561,4 @@ export const inventoryRepository = {
         ),
       );
   },
-
 };

@@ -1,9 +1,7 @@
-
-
 import { Elysia } from "elysia";
 import { randomUUID } from "crypto";
-import { env } from "../../config/env";
-import { resolveClientIp } from "../security/client-ip";
+import { env } from "@/config/env";
+import { resolveClientIp } from "@/core/security/client-ip";
 
 export interface RequestContext {
   requestId: string;

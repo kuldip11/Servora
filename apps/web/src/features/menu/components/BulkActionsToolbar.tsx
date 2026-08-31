@@ -8,12 +8,12 @@ import {
   Trash2,
 } from "lucide-react";
 import { Button, Modal, Select, Input } from "@pos/ui";
-import { MENU_ITEM_STATUS_OPTIONS } from "../constants";
-import { useBulkSetStatus } from "../hooks/useBulkSetStatus";
-import { useBulkMoveCategory } from "../hooks/useBulkMoveCategory";
-import { useBulkUpdateTags } from "../hooks/useBulkUpdateTags";
-import { useBulkAdjustPrice } from "../hooks/useBulkAdjustPrice";
-import { useBulkDeleteItems } from "../hooks/useBulkDeleteItems";
+import { MENU_ITEM_STATUS_OPTIONS } from "@/features/menu/constants";
+import { useBulkSetStatus } from "@/features/menu/hooks/useBulkSetStatus";
+import { useBulkMoveCategory } from "@/features/menu/hooks/useBulkMoveCategory";
+import { useBulkUpdateTags } from "@/features/menu/hooks/useBulkUpdateTags";
+import { useBulkAdjustPrice } from "@/features/menu/hooks/useBulkAdjustPrice";
+import { useBulkDeleteItems } from "@/features/menu/hooks/useBulkDeleteItems";
 import type { MenuItemStatus, MenuCategory, MenuTag } from "@pos/types";
 
 interface Props {
@@ -25,12 +25,12 @@ interface Props {
 
 type BulkPanel = "status" | "category" | "tags" | "price" | "delete" | null;
 
-export function BulkActionsToolbar({
+export const BulkActionsToolbar = ({
   selectedIds,
   categories,
   tags,
   onClear,
-}: Props) {
+}: Props) => {
   const [panel, setPanel] = useState<BulkPanel>(null);
   const [status, setStatus] = useState<MenuItemStatus>("OUT_OF_STOCK");
   const [reason, setReason] = useState("");
@@ -122,7 +122,7 @@ export function BulkActionsToolbar({
         </div>
       </div>
 
-      {                  }
+      {}
       <Modal
         open={panel === "status"}
         onClose={() => setPanel(null)}
@@ -165,7 +165,7 @@ export function BulkActionsToolbar({
         </div>
       </Modal>
 
-      {                    }
+      {}
       <Modal
         open={panel === "category"}
         onClose={() => setPanel(null)}
@@ -202,7 +202,7 @@ export function BulkActionsToolbar({
         </div>
       </Modal>
 
-      {                }
+      {}
       <Modal
         open={panel === "tags"}
         onClose={() => setPanel(null)}
@@ -218,7 +218,9 @@ export function BulkActionsToolbar({
               { value: "remove", label: "Remove these tags" },
               { value: "replace", label: "Replace all tags with these" },
             ]}
-            onChange={(e) => setTagMode(e.target.value as "add" | "remove" | "replace")}
+            onChange={(e) =>
+              setTagMode(e.target.value as "add" | "remove" | "replace")
+            }
           />
           {!tags.length ? (
             <p className="text-xs text-text-disabled">
@@ -262,7 +264,7 @@ export function BulkActionsToolbar({
         </div>
       </Modal>
 
-      {                 }
+      {}
       <Modal
         open={panel === "price"}
         onClose={() => setPanel(null)}
@@ -278,7 +280,9 @@ export function BulkActionsToolbar({
               { value: "decrease", label: "Decrease by %" },
               { value: "set", label: "Set to a fixed price (₹)" },
             ]}
-            onChange={(e) => setPriceMode(e.target.value as "set" | "increase" | "decrease")}
+            onChange={(e) =>
+              setPriceMode(e.target.value as "set" | "increase" | "decrease")
+            }
           />
           <Input
             label={priceMode === "set" ? "New price (₹)" : "Percentage"}
@@ -313,7 +317,7 @@ export function BulkActionsToolbar({
         </div>
       </Modal>
 
-      {                         }
+      {}
       <Modal
         open={panel === "delete"}
         onClose={() => setPanel(null)}
@@ -344,4 +348,4 @@ export function BulkActionsToolbar({
       </Modal>
     </>
   );
-}
+};

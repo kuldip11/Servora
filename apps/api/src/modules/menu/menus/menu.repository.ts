@@ -1,7 +1,7 @@
 import { and, asc, eq } from "drizzle-orm";
-import { db } from "../../../db";
-import { menuSchedules, menus } from "../../../db/schema";
-import { compact } from "../../../lib/object-utils";
+import { db } from "@/db";
+import { menuSchedules, menus } from "@/db/schema";
+import { compact } from "@/lib/object-utils";
 
 export const menuRepository = {
   async list(tenantId: string) {
@@ -10,9 +10,20 @@ export const menuRepository = {
       orderBy: [asc(menus.name)],
     });
   },
-  async listActive(tenantId: string, branchId: string, channel: "STAFF" | "CUSTOMER_QR", fulfillmentType: "DINE_IN" | "TAKEAWAY" | "DELIVERY" | "ONLINE") {
+  async listActive(
+    tenantId: string,
+    branchId: string,
+    channel: "STAFF" | "CUSTOMER_QR",
+    fulfillmentType: "DINE_IN" | "TAKEAWAY" | "DELIVERY" | "ONLINE",
+  ) {
     const { menuResolver } = await import("./menu-resolver.service");
-    return menuResolver.getActiveMenus(tenantId, branchId, channel, fulfillmentType, new Date());
+    return menuResolver.getActiveMenus(
+      tenantId,
+      branchId,
+      channel,
+      fulfillmentType,
+      new Date(),
+    );
   },
 
   async findById(tenantId: string, id: string) {
@@ -62,13 +73,22 @@ export const menuRepository = {
     return removed;
   },
   async listSchedules(tenantId: string, menuId: string) {
-    return db.query.menuSchedules.findMany({ where: and(eq(menuSchedules.tenantId, tenantId), eq(menuSchedules.menuId, menuId)) });
+    return db.query.menuSchedules.findMany({
+      where: and(
+        eq(menuSchedules.tenantId, tenantId),
+        eq(menuSchedules.menuId, menuId),
+      ),
+    });
   },
   async createSchedule(data: typeof menuSchedules.$inferInsert) {
     const [created] = await db.insert(menuSchedules).values(data).returning();
     return created!;
   },
   async deleteSchedule(tenantId: string, id: string) {
-    await db.delete(menuSchedules).where(and(eq(menuSchedules.tenantId, tenantId), eq(menuSchedules.id, id)));
+    await db
+      .delete(menuSchedules)
+      .where(
+        and(eq(menuSchedules.tenantId, tenantId), eq(menuSchedules.id, id)),
+      );
   },
 };

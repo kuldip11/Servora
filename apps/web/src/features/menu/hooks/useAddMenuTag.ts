@@ -1,10 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
-import { menuTagsService } from "../services/menu-tags.service";
-import { menuKeys } from "../query-keys";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
+import { menuTagsService } from "@/features/menu/services/menu-tags.service";
+import { menuKeys } from "@/features/menu/query-keys";
 
-export function useAddMenuTag() {
+export const useAddMenuTag = () => {
   return useMutation({
     mutationFn: ({ name, color }: { name: string; color: string }) =>
       menuTagsService.create(name, color),
@@ -14,4 +14,4 @@ export function useAddMenuTag() {
     },
     onError: (err) => notifyError(err, "Failed to create tag"),
   });
-}
+};

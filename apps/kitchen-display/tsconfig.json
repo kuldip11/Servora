@@ -8,12 +8,14 @@
     "jsx": "react-jsx",
     "noEmit": true,
     "paths": {
+      "@/*": ["./src/*"],
       "@pos/types": ["../../packages/types/src/index.ts"],
       "@pos/ui": ["../../packages/ui/src/index.tsx"],
       "@pos/api-client": ["../../packages/api-client/src/index.ts"],
       "@pos/realtime": ["../../packages/realtime/src/index.ts"],
       "@pos/validation": ["../../packages/validation/src/index.ts"]
-    }
+    },
+    "baseUrl": "."
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]

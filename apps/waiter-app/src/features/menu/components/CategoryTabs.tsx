@@ -1,5 +1,5 @@
-import type { WaiterMenuCategory } from "../api/menu";
-import { FOOD_TYPE_FILTERS } from "../constants";
+import type { WaiterMenuCategory } from "@/features/menu/api/menu";
+import { FOOD_TYPE_FILTERS } from "@/features/menu/constants";
 
 interface Props {
   foodTypeFilter: "ALL" | "VEG" | "NON_VEG" | "EGG";
@@ -10,14 +10,14 @@ interface Props {
   menuSearch: string;
 }
 
-export function CategoryTabs({
+export const CategoryTabs = ({
   foodTypeFilter,
   onFoodTypeChange,
   categories,
   activeCategory,
   onCategoryChange,
   menuSearch,
-}: Props) {
+}: Props) => {
   return (
     <>
       <div className="flex gap-2 px-4 pb-3 overflow-x-auto">
@@ -54,4 +54,4 @@ export function CategoryTabs({
       )}
     </>
   );
-}
+};

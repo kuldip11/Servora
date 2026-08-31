@@ -1,5 +1,10 @@
-import { request } from "../../shared/api/client";
-import type { FoodType, MenuMoney, OrderableMenuItem, SpiceLevel } from "@pos/types";
+import { request } from "@/shared/api/client";
+import type {
+  FoodType,
+  MenuMoney,
+  OrderableMenuItem,
+  SpiceLevel,
+} from "@pos/types";
 
 export interface CustomerMenuItem extends OrderableMenuItem {
   categoryId: string;
@@ -12,8 +17,6 @@ export interface CustomerMenuItem extends OrderableMenuItem {
   tagLinks: Array<{ tag: { name: string } }>;
   images: Array<{ url: string; sortOrder: number }>;
 }
-
-
 
 export type CustomerCombo = {
   id: string;
@@ -46,6 +49,6 @@ export type CustomerMenu = {
   items: CustomerMenuItem[];
 };
 
-export function getCustomerMenu(sessionToken: string) {
+export const getCustomerMenu = (sessionToken: string) => {
   return request<CustomerMenu>("/api/customer/menu", undefined, sessionToken);
-}
+};

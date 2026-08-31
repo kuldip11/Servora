@@ -72,7 +72,7 @@ const { query, db } = vi.hoisted(() => {
   return { query, db };
 });
 vi.mock("../../../db", () => ({ db }));
-import { inventoryRepository } from "../inventory.repository";
+import { inventoryRepository } from "@/modules/inventory/inventory.repository";
 beforeEach(() => {
   vi.clearAllMocks();
 });

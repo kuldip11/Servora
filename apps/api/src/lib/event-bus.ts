@@ -15,7 +15,9 @@ type LocalEventEnvelope<T extends EventType> = {
   branchId?: string;
   context?: EventPublishContext;
 };
-type LocalHandler = (envelope: LocalEventEnvelope<EventType>) => void | Promise<void>;
+type LocalHandler = (
+  envelope: LocalEventEnvelope<EventType>,
+) => void | Promise<void>;
 
 const localHandlers = new Map<EventType, Set<LocalHandler>>();
 
@@ -52,7 +54,10 @@ export const eventBus = {
       channel = REDIS_CHANNELS.ORDER_EVENTS;
     } else if (event.type.startsWith("kitchen.")) {
       channel = REDIS_CHANNELS.KITCHEN_EVENTS;
-    } else if (event.type.startsWith("inventory.") || event.type.startsWith("menu.")) {
+    } else if (
+      event.type.startsWith("inventory.") ||
+      event.type.startsWith("menu.")
+    ) {
       channel = REDIS_CHANNELS.INVENTORY_EVENTS;
     } else if (event.type.startsWith("payment.")) {
       channel = REDIS_CHANNELS.ORDER_EVENTS;
@@ -66,7 +71,12 @@ export const eventBus = {
 
     const handlers = [...(localHandlers.get(event.type) ?? [])];
     for (const handler of handlers) {
-      await handler({ event, tenantId, ...(branchId ? { branchId } : {}), ...(context ? { context } : {}) });
+      await handler({
+        event,
+        tenantId,
+        ...(branchId ? { branchId } : {}),
+        ...(context ? { context } : {}),
+      });
     }
   },
 };

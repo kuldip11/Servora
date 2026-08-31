@@ -1,14 +1,15 @@
-
-
-import type { AuthContext } from "../../../core/auth";
+import type { AuthContext } from "@/core/auth";
 import { categoryRepository } from "./category.repository";
 import { categoryNotFound, categoryHasItems } from "./category.errors";
-import { requirePermission } from "../../../core/auth";
+import { requirePermission } from "@/core/auth";
 import {
   assertMenuResourceBranch,
   resolveMenuBranch,
-} from "../menu-authorization";
-import { buildDiff, menuChangeLog } from "../change-log/menu-change-log";
+} from "@/modules/menu/menu-authorization";
+import {
+  buildDiff,
+  menuChangeLog,
+} from "@/modules/menu/change-log/menu-change-log";
 
 export interface CreateCategoryInput {
   name: string;
@@ -24,7 +25,6 @@ export interface UpdateCategoryInput {
 }
 
 export const categoryService = {
-
   async list(auth: AuthContext) {
     requirePermission(auth, "menu:read");
     resolveMenuBranch(auth);
@@ -44,7 +44,13 @@ export const categoryService = {
       ...input,
       branchId,
     });
-    await menuChangeLog.record(auth, "CATEGORY", created.id, "CREATED", buildDiff(null, created));
+    await menuChangeLog.record(
+      auth,
+      "CATEGORY",
+      created.id,
+      "CREATED",
+      buildDiff(null, created),
+    );
     return created;
   },
 
@@ -66,7 +72,13 @@ export const categoryService = {
       input,
     );
     if (!updated) throw categoryNotFound(categoryId);
-    await menuChangeLog.record(auth, "CATEGORY", categoryId, "UPDATED", buildDiff(existing, updated));
+    await menuChangeLog.record(
+      auth,
+      "CATEGORY",
+      categoryId,
+      "UPDATED",
+      buildDiff(existing, updated),
+    );
     return updated;
   },
 
@@ -88,7 +100,13 @@ export const categoryService = {
       isActive: false,
     });
     if (!updated) throw categoryNotFound(categoryId);
-    await menuChangeLog.record(auth, "CATEGORY", categoryId, "ARCHIVED", buildDiff(existing, updated));
+    await menuChangeLog.record(
+      auth,
+      "CATEGORY",
+      categoryId,
+      "ARCHIVED",
+      buildDiff(existing, updated),
+    );
     return updated;
   },
 };

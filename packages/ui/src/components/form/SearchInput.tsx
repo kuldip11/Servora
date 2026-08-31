@@ -6,7 +6,6 @@ export interface SearchInputProps extends Omit<
   TextInputProps,
   "icon" | "suffix" | "type"
 > {
-
   onClear?: () => void;
 }
 

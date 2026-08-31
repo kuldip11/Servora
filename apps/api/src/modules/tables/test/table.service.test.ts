@@ -40,7 +40,7 @@ vi.mock("../tables-authorization", () => ({
   assertTableResourceAccess: vi.fn(),
   resolveTableBranch: (a: any, b?: string) => b ?? a.branchId,
 }));
-import { tableService } from "../table.service";
+import { tableService } from "@/modules/tables/table.service";
 const auth: any = {
   userId: "u1",
   tenantId: "t1",

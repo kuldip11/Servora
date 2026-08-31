@@ -1,4 +1,4 @@
-import { franchiseQueryContextKey } from "../../shared/lib/query-context";
+import { franchiseQueryContextKey } from "@/shared/lib/query-context";
 
 export const branchKeys = {
   all: ["branches"] as const,

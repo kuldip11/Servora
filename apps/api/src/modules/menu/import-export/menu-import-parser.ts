@@ -1,5 +1,3 @@
-
-
 import * as XLSX from "xlsx";
 import type { MenuItemStatus, FoodType, SpiceLevel } from "@pos/types";
 
@@ -43,12 +41,16 @@ export interface ValidatedRow {
   };
 }
 
-import { MENU_IMPORT_FOOD_TYPES, MENU_IMPORT_SPICE_LEVELS, MENU_IMPORT_STATUSES } from "./constants";
+import {
+  MENU_IMPORT_FOOD_TYPES,
+  MENU_IMPORT_SPICE_LEVELS,
+  MENU_IMPORT_STATUSES,
+} from "./constants";
 
-export function parseFile(
+export const parseFile = (
   buffer: ArrayBuffer,
   filename: string,
-): ImportItemRow[] {
+): ImportItemRow[] => {
   const isCsv = filename.toLowerCase().endsWith(".csv");
   const book = XLSX.read(buffer, { type: "array", raw: false });
   const sheet = book.Sheets[book.SheetNames[0]!]!;
@@ -56,12 +58,14 @@ export function parseFile(
     defval: undefined,
     raw: isCsv ? false : true,
   });
-}
+};
 
-export function buildTemplate(format: "csv" | "xlsx"): {
+export const buildTemplate = (
+  format: "csv" | "xlsx",
+): {
   content: string | Buffer;
   contentType: string;
-} {
+} => {
   const rows = [
     {
       id: "",
@@ -88,14 +92,14 @@ export function buildTemplate(format: "csv" | "xlsx"): {
     contentType:
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   };
-}
+};
 
-export function validateRows(
+export const validateRows = (
   rows: ImportItemRow[],
   categoryByName: Map<string, string>,
   existingItemIds: Set<string>,
   skuToItemId: Map<string, string>,
-): { valid: ValidatedRow[]; errors: RowError[] } {
+): { valid: ValidatedRow[]; errors: RowError[] } => {
   const errors: RowError[] = [];
   const valid: ValidatedRow[] = [];
   const seenSkusInBatch = new Set<string>();
@@ -239,4 +243,4 @@ export function validateRows(
   });
 
   return { valid, errors };
-}
+};

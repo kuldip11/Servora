@@ -1,16 +1,16 @@
 import { useRef, useState } from "react";
 import { Upload, Download, X, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Button, Dialog, IconButton, Table, type Column } from "@pos/ui";
-import { notifyError } from "../../../shared/lib/notify";
+import { notifyError } from "@/shared/lib/notify";
 import {
   menuImportService,
   type ValidatedRow,
   type ValidateImportResponse,
-} from "../services/menu-import.service";
+} from "@/features/menu/services/menu-import.service";
 import {
   useValidateMenuImport,
   useCommitMenuImport,
-} from "../hooks/useMenuImport";
+} from "@/features/menu/hooks/useMenuImport";
 
 interface Props {
   onClose: () => void;
@@ -42,7 +42,7 @@ const PREVIEW_COLUMNS: Column<ValidatedRow>[] = [
   },
 ];
 
-export function ImportWizard({ onClose }: Props) {
+export const ImportWizard = ({ onClose }: Props) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<ValidateImportResponse | null>(null);
@@ -139,9 +139,7 @@ export function ImportWizard({ onClose }: Props) {
           <p className="text-sm text-text-secondary">Validating…</p>
         )}
 
-        {
-
-                                      }
+        {}
         <div aria-live="polite" className="sr-only">
           {validateMutation.isPending
             ? "Validating file…"
@@ -211,4 +209,4 @@ export function ImportWizard({ onClose }: Props) {
       </div>
     </Dialog>
   );
-}
+};

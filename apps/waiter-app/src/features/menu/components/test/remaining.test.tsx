@@ -17,9 +17,9 @@ vi.mock("@pos/ui", () => ({
   SearchInput: (props: any) => <input {...props} />,
 }));
 
-import { CartSummary } from "../CartSummary";
-import { SearchBar } from "../SearchBar";
-import { ItemCustomiser } from "../ItemCustomiser";
+import { CartSummary } from "@/features/menu/components/CartSummary";
+import { SearchBar } from "@/features/menu/components/SearchBar";
+import { ItemCustomiser } from "@/features/menu/components/ItemCustomiser";
 
 const cart: any = [
   {
@@ -134,13 +134,25 @@ describe("remaining menu components", () => {
             selectionType: "SINGLE",
             minSelections: 1,
             maxSelections: 1,
-            options: [{ id: "o2", name: "Mint", additionalPrice: "0", maxQuantity: 1, isAvailable: true }],
+            options: [
+              {
+                id: "o2",
+                name: "Mint",
+                additionalPrice: "0",
+                maxQuantity: 1,
+                isAvailable: true,
+              },
+            ],
           },
         },
       ],
     };
     const html = renderToStaticMarkup(
-      <ItemCustomiser item={guidedItem} onConfirm={vi.fn()} onClose={vi.fn()} />,
+      <ItemCustomiser
+        item={guidedItem}
+        onConfirm={vi.fn()}
+        onClose={vi.fn()}
+      />,
     );
     expect(html).toContain("Build your dish");
     expect(html).toContain("Step 1 of 2");

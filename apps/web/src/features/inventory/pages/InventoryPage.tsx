@@ -1,4 +1,4 @@
-import { usePermissions } from "../../../shared/auth/permissions";
+import { usePermissions } from "@/shared/auth/permissions";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,22 +24,28 @@ import {
   Table,
   type Column,
 } from "@pos/ui";
-import { formatCurrency } from "../../../shared/utils";
-import { useAuthStore } from "../../../store/auth";
-import { useBranches } from "../../branches/hooks/useBranches";
-import { useInventoryItems } from "../hooks/useInventoryItems";
-import { useAddInventoryItem } from "../hooks/useAddInventoryItem";
-import { useUpdateInventoryStock } from "../hooks/useUpdateInventoryStock";
-import { useInventoryRealtimeSync } from "../hooks/useInventoryRealtimeSync";
-import { useInventoryTransactions } from "../hooks/useInventoryTransactions";
-import { useWasteReasons } from "../hooks/useWasteReasons";
-import { useInventoryRecipeImpact } from "../hooks/useInventoryRecipeImpact";
-import { useCreateWasteReason, useLogInventoryWaste } from "../hooks/useLogInventoryWaste";
+import { formatCurrency } from "@/shared/utils";
+import { useAuthStore } from "@/store/auth";
+import { useBranches } from "@/features/branches/hooks/useBranches";
+import { useInventoryItems } from "@/features/inventory/hooks/useInventoryItems";
+import { useAddInventoryItem } from "@/features/inventory/hooks/useAddInventoryItem";
+import { useUpdateInventoryStock } from "@/features/inventory/hooks/useUpdateInventoryStock";
+import { useInventoryRealtimeSync } from "@/features/inventory/hooks/useInventoryRealtimeSync";
+import { useInventoryTransactions } from "@/features/inventory/hooks/useInventoryTransactions";
+import { useWasteReasons } from "@/features/inventory/hooks/useWasteReasons";
+import { useInventoryRecipeImpact } from "@/features/inventory/hooks/useInventoryRecipeImpact";
+import {
+  useCreateWasteReason,
+  useLogInventoryWaste,
+} from "@/features/inventory/hooks/useLogInventoryWaste";
 import type { InventoryItem } from "@pos/types";
 
-import { INVENTORY_TRANSACTION_OPTIONS, INVENTORY_UNIT_OPTIONS } from "../constants";
+import {
+  INVENTORY_TRANSACTION_OPTIONS,
+  INVENTORY_UNIT_OPTIONS,
+} from "@/features/inventory/constants";
 
-export function InventoryPage() {
+export const InventoryPage = () => {
   const { has } = usePermissions();
   const { branchId } = useAuthStore();
   const isAggregate = branchId === "all";
@@ -266,7 +272,11 @@ export function InventoryPage() {
                 className="flex items-center gap-3 py-3 text-sm"
               >
                 <StatusBadge
-                  label={transaction.reversalOfDeductionId ? "VOID REVERSAL" : transaction.transactionType.replace("_", " ")}
+                  label={
+                    transaction.reversalOfDeductionId
+                      ? "VOID REVERSAL"
+                      : transaction.transactionType.replace("_", " ")
+                  }
                   tone={
                     transaction.transactionType === "IN"
                       ? "success"
@@ -280,7 +290,9 @@ export function InventoryPage() {
                     {transaction.inventoryItem?.name ?? "Inventory item"}
                   </p>
                   <p className="truncate text-xs text-text-secondary">
-                    {transaction.wasteReason?.label ? `${transaction.wasteReason.label}${transaction.notes ? ` · ${transaction.notes}` : ""}` : transaction.notes || "No note"}
+                    {transaction.wasteReason?.label
+                      ? `${transaction.wasteReason.label}${transaction.notes ? ` · ${transaction.notes}` : ""}`
+                      : transaction.notes || "No note"}
                   </p>
                 </div>
                 <div className="text-right">
@@ -298,7 +310,7 @@ export function InventoryPage() {
         )}
       </Card>
 
-      {                    }
+      {}
       <Modal
         open={showAdd}
         onClose={() => setShowAdd(false)}
@@ -378,7 +390,7 @@ export function InventoryPage() {
         </form>
       </Modal>
 
-      {                        }
+      {}
       <Modal
         open={!!showUpdate}
         onClose={() => setShowUpdate(null)}
@@ -432,21 +444,33 @@ export function InventoryPage() {
         size="sm"
       >
         {recipeImpactLoading ? (
-          <p className="py-6 text-center text-sm text-text-secondary">Loading recipe impact…</p>
+          <p className="py-6 text-center text-sm text-text-secondary">
+            Loading recipe impact…
+          </p>
         ) : !recipeImpact?.impacts.length ? (
           <p className="py-6 text-center text-sm text-text-secondary">
-            This ingredient is not currently a required auto-deduction input for any menu item, variant, or modifier.
+            This ingredient is not currently a required auto-deduction input for
+            any menu item, variant, or modifier.
           </p>
         ) : (
           <div className="space-y-2">
             {recipeImpact.impacts.map((impact) => (
-              <div key={`${impact.kind}:${impact.entityId}`} className="flex items-center justify-between gap-3 rounded-md border border-border p-3">
+              <div
+                key={`${impact.kind}:${impact.entityId}`}
+                className="flex items-center justify-between gap-3 rounded-md border border-border p-3"
+              >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-text-primary">
-                    {impact.kind === "ITEM" ? impact.entityName : `${impact.menuItemName} · ${impact.entityName}`}
+                    {impact.kind === "ITEM"
+                      ? impact.entityName
+                      : `${impact.menuItemName} · ${impact.entityName}`}
                   </p>
                   <p className="text-xs text-text-secondary">
-                    {impact.kind === "ITEM" ? "Base item" : impact.kind === "VARIANT" ? "Variant" : "Modifier option"}
+                    {impact.kind === "ITEM"
+                      ? "Base item"
+                      : impact.kind === "VARIANT"
+                        ? "Variant"
+                        : "Modifier option"}
                   </p>
                 </div>
                 <StatusBadge
@@ -459,21 +483,105 @@ export function InventoryPage() {
         )}
       </Modal>
 
-      <Modal open={!!showWaste} onClose={() => setShowWaste(null)} title={`Log Waste: ${showWaste?.name}`} size="sm">
+      <Modal
+        open={!!showWaste}
+        onClose={() => setShowWaste(null)}
+        title={`Log Waste: ${showWaste?.name}`}
+        size="sm"
+      >
         <div className="space-y-4">
-          <Input label="Quantity wasted" type="number" min="0.001" step="0.001" value={wasteQuantity} onChange={(e) => setWasteQuantity(e.target.value)} hint={`Current stock: ${parseFloat(String(showWaste?.currentStock ?? 0)).toFixed(2)} ${showWaste?.unit ?? ""}`} />
-          <Select label="Waste reason" value={wasteReasonId} onChange={(e) => setWasteReasonId(e.target.value)} options={[{ value: "", label: "Select reason" }, ...(wasteReasons ?? []).map((reason) => ({ value: reason.id, label: reason.label }))]} />
+          <Input
+            label="Quantity wasted"
+            type="number"
+            min="0.001"
+            step="0.001"
+            value={wasteQuantity}
+            onChange={(e) => setWasteQuantity(e.target.value)}
+            hint={`Current stock: ${parseFloat(String(showWaste?.currentStock ?? 0)).toFixed(2)} ${showWaste?.unit ?? ""}`}
+          />
+          <Select
+            label="Waste reason"
+            value={wasteReasonId}
+            onChange={(e) => setWasteReasonId(e.target.value)}
+            options={[
+              { value: "", label: "Select reason" },
+              ...(wasteReasons ?? []).map((reason) => ({
+                value: reason.id,
+                label: reason.label,
+              })),
+            ]}
+          />
           <div className="rounded-md border border-border p-3">
-            <p className="mb-2 text-xs font-medium text-text-secondary">Need a new reason?</p>
-            <div className="flex gap-2"><Input aria-label="New waste reason" value={newWasteReason} onChange={(e) => setNewWasteReason(e.target.value)} placeholder="e.g. Prep trim" /><Button type="button" size="sm" variant="secondary" disabled={!newWasteReason.trim() || createWasteReasonMutation.isPending} onClick={() => createWasteReasonMutation.mutate(newWasteReason.trim(), { onSuccess: (reason) => { setWasteReasonId(reason.id); setNewWasteReason(""); } })}>Add</Button></div>
+            <p className="mb-2 text-xs font-medium text-text-secondary">
+              Need a new reason?
+            </p>
+            <div className="flex gap-2">
+              <Input
+                aria-label="New waste reason"
+                value={newWasteReason}
+                onChange={(e) => setNewWasteReason(e.target.value)}
+                placeholder="e.g. Prep trim"
+              />
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                disabled={
+                  !newWasteReason.trim() || createWasteReasonMutation.isPending
+                }
+                onClick={() =>
+                  createWasteReasonMutation.mutate(newWasteReason.trim(), {
+                    onSuccess: (reason) => {
+                      setWasteReasonId(reason.id);
+                      setNewWasteReason("");
+                    },
+                  })
+                }
+              >
+                Add
+              </Button>
+            </div>
           </div>
-          <Input label="Notes (optional)" value={wasteNotes} onChange={(e) => setWasteNotes(e.target.value)} />
-          <div className="flex justify-end gap-2"><Button variant="secondary" onClick={() => setShowWaste(null)}>Cancel</Button><Button disabled={!wasteReasonId || !(Number(wasteQuantity) > 0)} loading={logWasteMutation.isPending} onClick={() => { if (!showWaste) return; logWasteMutation.mutate({ itemId: showWaste.id, quantity: Number(wasteQuantity), wasteReasonId, ...(wasteNotes ? { notes: wasteNotes } : {}) }, { onSuccess: () => { setShowWaste(null); setWasteQuantity("1"); setWasteReasonId(""); setWasteNotes(""); } }); }}>Log Waste</Button></div>
+          <Input
+            label="Notes (optional)"
+            value={wasteNotes}
+            onChange={(e) => setWasteNotes(e.target.value)}
+          />
+          <div className="flex justify-end gap-2">
+            <Button variant="secondary" onClick={() => setShowWaste(null)}>
+              Cancel
+            </Button>
+            <Button
+              disabled={!wasteReasonId || !(Number(wasteQuantity) > 0)}
+              loading={logWasteMutation.isPending}
+              onClick={() => {
+                if (!showWaste) return;
+                logWasteMutation.mutate(
+                  {
+                    itemId: showWaste.id,
+                    quantity: Number(wasteQuantity),
+                    wasteReasonId,
+                    ...(wasteNotes ? { notes: wasteNotes } : {}),
+                  },
+                  {
+                    onSuccess: () => {
+                      setShowWaste(null);
+                      setWasteQuantity("1");
+                      setWasteReasonId("");
+                      setWasteNotes("");
+                    },
+                  },
+                );
+              }}
+            >
+              Log Waste
+            </Button>
+          </div>
         </div>
       </Modal>
     </Page>
   );
-}
+};
 
 function InventoryTable({
   items,
@@ -565,9 +673,27 @@ function InventoryTable({
       align: "right",
       cell: (item) => (
         <div className="flex justify-end gap-2">
-          <Button size="sm" variant="secondary" onClick={() => onViewImpact(item)}>Recipe Impact</Button>
-          <Button size="sm" variant="secondary" onClick={() => onLogWaste(item)}>Log Waste</Button>
-          <Button size="sm" variant="secondary" onClick={() => onUpdateStock(item)}>Update Stock</Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => onViewImpact(item)}
+          >
+            Recipe Impact
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => onLogWaste(item)}
+          >
+            Log Waste
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => onUpdateStock(item)}
+          >
+            Update Stock
+          </Button>
         </div>
       ),
     },

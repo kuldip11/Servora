@@ -3,7 +3,7 @@ const toast = vi.hoisted(() => vi.fn());
 const getErrorMessage = vi.hoisted(() => vi.fn());
 vi.mock("@pos/ui", () => ({ toast }));
 vi.mock("../errors", () => ({ getErrorMessage }));
-import { notifyError, notifySuccess } from "../notify";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
 describe("notify", () => {
   it("notifies errors", () => {
     getErrorMessage.mockReturnValue("Bad request");

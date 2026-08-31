@@ -18,11 +18,12 @@ export const setRecipeBody = t.Object({
       modifierOptionId: t.Optional(t.Union([t.String(), t.Null()])),
       quantity: t.Number({ minimum: 0 }),
       unit: INVENTORY_UNIT,
-      yieldPercent: t.Optional(t.Union([t.Number({ exclusiveMinimum: 0, maximum: 100 }), t.Null()])),
+      yieldPercent: t.Optional(
+        t.Union([t.Number({ exclusiveMinimum: 0, maximum: 100 }), t.Null()]),
+      ),
       isOptional: t.Optional(t.Boolean()),
     }),
   ),
 });
-
 
 export const itemIdParams = t.Object({ id: t.String() });

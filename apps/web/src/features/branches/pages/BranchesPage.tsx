@@ -1,4 +1,4 @@
-import { usePermissions } from "../../../shared/auth/permissions";
+import { usePermissions } from "@/shared/auth/permissions";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,12 +6,12 @@ import { branchFormSchema, type BranchFormValues } from "@pos/validation";
 import { Plus, Building2 } from "lucide-react";
 import { Button, EmptyState, Page, PageHeader, Grid } from "@pos/ui";
 import type { Branch } from "@pos/types";
-import { useBranches } from "../hooks/useBranches";
-import { useCreateBranch } from "../hooks/useCreateBranch";
-import { useUpdateBranch } from "../hooks/useUpdateBranch";
-import { useDeactivateBranch } from "../hooks/useDeactivateBranch";
-import { BranchCard } from "../components/BranchCard";
-import { BranchFormModal } from "../components/BranchFormModal";
+import { useBranches } from "@/features/branches/hooks/useBranches";
+import { useCreateBranch } from "@/features/branches/hooks/useCreateBranch";
+import { useUpdateBranch } from "@/features/branches/hooks/useUpdateBranch";
+import { useDeactivateBranch } from "@/features/branches/hooks/useDeactivateBranch";
+import { BranchCard } from "@/features/branches/components/BranchCard";
+import { BranchFormModal } from "@/features/branches/components/BranchFormModal";
 
 const emptyForm: BranchFormValues = {
   name: "",
@@ -27,7 +27,7 @@ const emptyForm: BranchFormValues = {
   tablesEnabled: true,
 };
 
-export function BranchesPage() {
+export const BranchesPage = () => {
   const { has } = usePermissions();
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<Branch | null>(null);
@@ -171,4 +171,4 @@ export function BranchesPage() {
       />
     </Page>
   );
-}
+};

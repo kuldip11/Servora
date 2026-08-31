@@ -5,7 +5,7 @@ import {
   ORDER_DETAIL_POLL_INTERVAL_MS,
   STATUS_CONFIG,
   TICKET_STATUS_LABEL,
-} from "../constants";
+} from "@/features/orders/constants";
 
 describe("orders constants", () => {
   it("builds stable query keys and polling intervals", () => {

@@ -1,5 +1,11 @@
-import { useCallback, useMemo, useState, type Dispatch, type SetStateAction } from "react";
-import type { CustomerCombo, CustomerMenuItem } from "../../api";
+import {
+  useCallback,
+  useMemo,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
+import type { CustomerCombo, CustomerMenuItem } from "@/api";
 import {
   comboLineKey,
   estimateComboLine,
@@ -27,22 +33,29 @@ type UseCustomerCartInput = {
   clearError: () => void;
 };
 
-export function useCustomerCart({
+export const useCustomerCart = ({
   menu,
   cart,
   setCart,
   sessionMode,
   clearError,
-}: UseCustomerCartInput) {
+}: UseCustomerCartInput) => {
   const [comboCart, setComboCart] = useState<ComboCartLine[]>([]);
-  const [selectedCombo, setSelectedCombo] = useState<CustomerCombo | null>(null);
-  const [comboSelections, setComboSelections] = useState<CustomerComboSelection[]>([]);
-  const [selectedItem, setSelectedItem] = useState<CustomerMenuItem | null>(null);
-  const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>();
-  const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
-  const [selectedFulfillmentType, setSelectedFulfillmentType] = useState<FulfillmentType>(
-    sessionMode,
+  const [selectedCombo, setSelectedCombo] = useState<CustomerCombo | null>(
+    null,
   );
+  const [comboSelections, setComboSelections] = useState<
+    CustomerComboSelection[]
+  >([]);
+  const [selectedItem, setSelectedItem] = useState<CustomerMenuItem | null>(
+    null,
+  );
+  const [selectedVariantId, setSelectedVariantId] = useState<
+    string | undefined
+  >();
+  const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
+  const [selectedFulfillmentType, setSelectedFulfillmentType] =
+    useState<FulfillmentType>(sessionMode);
 
   const menuById = useMemo(
     () => new Map(menu.map((item) => [item.id, item] as const)),
@@ -91,7 +104,11 @@ export function useCustomerCart({
   }, [sessionMode]);
 
   const toggleOption = useCallback(
-    (optionId: string, groupId: string, zoneLabel?: "LEFT" | "RIGHT" | "WHOLE") => {
+    (
+      optionId: string,
+      groupId: string,
+      zoneLabel?: "LEFT" | "RIGHT" | "WHOLE",
+    ) => {
       const group = selectedItem?.modifierGroupLinks.find(
         ({ group: value }) => value.id === groupId,
       )?.group;
@@ -119,8 +136,7 @@ export function useCustomerCart({
                 !(
                   group.options.some(
                     (option) => option.id === selection.optionId,
-                  ) &&
-                  (selection.zoneLabel ?? "WHOLE") === normalizedZone
+                  ) && (selection.zoneLabel ?? "WHOLE") === normalizedZone
                 ),
             ),
             { optionId, quantity: 1, ...(zoneLabel ? { zoneLabel } : {}) },
@@ -131,7 +147,10 @@ export function useCustomerCart({
             group.options.some((option) => option.id === selection.optionId) &&
             (selection.zoneLabel ?? "WHOLE") === normalizedZone,
         ).length;
-        if (group.maxSelections != null && selectedCount >= group.maxSelections) {
+        if (
+          group.maxSelections != null &&
+          selectedCount >= group.maxSelections
+        ) {
           return current;
         }
         return [
@@ -144,7 +163,11 @@ export function useCustomerCart({
   );
 
   const changeOptionQuantity = useCallback(
-    (optionId: string, delta: number, zoneLabel?: "LEFT" | "RIGHT" | "WHOLE") => {
+    (
+      optionId: string,
+      delta: number,
+      zoneLabel?: "LEFT" | "RIGHT" | "WHOLE",
+    ) => {
       setSelectedOptions((current) =>
         current.flatMap((selection) => {
           if (
@@ -185,7 +208,8 @@ export function useCustomerCart({
       quantity: 1,
       ...(selectedVariantId ? { variantId: selectedVariantId } : {}),
       selectedOptions: normalizeSelectedOptions(selectedOptions),
-      fulfillmentType: sessionMode === "TAKEAWAY" ? "TAKEAWAY" : selectedFulfillmentType,
+      fulfillmentType:
+        sessionMode === "TAKEAWAY" ? "TAKEAWAY" : selectedFulfillmentType,
     };
     const key = getCartLineKey(newLine);
     setCart((current) => {
@@ -251,7 +275,8 @@ export function useCustomerCart({
           if (slot.maxSelections === 1) {
             return { ...selection, optionIds: [optionId] };
           }
-          if (selection.optionIds.length >= slot.maxSelections) return selection;
+          if (selection.optionIds.length >= slot.maxSelections)
+            return selection;
           return {
             ...selection,
             optionIds: [...selection.optionIds, optionId],
@@ -358,4 +383,4 @@ export function useCustomerCart({
     changeFulfillment,
     clearCart,
   };
-}
+};

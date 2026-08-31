@@ -1,13 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
 import {
   menuBranchOverridesService,
   type BranchOverrideFormInput,
-} from "../services/menu-branch-overrides.service";
-import { menuKeys } from "../query-keys";
+} from "@/features/menu/services/menu-branch-overrides.service";
+import { menuKeys } from "@/features/menu/query-keys";
 
-export function useSaveBranchOverride(itemId: string) {
+export const useSaveBranchOverride = (itemId: string) => {
   return useMutation({
     mutationFn: ({
       branchId,
@@ -24,4 +24,4 @@ export function useSaveBranchOverride(itemId: string) {
     },
     onError: (err) => notifyError(err, "Failed to save override"),
   });
-}
+};

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { compact } from "../object-utils";
+import { compact } from "@/lib/object-utils";
 
 describe("compact", () => {
   it("removes undefined properties while preserving other values", () => {

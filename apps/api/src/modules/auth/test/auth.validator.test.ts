@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Value } from "@sinclair/typebox/value";
-import { signupBody, loginBody } from "../auth.validator";
+import { signupBody, loginBody } from "@/modules/auth/auth.validator";
 describe("auth validators", () => {
   it("accepts valid signup payloads and enforces required fields", () => {
     expect(

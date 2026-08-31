@@ -10,7 +10,7 @@ const FULFILLMENT_LABEL: Record<OrderItemFulfillmentType, string> = {
   TAKEAWAY: "Takeaway",
 };
 
-export function TicketItems({ notes, items }: Props) {
+export const TicketItems = ({ notes, items }: Props) => {
   const groups: OrderItemFulfillmentType[] = ["DINE_IN", "TAKEAWAY"];
 
   return (
@@ -61,14 +61,22 @@ export function TicketItems({ notes, items }: Props) {
                         )}
                       </p>
                       {item.itemStatus === "VOIDED" && (
-                        <p className="text-xs text-danger no-underline">VOIDED</p>
+                        <p className="text-xs text-danger no-underline">
+                          VOIDED
+                        </p>
                       )}
                       {item.itemStatus === "REFIRED" && (
-                        <p className="text-xs font-bold text-warning no-underline">REFIRED · replacement sent</p>
+                        <p className="text-xs font-bold text-warning no-underline">
+                          REFIRED · replacement sent
+                        </p>
                       )}
                       {item.refiresOrderItemId && (
-                        <p className={`text-xs font-bold no-underline ${item.refireType === "REFILL" ? "text-success" : "text-warning"}`}>
-                          {item.refireType === "REFILL" ? "REFILL · INCLUDED" : "REFIRE"}
+                        <p
+                          className={`text-xs font-bold no-underline ${item.refireType === "REFILL" ? "text-success" : "text-warning"}`}
+                        >
+                          {item.refireType === "REFILL"
+                            ? "REFILL · INCLUDED"
+                            : "REFIRE"}
                         </p>
                       )}
                       {item.weightQuantity != null && (
@@ -77,7 +85,9 @@ export function TicketItems({ notes, items }: Props) {
                         </p>
                       )}
                       {item.comboGroupId && (
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-info no-underline">Combo · {item.comboGroupId.slice(0, 6)}</p>
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-info no-underline">
+                          Combo · {item.comboGroupId.slice(0, 6)}
+                        </p>
                       )}
                       {item.chefNotes && (
                         <p className="text-xs text-warning mt-0.5">
@@ -86,7 +96,11 @@ export function TicketItems({ notes, items }: Props) {
                       )}
                       {item.modifiers?.map((m, i) => (
                         <p key={i} className="text-xs text-text-secondary">
-                          + {m.zoneLabel && m.zoneLabel !== "WHOLE" ? `${m.zoneLabel}: ` : ""}{m.name}
+                          +{" "}
+                          {m.zoneLabel && m.zoneLabel !== "WHOLE"
+                            ? `${m.zoneLabel}: `
+                            : ""}
+                          {m.name}
                           {m.quantity > 1 ? ` ×${m.quantity}` : ""}
                           {m.modifierGroupName ? (
                             <span className="text-text-disabled">
@@ -106,4 +120,4 @@ export function TicketItems({ notes, items }: Props) {
       </div>
     </>
   );
-}
+};

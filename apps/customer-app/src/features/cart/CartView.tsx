@@ -13,7 +13,7 @@ import type { CartLine } from "./pricing";
 import type { ComboCartLine } from "./combo";
 import { getLineSubtotal } from "./pricing";
 
-import { formatMoney } from "../../shared/utils/money";
+import { formatMoney } from "@/shared/utils/money";
 
 export const CartView = memo(function CartView({
   cart,
@@ -86,16 +86,43 @@ export const CartView = memo(function CartView({
           <>
             <div className="mt-3 space-y-2">
               {combos.map((line, index) => (
-                <Card key={`${line.combo.id}-${index}`} padding="sm" className="flex items-center gap-3">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-primary-surface text-sm font-bold text-primary">COMBO</div>
+                <Card
+                  key={`${line.combo.id}-${index}`}
+                  padding="sm"
+                  className="flex items-center gap-3"
+                >
+                  <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-primary-surface text-sm font-bold text-primary">
+                    COMBO
+                  </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-text-primary">{line.combo.name}</p>
-                    <p className="mt-1 text-sm text-text-secondary">{line.selections.reduce((sum, value) => sum + value.optionIds.length, 0)} selected components · final price recalculated at checkout</p>
+                    <p className="font-semibold text-text-primary">
+                      {line.combo.name}
+                    </p>
+                    <p className="mt-1 text-sm text-text-secondary">
+                      {line.selections.reduce(
+                        (sum, value) => sum + value.optionIds.length,
+                        0,
+                      )}{" "}
+                      selected components · final price recalculated at checkout
+                    </p>
                   </div>
                   <div className="flex items-center gap-1 rounded-lg bg-surface-secondary p-1">
-                    <IconButton aria-label={`Decrease ${line.combo.name}`} icon={Minus} size="sm" onClick={() => onComboChange(index, -1)} />
-                    <span className="w-5 text-center text-sm font-semibold">{line.quantity}</span>
-                    <IconButton aria-label={`Increase ${line.combo.name}`} icon={Plus} size="sm" variant="primary" onClick={() => onComboChange(index, 1)} />
+                    <IconButton
+                      aria-label={`Decrease ${line.combo.name}`}
+                      icon={Minus}
+                      size="sm"
+                      onClick={() => onComboChange(index, -1)}
+                    />
+                    <span className="w-5 text-center text-sm font-semibold">
+                      {line.quantity}
+                    </span>
+                    <IconButton
+                      aria-label={`Increase ${line.combo.name}`}
+                      icon={Plus}
+                      size="sm"
+                      variant="primary"
+                      onClick={() => onComboChange(index, 1)}
+                    />
                   </div>
                 </Card>
               ))}
@@ -185,7 +212,9 @@ export const CartView = memo(function CartView({
                   label="Coupon code"
                   placeholder="Optional"
                   value={couponCode}
-                  onChange={(event) => onCouponCodeChange(event.target.value.toUpperCase())}
+                  onChange={(event) =>
+                    onCouponCodeChange(event.target.value.toUpperCase())
+                  }
                 />
                 <TextInput
                   label="Loyalty phone"
@@ -195,7 +224,11 @@ export const CartView = memo(function CartView({
                   onChange={(event) => onLoyaltyPhoneChange(event.target.value)}
                 />
               </div>
-              <p className="mt-2 text-xs text-text-secondary">Promotions and loyalty pricing are validated by the restaurant when the order is submitted; totals above are pre-discount estimates.</p>
+              <p className="mt-2 text-xs text-text-secondary">
+                Promotions and loyalty pricing are validated by the restaurant
+                when the order is submitted; totals above are pre-discount
+                estimates.
+              </p>
             </Card>
             <Card padding="md" className="mt-5">
               <div className="flex justify-between py-1 text-sm text-text-secondary">

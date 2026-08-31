@@ -1,4 +1,4 @@
-import { usePermissions } from "../../../shared/auth/permissions";
+import { usePermissions } from "@/shared/auth/permissions";
 import { useState } from "react";
 import { Plus, Users, Trash2, UserCheck, UserX, Pencil } from "lucide-react";
 import {
@@ -13,20 +13,23 @@ import {
   type Column,
   type StatusTone,
 } from "@pos/ui";
-import { useBranches } from "../../branches/hooks/useBranches";
-import { useStaff } from "../hooks/useStaff";
-import { useRoles } from "../hooks/useRoles";
-import { useAddStaff } from "../hooks/useAddStaff";
-import { useDeleteStaff } from "../hooks/useDeleteStaff";
-import { useUpdateStaffStatus } from "../hooks/useUpdateStaffStatus";
+import { useBranches } from "@/features/branches/hooks/useBranches";
+import { useStaff } from "@/features/staff/hooks/useStaff";
+import { useRoles } from "@/features/staff/hooks/useRoles";
+import { useAddStaff } from "@/features/staff/hooks/useAddStaff";
+import { useDeleteStaff } from "@/features/staff/hooks/useDeleteStaff";
+import { useUpdateStaffStatus } from "@/features/staff/hooks/useUpdateStaffStatus";
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
-import { staffService, type StaffRow } from "../services/staff.service";
-import { staffKeys } from "../query-keys";
-import { AddStaffForm } from "../components/forms/AddStaffForm";
-import { EditStaffForm } from "../components/forms/EditStaffForm";
-import { RoleManager } from "../components/roles/RoleManager";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
+import {
+  staffService,
+  type StaffRow,
+} from "@/features/staff/services/staff.service";
+import { staffKeys } from "@/features/staff/query-keys";
+import { AddStaffForm } from "@/features/staff/components/forms/AddStaffForm";
+import { EditStaffForm } from "@/features/staff/components/forms/EditStaffForm";
+import { RoleManager } from "@/features/staff/components/roles/RoleManager";
 
 const STATUS_TONES: Record<string, StatusTone> = {
   ACTIVE: "success",
@@ -34,7 +37,7 @@ const STATUS_TONES: Record<string, StatusTone> = {
   SUSPENDED: "danger",
 };
 
-export function StaffPage() {
+export const StaffPage = () => {
   const { has } = usePermissions();
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<StaffRow | null>(null);
@@ -258,4 +261,4 @@ export function StaffPage() {
       </Modal>
     </Page>
   );
-}
+};

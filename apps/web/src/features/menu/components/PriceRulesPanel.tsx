@@ -2,15 +2,15 @@ import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button, Input } from "@pos/ui";
 import { createCustomersApi, createMenuApi } from "@pos/api-client";
-import { apiClient } from "../../../shared/lib/api-client";
+import { apiClient } from "@/shared/lib/api-client";
 
 const menuApi = createMenuApi(apiClient);
 const customersApi = createCustomersApi(apiClient);
-import { queryClient } from "../../../shared/lib/query-client";
+import { queryClient } from "@/shared/lib/query-client";
 import type { CustomerGroup, PriceRule } from "@pos/types";
-import { getErrorMessage } from "../../../shared/lib/errors";
+import { getErrorMessage } from "@/shared/lib/errors";
 
-import { FULFILLMENT_TYPES } from "../constants";
+import { FULFILLMENT_TYPES } from "@/features/menu/constants";
 
 const describeRule = (rule: PriceRule) => {
   const scope = [
@@ -19,15 +19,25 @@ const describeRule = (rule: PriceRule) => {
     rule.branchId ? "This branch" : "All branches",
   ].join(" · ");
   const window = [
-    rule.startDate || rule.endDate ? `${rule.startDate ?? "…"} → ${rule.endDate ?? "…"}` : null,
-    rule.startTime || rule.endTime ? `${rule.startTime ?? "00:00"}–${rule.endTime ?? "24:00"}` : null,
+    rule.startDate || rule.endDate
+      ? `${rule.startDate ?? "…"} → ${rule.endDate ?? "…"}`
+      : null,
+    rule.startTime || rule.endTime
+      ? `${rule.startTime ?? "00:00"}–${rule.endTime ?? "24:00"}`
+      : null,
   ]
     .filter(Boolean)
     .join(" · ");
   return `${scope}${window ? ` · ${window}` : ""}`;
 };
 
-export function PriceRulesPanel({ itemId, branchId }: { itemId: string; branchId?: string | null }) {
+export const PriceRulesPanel = ({
+  itemId,
+  branchId,
+}: {
+  itemId: string;
+  branchId?: string | null;
+}) => {
   const [channel, setChannel] = useState("");
   const [fulfillmentType, setFulfillmentType] = useState("");
   const [scopeToBranch, setScopeToBranch] = useState(false);
@@ -90,11 +100,21 @@ export function PriceRulesPanel({ itemId, branchId }: { itemId: string; branchId
         </span>
       </span>
       {rules.map((rule) => (
-        <div key={rule.id} className="flex items-center justify-between rounded bg-surface-secondary px-3 py-2 text-xs">
+        <div
+          key={rule.id}
+          className="flex items-center justify-between rounded bg-surface-secondary px-3 py-2 text-xs"
+        >
           <span>
-            {rule.percentOff !== null ? `${rule.percentOff}% off` : `₹${rule.price}`} · {describeRule(rule)} · priority {rule.priority}
+            {rule.percentOff !== null
+              ? `${rule.percentOff}% off`
+              : `₹${rule.price}`}{" "}
+            · {describeRule(rule)} · priority {rule.priority}
           </span>
-          <button type="button" className="text-danger" onClick={() => remove.mutate(rule.id)}>
+          <button
+            type="button"
+            className="text-danger"
+            onClick={() => remove.mutate(rule.id)}
+          >
             Remove
           </button>
         </div>
@@ -123,20 +143,71 @@ export function PriceRulesPanel({ itemId, branchId }: { itemId: string; branchId
         </select>
         {branchId ? (
           <label className="col-span-2 flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={scopeToBranch} onChange={(event) => setScopeToBranch(event.target.checked)} />
+            <input
+              type="checkbox"
+              checked={scopeToBranch}
+              onChange={(event) => setScopeToBranch(event.target.checked)}
+            />
             Scope to this branch only
           </label>
         ) : null}
-        <Input aria-label="Rule start date" type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} placeholder="Start date" />
-        <Input aria-label="Rule end date" type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} placeholder="End date" />
-        <Input aria-label="Rule start time" type="time" value={startTime} onChange={(event) => setStartTime(event.target.value)} placeholder="Start time" />
-        <Input aria-label="Rule end time" type="time" value={endTime} onChange={(event) => setEndTime(event.target.value)} placeholder="End time" />
-        <select aria-label="Customer group scope" value={customerGroupId} onChange={(event) => setCustomerGroupId(event.target.value)} className="rounded border border-border px-2 py-1.5 text-sm">
+        <Input
+          aria-label="Rule start date"
+          type="date"
+          value={startDate}
+          onChange={(event) => setStartDate(event.target.value)}
+          placeholder="Start date"
+        />
+        <Input
+          aria-label="Rule end date"
+          type="date"
+          value={endDate}
+          onChange={(event) => setEndDate(event.target.value)}
+          placeholder="End date"
+        />
+        <Input
+          aria-label="Rule start time"
+          type="time"
+          value={startTime}
+          onChange={(event) => setStartTime(event.target.value)}
+          placeholder="Start time"
+        />
+        <Input
+          aria-label="Rule end time"
+          type="time"
+          value={endTime}
+          onChange={(event) => setEndTime(event.target.value)}
+          placeholder="End time"
+        />
+        <select
+          aria-label="Customer group scope"
+          value={customerGroupId}
+          onChange={(event) => setCustomerGroupId(event.target.value)}
+          className="rounded border border-border px-2 py-1.5 text-sm"
+        >
           <option value="">Any customer group</option>
-          {customerGroups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}
+          {customerGroups.map((group) => (
+            <option key={group.id} value={group.id}>
+              {group.name}
+            </option>
+          ))}
         </select>
-        <Input aria-label="Rule price" type="number" min={0} step="0.01" value={price} onChange={(event) => setPrice(event.target.value)} placeholder="Price" />
-        <Input aria-label="Rule priority" type="number" value={priority} onChange={(event) => setPriority(event.target.value)} placeholder="Priority" />
+        <Input
+          aria-label="Rule price"
+          type="number"
+          min={0}
+          step="0.01"
+          value={price}
+          onChange={(event) => setPrice(event.target.value)}
+          placeholder="Price"
+        />
+        <Input
+          aria-label="Rule priority"
+          type="number"
+          value={priority}
+          onChange={(event) => setPriority(event.target.value)}
+          placeholder="Priority"
+        />
         <Button
           type="button"
           size="sm"
@@ -150,4 +221,4 @@ export function PriceRulesPanel({ itemId, branchId }: { itemId: string; branchId
       {error ? <p className="text-xs text-danger">{error}</p> : null}
     </div>
   );
-}
+};

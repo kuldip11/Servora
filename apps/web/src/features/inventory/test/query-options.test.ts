@@ -9,7 +9,7 @@ vi.mock("../../../store/auth", () => ({
   useAuthStore: { getState: () => ({ franchiseId: "fr-1", branchId: "br-1" }) },
 }));
 
-import { inventoryItemsQuery } from "../query-options";
+import { inventoryItemsQuery } from "@/features/inventory/query-options";
 
 describe("inventoryItemsQuery", () => {
   it("binds inventory items to the service and branch-scoped key", () => {

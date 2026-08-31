@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { STORAGE_KEYS } from "../storage-keys";
+import { STORAGE_KEYS } from "@/shared/constants/storage-keys";
 
 describe("waiter storage keys", () => {
   it("keeps the waiter storage namespace stable", () => {

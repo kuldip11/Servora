@@ -1,5 +1,5 @@
-import { createdResponse, successResponse } from "../../core/response";
-import { ValidationError } from "../../core/errors";
+import { createdResponse, successResponse } from "@/core/response";
+import { ValidationError } from "@/core/errors";
 import {
   customerService,
   type CreateCustomerOrderInput,

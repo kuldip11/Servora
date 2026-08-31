@@ -3,7 +3,6 @@ import { cn } from "../../utils/cn";
 import { IconButton } from "../IconButton";
 
 export interface PaginationProps {
-
   page: number;
   pageCount: number;
   onPageChange: (page: number) => void;
@@ -15,10 +14,10 @@ export interface PaginationProps {
   className?: string | undefined;
 }
 
-function buildPageWindow(
+const buildPageWindow = (
   page: number,
   pageCount: number,
-): (number | "ellipsis")[] {
+): (number | "ellipsis")[] => {
   if (pageCount <= 7) return Array.from({ length: pageCount }, (_, i) => i + 1);
   const pages = new Set<number>([1, pageCount, page, page - 1, page + 1]);
   const sorted = [...pages]
@@ -34,9 +33,9 @@ function buildPageWindow(
     out.push(p);
   });
   return out;
-}
+};
 
-export function Pagination({
+export const Pagination = ({
   page,
   pageCount,
   onPageChange,
@@ -45,7 +44,7 @@ export function Pagination({
   onPageSizeChange,
   pageSizeOptions = [10, 25, 50, 100],
   className,
-}: PaginationProps) {
+}: PaginationProps) => {
   const safePageCount = Math.max(1, pageCount);
   const pageWindow = buildPageWindow(page, safePageCount);
 
@@ -143,4 +142,4 @@ export function Pagination({
       </nav>
     </div>
   );
-}
+};

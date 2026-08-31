@@ -1,7 +1,5 @@
-
-
-import type { AuthContext } from "../../core/auth";
-import { successResponse, createdResponse } from "../../core/response";
+import type { AuthContext } from "@/core/auth";
+import { successResponse, createdResponse } from "@/core/response";
 import {
   branchService,
   type CreateBranchInput,

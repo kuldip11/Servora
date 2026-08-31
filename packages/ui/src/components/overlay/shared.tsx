@@ -13,7 +13,7 @@ export const fadeAnimationClasses = cn(
   "data-[state=closed]:duration-fast data-[state=closed]:ease-accelerate",
 );
 
-export function OverlayHeader({
+export const OverlayHeader = ({
   title,
   onClose,
   className,
@@ -21,7 +21,7 @@ export function OverlayHeader({
   title: ReactNode;
   onClose: () => void;
   className?: string | undefined;
-}) {
+}) => {
   return (
     <div
       className={cn(
@@ -40,7 +40,7 @@ export function OverlayHeader({
       </button>
     </div>
   );
-}
+};
 
 export const overlayScrimClasses = cn(
   "fixed inset-0 z-50 bg-black/40",
@@ -72,16 +72,20 @@ export const menuContentClasses = cn(
   "data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2",
 );
 
-export function menuItemClasses(danger?: boolean) {
+export const menuItemClasses = (danger?: boolean) => {
   return cn(
     "flex items-center gap-2 px-3 py-2 text-sm cursor-pointer select-none outline-none",
     "data-[disabled]:opacity-50 data-[disabled]:cursor-not-allowed data-[disabled]:pointer-events-none",
     "data-[highlighted]:bg-surface-secondary",
     danger ? "text-danger" : "text-text-primary",
   );
-}
+};
 
-export function MenuItemContent({ icon: Icon, label, shortcut }: MenuItemDef) {
+export const MenuItemContent = ({
+  icon: Icon,
+  label,
+  shortcut,
+}: MenuItemDef) => {
   return (
     <>
       {Icon && <Icon className="w-4 h-4 shrink-0" />}
@@ -93,6 +97,6 @@ export function MenuItemContent({ icon: Icon, label, shortcut }: MenuItemDef) {
       )}
     </>
   );
-}
+};
 
 export const menuSeparatorClasses = "my-1 h-px bg-divider";

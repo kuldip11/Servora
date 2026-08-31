@@ -11,9 +11,9 @@ import {
 import { Card, IconButton } from "@pos/ui";
 import type { Branch } from "@pos/types";
 
-import { BRANCH_CAPABILITY_BADGES } from "../constants";
+import { BRANCH_CAPABILITY_BADGES } from "@/features/branches/constants";
 
-export function BranchCard({
+export const BranchCard = ({
   branch,
   onEdit,
   onDeactivate,
@@ -21,7 +21,7 @@ export function BranchCard({
   branch: Branch;
   onEdit: (branch: Branch) => void;
   onDeactivate: (branch: Branch) => void;
-}) {
+}) => {
   return (
     <Card className="flex flex-col gap-3">
       <div className="flex items-start justify-between">
@@ -95,4 +95,4 @@ export function BranchCard({
       </div>
     </Card>
   );
-}
+};

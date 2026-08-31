@@ -1,7 +1,7 @@
 import { memo, useCallback } from "react";
 import { Spinner } from "@pos/ui";
-import type { CartItem } from "../types";
-import { cartItemKey } from "../utils/cart";
+import type { CartItem } from "@/features/menu/types";
+import { cartItemKey } from "@/features/menu/utils/cart";
 import { MenuItemCard } from "./MenuItemCard";
 import type { OrderableMenuItem } from "@pos/types";
 
@@ -46,14 +46,14 @@ const MenuGridItem = memo(function MenuGridItem({
   );
 });
 
-export function MenuGrid({
+export const MenuGrid = ({
   items,
   cart,
   isLoading,
   menuSearch,
   onItemTap,
   onQtyChange,
-}: Props) {
+}: Props) => {
   return (
     <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2 pb-28">
       {isLoading ? (
@@ -89,4 +89,4 @@ export function MenuGrid({
       )}
     </div>
   );
-}
+};

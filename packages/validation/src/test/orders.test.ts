@@ -24,13 +24,17 @@ describe("createOrderSchema", () => {
     expect(
       createOrderSchema.safeParse({
         type: "TAKEAWAY",
-        combos: [{
-          comboId: uuid,
-          selections: [{ slotId: uuid, optionIds: [uuid] }],
-        }],
+        combos: [
+          {
+            comboId: uuid,
+            selections: [{ slotId: uuid, optionIds: [uuid] }],
+          },
+        ],
       }).success,
     ).toBe(true);
-    expect(createOrderSchema.safeParse({ type: "TAKEAWAY" }).success).toBe(false);
+    expect(createOrderSchema.safeParse({ type: "TAKEAWAY" }).success).toBe(
+      false,
+    );
   });
 
   it("accepts optional table/customer and selected options", () => {

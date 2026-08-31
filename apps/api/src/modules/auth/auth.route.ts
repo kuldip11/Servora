@@ -1,10 +1,14 @@
 import { Elysia } from "elysia";
-import { requireAuthPlugin } from "../../core/auth";
+import { requireAuthPlugin } from "@/core/auth";
 import { authController } from "./auth.controller";
 import { authService } from "./auth.service";
-import { successResponse } from "../../core/response";
+import { successResponse } from "@/core/response";
 import { invalidRefreshToken } from "./auth.errors";
-import { clearRefreshCookie, readRefreshCookie, serializeRefreshCookie } from "./auth-cookie";
+import {
+  clearRefreshCookie,
+  readRefreshCookie,
+  serializeRefreshCookie,
+} from "./auth-cookie";
 import {
   signupBody,
   loginBody,

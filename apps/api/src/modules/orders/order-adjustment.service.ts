@@ -4,21 +4,21 @@ import type {
   OrderType,
   RestaurantTable,
 } from "@pos/types";
-import type { AuthContext } from "../../core/auth";
+import type { AuthContext } from "@/core/auth";
 import {
   requireOrdersPermission,
   assertOrderResourceAccess,
 } from "./orders-authorization";
-import { DomainRuleError, ValidationError } from "../../core/errors";
-import { writeAudit } from "../../core/audit";
-import { availabilityRepository } from "../menu/availability/availability.repository";
-import { availabilityService } from "../menu/availability/availability.service";
-import { tableRepository } from "../tables/table.repository";
-import { ticketRepository } from "../kitchen-tickets/ticket.repository";
-import { branchRepository } from "../branches/branch.repository";
-import { tenantRepository } from "../tenants/tenant.repository";
-import { inventoryService } from "../inventory/inventory.service";
-import { eventBus } from "../../lib/event-bus";
+import { DomainRuleError, ValidationError } from "@/core/errors";
+import { writeAudit } from "@/core/audit";
+import { availabilityRepository } from "@/modules/menu/availability/availability.repository";
+import { availabilityService } from "@/modules/menu/availability/availability.service";
+import { tableRepository } from "@/modules/tables/table.repository";
+import { ticketRepository } from "@/modules/kitchen-tickets/ticket.repository";
+import { branchRepository } from "@/modules/branches/branch.repository";
+import { tenantRepository } from "@/modules/tenants/tenant.repository";
+import { inventoryService } from "@/modules/inventory/inventory.service";
+import { eventBus } from "@/lib/event-bus";
 import { orderRepository } from "./order.repository";
 import { orderQueryService } from "./order-query.service";
 import { orderTableService } from "./order-table.service";
@@ -29,23 +29,23 @@ import {
   type PricableMenuItem,
   type PricedLine,
 } from "./pricing/pricing-pipeline";
-import { menuResolver } from "../menu/menus/menu-resolver.service";
+import { menuResolver } from "@/modules/menu/menus/menu-resolver.service";
 import { snapshotOrderLines } from "./order-line-snapshot.service";
 import {
   priceComboOrders,
   type ComboOrderSelection,
-} from "../menu/combos/combo-order.service";
-import { promotionRepository } from "../menu/promotions/promotion.repository";
+} from "@/modules/menu/combos/combo-order.service";
+import { promotionRepository } from "@/modules/menu/promotions/promotion.repository";
 import { cancellationReasonService } from "./cancellation-reasons/cancellation-reason.service";
-import { customerGroupRepository } from "../customer-groups/customer-group.repository";
+import { customerGroupRepository } from "@/modules/customer-groups/customer-group.repository";
 import {
   finalizeWholeActiveOrder,
   storedOrderLineToStage4Snapshot,
   type StoredOrderLineForRepricing,
 } from "./active-order-pricing";
 import { isBillableOrderItem } from "./order-item-billing";
-import { approvalService } from "../approvals/approval.service";
-import { approvalAdjustmentValue } from "../approvals/approval-policy";
+import { approvalService } from "@/modules/approvals/approval.service";
+import { approvalAdjustmentValue } from "@/modules/approvals/approval-policy";
 import {
   orderNotFound,
   branchRequiredForOrder,
@@ -337,5 +337,4 @@ export const orderAdjustmentService = {
     );
     return fullOrder;
   },
-
 };

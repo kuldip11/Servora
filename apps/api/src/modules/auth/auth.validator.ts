@@ -12,7 +12,6 @@ export const loginBody = t.Object({
   password: t.String({ minLength: 1 }),
 });
 
-
 export const profileBody = t.Object({
   firstName: t.Optional(t.String({ minLength: 1, maxLength: 50 })),
   lastName: t.Optional(t.String({ minLength: 1, maxLength: 50 })),

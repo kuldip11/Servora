@@ -1,7 +1,5 @@
-
-
 import type { OrderStatus } from "@pos/types";
-import { DomainRuleError } from "../../core/errors";
+import { DomainRuleError } from "@/core/errors";
 
 export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   OPEN: ["BILL_REQUESTED", "CANCELLED"],
@@ -11,21 +9,21 @@ export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   CANCELLED: [],
 };
 
-export function canTransitionOrder(
+export const canTransitionOrder = (
   from: OrderStatus,
   to: OrderStatus,
-): boolean {
+): boolean => {
   return (ORDER_STATUS_TRANSITIONS[from] ?? []).includes(to);
-}
+};
 
-export function assertValidOrderTransition(
+export const assertValidOrderTransition = (
   from: OrderStatus,
   to: OrderStatus,
-): void {
+): void => {
   if (!canTransitionOrder(from, to)) {
     throw new DomainRuleError(`Cannot transition order from ${from} to ${to}`, {
       from,
       to,
     });
   }
-}
+};

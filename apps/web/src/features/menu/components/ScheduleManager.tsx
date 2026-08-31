@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { Plus, X, Clock } from "lucide-react";
-import { MENU_ITEM_STATUS_OPTIONS } from "../constants";
-import { useMenuItemSchedules } from "../hooks/useMenuItemSchedules";
-import { useAddSchedule } from "../hooks/useAddSchedule";
-import { useDeleteSchedule } from "../hooks/useDeleteSchedule";
+import { MENU_ITEM_STATUS_OPTIONS } from "@/features/menu/constants";
+import { useMenuItemSchedules } from "@/features/menu/hooks/useMenuItemSchedules";
+import { useAddSchedule } from "@/features/menu/hooks/useAddSchedule";
+import { useDeleteSchedule } from "@/features/menu/hooks/useDeleteSchedule";
 import type {
   MenuItemSchedule,
   MenuItemScheduleType,
   MenuItemStatus,
 } from "@pos/types";
 
-import { WEEK_DAYS } from "../constants";
+import { WEEK_DAYS } from "@/features/menu/constants";
 
 const SCHEDULE_TYPE_OPTIONS: { value: MenuItemScheduleType; label: string }[] =
   [
@@ -42,7 +42,7 @@ const EMPTY_DRAFT: Draft = {
   statusDuringPeriod: "ACTIVE",
 };
 
-function describe(s: MenuItemSchedule): string {
+const describe = (s: MenuItemSchedule): string => {
   switch (s.scheduleType) {
     case "DAILY":
       return `Every day, ${s.startTime?.slice(0, 5)}–${s.endTime?.slice(0, 5)}`;
@@ -57,9 +57,9 @@ function describe(s: MenuItemSchedule): string {
     default:
       return "";
   }
-}
+};
 
-export function ScheduleManager({ itemId }: { itemId: string }) {
+export const ScheduleManager = ({ itemId }: { itemId: string }) => {
   const [draft, setDraft] = useState<Draft | null>(null);
 
   const { data: schedules, isLoading } = useMenuItemSchedules(itemId);
@@ -119,8 +119,9 @@ export function ScheduleManager({ itemId }: { itemId: string }) {
                 <span className="text-text-disabled">→</span>
                 <span className="font-medium">
                   {
-                    MENU_ITEM_STATUS_OPTIONS.find((o) => o.value === s.statusDuringPeriod)
-                      ?.label
+                    MENU_ITEM_STATUS_OPTIONS.find(
+                      (o) => o.value === s.statusDuringPeriod,
+                    )?.label
                   }
                 </span>
               </div>
@@ -282,4 +283,4 @@ export function ScheduleManager({ itemId }: { itemId: string }) {
       )}
     </div>
   );
-}
+};

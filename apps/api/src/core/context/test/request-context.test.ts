@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Elysia } from "elysia";
-import { requestContextPlugin } from "../request-context";
+import { requestContextPlugin } from "@/core/context/request-context";
 
 describe("requestContextPlugin", () => {
   it("adds request id and response-time headers", async () => {
@@ -35,5 +35,4 @@ describe("requestContextPlugin", () => {
     );
     expect(await response.json()).toEqual({});
   });
-
 });

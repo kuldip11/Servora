@@ -1,21 +1,21 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
-import { menuKeys } from "../query-keys";
-import { menusService } from "../services/menus.service";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
+import { menuKeys } from "@/features/menu/query-keys";
+import { menusService } from "@/features/menu/services/menus.service";
 
 const invalidate = () =>
   queryClient.invalidateQueries({ queryKey: menuKeys.menus() });
 
-export function useMenus() {
+export const useMenus = () => {
   return useQuery({
     queryKey: menuKeys.menus(),
     queryFn: menusService.list,
     staleTime: 60_000,
   });
-}
+};
 
-export function useCreateMenu() {
+export const useCreateMenu = () => {
   return useMutation({
     mutationFn: menusService.create,
     onSuccess: () => {
@@ -24,30 +24,36 @@ export function useCreateMenu() {
     },
     onError: (error) => notifyError(error, "Failed to create menu"),
   });
-}
+};
 
-export function useUpdateMenu() {
+export const useUpdateMenu = () => {
   return useMutation({
-    mutationFn: ({ id, input }: { id: string; input: Parameters<typeof menusService.update>[1] }) =>
-      menusService.update(id, input),
+    mutationFn: ({
+      id,
+      input,
+    }: {
+      id: string;
+      input: Parameters<typeof menusService.update>[1];
+    }) => menusService.update(id, input),
     onSuccess: () => {
       invalidate();
       notifySuccess("Menu availability updated");
     },
-    onError: (error) => notifyError(error, "Failed to update menu availability"),
+    onError: (error) =>
+      notifyError(error, "Failed to update menu availability"),
   });
-}
+};
 
-export function useSetMenuPublished() {
+export const useSetMenuPublished = () => {
   return useMutation({
     mutationFn: ({ id, published }: { id: string; published: boolean }) =>
       published ? menusService.publish(id) : menusService.unpublish(id),
     onSuccess: invalidate,
     onError: (error) => notifyError(error, "Failed to update menu"),
   });
-}
+};
 
-export function useDeleteMenu() {
+export const useDeleteMenu = () => {
   return useMutation({
     mutationFn: menusService.remove,
     onSuccess: () => {
@@ -56,4 +62,4 @@ export function useDeleteMenu() {
     },
     onError: (error) => notifyError(error, "Failed to delete menu"),
   });
-}
+};

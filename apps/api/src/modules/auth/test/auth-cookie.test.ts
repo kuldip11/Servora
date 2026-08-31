@@ -4,7 +4,7 @@ import {
   clearRefreshCookie,
   readRefreshCookie,
   serializeRefreshCookie,
-} from "../auth-cookie";
+} from "@/modules/auth/auth-cookie";
 
 describe("refresh cookie", () => {
   it("is HttpOnly and scoped to auth endpoints", () => {

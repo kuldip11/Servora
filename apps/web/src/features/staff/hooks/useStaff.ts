@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { staffListQuery } from "../query-options";
+import { staffListQuery } from "@/features/staff/query-options";
 
-export function useStaff() {
+export const useStaff = () => {
   return useQuery(staffListQuery());
-}
+};

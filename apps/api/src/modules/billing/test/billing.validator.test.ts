@@ -4,7 +4,7 @@ import {
   billIdParams,
   createPaymentBody,
   createRefundBody,
-} from "../billing.validator";
+} from "@/modules/billing/billing.validator";
 
 describe("billing validators", () => {
   it("accepts valid payment payloads and rejects invalid amounts/methods", () => {

@@ -1,9 +1,9 @@
 import { createRoot } from "react-dom/client";
 import { act } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { useExportMenu } from "../../features/menu/hooks/useExportMenu";
-import { menuExportService } from "../../features/menu/services/menu-export.service";
-import { notifyError } from "../../shared/lib/notify";
+import { useExportMenu } from "@/features/menu/hooks/useExportMenu";
+import { menuExportService } from "@/features/menu/services/menu-export.service";
+import { notifyError } from "@/shared/lib/notify";
 
 vi.mock("../../shared/lib/notify", () => ({
   notifyError: vi.fn(),

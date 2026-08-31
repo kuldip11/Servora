@@ -1,9 +1,9 @@
 import { memo } from "react";
 import { Plus } from "lucide-react";
 import { Card } from "@pos/ui";
-import type { CustomerMenuItem } from "../../api";
+import type { CustomerMenuItem } from "@/api";
 
-import { formatMoney } from "../../shared/utils/money";
+import { formatMoney } from "@/shared/utils/money";
 
 export const MenuCard = memo(function MenuCard({
   item,
@@ -41,7 +41,11 @@ export const MenuCard = memo(function MenuCard({
               {item.name}
             </h3>
             <span className="shrink-0 font-semibold text-text-primary">
-              {item.pricingMode === "OPEN" ? "Staff priced" : item.pricingMode === "WEIGHT_BASED" ? `${formatMoney(Number(item.basePrice))}/${String(item.weightUnit ?? "unit").toLowerCase()}` : formatMoney(Number(item.basePrice))}
+              {item.pricingMode === "OPEN"
+                ? "Staff priced"
+                : item.pricingMode === "WEIGHT_BASED"
+                  ? `${formatMoney(Number(item.basePrice))}/${String(item.weightUnit ?? "unit").toLowerCase()}`
+                  : formatMoney(Number(item.basePrice))}
             </span>
           </div>
           {item.description && (
@@ -51,7 +55,18 @@ export const MenuCard = memo(function MenuCard({
           )}
           <div className="mt-3 flex items-center justify-between gap-3">
             <span className="text-xs text-text-secondary">
-              {item.pricingMode === "WEIGHT_BASED" ? "Sold by weight · staff assisted" : item.pricingMode === "OPEN" ? "Open price · staff assisted" : item.supportsZones ? "Split-zone customization" : item.manualStockCount != null && item.manualStockCount <= 5 ? `${item.manualStockCount} left` : item.modifierGroupLinks.length || item.variants.length ? "Customizable" : "Ready to order"}
+              {item.pricingMode === "WEIGHT_BASED"
+                ? "Sold by weight · staff assisted"
+                : item.pricingMode === "OPEN"
+                  ? "Open price · staff assisted"
+                  : item.supportsZones
+                    ? "Split-zone customization"
+                    : item.manualStockCount != null &&
+                        item.manualStockCount <= 5
+                      ? `${item.manualStockCount} left`
+                      : item.modifierGroupLinks.length || item.variants.length
+                        ? "Customizable"
+                        : "Ready to order"}
             </span>
             <span
               aria-hidden="true"

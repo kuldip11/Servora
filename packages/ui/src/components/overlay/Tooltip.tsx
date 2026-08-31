@@ -10,7 +10,6 @@ export interface TooltipProps {
 }
 
 const tooltipAnimationClasses = cn(
-
   "data-[state=delayed-open]:animate-in data-[state=instant-open]:animate-in",
   "data-[state=delayed-open]:fade-in-0 data-[state=instant-open]:fade-in-0",
   "data-[state=delayed-open]:zoom-in-95 data-[state=instant-open]:zoom-in-95",
@@ -22,12 +21,12 @@ const tooltipAnimationClasses = cn(
   "data-[side=left]:slide-in-from-right-1 data-[side=right]:slide-in-from-left-1",
 );
 
-export function Tooltip({
+export const Tooltip = ({
   trigger,
   content,
   side = "top",
   align = "center",
-}: TooltipProps) {
+}: TooltipProps) => {
   return (
     <RadixTooltip.Root>
       <RadixTooltip.Trigger asChild>{trigger}</RadixTooltip.Trigger>
@@ -48,6 +47,6 @@ export function Tooltip({
       </RadixTooltip.Portal>
     </RadixTooltip.Root>
   );
-}
+};
 
 export const TooltipProvider = RadixTooltip.Provider;

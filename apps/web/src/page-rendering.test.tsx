@@ -184,7 +184,7 @@ vi.mock("./features/settings/components/ApprovalThresholdSettingsCard", () => ({
   ApprovalThresholdSettingsCard: () => <div>ApprovalThresholdSettingsCard</div>,
 }));
 
-function renderPage(Page: React.ComponentType) {
+const renderPage = (Page: React.ComponentType) => {
   const host = document.createElement("div");
   document.body.appendChild(host);
   const root = createRoot(host);
@@ -208,7 +208,7 @@ function renderPage(Page: React.ComponentType) {
     queryClient.clear();
     host.remove();
   };
-}
+};
 
 describe("page rendering coverage", () => {
   afterEach(() => {

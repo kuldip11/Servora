@@ -1,7 +1,5 @@
-
-
-import type { AuthContext } from "../../../core/auth";
-import { successResponse, createdResponse } from "../../../core/response";
+import type { AuthContext } from "@/core/auth";
+import { successResponse, createdResponse } from "@/core/response";
 import {
   modifierService,
   type CreateModifierGroupInput,
@@ -10,7 +8,6 @@ import {
 } from "./modifier.service";
 
 export const modifierController = {
-
   async listGroups(auth: AuthContext) {
     const groups = await modifierService.listGroups(auth);
     return successResponse(groups);

@@ -7,7 +7,7 @@ const { signup, memberships, me } = vi.hoisted(() => ({
 vi.mock("../auth.service", () => ({
   authService: { signup, memberships, me },
 }));
-import { authController } from "../auth.controller";
+import { authController } from "@/modules/auth/auth.controller";
 const auth: any = {
   userId: "u1",
   tenantId: "t1",

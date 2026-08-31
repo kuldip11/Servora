@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
-import { apiClient } from "../../../../shared/lib/api-client";
+import { apiClient } from "@/shared/lib/api-client";
 import {
   addOrderItems,
   fetchOrder,
   fetchOrders,
   updateOrderStatus,
   updateTicketStatus,
-} from "../orders";
+} from "@/features/orders/api/orders";
 
 vi.mock("../../../../shared/lib/api-client", () => ({
   apiClient: { get: vi.fn(), patch: vi.fn(), post: vi.fn() },

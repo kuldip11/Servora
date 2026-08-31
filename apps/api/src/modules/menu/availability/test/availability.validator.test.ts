@@ -13,12 +13,15 @@ import {
   holidayIdParams,
   upsertOverrideBody,
   manualOverrideBody,
-} from "../availability.validator";
+} from "@/modules/menu/availability/availability.validator";
 
 describe("availability.validator validators", () => {
   it("requires a status and non-empty reason for manual overrides", () => {
     expect(
-      Value.Check(manualOverrideBody, { status: "OUT_OF_STOCK", reason: "Sold out" }),
+      Value.Check(manualOverrideBody, {
+        status: "OUT_OF_STOCK",
+        reason: "Sold out",
+      }),
     ).toBe(true);
     expect(
       Value.Check(manualOverrideBody, { status: "OUT_OF_STOCK", reason: "" }),

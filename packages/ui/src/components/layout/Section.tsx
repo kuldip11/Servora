@@ -13,14 +13,14 @@ export interface SectionProps extends Omit<
   actions?: ReactNode;
 }
 
-export function Section({
+export const Section = ({
   children,
   title,
   description,
   actions,
   className,
   ...props
-}: SectionProps) {
+}: SectionProps) => {
   return (
     <section className={cn(className)} {...props}>
       {(title || description || actions) && (
@@ -49,4 +49,4 @@ export function Section({
       {children}
     </section>
   );
-}
+};

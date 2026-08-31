@@ -35,7 +35,6 @@ export const BUTTON_ICON_SIZE_CLASSES: Record<ButtonSize, string> = {
 };
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-
   variant?: ButtonVariant;
 
   size?: ButtonSize;
