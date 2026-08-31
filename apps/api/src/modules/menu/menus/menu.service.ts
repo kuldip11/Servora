@@ -1,5 +1,6 @@
 import type { AuthContext } from "../../../core/auth";
 import { requirePermission } from "../../../core/auth";
+import { ValidationError } from "../../../core/errors";
 import { defaultMenuProtected, menuNotFound } from "./menu.errors";
 import { menuRepository } from "./menu.repository";
 import { buildDiff, menuChangeLog } from "../change-log/menu-change-log";
@@ -92,10 +93,10 @@ export const menuService = {
   },
   async createSchedule(auth: AuthContext, menuId: string, input: any) {
     await this.getById(auth, menuId);
-    if ((input.scheduleType === "DAILY" || input.scheduleType === "WEEKLY") && (!input.startTime || !input.endTime)) throw new Error("Time schedules require a start and end time");
-    if (input.scheduleType === "WEEKLY" && input.dayOfWeek == null) throw new Error("Weekly schedules require a day");
-    if (input.scheduleType === "SPECIFIC_DATE" && !input.startDate) throw new Error("Date schedules require a start date");
-    if (input.scheduleType === "HOLIDAY" && !input.holidayName) throw new Error("Holiday schedules require a holiday name");
+    if ((input.scheduleType === "DAILY" || input.scheduleType === "WEEKLY") && (!input.startTime || !input.endTime)) throw new ValidationError("Time schedules require a start and end time");
+    if (input.scheduleType === "WEEKLY" && input.dayOfWeek == null) throw new ValidationError("Weekly schedules require a day");
+    if (input.scheduleType === "SPECIFIC_DATE" && !input.startDate) throw new ValidationError("Date schedules require a start date");
+    if (input.scheduleType === "HOLIDAY" && !input.holidayName) throw new ValidationError("Holiday schedules require a holiday name");
     return menuRepository.createSchedule({ tenantId: auth.tenantId, menuId, ...input });
   },
   async deleteSchedule(auth: AuthContext, id: string) {

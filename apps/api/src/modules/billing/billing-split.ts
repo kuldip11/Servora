@@ -1,5 +1,7 @@
+import { ValidationError } from "../../core/errors";
+
 export function splitMoneyEvenly(amount: number, ways: number): number[] {
-  if (!Number.isInteger(ways) || ways < 1) throw new Error("INVALID_SPLIT_COUNT");
+  if (!Number.isInteger(ways) || ways < 1) throw new ValidationError("Split count must be a positive integer", { reason: "INVALID_SPLIT_COUNT" });
   const sign = amount < 0 ? -1 : 1;
   const cents = Math.abs(Math.round(amount * 100));
   const base = Math.floor(cents / ways);
@@ -120,7 +122,7 @@ export function groupOrderItemsForEvenBills(
   items: BillableOrderItem[],
   ways: number,
 ): string[][] | null {
-  if (!Number.isInteger(ways) || ways < 1) throw new Error("INVALID_SPLIT_COUNT");
+  if (!Number.isInteger(ways) || ways < 1) throw new ValidationError("Split count must be a positive integer", { reason: "INVALID_SPLIT_COUNT" });
   const groups = buildBillableItemGroups(items);
   if (groups.length < ways) return null;
   const bills = Array.from({ length: ways }, () => [] as string[]);
@@ -306,7 +308,7 @@ export function buildFractionalSeatAllocationPlan(
   for (const item of items) {
     if (item.seatShares?.length) {
       const total = item.seatShares.reduce((sum, share) => sum + Number(share.shareRatio), 0);
-      if (Math.abs(total - 1) > 0.000001) throw new Error("INVALID_SEAT_SHARE_TOTAL");
+      if (Math.abs(total - 1) > 0.000001) throw new ValidationError("Seat-share ratios for an order item must total 1", { reason: "INVALID_SEAT_SHARE_TOTAL" });
       for (const share of item.seatShares) {
         allocationFor(share.seatLabel.trim()).itemShares.push({ orderItemId: item.id, shareRatio: Number(share.shareRatio) });
       }

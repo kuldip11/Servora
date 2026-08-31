@@ -52,11 +52,11 @@ describe("customer cart persistence", () => {
   beforeEach(() => localStorage.clear());
 
   it("scopes storage to the QR token", () => {
-    expect(getCustomerStorageScope("abc", false)).toBe("qr:abc");
-    expect(getCustomerStorageScope("xyz", false)).not.toBe(
-      getCustomerStorageScope("abc", false),
+    expect(getCustomerStorageScope("abc")).toBe("qr:abc");
+    expect(getCustomerStorageScope("xyz")).not.toBe(
+      getCustomerStorageScope("abc"),
     );
-    expect(getCustomerStorageScope(null, true)).toBe("demo");
+    expect(getCustomerStorageScope(null)).toBeNull();
   });
 
   it("persists only the cart references needed for safe restoration", () => {

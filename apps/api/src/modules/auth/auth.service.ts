@@ -5,12 +5,11 @@
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { authRepository } from "./auth.repository";
-import { listUserMemberships } from "../../lib/authorization/membership-context";
+import { listUserMemberships } from "../../core/auth/membership-context";
 import { db } from "../../db";
 import {
   ConflictError,
   ForbiddenError,
-  ServiceUnavailableError,
 } from "../../core/errors";
 import { signAccessToken } from "../../lib/jwt";
 import type { SignupInput, LoginInput } from "@pos/validation";
@@ -41,27 +40,12 @@ export const authService = {
 
     // Create the identity and bootstrap its GLOBAL OWNER role in one database
     // transaction. If RBAC is missing, no half-created account is left behind.
-    let user: Awaited<
-      ReturnType<typeof authRepository.createUserWithGlobalOwnerRole>
-    >["user"];
-    try {
-      ({ user } = await authRepository.createUserWithGlobalOwnerRole({
-        firstName: input.firstName,
-        lastName: input.lastName,
-        email: normalizedEmail,
-        passwordHash,
-      }));
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message.includes("RBAC reference data is not installed")
-      ) {
-        throw new ServiceUnavailableError(
-          "RBAC reference data is not available. Run the database migrations before signing up.",
-        );
-      }
-      throw error;
-    }
+    const { user } = await authRepository.createUserWithGlobalOwnerRole({
+      firstName: input.firstName,
+      lastName: input.lastName,
+      email: normalizedEmail,
+      passwordHash,
+    });
 
     const fullUser = await authRepository.findUserById(user.id);
     if (!fullUser) throw new Error("User creation failed");

@@ -16,7 +16,7 @@ export function useCustomerOrderRealtime(
   const reconnectAttempt = useRef(0);
 
   useEffect(() => {
-    if (!sessionToken || sessionToken === "fixture") {
+    if (!sessionToken) {
       setLive(false);
       return;
     }

@@ -60,7 +60,7 @@ const DIVIDER_CLASSES = {
  * that onto `DropdownMenu`'s shape means redesigning `SplitButton`'s
  * own props, not just swapping its internals, which is real, separate
  * work. Flagging it again here rather than let it go quiet a second
- * phase running; see `docs/design-system/README.md`'s Phase 5 section
+ * phase running; see `the design-system guidance`'s Phase 5 section
  * for the same note.
  */
 export function SplitButton({

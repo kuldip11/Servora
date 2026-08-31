@@ -1,9 +1,4 @@
-/**
- * Menu bulk-operations repository — data access for the "bulk-ops"
- * sub-domain only. Extracted from the monolithic `modules/menu/repository.ts`
- * verbatim (same queries, same transaction/conflict handling) — see
- * docs/NEXT_STEPS.md.
- */
+/** Persistence operations for menu bulk workflows. */
 import { eq, and, inArray, isNull } from "drizzle-orm";
 import { db } from "../../../db";
 import type { MenuItemStatus } from "@pos/types";
@@ -43,7 +38,6 @@ export const bulkOpsRepository = {
         status,
         availabilityReason: reason ?? null,
         statusChangedAt: new Date(),
-        isAvailable: status === "ACTIVE",
         updatedAt: new Date(),
       })
       .where(

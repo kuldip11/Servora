@@ -40,7 +40,7 @@ export interface SelectMenuProps {
 
 /**
  * Single-select dropdown — the plan's canonical "Select" for Phase 4
- * (docs/design-system/00-PLAN.md), built on `@radix-ui/react-popover`
+ * (the design-system contract), built on `@radix-ui/react-popover`
  * (see `selection/shared.tsx`'s doc comment for why Popover instead of
  * Radix's own `Select`). Virtualized: 10,000+ options scroll smoothly,
  * per this phase's exit criteria. Supports grouped options (`group` on
@@ -56,13 +56,13 @@ export interface SelectMenuProps {
  * `Button`/`Input` could be "upgraded in place" in Phase 3 because
  * their DOM-event API didn't change; a Popover-backed listbox's
  * interaction model is a genuine break — exactly what
- * `docs/design-system/phase-0-ui-audit.md`'s migration map flags with
+ * `the design-system audit`'s migration map flags with
  * "every call site should be re-tested... not just the visuals." That
  * re-test is real work across 12 files, best done as its own pass
  * (Phase 10-12's app migrations), not folded silently into this
  * component-library phase — so the old `Select` keeps its name and
  * behavior untouched, and this ships as `SelectMenu` until that
- * migration is scheduled explicitly. See `docs/design-system/README.md`'s
+ * migration is scheduled explicitly. See `the design-system guidance`'s
  * Phase 4 section for the full decision record.
  */
 export function SelectMenu({

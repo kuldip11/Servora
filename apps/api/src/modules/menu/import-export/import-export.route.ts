@@ -12,11 +12,8 @@ function toFormat(raw: string | undefined): ExportFormat {
   return raw === "xlsx" ? "xlsx" : "csv";
 }
 
-// Mounted at the shared `/api/menu` base prefix (export/import don't share
-// a clean sub-path the way `bulk-ops` did) — alongside the legacy
-// `menuRouter` and the other menu sub-routers. No path collisions
-// (verified — the legacy router no longer has these routes after this
-// migration; see docs/NEXT_STEPS.md).
+// Import/export endpoints share the `/api/menu` namespace and delegate
+// authorization and validation to the shared menu boundary.
 export const menuImportExportRouter = new Elysia({ prefix: "/api/menu" })
   .use(requireAuthPlugin())
   // ─── Export ────────────────────────────────────────────────────────────

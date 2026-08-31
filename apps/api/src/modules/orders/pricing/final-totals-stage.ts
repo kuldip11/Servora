@@ -1,5 +1,5 @@
 import { tenantRepository } from "../../tenants/tenant.repository";
-import type { PricedLine, PricingContext } from "./pricing-pipeline";
+import type { PricedLine, PricingContext } from "./pricing.types";
 import { allocateCents, type PromotionStageOptions } from "./promotion-stage";
 import { applyDiscountStages, type LoyaltyStageResult } from "./loyalty-stage";
 

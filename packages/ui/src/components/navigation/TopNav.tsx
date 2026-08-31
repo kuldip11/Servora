@@ -13,7 +13,7 @@ export interface TopNavProps {
 }
 
 /**
- * Horizontal top bar (docs/design-system/00-PLAN.md Phase 6). Slots
+ * Horizontal top bar (the design-system contract Phase 6). Slots
  * into `AppShell`'s `topbar` prop, same relationship `Sidebar` has to
  * the `sidebar` prop — `AppShell` owns the fixed frame, this owns the
  * content and layout inside it.

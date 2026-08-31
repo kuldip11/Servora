@@ -7,10 +7,7 @@ import {
 import type { RealtimeEvent } from "@pos/types";
 import { STORAGE_KEYS } from "../constants/storage-keys";
 
-// This app has never had a WebSocket before — see FE-4 in
-// docs/frontend/NEXT_STEPS.md for why this is a deliberate, accepted
-// behavior change rather than a like-for-like extraction. Protocol
-// detection mirrors kitchen-display's (correct) original inline version.
+// Use wss over HTTPS and ws otherwise when no explicit realtime URL is configured.
 const proto = window.location.protocol === "https:" ? "wss" : "ws";
 const wsUrl =
   import.meta.env["VITE_WS_URL"] ??

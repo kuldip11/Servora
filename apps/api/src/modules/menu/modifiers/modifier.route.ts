@@ -11,11 +11,8 @@ import {
   tagIdParams,
 } from "./modifier.validator";
 
-// Mounted at the same base prefix as the legacy `menuRouter` and the
-// `availability` sub-router (this sub-domain's routes — /modifier-groups,
-// /modifier-options/:id/availability, /tags, /allergens — don't share a
-// clean common sub-path either). No path collisions with the legacy router
-// or the other menu sub-routers (verified — see docs/NEXT_STEPS.md).
+// Modifier, tag, and allergen endpoints share the `/api/menu` namespace
+// and use the shared menu authorization boundary.
 export const menuModifiersRouter = new Elysia({ prefix: "/api/menu" })
   .use(requireAuthPlugin())
 
@@ -35,9 +32,8 @@ export const menuModifiersRouter = new Elysia({ prefix: "/api/menu" })
       modifierController.updateGroup(auth, params.id, body),
     { params: modifierGroupIdParams, body: updateModifierGroupBody },
   )
-  // Delete rather than deactivate — matches the legacy route exactly (no
-  // "still referenced by items" guard exists here today; see
-  // docs/NEXT_STEPS.md if that's worth adding as a follow-up).
+  // Delete rather than deactivate; referenced-item protection is not part of
+  // this endpoint contract.
   .delete(
     "/modifier-groups/:id",
     ({ auth, params }) => modifierController.deleteGroup(auth, params.id),

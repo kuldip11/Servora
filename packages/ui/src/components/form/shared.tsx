@@ -3,7 +3,7 @@ import { cn } from "../../utils/cn";
 
 /**
  * Shared building blocks for every Phase 3 form input
- * (docs/design-system/00-PLAN.md). Each input owns its own root markup
+ * (the design-system contract). Each input owns its own root markup
  * (they render very differently — segmented OTP boxes vs. a single
  * `<input>` vs. a `<textarea>`) but they all share the same label +
  * hint/error + char-count chrome and the same aria-describedby wiring.

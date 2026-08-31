@@ -126,7 +126,7 @@ export function OrderExplainDialog({
                 <p className="mt-1 text-sm text-text-secondary">{new Date(explanation.asOf).toLocaleString()}</p>
               </div>
               <Badge variant={explanation.completeHistory ? "success" : "warning"}>
-                {explanation.completeHistory ? "Complete replay evidence" : "Legacy evidence gap"}
+                {explanation.completeHistory ? "Replay verified" : "Replay mismatch"}
               </Badge>
             </div>
             <p className="mt-3 text-sm text-text-secondary">{explanation.historyNotice}</p>
@@ -145,7 +145,7 @@ export function OrderExplainDialog({
                   <p className="mt-1 text-xs text-text-secondary">Resolved {new Date(line.asOf).toLocaleString()}</p>
                 </div>
                 <Badge variant={line.historicalEvidenceComplete ? "success" : "warning"}>
-                  {line.historicalEvidenceComplete ? "Deterministic" : "Snapshot only"}
+                  {line.historicalEvidenceComplete ? "Replay verified" : "Replay mismatch"}
                 </Badge>
               </div>
 
@@ -160,11 +160,11 @@ export function OrderExplainDialog({
               )}
 
               <div className="mt-4 grid gap-2 text-sm sm:grid-cols-3">
-                <div><span className="text-text-secondary">Winning price source</span><strong className="block text-text-primary">{line.pricingReplay.priceSource?.description ?? "Legacy snapshot"}</strong></div>
+                <div><span className="text-text-secondary">Winning price source</span><strong className="block text-text-primary">{line.pricingReplay.priceSource?.description ?? "Menu-item base price"}</strong></div>
                 <div><span className="text-text-secondary">Stored line subtotal</span><strong className="block text-text-primary">{formatCurrency(line.pricingReplay.persistedSubtotal)}</strong></div>
-                <div><span className="text-text-secondary">Persisted attribution check</span><strong className={line.pricingReplay.matchesSnapshot ? "block text-success" : "block text-warning"}>{line.pricingReplay.matchesSnapshot ? "Matches snapshot" : "Incomplete legacy attribution"}</strong></div>
-                <div><span className="text-text-secondary">AvailabilityResolver replay</span><strong className={line.authoritativeAvailabilityReplay?.matchesSnapshot ? "block text-success" : "block text-warning"}>{line.authoritativeAvailabilityReplay ? (line.authoritativeAvailabilityReplay.matchesSnapshot ? "Matches snapshot" : "Mismatch") : "Legacy evidence unavailable"}</strong></div>
-                <div><span className="text-text-secondary">PricingPipeline replay</span><strong className={line.authoritativePricingReplay?.matchesSnapshot ? "block text-success" : "block text-warning"}>{line.authoritativePricingReplay ? (line.authoritativePricingReplay.matchesSnapshot ? "Matches snapshot" : "Mismatch") : "Legacy evidence unavailable"}</strong></div>
+                <div><span className="text-text-secondary">Persisted attribution check</span><strong className={line.pricingReplay.matchesSnapshot ? "block text-success" : "block text-warning"}>{line.pricingReplay.matchesSnapshot ? "Matches snapshot" : "Attribution mismatch"}</strong></div>
+                <div><span className="text-text-secondary">AvailabilityResolver replay</span><strong className={line.authoritativeAvailabilityReplay?.matchesSnapshot ? "block text-success" : "block text-warning"}>{line.authoritativeAvailabilityReplay?.matchesSnapshot ? "Matches snapshot" : "Mismatch"}</strong></div>
+                <div><span className="text-text-secondary">PricingPipeline replay</span><strong className={line.authoritativePricingReplay?.matchesSnapshot ? "block text-success" : "block text-warning"}>{line.authoritativePricingReplay?.matchesSnapshot ? "Matches snapshot" : "Mismatch"}</strong></div>
               </div>
 
               <ol className="mt-4 space-y-2">

@@ -1,5 +1,6 @@
 import { and, eq, inArray, isNull, or } from "drizzle-orm";
 import { db } from "../../db";
+import { ConflictError } from "../../core/errors";
 import {
   branches,
   membershipBranches,
@@ -132,7 +133,7 @@ export const staffRepository = {
         ),
       });
       if (existingMembership)
-        throw new Error("User already belongs to this tenant");
+        throw new ConflictError("User already belongs to this tenant");
 
       const [membership] = await tx
         .insert(tenantMemberships)

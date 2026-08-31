@@ -380,7 +380,7 @@ describe("PricingPipeline golden regression matrix", () => {
     expect(result.taxAmount).toBeCloseTo(11.52, 8);
   });
 
-  it("still lets stage 2 replace a legacy branch override when a lower-specificity rule does not win stage 1", async () => {
+  it("still lets stage 2 replace a branch price override when a lower-specificity rule does not win stage 1", async () => {
     findByIds.mockResolvedValue([menu({ variants: [{ id: "v1", name: "Large", price: "150" }] })]);
     findPricingOverrides.mockResolvedValue([{ menuItemId: "m1", price: "120", taxRate: "5" }]);
     findCandidates.mockResolvedValue([{
@@ -393,7 +393,7 @@ describe("PricingPipeline golden regression matrix", () => {
     expect(result.lines[0]).toMatchObject({ unitPrice: 150, variantName: "Large" });
   });
 
-  it("uses the most specific active price rule ahead of a legacy branch override", async () => {
+  it("uses the most specific active price rule ahead of a branch price override", async () => {
     findPricingOverrides.mockResolvedValue([
       { menuItemId: "m1", price: "120", taxRate: "12" },
     ]);
@@ -717,7 +717,7 @@ describe("PricingPipeline validation regressions", () => {
   });
 });
 
-describe("Phase G advanced pricing acceptance", () => {
+describe("advanced pricing acceptance", () => {
   const modifierItem = (zonePricingRule: "AVERAGE" | "HIGHER" | "SUM_HALF" = "HIGHER") => menu({
     supportsZones: true,
     zonePricingRule,

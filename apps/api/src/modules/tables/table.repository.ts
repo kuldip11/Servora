@@ -5,6 +5,7 @@
 import { eq, and, notInArray } from "drizzle-orm";
 import type { TableStatus } from "@pos/types";
 import { db } from "../../db";
+import { ConflictError } from "../../core/errors";
 import {
   restaurantTables,
   orders,
@@ -164,7 +165,11 @@ export const tableRepository = {
           eq(orders.tableId, input.oldTableId),
         ))
         .returning();
-      if (!order || !oldTable) throw new Error("ORDER_TABLE_TRANSFER_CONFLICT");
+      if (!order || !oldTable) {
+        throw new ConflictError("The order table changed while the transfer was being committed", {
+          reason: "ORDER_TABLE_TRANSFER_CONFLICT",
+        });
+      }
 
       if (input.customerSessionId) {
         await tx.update(customerSessions)

@@ -1,12 +1,7 @@
-/**
- * Modifier-groups/tags/allergens repository — data access for this
- * sub-domain only. Extracted from the monolithic `modules/menu/repository.ts`
- * (still used by bulk operations, import/export, templates, recipes, which
- * haven't been split out yet — see docs/NEXT_STEPS.md). Method bodies are
- * unchanged from the legacy repository; only the module boundary moved.
- */
+/** Persistence operations for modifier groups and options. */
 import { eq, and, isNull, or, asc, inArray } from "drizzle-orm";
 import { db } from "../../../db";
+import { ValidationError } from "../../../core/errors";
 import {
   modifierGroups,
   modifierOptions,
@@ -18,12 +13,13 @@ import {
   menuAllergens,
 } from "../../../db/schema";
 import { compact } from "../../../lib/object-utils";
+import { withEffectiveModifierAvailability } from "../availability/availability-view";
 
 export const modifierRepository = {
   // ─── Modifier Groups ───────────────────────────────────────────────────────
 
   async findModifierGroups(tenantId: string, branchId?: string) {
-    return db.query.modifierGroups.findMany({
+    const groups = await db.query.modifierGroups.findMany({
       where: and(
         eq(modifierGroups.tenantId, tenantId),
         branchId
@@ -36,6 +32,10 @@ export const modifierRepository = {
       orderBy: asc(modifierGroups.sortOrder),
       with: { options: { orderBy: (t, { asc }) => [asc(t.sortOrder)], with: { variantPrices: true } } },
     });
+    return groups.map((group) => ({
+      ...group,
+      options: group.options.map(withEffectiveModifierAvailability),
+    }));
   },
 
   async findModifierGroup(tenantId: string, groupId: string) {
@@ -131,10 +131,13 @@ export const modifierRepository = {
         }
       }
 
-      return tx.query.modifierGroups.findFirst({
+      const created = await tx.query.modifierGroups.findFirst({
         where: eq(modifierGroups.id, group!.id),
         with: { options: true },
       });
+      return created
+        ? { ...created, options: created.options.map(withEffectiveModifierAvailability) }
+        : undefined;
     });
   },
 
@@ -199,7 +202,7 @@ export const modifierRepository = {
 
       for (const id of retainedIds) {
         if (!existingById.has(id)) {
-          throw new Error(`Modifier option ${id} does not belong to group ${groupId}`);
+          throw new ValidationError(`Modifier option ${id} does not belong to group ${groupId}`);
         }
       }
 
@@ -217,14 +220,8 @@ export const modifierRepository = {
           const availabilityPatch = option.isAvailable === undefined
             ? {}
             : option.isAvailable
-              ? {
-                  manualOverrideAvailability: null,
-                  isAvailable: previous.computedAvailability,
-                }
-              : {
-                  manualOverrideAvailability: false,
-                  isAvailable: false,
-                };
+              ? { manualOverrideAvailability: null }
+              : { manualOverrideAvailability: false };
           await tx
             .update(modifierOptions)
             .set({
@@ -251,7 +248,6 @@ export const modifierRepository = {
           modifierGroupId: groupId,
           name: option.name,
           additionalPrice: option.additionalPrice,
-          isAvailable: option.isAvailable ?? true,
           computedAvailability: true,
           manualOverrideAvailability: option.isAvailable === false ? false : null,
           maxQuantity: option.maxQuantity ?? 1,
@@ -321,11 +317,12 @@ export const modifierRepository = {
       .update(modifierOptions)
       .set({
         manualOverrideAvailability,
-        isAvailable: effectiveAvailability,
       })
       .where(eq(modifierOptions.id, optionId))
       .returning();
-    return updated;
+    return updated
+      ? { ...withEffectiveModifierAvailability(updated), isAvailable: effectiveAvailability }
+      : undefined;
   },
 
   // ─── Tags ──────────────────────────────────────────────────────────────────

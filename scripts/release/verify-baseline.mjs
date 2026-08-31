@@ -8,7 +8,7 @@ const keepGoing = args.has("--keep-going");
 
 const root = resolve(import.meta.dirname, "../..");
 const reportDir = resolve(root, ".verification");
-const reportPath = resolve(reportDir, "phase6-baseline.json");
+const reportPath = resolve(reportDir, "release-baseline.json");
 
 const steps = [
   {
@@ -20,21 +20,6 @@ const steps = [
     id: "env-contract",
     label: "Environment example contract",
     command: ["bun", "run", "validate:env"],
-  },
-  {
-    id: "a-h-remediation",
-    label: "A-H audited remediation contracts",
-    command: ["bun", "run", "verify:a-h:remediation"],
-  },
-  {
-    id: "phase-g-acceptance",
-    label: "Phase G advanced restaurant model acceptance",
-    command: ["bun", "run", "verify:phase-g"],
-  },
-  {
-    id: "phase-h-acceptance",
-    label: "Phase H differentiators acceptance",
-    command: ["bun", "run", "verify:phase-h"],
   },
   {
     id: "rbac-audit",
@@ -88,7 +73,7 @@ function writeReport(report) {
 }
 
 if (planOnly) {
-  console.log("Servora Phase 6.1 verification plan");
+  console.log("Servora pre-v1 release verification plan");
   for (const [index, step] of steps.entries()) {
     console.log(
       `${String(index + 1).padStart(2, "0")}. ${step.label}: ${commandText(step.command)}`,
@@ -100,7 +85,7 @@ if (planOnly) {
 const startedAt = new Date().toISOString();
 const report = {
   schemaVersion: 1,
-  phase: "6.1",
+  profile: "pre-v1-release",
   startedAt,
   finishedAt: null,
   status: "running",

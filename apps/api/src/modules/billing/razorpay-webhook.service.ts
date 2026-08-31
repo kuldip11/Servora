@@ -11,6 +11,7 @@ import { inventoryService } from "../inventory/inventory.service";
 import { eventBus } from "../../lib/event-bus";
 import { orderRepository } from "../orders/order.repository";
 import { redis, REDIS_QUEUES } from "../../lib/redis";
+import { ServiceUnavailableError, ValidationError } from "../../core/errors";
 
 function verifyWebhookSignature(
   rawBody: string,
@@ -25,7 +26,7 @@ function verifyWebhookSignature(
 
 function razorpayWebhookSecret() {
   const secret = process.env["RAZORPAY_WEBHOOK_SECRET"];
-  if (!secret) throw new Error("RAZORPAY_WEBHOOK_SECRET is not configured");
+  if (!secret) throw new ServiceUnavailableError("Razorpay webhook secret is not configured");
   return secret;
 }
 
@@ -52,15 +53,15 @@ export const razorpayWebhookService = {
     eventId: string | undefined,
   ) {
     if (!signature || !eventId)
-      throw new Error("Razorpay webhook signature and event id are required");
+      throw new ValidationError("Razorpay webhook signature and event id are required");
     if (!verifyWebhookSignature(rawBody, signature, razorpayWebhookSecret()))
-      throw new Error("Invalid Razorpay webhook signature");
+      throw new ValidationError("Invalid Razorpay webhook signature");
 
     let payload: RazorpayWebhookPayload;
     try {
       payload = JSON.parse(rawBody) as RazorpayWebhookPayload;
     } catch {
-      throw new Error("Invalid Razorpay webhook payload");
+      throw new ValidationError("Invalid Razorpay webhook payload");
     }
 
     const eventType = payload.event ?? "unknown";

@@ -37,7 +37,7 @@ describe("tableFormSchema", () => {
   const valid = { name: " T1 ", capacity: "4", section: "", branchId: uuid };
   it("trims the name and accepts numeric capacity strings", () =>
     expect(tableFormSchema.parse(valid)).toEqual({ ...valid, name: "T1" }));
-  it("allows an empty branch only for form compatibility", () =>
+  it("allows an empty branch in the pre-submit form state", () =>
     expect(tableFormSchema.safeParse({ ...valid, branchId: "" }).success).toBe(
       true,
     ));

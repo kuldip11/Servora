@@ -247,7 +247,7 @@ export function MenuItemsContent({
                           key={item.id}
                           // Keyboard-operable, same tabIndex+Enter/Space
                           // pattern as the DataGrid row fix (Phase 9,
-                          // see docs/design-system/README.md) — kept
+                          // see the design-system guidance) — kept
                           // deliberately minimal rather than a full
                           // rewrite to a native `<button>`, because this
                           // card also contains four real `<IconButton>`s

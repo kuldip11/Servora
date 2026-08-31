@@ -9,6 +9,7 @@ import {
   index,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { orders } from "./order.schema";
 import { orderItems } from "./kitchen.schema";
 import { users } from "./auth.schema";
@@ -82,7 +83,12 @@ export const payments = pgTable(
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
-  (t) => ({ orderIdx: index("payments_order_idx").on(t.orderId) }),
+  (t) => ({
+    orderIdx: index("payments_order_idx").on(t.orderId),
+    gatewayPaymentUnique: uniqueIndex("payments_gateway_payment_id_unique")
+      .on(t.gatewayPaymentId)
+      .where(sql`${t.gatewayPaymentId} IS NOT NULL`),
+  }),
 );
 
 export const paymentRefunds = pgTable("payment_refunds", {

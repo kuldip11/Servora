@@ -23,7 +23,7 @@ import { inventoryItems, inventoryUnitEnum } from "./inventory.schema";
 /**
  * Prepared components that can be consumed by dish recipes (sauces, dough,
  * stocks, chutneys, etc.).  Yield is expressed in the inventory unit selected
- * by the tenant.  `yieldPercent` is optional and therefore backward-compatible:
+ * by the tenant.  `yieldPercent` is optional:
  * null means 100% usable yield.
  */
 export const subRecipes = pgTable(

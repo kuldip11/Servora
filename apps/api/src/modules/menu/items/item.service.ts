@@ -8,6 +8,7 @@
 import type { FoodType, MenuItemStatus, SpiceLevel } from "@pos/types";
 import type { AuthContext } from "../../../core/auth";
 import { requirePermission } from "../../../core/auth";
+import { ValidationError } from "../../../core/errors";
 import {
   assertMenuResourceBranch,
   resolveMenuBranch,
@@ -102,7 +103,7 @@ async function validateReferences(
     );
     const invalid = tagIds.filter((id) => !ownedTags.has(id));
     if (invalid.length)
-      throw new Error("One or more menu tags do not belong to this tenant");
+      throw new ValidationError("One or more menu tags do not belong to this tenant");
   }
 
   if (modifierGroupIds?.length) {
@@ -113,7 +114,7 @@ async function validateReferences(
     );
     const invalid = modifierGroupIds.filter((id) => !ownedGroups.has(id));
     if (invalid.length)
-      throw new Error(
+      throw new ValidationError(
         "One or more modifier groups are outside the active tenant or branch",
       );
   }
@@ -122,11 +123,11 @@ async function validateReferences(
 function validateAdvancedPricing(input: { pricingMode?: "FIXED" | "WEIGHT_BASED" | "OPEN" | undefined; weightUnit?: "G" | "KG" | "LB" | "OZ" | null | undefined; openPriceMin?: number | null | undefined; openPriceMax?: number | null | undefined; supportsZones?: boolean | undefined; zonePricingRule?: "AVERAGE" | "HIGHER" | "SUM_HALF" | undefined; manualStockCount?: number | null | undefined }, fallback?: { pricingMode?: string; weightUnit?: string | null; openPriceMin?: string | null; openPriceMax?: string | null }) {
   const mode = input.pricingMode ?? fallback?.pricingMode ?? "FIXED";
   const weightUnit = input.weightUnit === undefined ? fallback?.weightUnit : input.weightUnit;
-  if (mode === "WEIGHT_BASED" && !weightUnit) throw new Error("Weight-based items require a weight unit");
+  if (mode === "WEIGHT_BASED" && !weightUnit) throw new ValidationError("Weight-based items require a weight unit");
   const min = input.openPriceMin === undefined ? (fallback?.openPriceMin == null ? null : Number(fallback.openPriceMin)) : input.openPriceMin;
   const max = input.openPriceMax === undefined ? (fallback?.openPriceMax == null ? null : Number(fallback.openPriceMax)) : input.openPriceMax;
-  if (min != null && max != null && min > max) throw new Error("Open-price minimum cannot exceed maximum");
-  if (input.manualStockCount != null && (!Number.isInteger(input.manualStockCount) || input.manualStockCount < 0)) throw new Error("Manual stock count must be a non-negative integer");
+  if (min != null && max != null && min > max) throw new ValidationError("Open-price minimum cannot exceed maximum");
+  if (input.manualStockCount != null && (!Number.isInteger(input.manualStockCount) || input.manualStockCount < 0)) throw new ValidationError("Manual stock count must be a non-negative integer");
 }
 
 export const itemService = {
@@ -147,7 +148,7 @@ export const itemService = {
     );
     if (!category) throw itemNotFound(input.categoryId);
     if (category.branchId && category.branchId !== branchId) {
-      throw new Error("Category branch does not match the active menu branch");
+      throw new ValidationError("Category branch does not match the active menu branch");
     }
     validateAdvancedPricing(input);
     await validateReferences(

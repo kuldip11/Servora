@@ -5,10 +5,8 @@
  * repositories/services with errors that carry a stable machine-readable
  * `code`, the correct HTTP `statusCode`, and optional `details`.
  *
- * IMPORTANT (compatibility): the global error handler in `src/index.ts`
- * checks `AppError.isAppError(error)` *before* falling back to the legacy
- * catch-all, so existing `throw new Error(...)` call sites keep behaving
- * exactly as before until they're migrated module-by-module.
+ * Domain and request failures must use this hierarchy. Plain `Error` is
+ * reserved for programming/configuration failures that should surface as 500s.
  */
 
 export enum ErrorCode {
@@ -164,8 +162,8 @@ export class DomainRuleError extends AppError {
  * OWNER/MANAGER viewing the tenant-wide "all branches" aggregate, on an
  * endpoint that needs one specific branch). Kept as its own class — rather
  * than folding into ValidationError/ForbiddenError — so the response
- * preserves the original `{ code: 'MISSING_BRANCH' }` / 400 contract that
- * existing frontend clients already check for.
+ * preserves a stable machine-readable `{ code: 'MISSING_BRANCH' }` / 400
+ * contract for branch-selection UX.
  */
 export class MissingBranchError extends AppError {
   constructor(

@@ -13,7 +13,7 @@ import {
   StatusBadge,
   ThemeSwitcher,
 } from "@pos/ui";
-import { Building2, User, Shield, Bell, Palette } from "lucide-react";
+import { Building2, User, Shield, Palette } from "lucide-react";
 import { usePermissions } from "../../../shared/auth/permissions";
 import { useCancellationReasons, cancellationReasonKeys } from "../../orders/hooks/useCancellationReasons";
 import { cancellationReasonsService } from "../../orders/services/cancellation-reasons.service";
@@ -220,36 +220,7 @@ export function SettingsPage() {
           </div>
         </Card>
 
-        <Card>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center">
-              <Bell className="w-5 h-5 text-amber-600" />
-            </div>
-            <h2 className="text-base font-semibold text-text-primary">
-              Notifications
-            </h2>
-          </div>
-          <div className="space-y-3">
-            {[
-              { label: "New orders", enabled: true },
-              { label: "Low stock alerts", enabled: true },
-              { label: "Kitchen ready alerts", enabled: true },
-              { label: "Payment confirmations", enabled: false },
-            ].map((item) => (
-              <div
-                key={item.label}
-                className="flex items-center justify-between"
-              >
-                <span className="text-sm text-text-secondary">
-                  {item.label}
-                </span>
-                <div
-                  className={`w-10 h-5 rounded-full transition-colors duration-base ease-standard ${item.enabled ? "bg-primary" : "bg-surface-secondary"}`}
-                />
-              </div>
-            ))}
-          </div>
-        </Card>
+
       </Grid>
 
       <Modal

@@ -1,9 +1,4 @@
-/**
- * Menu import/export repository — data access for the "import-export"
- * sub-domain only. Extracted from the monolithic `menu/export.service.ts`
- * and `menu/import.service.ts` — same queries, unchanged — see
- * docs/NEXT_STEPS.md.
- */
+/** Persistence queries used by menu import/export workflows. */
 import { eq, and, isNull, or } from "drizzle-orm";
 import { db } from "../../../db";
 import {
@@ -153,7 +148,6 @@ export const importExportRepository = {
               spiceLevel: r.data.spiceLevel,
               sku: r.data.sku,
               status: r.data.status,
-              isAvailable: r.data.status === "ACTIVE",
               hsnCode: r.data.hsnCode,
               prepTimeMinutes: r.data.prepTimeMinutes,
             })
@@ -179,7 +173,6 @@ export const importExportRepository = {
             spiceLevel: r.data.spiceLevel,
             sku: r.data.sku,
             status: r.data.status,
-            isAvailable: r.data.status === "ACTIVE",
             hsnCode: r.data.hsnCode,
             prepTimeMinutes: r.data.prepTimeMinutes,
             sortOrder: 0,

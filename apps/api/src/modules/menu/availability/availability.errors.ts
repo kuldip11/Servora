@@ -1,14 +1,4 @@
-/**
- * Menu availability error factories (schedules, holidays, branch
- * overrides, effective-status resolution).
- *
- * The pre-refactor code signaled these with `throw new
- * Error('ITEM_NOT_FOUND')` / `'BRANCH_NOT_FOUND'` / a hand-rolled
- * `'ITEM_NOT_TENANT_WIDE: ...'` string, pattern-matched in the
- * controller. No frontend client checks the `'NOT_TENANT_WIDE'` code
- * specifically (verified — see docs/NEXT_STEPS.md), so this migration
- * folds it into `ValidationError`. Status codes are unchanged.
- */
+/** Menu-availability error factories for schedules, holidays, overrides, and effective-status resolution. */
 import { NotFoundError, ValidationError } from "../../../core/errors";
 
 export function itemNotFound(id?: string): NotFoundError {

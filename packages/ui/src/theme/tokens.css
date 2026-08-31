@@ -8,15 +8,15 @@
  *
  * Values are NOT invented — they're pulled 1:1 from current usage:
  * - Light: Admin + Waiter App's existing gray/violet palette
- *   (see docs/design-system/phase-0-ui-audit.md §4).
+ *   (see the design-system audit §4).
  * - Dark: Kitchen Display's existing gray-950/900/800 + amber/emerald
  *   palette, since Dark is KDS's native (only) theme, not an afterthought.
  * - High-contrast: not extracted from existing usage (nothing in the
  *   apps implements this today) — built fresh against WCAG AAA contrast
  *   targets (7:1 for body text).
  *
- * See docs/design-system/README.md "Phase 1 detail" for the full list
- * and docs/design-system/00-PLAN.md Phase 1 exit criteria.
+ * See the design-system guidance "Phase 1 detail" for the full list
+ * and the design-system contract Phase 1 exit criteria.
  */
 
 :root,

@@ -11,13 +11,15 @@ import {
   index,
   uniqueIndex,
   boolean,
+  check,
+  foreignKey,
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 import { tenants } from "./tenant.schema";
 import { branches } from "./branch.schema";
 import { users } from "./auth.schema";
 import { orders, orderStatusEnum } from "./order.schema";
-import { menuItems, menuItemVariants, modifierOptions, menuChangeEvents, comboSlotOptions, weightUnitEnum } from "./menu.schema";
+import { menuItems, menuItemVariants, modifierOptions, menuChangeEvents, combos, comboSlotOptions, weightUnitEnum } from "./menu.schema";
 import { sql } from "drizzle-orm";
 import { taxModeEnum } from "./tax.schema";
 
@@ -83,6 +85,7 @@ export const orderCourses = pgTable(
   (t) => ({
     orderCourseUnique: uniqueIndex("order_courses_order_number_unique").on(t.orderId, t.courseNumber),
     orderIdx: index("order_courses_order_idx").on(t.orderId),
+    numberPositive: check("order_courses_number_positive", sql`${t.courseNumber} > 0`),
   }),
 );
 
@@ -125,9 +128,15 @@ export const kitchenTickets = pgTable(
     ),
     statusIdx: index("kitchen_tickets_status_idx").on(t.status),
     orderIdx: index("kitchen_tickets_order_idx").on(t.orderId),
+    courseIdx: index("kitchen_tickets_course_idx").on(t.courseId),
     customerRequestUnique: uniqueIndex(
       "kitchen_tickets_customer_request_unique",
     ).on(t.orderId, t.customerRequestId),
+    branchTenantFk: foreignKey({
+      name: "kitchen_tickets_branch_tenant_fk",
+      columns: [t.branchId, t.tenantId],
+      foreignColumns: [branches.id, branches.tenantId],
+    }).onDelete("cascade"),
   }),
 );
 
@@ -160,7 +169,9 @@ export const orderItemStatusEnum = pgEnum("order_item_status", [
 ]);
 export const refireTypeEnum = pgEnum("refire_type", ["REFIRE", "REFILL"]);
 
-export const orderItems = pgTable("order_items", {
+export const orderItems = pgTable(
+  "order_items",
+  {
   id: uuid("id").primaryKey().defaultRandom(),
   orderId: uuid("order_id")
     .notNull()
@@ -172,7 +183,7 @@ export const orderItems = pgTable("order_items", {
   // Component children retain their normal menuItemId and kitchen/inventory semantics.
   menuItemId: uuid("menu_item_id")
     .references(() => menuItems.id),
-  comboId: uuid("combo_id"),
+  comboId: uuid("combo_id").references(() => combos.id),
   comboGroupId: uuid("combo_group_id"),
   comboSlotOptionId: uuid("combo_slot_option_id").references(() => comboSlotOptions.id, { onDelete: "set null" }),
   menuItemName: varchar("menu_item_name", { length: 200 }).notNull(),
@@ -239,7 +250,22 @@ export const orderItems = pgTable("order_items", {
   compedAt: timestamp("comped_at"),
   compedReasonId: uuid("comped_reason_id").references(() => cancellationReasons.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+  },
+  (t) => ({
+    comboGroupIdx: index("order_items_combo_group_idx").on(t.comboGroupId),
+    comboSlotOptionIdx: index("order_items_combo_slot_option_idx").on(
+      t.comboSlotOptionId,
+    ),
+    refiresIdx: index("order_items_refires_idx").on(t.refiresOrderItemId),
+    resolutionAsOfIdx: index("order_items_resolution_as_of_idx").on(
+      t.resolutionAsOf,
+    ),
+    menuItemReplayEvidenceRequired: check(
+      "order_items_menu_item_replay_evidence_required",
+      sql`${t.menuItemId} IS NULL OR (${t.resolutionAsOf} IS NOT NULL AND ${t.availabilitySnapshot} IS NOT NULL AND ${t.pricingReplayEvidence} IS NOT NULL AND ${t.availabilityReplayEvidence} IS NOT NULL)`,
+    ),
+  }),
+);
 
 export const orderItemModifiers = pgTable("order_item_modifiers", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -263,6 +289,17 @@ export const orderItemSeatShares = pgTable(
     shareRatio: numeric("share_ratio", { precision: 8, scale: 6 }).notNull(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
+  (t) => ({
+    itemSeatUnique: uniqueIndex("order_item_seat_shares_item_seat_unique").on(
+      t.orderItemId,
+      t.seatLabel,
+    ),
+    itemIdx: index("order_item_seat_shares_item_idx").on(t.orderItemId),
+    ratioPositive: check(
+      "order_item_seat_shares_ratio_positive",
+      sql`${t.shareRatio} > 0 AND ${t.shareRatio} <= 1`,
+    ),
+  }),
 );
 
 export const orderStatusHistory = pgTable("order_status_history", {

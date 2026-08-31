@@ -16,7 +16,7 @@ export interface UserMenuProps {
 }
 
 /**
- * Account/profile menu (docs/design-system/00-PLAN.md Phase 6) — the
+ * Account/profile menu (the design-system contract Phase 6) — the
  * plan calls this out as "a natural first user of the new
  * `DropdownMenu`" (Phase 5), so it's a thin composition rather than a
  * new interaction pattern: `items` is exactly `DropdownMenu`'s

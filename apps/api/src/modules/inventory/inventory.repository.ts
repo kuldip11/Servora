@@ -30,6 +30,7 @@ import {
   modifierOptions,
   wasteReasons,
 } from "../../db/schema";
+import { effectiveModifierAvailability } from "../menu/availability/availability-view";
 import { resolveStockBalance } from "./inventory-stock";
 
 export type StockUpdateResult =
@@ -495,13 +496,12 @@ export const inventoryRepository = {
   },
 
   async findScopedRecipeModifierOptions(tenantId: string, branchId: string) {
-    return db
+    const rows = await db
       .selectDistinct({
         id: modifierOptions.id,
         name: modifierOptions.name,
         menuItemId: recipes.menuItemId,
         menuItemName: menuItems.name,
-        isAvailable: modifierOptions.isAvailable,
         computedAvailability: modifierOptions.computedAvailability,
         manualOverrideAvailability: modifierOptions.manualOverrideAvailability,
         enableRecipeDeduction: menuItems.enableRecipeDeduction,
@@ -515,6 +515,10 @@ export const inventoryRepository = {
         isNull(menuItems.deletedAt),
         isNotNull(recipes.modifierOptionId),
       ));
+    return rows.map((row) => ({
+      ...row,
+      isAvailable: effectiveModifierAvailability(row),
+    }));
   },
 
 

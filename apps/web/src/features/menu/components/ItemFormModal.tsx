@@ -277,7 +277,7 @@ export function ItemFormModal({ categoryId, item, onClose }: Props) {
         <section className="rounded-lg border border-border bg-surface-secondary/40 p-4 space-y-4">
           <div>
             <h3 className="text-sm font-semibold text-text-primary">Advanced restaurant pricing</h3>
-            <p className="mt-0.5 text-xs text-text-secondary">Phase G modes are opt-in. Existing items stay on fixed, whole-item pricing.</p>
+            <p className="mt-0.5 text-xs text-text-secondary">Advanced pricing modes are opt-in. Existing items stay on fixed, whole-item pricing.</p>
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             <label className="text-sm font-medium text-text-primary">

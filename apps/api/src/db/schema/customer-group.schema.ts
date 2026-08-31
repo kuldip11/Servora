@@ -17,5 +17,13 @@ export const customerGroups = pgTable(
     tenantNameUnique: uniqueIndex("customer_groups_tenant_name_unique").on(t.tenantId, t.name),
     tenantIdx: index("customer_groups_tenant_idx").on(t.tenantId),
     discountAtMostOne: check("customer_groups_discount_at_most_one", sql`NOT (${t.discountPercent} IS NOT NULL AND ${t.discountFixed} IS NOT NULL)`),
+    discountPercentValid: check(
+      "customer_groups_discount_percent_valid",
+      sql`${t.discountPercent} IS NULL OR (${t.discountPercent} > 0 AND ${t.discountPercent} <= 100)`,
+    ),
+    discountFixedValid: check(
+      "customer_groups_discount_fixed_valid",
+      sql`${t.discountFixed} IS NULL OR ${t.discountFixed} >= 0`,
+    ),
   }),
 );

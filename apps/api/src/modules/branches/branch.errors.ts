@@ -1,15 +1,4 @@
-/**
- * Branch-specific error factories.
- *
- * The pre-refactor controller used ad-hoc code strings for these
- * (`ALL_ORDER_TYPES_DISABLED`, `BRANCH_HAS_OPEN_DINE_IN_ORDERS`,
- * `LAST_BRANCH`, `BRANCH_HAS_OPEN_ORDERS`). No frontend client checks
- * those specific strings (verified — see docs/NEXT_STEPS.md), so this
- * migration folds them into the shared `ConflictError`/`NotFoundError`
- * taxonomy, keeping the original wording as `message` and the original
- * code as `details.reason`. Status codes are unchanged (all were 409,
- * except NOT_FOUND which stays 404).
- */
+/** Branch-domain error factories using the shared application error taxonomy. */
 import { NotFoundError, ConflictError } from "../../core/errors";
 
 export function branchNotFound(id?: string): NotFoundError {

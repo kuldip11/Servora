@@ -4,7 +4,7 @@
  * validation, effective-status precedence, override validation) live in
  * `availability.service.ts`.
  *
- * `findByIds` moved here from the legacy `menu/repository.ts` — it's the
+ * `findByIds` lives here with the availability data-access boundary. It is the
  * order-time pricing read, and pricing/availability at order time is what
  * this sub-domain is about. `orders/order.service.ts` now imports it from
  * here instead.
@@ -24,6 +24,10 @@ import {
   menuItemModifierGroups,
 } from "../../../db/schema";
 import { compact } from "../../../lib/object-utils";
+import {
+  withEffectiveMenuItemAvailability,
+  withEffectiveModifierAvailability,
+} from "./availability-view";
 
 export const availabilityRepository = {
   async listDashboardItems(tenantId: string) {
@@ -112,7 +116,6 @@ export const availabilityRepository = {
         status,
         availabilityReason: reason,
         statusChangedAt: new Date(),
-        isAvailable: status === "ACTIVE",
         updatedAt: new Date(),
       })
       .where(and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)))
@@ -142,7 +145,6 @@ export const availabilityRepository = {
         id: modifierOptions.id,
         computedAvailability: modifierOptions.computedAvailability,
         manualOverrideAvailability: modifierOptions.manualOverrideAvailability,
-        isAvailable: modifierOptions.isAvailable,
       })
       .from(modifierOptions)
       .innerJoin(
@@ -161,20 +163,19 @@ export const availabilityRepository = {
         ),
       )
       .limit(1);
-    return row ?? null;
+    return row ? withEffectiveModifierAvailability(row) : null;
   },
 
   async setComputedModifierAvailability(
     optionId: string,
     computedAvailability: boolean,
-    effectiveAvailability: boolean,
   ) {
     const [row] = await db
       .update(modifierOptions)
-      .set({ computedAvailability, isAvailable: effectiveAvailability })
+      .set({ computedAvailability })
       .where(eq(modifierOptions.id, optionId))
       .returning();
-    return row;
+    return row ? withEffectiveModifierAvailability(row) : undefined;
   },
   // ─── Order-time pricing (moved from menu/repository.ts) ────────────────────
 
@@ -209,7 +210,16 @@ export const availabilityRepository = {
     // branch price/tax resolution into PricingPipeline so availability data
     // stays unmutated and every order price passes through one staged path.
 
-    return items;
+    return items.map((item) => ({
+      ...withEffectiveMenuItemAvailability(item),
+      modifierGroupLinks: item.modifierGroupLinks.map((link) => ({
+        ...link,
+        group: {
+          ...link.group,
+          options: link.group.options.map(withEffectiveModifierAvailability),
+        },
+      })),
+    }));
   },
 
   async findPricingOverrides(
@@ -330,13 +340,6 @@ export const availabilityRepository = {
     });
   },
 
-  // Used by the (currently unwired) getItemsAvailableAt bulk helper.
-  async listActiveItemBasics(tenantId: string) {
-    return db.query.menuItems.findMany({
-      where: and(eq(menuItems.tenantId, tenantId), isNull(menuItems.deletedAt)),
-      columns: { id: true, status: true },
-    });
-  },
 
   async listSchedulesForItem(tenantId: string, itemId: string) {
     return db.query.menuItemSchedules.findMany({

@@ -61,10 +61,7 @@
     "release:certify": "node scripts/release/certify-release.mjs",
     "db:backup": "sh scripts/release/backup-postgres.sh",
     "db:restore": "sh scripts/release/restore-postgres.sh",
-    "validate:production-env": "node scripts/release/validate-production-env.mjs",
-    "verify:a-h:remediation": "node scripts/release/verify-a-h-remediation.mjs",
-    "verify:phase-g": "node scripts/release/verify-phase-g.mjs",
-    "verify:phase-h": "node scripts/release/verify-phase-h.mjs"
+    "validate:production-env": "node scripts/release/validate-production-env.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",

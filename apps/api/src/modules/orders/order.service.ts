@@ -20,7 +20,7 @@ import {
   assertOrderListScope,
   assertOrderResourceAccess,
 } from "./orders-authorization";
-import { ValidationError } from "../../core/errors";
+import { DomainRuleError, ValidationError } from "../../core/errors";
 import { writeAudit } from "../../core/audit";
 import { availabilityRepository } from "../menu/availability/availability.repository";
 import { availabilityService } from "../menu/availability/availability.service";
@@ -51,7 +51,7 @@ import {
   finalizeWholeActiveOrder,
   storedOrderLineToStage4Snapshot,
   type StoredOrderLineForRepricing,
-} from "./order-repricing";
+} from "./active-order-pricing";
 import { isBillableOrderItem } from "./order-item-billing";
 import { approvalService } from "../approvals/approval.service";
 import { approvalAdjustmentValue } from "../approvals/approval-policy";
@@ -463,7 +463,7 @@ export const orderService = {
         resolutionAsOf: asOf,
       });
     } catch (error) {
-      if (error instanceof Error && error.message === "MANUAL_STOCK_DEPLETED") {
+      if (error instanceof DomainRuleError && error.details?.reason === "MANUAL_STOCK_DEPLETED") {
         throw new ValidationError(
           "One or more count-tracked items sold out while this order was being confirmed",
         );
@@ -1112,7 +1112,7 @@ export const orderService = {
           : { number: courseNumber, status: courseStatus },
       );
     } catch (error) {
-      if (error instanceof Error && error.message === "MANUAL_STOCK_DEPLETED") {
+      if (error instanceof DomainRuleError && error.details?.reason === "MANUAL_STOCK_DEPLETED") {
         throw new ValidationError(
           "One or more count-tracked items sold out while this round was being confirmed",
         );

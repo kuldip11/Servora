@@ -2,7 +2,7 @@ import type { ReactNode, ComponentType } from "react";
 import { cn } from "../utils/cn";
 
 /**
- * Upgraded for Phase 7 (docs/design-system/00-PLAN.md lists this
+ * Upgraded for Phase 7 (the design-system contract lists this
  * explicitly alongside `Table`/`DataGrid`/etc). Same reasoning as
  * `Card`/`Button`/`Input` in earlier phases: upgraded in place, not
  * replaced. All 7 existing call sites (`grep`-verified across

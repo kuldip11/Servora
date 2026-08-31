@@ -37,7 +37,7 @@ export * from "./components/form/OTPInput";
 
 // Phase 4 — Selection Components
 // Note: `SelectMenu`/`Combobox`/`Autocomplete` are the new Radix-Popover-backed
-// components (see docs/design-system/README.md's Phase 4 section for why they
+// components (see the design-system guidance's Phase 4 section for why they
 // aren't exported as `Select` — the legacy native-`<select>`-wrapping `Select`
 // above keeps its name and behavior for its 12 existing call sites).
 export type { SelectOption } from "./components/selection/shared";
@@ -46,11 +46,8 @@ export * from "./components/selection/MultiSelect";
 export * from "./components/selection/Combobox";
 export * from "./components/selection/Autocomplete";
 
-// Phase 5 — Overlay Components
-// `Dialog` supersedes the old root-level `Modal.tsx` (moved into
-// `components/overlay/`, same file, same external prop API — `Modal`
-// is exported below as a back-compat alias). See docs/design-system/
-// README.md's Phase 5 section.
+// Overlay components. `Dialog` is the canonical modal surface; `Modal` is
+// exported below as an API-compatible alias for existing consumers.
 export type {
   MenuEntry,
   MenuItemDef,
@@ -80,7 +77,7 @@ export * from "./components/navigation/SkipLink";
 // Phase 7 — Data Components: Table/Pagination/FilterBar/Toolbar/
 // SkeletonLoader + the upgraded EmptyState above (Part 1), plus
 // `DataGrid` — virtualized, bulk-select, sticky columns, column
-// visibility (Part 2). See docs/design-system/README.md's "Phase 7
+// visibility (Part 2). See the design-system guidance's "Phase 7
 // detail" for the two-part split and what each part shipped.
 export type {
   Column,

@@ -8,8 +8,8 @@ import {
 
 /**
  * Shared foundation for Phase 7 — Data Components
- * (docs/design-system/00-PLAN.md). This phase ships in two parts (see
- * docs/design-system/README.md "Phase 7 detail" for the split
+ * (the design-system contract). This phase ships in two parts (see
+ * the design-system guidance "Phase 7 detail" for the split
  * rationale): Part 1 is `Table`/`Pagination`/`FilterBar`/`Toolbar`/
  * `SkeletonLoader`/upgraded `EmptyState`. Part 2 is `DataGrid`
  * (virtualization, bulk select, sticky columns, column visibility) plus
@@ -181,7 +181,7 @@ export function nextSortState(
  * typically taller (cell padding + potential multi-element cell
  * content) and callers may want to tune density, so this takes
  * `rowHeight` as an argument instead. Deferred at the end of Phase 7
- * Part 1 (see docs/design-system/README.md's "Next up" note) rather
+ * Part 1 (see the design-system guidance's "Next up" note) rather
  * than guessed at the time — this is that decision: a parametrized
  * sibling in this same file, not a shared generic in `selection/`,
  * since `packages/ui/src/components/selection/` and `.../data/` are

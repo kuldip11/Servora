@@ -14,7 +14,7 @@ const schema = z.object({
   RATE_LIMIT_MAX: z.coerce.number().int().positive().default(600),
   RATE_LIMIT_WINDOW_SECONDS: z.coerce.number().int().positive().default(60),
   DATABASE_URL: urlLike,
-  REDIS_URL: urlLike.optional(),
+  REDIS_URL: urlLike,
   JWT_SECRET: z.string().min(16),
   JWT_EXPIRES_IN: z.string().default("15m"),
   REFRESH_TOKEN_SECRET: z.string().min(16),

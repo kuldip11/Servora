@@ -24,18 +24,11 @@ import {
   getCustomerOrder,
   verifyTakeawayPayment,
   initiateTakeawayPayment,
-  type CustomerMenu,
   type CustomerMenuItem,
   type CustomerCombo,
   type CustomerOrder,
   type CustomerRequestType,
 } from "./api";
-import {
-  menu as fixtureMenu,
-  restaurant as fixtureRestaurant,
-  categories as fixtureCategories,
-  type CustomerMenuItem as FixtureItem,
-} from "./dev/fixtures/data";
 import { CartView } from "./features/cart/CartView";
 import {
   getCartLineKey,
@@ -71,49 +64,9 @@ import {
 
 export type View = "menu" | "cart" | "order";
 
-function fixtureToCustomerItem(item: FixtureItem): CustomerMenuItem {
-  return {
-    id: item.id,
-    categoryId: item.category,
-    name: item.name,
-    description: item.description,
-    basePrice: String(item.price),
-    taxRate: "5",
-    imageUrl: item.image,
-    foodType: item.foodType,
-    spiceLevel: item.spice ?? null,
-    prepTimeMinutes: 20,
-    variants: [],
-    modifierGroupLinks: item.options
-      ? [
-          {
-            sortOrder: 0,
-            group: {
-              id: "fixture",
-              name: "Customize",
-              selectionType: "SINGLE",
-              minSelections: 0,
-              maxSelections: 1,
-              options: item.options.map((option) => ({
-                id: option.id,
-                name: option.name,
-                additionalPrice: String(option.price),
-                isAvailable: true,
-                maxQuantity: 1,
-              })),
-            },
-          },
-        ]
-      : [],
-    tagLinks: item.popular ? [{ tag: { name: "popular" } }] : [],
-    images: [],
-  };
-}
-
 export function CustomerApp() {
   const params = new URLSearchParams(window.location.search);
   const qrToken = params.get("qr");
-  const demoMode = params.get("demo") === "true";
   const [session, setSession] = useState<{
     token: string;
     mode: "DINE_IN" | "TAKEAWAY";
@@ -151,45 +104,12 @@ export function CustomerApp() {
   const [requestMessage, setRequestMessage] = useState<string | null>(null);
   const [bootstrapAttempt, setBootstrapAttempt] = useState(0);
   const storageScope = useMemo(
-    () => getCustomerStorageScope(qrToken, demoMode),
-    [qrToken, demoMode],
+    () => getCustomerStorageScope(qrToken),
+    [qrToken],
   );
   const [cartHydrated, setCartHydrated] = useState(false);
 
   useEffect(() => {
-    if (demoMode && !qrToken) {
-      setSession({
-        token: "fixture",
-        mode: "DINE_IN",
-        table: fixtureRestaurant.table,
-        area: fixtureRestaurant.area,
-        restaurant: fixtureRestaurant.name,
-        estimatedTime: fixtureRestaurant.estimatedTime,
-      });
-      setMenu(fixtureMenu.map(fixtureToCustomerItem));
-      setCombos([]);
-      setCategories(fixtureCategories.map((name) => ({ id: name, name })));
-      setLoading(false);
-      setCartHydrated(true);
-      if (storageScope) {
-        savePersistedSession(storageScope, {
-          token: "fixture",
-          mode: "DINE_IN",
-          table: fixtureRestaurant.table,
-          area: fixtureRestaurant.area,
-          restaurant: fixtureRestaurant.name,
-          estimatedTime: fixtureRestaurant.estimatedTime,
-          expiresAt: new Date(Date.now() + 12 * 60 * 60_000).toISOString(),
-        });
-        const restored = restoreCart(
-          storageScope,
-          fixtureMenu.map(fixtureToCustomerItem),
-          "DINE_IN",
-        );
-        setCart(restored.cart);
-      }
-      return;
-    }
     if (!qrToken) {
       setLoading(false);
       setError(
@@ -295,7 +215,7 @@ export function CustomerApp() {
     return () => {
       cancelled = true;
     };
-  }, [demoMode, qrToken, bootstrapAttempt]);
+  }, [qrToken, bootstrapAttempt, storageScope]);
 
   useEffect(() => {
     if (!storageScope || !cartHydrated) return;
@@ -321,7 +241,7 @@ export function CustomerApp() {
   );
 
   useEffect(() => {
-    if (!placedOrder || !session || session.token === "fixture" || live) return;
+    if (!placedOrder || !session || live) return;
     let cancelled = false;
     const interval = window.setInterval(async () => {
       try {
@@ -339,12 +259,7 @@ export function CustomerApp() {
 
   const requestHelp = useCallback(
     async (type: CustomerRequestType) => {
-      if (!session || session.token === "fixture") {
-        setRequestMessage(
-          "Help requests are available when you enter from a table QR.",
-        );
-        return;
-      }
+      if (!session) return;
       try {
         setRequestBusy(true);
         setRequestMessage(null);
@@ -690,32 +605,6 @@ export function CustomerApp() {
     try {
       setLoading(true);
       setError(null);
-      if (session.token === "fixture") {
-        setPlacedOrder({
-          id: `fixture-${Date.now()}`,
-          status: "OPEN",
-          subtotal: subtotal.toFixed(2),
-          taxAmount: tax.toFixed(2),
-          discountAmount: "0.00",
-          serviceChargeAmount: "0.00",
-          roundingAdjustment: "0.00",
-          totalAmount: total.toFixed(2),
-          items: [],
-          createdAt: new Date().toISOString(),
-          kitchenTickets: [
-            { id: "fixture-ticket", ticketNumber: 1, status: "PREPARING" },
-          ],
-          payments: [],
-        });
-        if (storageScope) {
-          savePersistedOrderId(storageScope, `fixture-${Date.now()}`);
-          clearPersistedCart(storageScope);
-        }
-        setCart([]);
-        setComboCart([]);
-        setView("order");
-        return;
-      }
 
       // The customer session owns one dine-in tab. The API creates the first
       // order and appends later submissions as new kitchen rounds on that

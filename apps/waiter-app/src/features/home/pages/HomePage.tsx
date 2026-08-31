@@ -21,7 +21,7 @@ interface Props {
   onSelectOrder: (id: string) => void;
 }
 
-// Phase 11 — `00-PLAN.md` names this file directly as a reference
+// Phase 11 — `the design-system contract` names this file directly as a reference
 // example ("HomePage/OrderCard are good visual references, just need
 // to move onto shared primitives instead of one-off markup"). The
 // hero banner has no matching `packages/ui` primitive (nothing else in

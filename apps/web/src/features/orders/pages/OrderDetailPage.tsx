@@ -35,7 +35,7 @@ import { useRefireOrderItem } from "../hooks/useRefireOrderItem";
 import { useSetOrderItemSeatShares } from "../hooks/useSetOrderItemSeatShares";
 
 /**
- * Design-system Phase 10 (docs/design-system/00-PLAN.md), Sprint AD-8.
+ * Design-system Phase 10 (the design-system contract), Sprint AD-8.
  * Second of the 3 higher-risk Admin pages the plan itself flagged as
  * left for last (`README.md`'s "Next up" note after Sprint AD-7).
  * `OrdersPage` was already done as Phase 7's own exit criterion, so
@@ -63,7 +63,7 @@ const STATUS_TRANSITIONS: Record<string, { label: string; next: string }[]> = {
 };
 
 // Same STATUS_TONE map OrdersPage's Phase 7 migration already
-// established (docs/design-system/README.md "Phase 10 detail", Sprint
+// established (the design-system guidance "Phase 10 detail", Sprint
 // AD-7's file-level comment), reused rather than re-litigated so the two
 // places in Admin that render an order-status badge stay in agreement.
 // PAID intentionally omitted — no semantic tone maps onto brand violet,

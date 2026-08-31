@@ -50,11 +50,8 @@ function remove(storageKey: string) {
   }
 }
 
-export function getCustomerStorageScope(
-  qrToken: string | null,
-  demoMode: boolean,
-) {
-  return demoMode ? "demo" : qrToken ? `qr:${qrToken}` : null;
+export function getCustomerStorageScope(qrToken: string | null) {
+  return qrToken ? `qr:${qrToken}` : null;
 }
 
 export function loadPersistedSession(scope: string): PersistedSession | null {

@@ -4,7 +4,7 @@ import { cn } from "../../utils/cn";
 
 /**
  * Shared foundation for Phase 5 — Overlay Components
- * (docs/design-system/00-PLAN.md): `Dialog` (upgrades `Modal`),
+ * (the design-system contract): `Dialog` (upgrades `Modal`),
  * `Drawer`, `BottomSheet`, `Popover`, `DropdownMenu`, `ContextMenu`,
  * `Tooltip`, `Toast`.
  *

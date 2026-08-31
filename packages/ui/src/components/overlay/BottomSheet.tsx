@@ -31,7 +31,7 @@ export interface BottomSheetProps {
 /**
  * Mobile-oriented panel anchored to the bottom edge, full width, rounded
  * top corners — the shape the plan calls for as the Waiter App's
- * primary overlay pattern (`00-PLAN.md`'s Phase 11 note: "Bottom
+ * primary overlay pattern (`the design-system contract`'s Phase 11 note: "Bottom
  * sheets over dialogs" for that app). Same `@radix-ui/react-dialog`
  * foundation as `Dialog`/`Drawer` (see `overlay/shared.tsx`).
  *

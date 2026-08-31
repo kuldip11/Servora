@@ -22,10 +22,7 @@ export interface RealtimeClient<E extends { type: string }> {
  * an independent client — each app creates exactly one, but this also means
  * a test can create as many isolated instances as it needs.
  *
- * This is the shared foundation apps/web's `lib/realtime.ts` originally
- * implemented as a module singleton; apps/kitchen-display and
- * apps/waiter-app both now build on it too (see docs/frontend/NEXT_STEPS.md's
- * FE-4 entry for what changes that brings for each of those two apps).
+ * Each application owns one configured client instance while tests may create isolated instances.
  */
 export function createRealtimeClient<E extends { type: string }>(
   config: RealtimeClientConfig,

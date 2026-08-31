@@ -90,24 +90,24 @@ describe("useKitchenRealtime", () => {
 });
 
 
-class PhaseFRealtimeSocket {
-  static instances: PhaseFRealtimeSocket[] = [];
+class TestRealtimeSocket {
+  static instances: TestRealtimeSocket[] = [];
   static CONNECTING = 0;
   static OPEN = 1;
-  readyState = PhaseFRealtimeSocket.CONNECTING;
+  readyState = TestRealtimeSocket.CONNECTING;
   onopen: (() => void) | null = null;
   onmessage: ((event: { data: string }) => void) | null = null;
   onclose: (() => void) | null = null;
   onerror: (() => void) | null = null;
-  constructor(public url: string) { PhaseFRealtimeSocket.instances.push(this); }
+  constructor(public url: string) { TestRealtimeSocket.instances.push(this); }
   close() { this.onclose?.(); }
   message(payload: unknown) { this.onmessage?.({ data: JSON.stringify(payload) }); }
 }
 
-describe("Phase F void realtime transport benchmark", () => {
+describe("void realtime transport benchmark", () => {
   it("delivers void-to-KDS state through the real shared WebSocket decoder within the created-event latency bound", () => {
-    PhaseFRealtimeSocket.instances = [];
-    vi.stubGlobal("WebSocket", PhaseFRealtimeSocket);
+    TestRealtimeSocket.instances = [];
+    vi.stubGlobal("WebSocket", TestRealtimeSocket);
     const client = createRealtimeClient<RealtimeEvent>({
       url: "wss://servora.test/ws/events",
       getAccessToken: () => "token",
@@ -120,7 +120,7 @@ describe("Phase F void realtime transport benchmark", () => {
         state = mergeKitchenTicketIntoQueue(state, event.payload, "grill");
       }
     });
-    const socket = PhaseFRealtimeSocket.instances[0]!;
+    const socket = TestRealtimeSocket.instances[0]!;
     const base = {
       id: "ticket-transport", tenantId: "t1", branchId: "b1", orderId: "o1", ticketNumber: 1,
       status: "PREPARING", courseId: null, notes: null, firedAt: "2026-08-30T10:00:00.000Z",

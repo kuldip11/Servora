@@ -41,7 +41,7 @@ export interface ThemeProviderProps {
  * defaultTheme="dark">` (see `apps/kitchen-display/src/main.tsx`) rather
  * than the standalone hardcoded `data-theme="dark"` its `index.html`
  * used before Phase 16 (open decision #3 in
- * docs/design-system/README.md, now resolved) — it keeps the same dark
+ * the design-system guidance, now resolved) — it keeps the same dark
  * boot behavior by default but is a real, switchable participant in
  * this provider like the other two apps.
  */

@@ -10,9 +10,8 @@ import {
   bulkDeleteBody,
 } from "./bulk-ops.validator";
 
-// Mounted at a clean, collision-free sub-path (`/items/bulk/...`) under the
-// shared `/api/menu` prefix, alongside the legacy `menuRouter` and the other
-// menu sub-routers — same approach as `items`/`categories`.
+// Bulk item operations use a dedicated collision-free sub-path under the
+// shared `/api/menu` namespace.
 export const menuBulkOpsRouter = new Elysia({ prefix: "/api/menu/items/bulk" })
   .use(requireAuthPlugin())
   .post(

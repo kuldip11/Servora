@@ -17,7 +17,7 @@ import { branches } from "./branch.schema";
 import { menuItems, menuItemVariants } from "./menu.schema";
 import { organizations } from "./organization.schema";
 import { customerGroups } from "./customer-group.schema";
-import { orderSourceEnum, orderTypeEnum } from "./order.schema";
+import { orderSourceEnum, orderTypeEnum } from "./order-enums.schema";
 import { tenants } from "./tenant.schema";
 
 export const coverTierEnum = pgEnum("cover_tier", ["ADULT", "CHILD"]);
@@ -61,6 +61,17 @@ export const priceRules = pgTable(
       t.branchId,
       t.channel,
     ),
+    organizationSkuIdx: index("price_rules_organization_sku_idx").on(
+      t.organizationId,
+      t.menuItemSku,
+    ),
+    customerGroupIdx: index("price_rules_customer_group_idx").on(
+      t.customerGroupId,
+    ),
+    exactlyOneOwnerScope: check(
+      "price_rules_exactly_one_owner_scope",
+      sql`(${t.tenantId} IS NOT NULL) <> (${t.organizationId} IS NOT NULL)`,
+    ),
     scopedRule: check(
       "price_rules_scope_required",
       sql`${t.variantId} IS NOT NULL OR ${t.branchId} IS NOT NULL OR ${t.channel} IS NOT NULL OR ${t.fulfillmentType} IS NOT NULL OR ${t.startDate} IS NOT NULL OR ${t.endDate} IS NOT NULL OR ${t.startTime} IS NOT NULL OR ${t.endTime} IS NOT NULL OR ${t.customerGroupId} IS NOT NULL OR ${t.coverTier} IS NOT NULL OR ${t.organizationId} IS NOT NULL OR ${t.isPerCover} = true`,
@@ -72,6 +83,10 @@ export const priceRules = pgTable(
     valueExactlyOne: check(
       "price_rules_value_exactly_one",
       sql`(${t.price} IS NOT NULL AND ${t.percentOff} IS NULL) OR (${t.price} IS NULL AND ${t.percentOff} IS NOT NULL AND ${t.percentOff} > 0 AND ${t.percentOff} <= 100)`,
+    ),
+    targetValid: check(
+      "price_rules_target_valid",
+      sql`(${t.isPerCover} = true AND ${t.menuItemId} IS NULL AND ${t.menuItemSku} IS NULL AND ${t.price} IS NOT NULL AND ${t.percentOff} IS NULL) OR (${t.isPerCover} = false AND ((${t.tenantId} IS NOT NULL AND ${t.menuItemId} IS NOT NULL) OR (${t.organizationId} IS NOT NULL AND ${t.menuItemSku} IS NOT NULL)))`,
     ),
   }),
 );

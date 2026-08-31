@@ -22,7 +22,7 @@ export type { Column, SortState, TableDensity };
  * table: sortable columns, sticky header, loading/empty states, row
  * click. Deliberately **not** the phase's virtualized/bulk-select/
  * sticky-column/column-visibility component — that's `DataGrid`,
- * shipping in Part 2 (see docs/design-system/README.md "Phase 7
+ * shipping in Part 2 (see the design-system guidance "Phase 7
  * detail" for the two-part split rationale). `Table` is for the many
  * real lists in this codebase (Tables, Staff, Branches, Inventory
  * previews, etc.) that don't need `DataGrid`'s machinery — every one

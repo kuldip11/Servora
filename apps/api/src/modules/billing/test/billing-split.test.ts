@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { ValidationError } from "../../../core/errors";
 import { allocateTotalsByWeight, areAllBillsPaid, buildSeatAllocationPlan, buildFractionalSeatAllocationPlan, combinedOrderAmounts, groupOrderItemsForEvenBills, splitMoneyEvenly, validateComboGroupAllocations, validateItemAllocations } from "../billing-split";
 
 describe("multi-bill splitting", () => {
@@ -141,9 +142,15 @@ describe("G5 fractional shared-dish splitting", () => {
   };
 
   it("rejects ratios that do not cover exactly one whole item", () => {
-    expect(() => buildFractionalSeatAllocationPlan([
-      { ...shared, seatShares: [{ seatLabel: "Seat 1", shareRatio: 0.4 }, { seatLabel: "Seat 2", shareRatio: 0.4 }] },
-    ], "EVEN_SPLIT")).toThrow("INVALID_SEAT_SHARE_TOTAL");
+    try {
+      buildFractionalSeatAllocationPlan([
+        { ...shared, seatShares: [{ seatLabel: "Seat 1", shareRatio: 0.4 }, { seatLabel: "Seat 2", shareRatio: 0.4 }] },
+      ], "EVEN_SPLIT");
+      throw new Error("Expected seat-share validation to fail");
+    } catch (error) {
+      expect(error).toBeInstanceOf(ValidationError);
+      expect((error as ValidationError).details?.reason).toBe("INVALID_SEAT_SHARE_TOTAL");
+    }
   });
 
   it("allocates one shared line fractionally without gaps or double counting", () => {

@@ -9,8 +9,10 @@ import {
   pgEnum,
   index,
   uniqueIndex,
+  foreignKey,
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { tenants } from "./tenant.schema";
 import { branches } from "./branch.schema";
 import { users } from "./auth.schema";
@@ -68,6 +70,11 @@ export const inventoryItems = pgTable(
       t.tenantId,
       t.branchId,
     ),
+    branchTenantFk: foreignKey({
+      name: "inventory_items_branch_tenant_fk",
+      columns: [t.branchId, t.tenantId],
+      foreignColumns: [branches.id, branches.tenantId],
+    }).onDelete("cascade"),
   }),
 );
 
@@ -166,5 +173,10 @@ export const orderInventoryDeductions = pgTable(
     ticketIdx: index("order_inventory_deductions_ticket_idx").on(
       t.kitchenTicketId,
     ),
+    ticketRecipeUnique: uniqueIndex(
+      "order_inventory_deductions_ticket_recipe_unique",
+    )
+      .on(t.kitchenTicketId, t.menuItemId, t.inventoryItemId)
+      .where(sql`${t.kitchenTicketId} IS NOT NULL`),
   }),
 );

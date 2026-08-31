@@ -1,23 +1,4 @@
-/**
- * Auth-specific error factories.
- *
- * The pre-refactor controller returned ad-hoc `{ code, message }` pairs
- * per catch block (`TENANT_EXISTS`, `MISSING_TENANT`,
- * `AUTH_INVALID_CREDENTIALS`, `AUTH_USER_INACTIVE`,
- * `AUTH_INVALID_REFRESH_TOKEN`, `USER_NOT_FOUND`). Folded into the shared
- * `AppError` taxonomy here — same status codes and message text
- * preserved, original code kept in `details.reason` for log-grep
- * continuity (same pattern as `tables`/`branches`). Verified no frontend
- * client hardcodes the old code strings before making this change — see
- * docs/NEXT_STEPS.md.
- *
- * `login` and `refresh` each collapsed several distinct internal error
- * cases into one fixed client-facing status/message (401 "Invalid
- * credentials" / 401 "Invalid refresh token") in the original controller,
- * regardless of which internal case fired. Preserved here by having the
- * service throw the same fixed error for every case in that group,
- * rather than distinguishing them for the client.
- */
+/** Authentication error factories with stable client-facing messages and typed status codes. */
 import {
   UnauthorizedError,
   NotFoundError,

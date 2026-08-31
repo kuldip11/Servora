@@ -2,7 +2,7 @@ import type { OrderType } from "@pos/types";
 import { availabilityService, type AvailabilityChannel } from "../menu/availability/availability.service";
 import { menuChangeLog } from "../menu/change-log/menu-change-log";
 import { stationResolver } from "../kitchen-tickets/stations/station.service";
-import type { PricedLine } from "./pricing/pricing-pipeline";
+import type { PricedLine } from "./pricing/pricing.types";
 
 export interface OrderLineSnapshotContext {
   branchId: string;

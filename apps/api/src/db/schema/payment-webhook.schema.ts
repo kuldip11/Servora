@@ -24,5 +24,9 @@ export const paymentWebhookEvents = pgTable(
   },
   (t) => ({
     eventTypeIdx: index("payment_webhook_events_type_idx").on(t.eventType),
+    retryIdx: index("payment_webhook_events_retry_idx").on(
+      t.status,
+      t.nextAttemptAt,
+    ),
   }),
 );

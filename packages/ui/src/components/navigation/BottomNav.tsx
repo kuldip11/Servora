@@ -7,7 +7,7 @@ export interface BottomNavProps {
 }
 
 /**
- * Mobile bottom tab bar (docs/design-system/00-PLAN.md Phase 6) — the
+ * Mobile bottom tab bar (the design-system contract Phase 6) — the
  * Waiter App's primary navigation pattern per the plan's Phase 11 note.
  * Slots into `AppShell`'s `bottombar` prop, which already applies the
  * safe-area bottom padding — this component only lays out the tab row

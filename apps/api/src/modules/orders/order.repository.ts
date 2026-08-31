@@ -6,6 +6,7 @@
 import { eq, and, desc, asc, sql, inArray, gte, isNull } from "drizzle-orm";
 import type { OrderStatus, OrderType } from "@pos/types";
 import { db } from "../../db";
+import { DomainRuleError } from "../../core/errors";
 import {
   orders,
   orderItems,
@@ -19,7 +20,7 @@ import {
   menuItems,
   menuItemVariants,
 } from "../../db/schema";
-import type { PricedLine } from "./pricing/pricing-pipeline";
+import type { PricedLine } from "./pricing/pricing.types";
 import { compact } from "../../lib/object-utils";
 import { resolveInventoryReversal } from "../inventory/inventory-stock";
 import { assertAndInsertPromotionRedemptions, assertAndReplacePromotionRedemptions, type PendingPromotionRedemption } from "../menu/promotions/promotion.repository";
@@ -94,7 +95,7 @@ export const orderRepository = {
               eq(menuItemVariants.menuItemId, need.menuItemId),
               gte(menuItemVariants.manualStockCount, need.quantity),
             )).returning({ id: menuItemVariants.id });
-            if (!updated) throw new Error("MANUAL_STOCK_DEPLETED");
+            if (!updated) throw new DomainRuleError("Manual stock was depleted concurrently", { reason: "MANUAL_STOCK_DEPLETED" });
           }
         }
         if (!handledByVariant) {
@@ -112,7 +113,7 @@ export const orderRepository = {
               eq(menuItems.tenantId, data.tenantId),
               gte(menuItems.manualStockCount, need.quantity),
             )).returning({ id: menuItems.id });
-            if (!updated) throw new Error("MANUAL_STOCK_DEPLETED");
+            if (!updated) throw new DomainRuleError("Manual stock was depleted concurrently", { reason: "MANUAL_STOCK_DEPLETED" });
           }
         }
       }
@@ -411,7 +412,7 @@ export const orderRepository = {
             eq(inventoryItems.tenantId, tenantId),
           ),
         });
-        if (!inventoryItem) throw new Error("INVENTORY_REVERSAL_ITEM_NOT_FOUND");
+        if (!inventoryItem) throw new Error(`Inventory item ${deduction.inventoryItemId} is missing for an unreversed deduction`);
         const balanceBefore = Number(inventoryItem.currentStock);
         const quantity = Number(deduction.quantityDeducted);
         const { balanceAfter } = resolveInventoryReversal(balanceBefore, quantity);
@@ -588,7 +589,7 @@ export const orderRepository = {
               eq(menuItemVariants.menuItemId, need.menuItemId),
               gte(menuItemVariants.manualStockCount, need.quantity),
             )).returning({ id: menuItemVariants.id });
-            if (!updated) throw new Error("MANUAL_STOCK_DEPLETED");
+            if (!updated) throw new DomainRuleError("Manual stock was depleted concurrently", { reason: "MANUAL_STOCK_DEPLETED" });
           }
         }
         if (!handledByVariant) {
@@ -606,7 +607,7 @@ export const orderRepository = {
               eq(menuItems.tenantId, tenantId),
               gte(menuItems.manualStockCount, need.quantity),
             )).returning({ id: menuItems.id });
-            if (!updated) throw new Error("MANUAL_STOCK_DEPLETED");
+            if (!updated) throw new DomainRuleError("Manual stock was depleted concurrently", { reason: "MANUAL_STOCK_DEPLETED" });
           }
         }
       }

@@ -736,7 +736,7 @@ describe("order service", () => {
   });
 });
 
-describe("Phase G order lifecycle acceptance", () => {
+describe("advanced order lifecycle acceptance", () => {
   it("G9 creates PER_COVER orders from the cover rate and applies normal tax/service-charge/rounding stages", async () => {
     tenantFind.mockResolvedValue({ serviceChargePercent: "10", serviceChargeTaxable: false, roundingPolicy: "NEAREST_5", defaultTaxMode: "EXCLUSIVE" });
     perCoverRule.mockResolvedValue({

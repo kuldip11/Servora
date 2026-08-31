@@ -1,18 +1,4 @@
-/**
- * Menu item repository — data access for the "items" sub-domain only.
- * Extracted from the monolithic `modules/menu/repository.ts` (still used
- * by categories, modifier groups, tags, allergens, recipes, scheduling,
- * branch overrides, bulk ops, import/export, and templates — none of
- * those have been split out yet, see docs/NEXT_STEPS.md).
- *
- * `findByIds` and `getEffectiveItem` deliberately stayed in the legacy
- * `menu/repository.ts` rather than moving here: they're order-time
- * pricing/availability reads used cross-module by
- * `orders/order.service.ts`, and conceptually belong with a future
- * "availability" sub-domain more than with item CRUD. Moving them now
- * would touch a working, already-migrated integration point for no
- * behavioral benefit.
- */
+/** Persistence operations for menu items. */
 import { eq, and, isNull, or, inArray, asc } from "drizzle-orm";
 import type { FoodType, MenuItemStatus, SpiceLevel } from "@pos/types";
 import { db } from "../../../db";
@@ -30,6 +16,10 @@ import {
   menus,
   menuMemberships,
 } from "../../../db/schema";
+import {
+  withEffectiveMenuItemAvailability,
+  withEffectiveModifierAvailability,
+} from "../availability/availability-view";
 
 // Full relation tree for a menu item — used wherever the frontend needs to
 // render/edit everything about an item (order-time resolution just needs
@@ -39,7 +29,7 @@ import {
 // Exported (not just used internally) because `categories/category.repository.ts`
 // needs the exact same shape for its nested `menuItems` join — better to
 // share one definition than maintain a third copy alongside this one and
-// the original still in the legacy `menu/repository.ts`.
+// the item repository remains the single data-access boundary for this query.
 type MenuItemDetailRelations = NonNullable<NonNullable<Parameters<typeof db.query.menuItems.findFirst>[0]>["with"]>;
 
 export const ITEM_DETAIL_RELATIONS: MenuItemDetailRelations = {
@@ -59,6 +49,28 @@ export const ITEM_DETAIL_RELATIONS: MenuItemDetailRelations = {
   recipeLinks: { with: { inventoryItem: true } },
   menuMemberships: { with: { menu: true, category: true } },
 };
+
+function withItemReadModel<T extends {
+  status: MenuItemStatus | string;
+  manualOverrideStatus?: MenuItemStatus | string | null;
+  manualStockCount?: number | null;
+  modifierGroupLinks?: Array<{ group: { options: Array<{ computedAvailability: boolean; manualOverrideAvailability?: boolean | null }> } }>;
+}>(item: T) {
+  return {
+    ...withEffectiveMenuItemAvailability(item),
+    ...(item.modifierGroupLinks
+      ? {
+          modifierGroupLinks: item.modifierGroupLinks.map((link) => ({
+            ...link,
+            group: {
+              ...link.group,
+              options: link.group.options.map(withEffectiveModifierAvailability),
+            },
+          })),
+        }
+      : {}),
+  };
+}
 
 export const itemRepository = {
   async findCategory(tenantId: string, categoryId: string) {
@@ -97,10 +109,11 @@ export const itemRepository = {
   },
 
   async findById(tenantId: string, itemId: string) {
-    return db.query.menuItems.findFirst({
+    const item = await db.query.menuItems.findFirst({
       where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)),
       with: ITEM_DETAIL_RELATIONS,
     });
+    return item ? withItemReadModel(item) : undefined;
   },
 
   async create(data: {
@@ -163,7 +176,6 @@ export const itemRepository = {
           sortOrder: data.sortOrder ?? 0,
           hsnCode: data.hsnCode ?? null,
           status: data.status ?? "ACTIVE",
-          isAvailable: (data.status ?? "ACTIVE") === "ACTIVE",
           enableRecipeDeduction: data.enableRecipeDeduction ?? true,
           isPublished: data.isPublished ?? true,
           displayMode: data.displayMode ?? "STANDARD",
@@ -228,10 +240,11 @@ export const itemRepository = {
         );
       }
 
-      return tx.query.menuItems.findFirst({
+      const created = await tx.query.menuItems.findFirst({
         where: eq(menuItems.id, item!.id),
         with: ITEM_DETAIL_RELATIONS,
       });
+      return created ? withItemReadModel(created) : undefined;
     });
   },
 
@@ -252,7 +265,6 @@ export const itemRepository = {
       manualStockCountUpdatedAt?: Date | undefined;
       taxRate?: string | undefined;
       taxMode?: "INCLUSIVE" | "EXCLUSIVE" | null | undefined;
-      isAvailable?: boolean | undefined;
       foodType?: FoodType | undefined;
       spiceLevel?: SpiceLevel | null | undefined;
       sku?: string | null | undefined;
@@ -266,13 +278,7 @@ export const itemRepository = {
       effectiveFrom?: Date | null | undefined;
     },
   ) {
-    // `isAvailable` is a derived flag the waiter-app ordering views read
-    // directly — keep it in sync with `status` whenever status changes,
-    // unless the caller also explicitly sent isAvailable (rare/legacy path).
     const patch: Record<string, unknown> = { ...data, updatedAt: new Date() };
-    if (data.status !== undefined && data.isAvailable === undefined) {
-      patch["isAvailable"] = data.status === "ACTIVE";
-    }
     if (data.status !== undefined) {
       patch["statusChangedAt"] = new Date();
     }
@@ -281,7 +287,7 @@ export const itemRepository = {
       .set(patch)
       .where(and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)))
       .returning();
-    return updated;
+    return updated ? withEffectiveMenuItemAvailability(updated) : undefined;
   },
 
   // Copies the item plus variants/tags/allergens/modifier-group links
@@ -350,7 +356,6 @@ export const itemRepository = {
           sortOrder: source.sortOrder,
           hsnCode: source.hsnCode,
           status: source.status,
-          isAvailable: source.isAvailable,
           enableRecipeDeduction: source.enableRecipeDeduction,
         })
         .returning();
@@ -430,10 +435,11 @@ export const itemRepository = {
         }
       }
 
-      return tx.query.menuItems.findFirst({
+      const duplicate = await tx.query.menuItems.findFirst({
         where: eq(menuItems.id, newItemId),
         with: ITEM_DETAIL_RELATIONS,
       });
+      return duplicate ? withItemReadModel(duplicate) : undefined;
     });
   },
 
@@ -449,7 +455,6 @@ export const itemRepository = {
         status,
         availabilityReason: reason ?? null,
         statusChangedAt: new Date(),
-        isAvailable: status === "ACTIVE",
         updatedAt: new Date(),
       })
       .where(
@@ -460,7 +465,7 @@ export const itemRepository = {
         ),
       )
       .returning();
-    return updated;
+    return updated ? withEffectiveMenuItemAvailability(updated) : undefined;
   },
 
   async findByStatus(
@@ -469,7 +474,7 @@ export const itemRepository = {
     statuses: MenuItemStatus[],
     categoryId?: string | undefined,
   ) {
-    return db.query.menuItems.findMany({
+    const items = await db.query.menuItems.findMany({
       where: and(
         eq(menuItems.tenantId, tenantId),
         isNull(menuItems.deletedAt),
@@ -482,6 +487,7 @@ export const itemRepository = {
       orderBy: (t, { asc }) => [asc(t.sortOrder)],
       with: ITEM_DETAIL_RELATIONS,
     });
+    return items.map(withItemReadModel);
   },
 
   // Full replace of an item's tag/allergen/modifier-group/image links — the

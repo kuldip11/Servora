@@ -1,10 +1,4 @@
-/**
- * Menu category error factories.
- *
- * No frontend client checks the pre-refactor `CATEGORY_HAS_ITEMS` code
- * string (verified — see docs/NEXT_STEPS.md), so this migration folds it
- * into the shared `ConflictError`. Status code unchanged (409).
- */
+/** Menu-category error factories using the shared application error taxonomy. */
 import { NotFoundError, ConflictError } from "../../../core/errors";
 
 export function categoryNotFound(id?: string): NotFoundError {

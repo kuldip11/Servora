@@ -1,5 +1,5 @@
 /**
- * Motion tokens — Phase 8 (docs/design-system/00-PLAN.md).
+ * Motion tokens — Phase 8 (the design-system contract).
  *
  * Single source of truth for durations and easings, the same role
  * `theme/tokens.css` plays for color/radius/shadow/spacing (Phase 1).

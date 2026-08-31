@@ -20,6 +20,7 @@ vi.mock("../../../orders/pricing/pricing-pipeline", () => ({
 }));
 vi.mock("../../../../core/auth", () => ({ requirePermission: vi.fn() }));
 
+import { InternalError } from "../../../../core/errors";
 import { orderExplainService } from "../order-explain.service";
 
 const auth = {
@@ -153,6 +154,25 @@ describe("H1 point-in-time order explanation", () => {
     expect(explained.lines[2]!.pricingReplay.priceSource).toMatchObject({ kind: "PRICE_RULE" });
     expect(explained.lines.every((entry) => entry.authoritativePricingReplay?.matchesSnapshot)).toBe(true);
     expect(explained.lines.every((entry) => entry.authoritativeAvailabilityReplay?.matchesSnapshot)).toBe(true);
+  });
+
+  it("rejects persisted menu-item lines that are missing mandatory replay evidence", async () => {
+    const broken = line("broken", "BASE_STATUS", "MENU_ITEM");
+    broken.pricingReplayEvidence = null as never;
+    findById.mockResolvedValue({
+      id: "order",
+      customerId: null,
+      customerGroupId: null,
+      resolutionAsOf: new Date("2026-08-30T10:00:00.000Z"),
+      createdAt: new Date("2026-08-30T10:00:01.000Z"),
+      subtotal: "10.00", discountAmount: "0.00", taxAmount: "0.50",
+      serviceChargeAmount: "0.00", roundingAdjustment: "0.00", totalAmount: "10.50",
+      items: [broken],
+    });
+
+    await expect(orderExplainService.explainOrder(auth, "order")).rejects.toBeInstanceOf(InternalError);
+    expect(getEffectiveItem).not.toHaveBeenCalled();
+    expect(price).not.toHaveBeenCalled();
   });
 
   it("uses the exact resolution timestamp rather than the later database createdAt timestamp", async () => {

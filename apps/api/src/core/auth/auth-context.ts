@@ -14,10 +14,10 @@ import { db } from "../../db";
 import {
   resolveAuthorization,
   resolveMembership,
-} from "../../lib/authorization/authorization";
+} from "./authorization";
 import { globalUserRoles } from "../../db/schema";
 import { eq } from "drizzle-orm";
-import { resolveActiveBranch } from "../../lib/authorization/membership-context";
+import { resolveActiveBranch } from "./membership-context";
 import {
   UnauthorizedError,
   ForbiddenError,

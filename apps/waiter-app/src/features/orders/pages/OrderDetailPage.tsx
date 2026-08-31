@@ -27,13 +27,9 @@ interface Props {
   onAddItems: (orderId: string) => void;
 }
 
-// Design-system Phase 11, Sprint WA-4 — closes out `docs/design-system/
-// README.md`'s "Not touched yet, still open for Phase 11" list:
-// `OrdersPage`/`OrderDetailPage` and their component set
-// (`OrderDetailHeader`/`OrderBanners`/`TicketGroup`/`OrderTotals`/
-// `OrderTimeline`/`OrderActions`). `bg-gray-50` → `bg-background`
-// below is an exact match, not an approximation — `tokens.css`'s
-// `--background` (`#f9fafb`) was pulled 1:1 from this exact class
+// Order-detail surfaces use the shared design tokens and order components.
+// `bg-background` maps to the same neutral application background used by the
+// shared theme, keeping the waiter UI aligned with the rest of the product.
 // (see the token file's own top comment).
 export function OrderDetailPage({ orderId, onBack, onAddItems }: Props) {
   const qc = useQueryClient();

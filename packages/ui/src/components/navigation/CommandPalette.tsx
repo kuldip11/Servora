@@ -34,7 +34,7 @@ export interface CommandPaletteProps {
 }
 
 /**
- * Cmd+K command palette (docs/design-system/00-PLAN.md Phase 6 exit
+ * Cmd+K command palette (the design-system contract Phase 6 exit
  * criteria: "opens from anywhere, fuzzy-searches a registered command
  * list, fully keyboard-operable"). Pair with `useCommandPaletteHotkey`
  * below to get the "opens from anywhere" part.

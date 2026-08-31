@@ -30,7 +30,7 @@ interface Props {
 
 // Design-system Phase 11, Sprint WA-3 — retokenized only, on purpose.
 // This owns the 1 Waiter App instance of the audit's native-`<select>`
-// finding (`phase-0-ui-audit.md` §3: "7 instances in Admin, 1 in
+// finding (`the design-system audit` §3: "7 instances in Admin, 1 in
 // Waiter App"). It's **not** migrated onto `SelectMenu` here — Phase
 // 4's own write-up flags that swap as a genuine interaction-model
 // change (Popover-backed `onChange(value)` vs. a native `<select>`'s
@@ -181,7 +181,7 @@ export function OrderOptionsPanel({
         )}
       </div>
 
-      {/* Phase G: explicit group-pricing context and buffet billing mode. */}
+      {/* Explicit group-pricing context and buffet billing mode. */}
       <div className="grid gap-2 md:grid-cols-2">
         <label className="text-xs font-medium text-text-secondary">
           Customer group pricing

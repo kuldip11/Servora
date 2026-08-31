@@ -8,7 +8,7 @@
  * `data-theme` (light/dark/high-contrast) repaints every class built
  * from this preset with zero component code changes.
  *
- * See docs/design-system/README.md "Phase 1 detail".
+ * See the design-system guidance "Phase 1 detail".
  *
  * Phase 8 (Motion System) added `transitionDuration`/
  * `transitionTimingFunction` below, plus the `tailwindcss-animate`

@@ -51,7 +51,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 /**
- * Upgraded for Phase 3 (docs/design-system/00-PLAN.md): now consumes
+ * Upgraded for Phase 3 (the design-system contract): now consumes
  * `--primary`/`--danger`/`--success`/`--surface`/`--border` tokens
  * instead of hardcoded `violet-*`/`red-*`/`gray-*` classes, and grows
  * from 4 variants to the plan's full family (`outline`, `link`,

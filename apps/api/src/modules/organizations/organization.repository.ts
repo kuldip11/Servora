@@ -75,7 +75,7 @@ export const organizationRepository = {
         status: data.status ?? "DRAFT", isDefault: data.isDefault ?? false, availableChannels: data.availableChannels ?? null,
         availableFulfillmentTypes: data.availableFulfillmentTypes ?? null, availableBranchIds: null, effectiveFrom: data.effectiveFrom ?? null,
       }).returning();
-      if (!menu) throw new Error("ORGANIZATION_MENU_CREATE_FAILED");
+      if (!menu) throw new Error("Organization menu insert returned no row");
       if (data.items.length) await tx.insert(organizationMenuItems).values(data.items.map((item, index) => ({
         menuId: menu.id, itemSku: item.itemSku.trim(), categoryName: item.categoryName?.trim() || null, sortOrder: item.sortOrder ?? index,
       })));

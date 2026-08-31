@@ -29,7 +29,7 @@ export interface StatusBadgeProps {
 }
 
 /**
- * Generic status→tone primitive (docs/design-system/00-PLAN.md Phase 3;
+ * Generic status→tone primitive (the design-system contract Phase 3;
  * decided in the Phase 0 audit's duplication findings). Collapses the
  * 3 independent status-badge implementations the audit found — Admin's
  * menu-item `StatusBadge`, Waiter App's order `StatusBadge`, and Kitchen

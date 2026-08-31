@@ -57,7 +57,7 @@ const dialogAnimationClasses = cn(
 );
 
 /**
- * The plan's canonical `Dialog` (docs/design-system/00-PLAN.md, Phase
+ * The plan's canonical `Dialog` (the design-system contract, Phase
  * 5): "upgrade existing `Modal` into `Dialog` rather than keeping
  * both." This **is** that upgrade, not a parallel component — it's a
  * straight rewrite onto `@radix-ui/react-dialog` (real focus trap,

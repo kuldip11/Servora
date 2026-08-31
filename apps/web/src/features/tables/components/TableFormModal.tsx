@@ -6,7 +6,7 @@ import type {
 import { Button, Modal, Input, Select } from "@pos/ui";
 import type { Branch } from "@pos/types";
 import type { RestaurantTable } from "../types";
-import type { TableFormValues } from "../pages/TablesPage";
+import type { TableFormValues } from "../table-form.types";
 
 export function TableFormModal({
   mode,

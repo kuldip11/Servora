@@ -9,6 +9,10 @@ import {
   orders,
   kitchenTickets,
 } from "../../db/schema";
+import {
+  withEffectiveMenuItemAvailability,
+  withEffectiveModifierAvailability,
+} from "../menu/availability/availability-view";
 
 export const customerRepository = {
   async findBranchByTakeawayQrToken(token: string) {
@@ -97,7 +101,6 @@ export const customerRepository = {
       where: and(
         eq(menuItems.tenantId, tenantId),
         eq(menuItems.isPublished, true),
-        eq(menuItems.isAvailable, true),
         or(eq(menuItems.branchId, branchId), isNull(menuItems.branchId)),
         isNull(menuItems.deletedAt),
       ),
@@ -111,6 +114,18 @@ export const customerRepository = {
       orderBy: (t, { asc }) => [asc(t.sortOrder), asc(t.name)],
     });
 
-    return { categories, items };
+    return {
+      categories,
+      items: items.map((item) => ({
+        ...withEffectiveMenuItemAvailability(item),
+        modifierGroupLinks: item.modifierGroupLinks.map((link) => ({
+          ...link,
+          group: {
+            ...link.group,
+            options: link.group.options.map(withEffectiveModifierAvailability),
+          },
+        })),
+      })),
+    };
   },
 };

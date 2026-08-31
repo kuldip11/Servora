@@ -3,7 +3,7 @@ import { requirePermission } from "../../core/auth";
 import { tenantRepository } from "./tenant.repository";
 import { branchRepository } from "../branches/branch.repository";
 import { tenantNotFound } from "./tenant.errors";
-import { ForbiddenError, ValidationError } from "../../core/errors";
+import { ForbiddenError, ServiceUnavailableError, ValidationError } from "../../core/errors";
 import { writeAudit } from "../../core/audit";
 
 export const tenantService = {
@@ -66,8 +66,8 @@ export const tenantService = {
     });
     const tenantRole = await tenantRepository.findRoleByName("FRANCHISE_ADMIN");
     if (!tenantRole || tenantRole.scope !== "TENANT")
-      throw new Error(
-        "RBAC reference data is not installed: TENANT FRANCHISE_ADMIN role is missing",
+      throw new ServiceUnavailableError(
+        "RBAC reference data is unavailable: TENANT FRANCHISE_ADMIN role is missing",
       );
     const membership = await tenantRepository.createOwnerMembership(
       auth.userId,

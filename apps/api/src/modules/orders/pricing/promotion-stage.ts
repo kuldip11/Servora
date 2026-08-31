@@ -1,5 +1,5 @@
 import { promotionRepository, type PendingPromotionRedemption, type PromotionRow } from "../../menu/promotions/promotion.repository";
-import type { PricedLine, PricingContext } from "./pricing-pipeline";
+import type { PricedLine, PricingContext } from "./pricing.types";
 import { ValidationError } from "../../../core/errors";
 
 export interface PromotionStageOptions {
@@ -98,9 +98,8 @@ export async function applyPromotionStage(
     for (const id of requestedIds) if (!excludedIds.has(id) && !matching.some((promotion) => promotion.id === id)) throw new ValidationError("Selected promotion is invalid or inactive");
   }
 
-  // Stage 1 snapshots category identity into each priced line. In the fresh
-  // pre-production model there are no legacy rows to repair at read time, so
-  // promotion evaluation never reaches back into mutable menu data.
+  // Stage 1 snapshots category identity into each priced line, so promotion
+  // evaluation never reaches back into mutable menu data.
   const categoryByItem = new Map<string, string>();
   for (const line of inputLines) {
     if (line.menuItemId && line.pricingAttribution.CATEGORY_ID) {

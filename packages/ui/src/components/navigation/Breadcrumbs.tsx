@@ -16,7 +16,7 @@ export interface BreadcrumbsProps {
 }
 
 /**
- * Page hierarchy trail (docs/design-system/00-PLAN.md Phase 6) — meant
+ * Page hierarchy trail (the design-system contract Phase 6) — meant
  * for `PageHeader`'s `eyebrow` slot (see that Phase 2 component's doc
  * comment, which already anticipates this).
  *

@@ -186,9 +186,7 @@ app = app
 
 // Global error handler
 app = app.onError(({ code, error, set, requestContext }) => {
-  // New, typed errors (AppError and subclasses) — the pattern new modules
-  // are being migrated to. Checked first; everything below is unchanged
-  // legacy behavior for modules that haven't migrated yet.
+  // Domain/request failures have one authoritative typed error contract.
   if (AppError.isAppError(error)) {
     rootLogger.warn(`API Error: ${error.code}`, {
       requestId: requestContext?.requestId,

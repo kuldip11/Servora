@@ -28,7 +28,7 @@ import { CreateOrderModal } from "../components/CreateOrderModal";
 import type { Order } from "@pos/types";
 
 /**
- * Phase 10 (docs/design-system/00-PLAN.md) migration, done early as
+ * Phase 10 (the design-system contract) migration, done early as
  * Phase 7 Part 2's named exit criterion ("Admin's Orders table...
  * migrated onto DataGrid as a proof-of-concept before this phase is
  * called complete" — see README.md's "Phase 7 detail"). Orders is the

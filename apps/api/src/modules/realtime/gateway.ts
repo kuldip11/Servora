@@ -1,11 +1,12 @@
 import { Elysia } from "elysia";
+import { ForbiddenError } from "../../core/errors";
 import { subscriber, REDIS_CHANNELS } from "../../lib/redis";
 import { verifyAccessToken, type JwtPayload } from "../../lib/jwt";
 import { db } from "../../db";
 import {
   resolveAuthorization,
   resolveMembership,
-} from "../../lib/authorization/authorization";
+} from "../../core/auth/authorization";
 import { shouldDeliverRealtimeEvent } from "./delivery-scope";
 import { customerService } from "../customer/customer.service";
 
@@ -84,10 +85,10 @@ export async function resolveRealtimeContext(
   tenantId: string,
   branchId?: string,
 ) {
-  if (!tenantId) throw new Error("ACTIVE_FRANCHISE_REQUIRED");
+  if (!tenantId) throw new ForbiddenError("Active franchise is required");
 
   const membership = await resolveMembership(db, payload.sub, tenantId);
-  if (!membership) throw new Error("ACTIVE_FRANCHISE_REQUIRED");
+  if (!membership) throw new ForbiddenError("Active franchise is required");
 
   const decision = await resolveAuthorization(db, {
     userId: payload.sub,
@@ -102,7 +103,7 @@ export async function resolveRealtimeContext(
       ),
     )
   ) {
-    throw new Error("REALTIME_PERMISSION_REQUIRED");
+    throw new ForbiddenError("Realtime permission is required");
   }
 
   if (
@@ -111,7 +112,7 @@ export async function resolveRealtimeContext(
     !decision.branchIds.includes(branchId) &&
     !decision.tenantWide
   ) {
-    throw new Error("REALTIME_BRANCH_ACCESS_REQUIRED");
+    throw new ForbiddenError("Realtime branch access denied");
   }
 
   return {

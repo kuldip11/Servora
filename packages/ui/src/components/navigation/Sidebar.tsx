@@ -27,7 +27,7 @@ export interface SidebarProps {
 }
 
 /**
- * Desktop collapsible sidebar (docs/design-system/00-PLAN.md Phase 6).
+ * Desktop collapsible sidebar (the design-system contract Phase 6).
  * Slots into `AppShell`'s `sidebar` prop — this component only renders
  * the nav content, `AppShell` still owns the fixed-width `<aside>`
  * frame and the `hidden lg:block` responsive rule.

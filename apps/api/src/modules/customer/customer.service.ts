@@ -25,7 +25,7 @@ import { priceComboOrders, type ComboOrderSelection } from "../menu/combos/combo
 import { promotionRepository } from "../menu/promotions/promotion.repository";
 import { loyaltyRepository } from "../loyalty/loyalty.repository";
 import { snapshotOrderLines } from "../orders/order-line-snapshot.service";
-import { finalizeWholeActiveOrder, type ExistingLinePricingUpdate, type StoredOrderLineForRepricing } from "../orders/order-repricing";
+import { finalizeWholeActiveOrder, type ExistingLinePricingUpdate, type StoredOrderLineForRepricing } from "../orders/active-order-pricing";
 import { isBillableOrderItem } from "../orders/order-item-billing";
 
 const SESSION_TTL_MINUTES = 12 * 60;

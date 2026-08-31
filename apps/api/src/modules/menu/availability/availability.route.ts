@@ -19,11 +19,8 @@ import {
   stockCountBody,
 } from "./availability.validator";
 
-// Mounted at the same base prefix as the legacy `menuRouter` (this
-// sub-domain's endpoints don't share a clean common sub-path the way
-// `items`/`categories` did — they're scattered across `/items/:id/...`
-// and `/holidays`). No path collisions with the legacy router or the
-// other menu sub-routers (verified — see docs/NEXT_STEPS.md).
+// Availability endpoints share the `/api/menu` namespace with the other
+// menu sub-domain routers and use the shared menu authorization boundary.
 export const menuAvailabilityRouter = new Elysia({ prefix: "/api/menu" })
   .use(requireAuthPlugin())
   .get("/availability/dashboard", ({ auth, query }) =>

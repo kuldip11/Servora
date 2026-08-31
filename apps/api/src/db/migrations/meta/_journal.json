@@ -5,610 +5,547 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1786109000000,
+      "when": 1788201000000,
       "tag": "0000_enums",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1786109000001,
-      "tag": "0001_tenants",
+      "when": 1788201000001,
+      "tag": "0001_create_users",
       "breakpoints": true
     },
     {
       "idx": 2,
       "version": "7",
-      "when": 1786109000002,
-      "tag": "0002_branches",
+      "when": 1788201000002,
+      "tag": "0002_create_permissions",
       "breakpoints": true
     },
     {
       "idx": 3,
       "version": "7",
-      "when": 1786109000003,
-      "tag": "0003_users_and_auth",
+      "when": 1788201000003,
+      "tag": "0003_create_menu_allergens",
       "breakpoints": true
     },
     {
       "idx": 4,
       "version": "7",
-      "when": 1786109000004,
-      "tag": "0004_roles",
+      "when": 1788201000004,
+      "tag": "0004_create_payment_webhook_events",
       "breakpoints": true
     },
     {
       "idx": 5,
       "version": "7",
-      "when": 1786109000005,
-      "tag": "0005_permissions",
+      "when": 1788201000005,
+      "tag": "0005_create_organizations",
       "breakpoints": true
     },
     {
       "idx": 6,
       "version": "7",
-      "when": 1786109000006,
-      "tag": "0006_tenant_memberships",
+      "when": 1788201000006,
+      "tag": "0006_create_user_sessions",
       "breakpoints": true
     },
     {
       "idx": 7,
       "version": "7",
-      "when": 1786109000007,
-      "tag": "0007_staff",
+      "when": 1788201000007,
+      "tag": "0007_create_organization_memberships",
       "breakpoints": true
     },
     {
       "idx": 8,
       "version": "7",
-      "when": 1786109000008,
-      "tag": "0008_restaurant_tables",
+      "when": 1788201000008,
+      "tag": "0008_create_tenants",
       "breakpoints": true
     },
     {
       "idx": 9,
       "version": "7",
-      "when": 1786109000009,
-      "tag": "0009_menu",
+      "when": 1788201000009,
+      "tag": "0009_create_branches",
       "breakpoints": true
     },
     {
       "idx": 10,
       "version": "7",
-      "when": 1786109000010,
-      "tag": "0010_inventory",
+      "when": 1788201000010,
+      "tag": "0010_create_roles",
       "breakpoints": true
     },
     {
       "idx": 11,
       "version": "7",
-      "when": 1786109000011,
-      "tag": "0011_orders",
+      "when": 1788201000011,
+      "tag": "0011_create_tenant_memberships",
       "breakpoints": true
     },
     {
       "idx": 12,
       "version": "7",
-      "when": 1786109000012,
-      "tag": "0012_kitchen",
+      "when": 1788201000012,
+      "tag": "0012_create_menus",
       "breakpoints": true
     },
     {
       "idx": 13,
       "version": "7",
-      "when": 1786109000013,
-      "tag": "0013_billing",
+      "when": 1788201000013,
+      "tag": "0013_create_menu_change_events",
       "breakpoints": true
     },
     {
       "idx": 14,
       "version": "7",
-      "when": 1786109000014,
-      "tag": "0014_analytics",
+      "when": 1788201000014,
+      "tag": "0014_create_combos",
       "breakpoints": true
     },
     {
       "idx": 15,
       "version": "7",
-      "when": 1786109000015,
-      "tag": "0015_foreign_keys",
+      "when": 1788201000015,
+      "tag": "0015_create_menu_tags",
       "breakpoints": true
     },
     {
       "idx": 16,
       "version": "7",
-      "when": 1786109000016,
-      "tag": "0016_indexes",
+      "when": 1788201000016,
+      "tag": "0016_create_holidays",
       "breakpoints": true
     },
     {
       "idx": 17,
       "version": "7",
-      "when": 1786109000017,
-      "tag": "0017_roles_and_permissions_reference_data",
+      "when": 1788201000017,
+      "tag": "0017_create_menu_templates",
       "breakpoints": true
     },
     {
       "idx": 18,
       "version": "7",
-      "when": 1786109000018,
-      "tag": "0018_menu_allergens_reference_data",
+      "when": 1788201000018,
+      "tag": "0018_create_customer_groups",
       "breakpoints": true
     },
     {
       "idx": 19,
       "version": "7",
-      "when": 1786109000019,
-      "tag": "0019_missing_foreign_keys",
+      "when": 1788201000019,
+      "tag": "0019_create_cancellation_reasons",
       "breakpoints": true
     },
     {
       "idx": 20,
       "version": "7",
-      "when": 1786109000020,
-      "tag": "0020_missing_indexes",
+      "when": 1788201000020,
+      "tag": "0020_create_waste_reasons",
       "breakpoints": true
     },
     {
       "idx": 21,
       "version": "7",
-      "when": 1786109000021,
-      "tag": "0021_customer_self_ordering",
+      "when": 1788201000021,
+      "tag": "0021_create_customer_loyalty_tiers",
       "breakpoints": true
     },
     {
       "idx": 22,
       "version": "7",
-      "when": 1786109000022,
-      "tag": "0022_customer_requests",
+      "when": 1788201000022,
+      "tag": "0022_create_void_comp_approval_thresholds",
       "breakpoints": true
     },
     {
       "idx": 23,
       "version": "7",
-      "when": 1786109000023,
-      "tag": "0023_customer_single_tab",
+      "when": 1788201000023,
+      "tag": "0023_create_manager_approval_tokens",
       "breakpoints": true
     },
     {
       "idx": 24,
       "version": "7",
-      "when": 1786109000024,
-      "tag": "0024_public_takeaway_qr",
+      "when": 1788201000024,
+      "tag": "0024_create_role_permissions",
       "breakpoints": true
     },
     {
       "idx": 25,
       "version": "7",
-      "when": 1786109000025,
-      "tag": "0025_takeaway_payment_gate",
+      "when": 1788201000025,
+      "tag": "0025_create_global_user_roles",
       "breakpoints": true
     },
     {
       "idx": 26,
       "version": "7",
-      "when": 1786109000026,
-      "tag": "0026_order_item_fulfillment",
+      "when": 1788201000026,
+      "tag": "0026_create_membership_roles",
       "breakpoints": true
     },
     {
       "idx": 27,
       "version": "7",
-      "when": 1786109000027,
-      "tag": "0027_payment_webhook_hardening",
+      "when": 1788201000027,
+      "tag": "0027_create_membership_branches",
       "breakpoints": true
     },
     {
       "idx": 28,
       "version": "7",
-      "when": 1786109000028,
-      "tag": "0028_customer_order_idempotency",
+      "when": 1788201000028,
+      "tag": "0028_create_refresh_tokens",
       "breakpoints": true
     },
     {
       "idx": 29,
       "version": "7",
-      "when": 1786109000029,
-      "tag": "0029_payment_webhook_retry_metadata",
+      "when": 1788201000029,
+      "tag": "0029_create_staff_shifts",
       "breakpoints": true
     },
     {
       "idx": 30,
       "version": "7",
-      "when": 1786109000030,
-      "tag": "0030_customer_order_request_idempotency",
+      "when": 1788201000030,
+      "tag": "0030_create_attendance_logs",
       "breakpoints": true
     },
     {
       "idx": 31,
       "version": "7",
-      "when": 1786109000031,
-      "tag": "0031_audit_read_permission",
+      "when": 1788201000031,
+      "tag": "0031_create_restaurant_tables",
       "breakpoints": true
     },
     {
       "idx": 32,
       "version": "7",
-      "when": 1786109000032,
-      "tag": "0032_auth_hardening",
+      "when": 1788201000032,
+      "tag": "0032_create_menu_categories",
       "breakpoints": true
     },
     {
       "idx": 33,
       "version": "7",
-      "when": 1786109000033,
-      "tag": "0033_organizations",
+      "when": 1788201000033,
+      "tag": "0033_create_organization_menu_items",
       "breakpoints": true
     },
     {
       "idx": 34,
       "version": "7",
-      "when": 1786109000034,
-      "tag": "0034_franchise_organization_required",
+      "when": 1788201000034,
+      "tag": "0034_create_modifier_groups",
       "breakpoints": true
     },
     {
       "idx": 35,
       "version": "7",
-      "when": 1786109000035,
-      "tag": "0035_branch_identity",
+      "when": 1788201000035,
+      "tag": "0035_create_modifier_options",
       "breakpoints": true
     },
     {
       "idx": 36,
       "version": "7",
-      "when": 1786109000036,
-      "tag": "0036_tenant_roles",
+      "when": 1788201000036,
+      "tag": "0036_create_combo_slots",
       "breakpoints": true
     },
     {
       "idx": 37,
       "version": "7",
-      "when": 1786109000037,
-      "tag": "0037_role_management_permissions",
+      "when": 1788201000037,
+      "tag": "0037_create_menu_schedules",
       "breakpoints": true
     },
     {
       "idx": 38,
       "version": "7",
-      "when": 1786109000038,
-      "tag": "0038_user_sessions",
+      "when": 1788201000038,
+      "tag": "0038_create_menu_template_items",
       "breakpoints": true
     },
     {
       "idx": 39,
       "version": "7",
-      "when": 1786109000039,
-      "tag": "0039_tenant_isolation_guards",
+      "when": 1788201000039,
+      "tag": "0039_create_kitchen_stations",
       "breakpoints": true
     },
     {
       "idx": 40,
       "version": "7",
-      "when": 1786109000040,
-      "tag": "0040_audit_log_hardening",
+      "when": 1788201000040,
+      "tag": "0040_create_inventory_items",
       "breakpoints": true
     },
     {
       "idx": 41,
       "version": "7",
-      "when": 1786109000041,
-      "tag": "0041_ticket_inventory_idempotency",
+      "when": 1788201000041,
+      "tag": "0041_create_sub_recipes",
       "breakpoints": true
     },
     {
       "idx": 42,
       "version": "7",
-      "when": 1786109000042,
-      "tag": "0042_menu_manual_availability_override",
+      "when": 1788201000042,
+      "tag": "0042_create_customers",
       "breakpoints": true
     },
     {
       "idx": 43,
       "version": "7",
-      "when": 1786109000043,
-      "tag": "0043_price_rules",
+      "when": 1788201000043,
+      "tag": "0043_create_audit_logs",
       "breakpoints": true
     },
     {
       "idx": 44,
       "version": "7",
-      "when": 1786109000044,
-      "tag": "0044_order_item_pricing_snapshots",
+      "when": 1788201000044,
+      "tag": "0044_create_customer_sessions",
       "breakpoints": true
     },
     {
       "idx": 45,
       "version": "7",
-      "when": 1786109000045,
-      "tag": "0045_menus",
+      "when": 1788201000045,
+      "tag": "0045_create_menu_items",
       "breakpoints": true
     },
     {
       "idx": 46,
       "version": "7",
-      "when": 1786109000046,
-      "tag": "0046_menu_memberships",
+      "when": 1788201000046,
+      "tag": "0046_create_sub_recipe_ingredients",
       "breakpoints": true
     },
     {
       "idx": 47,
       "version": "7",
-      "when": 1786109000047,
-      "tag": "0047_menu_change_events",
+      "when": 1788201000047,
+      "tag": "0047_create_menu_memberships",
       "breakpoints": true
     },
     {
       "idx": 48,
       "version": "7",
-      "when": 1786109000048,
-      "tag": "0048_kitchen_station_routing",
+      "when": 1788201000048,
+      "tag": "0048_create_menu_item_variants",
       "breakpoints": true
     },
     {
       "idx": 49,
       "version": "7",
-      "when": 1786109000049,
-      "tag": "0049_order_item_route_version_snapshots",
+      "when": 1788201000049,
+      "tag": "0049_create_menu_item_modifier_groups",
       "breakpoints": true
     },
     {
       "idx": 50,
       "version": "7",
-      "when": 1786109000050,
-      "tag": "0050_order_item_voids",
+      "when": 1788201000050,
+      "tag": "0050_create_menu_item_tags",
       "breakpoints": true
     },
     {
       "idx": 51,
       "version": "7",
-      "when": 1786109000051,
-      "tag": "0051_structured_cancellation_reasons",
+      "when": 1788201000051,
+      "tag": "0051_create_menu_item_allergens",
       "breakpoints": true
     },
     {
       "idx": 52,
       "version": "7",
-      "when": 1786109000052,
-      "tag": "0052_multi_bill_cardinality",
+      "when": 1788201000052,
+      "tag": "0052_create_menu_item_images",
       "breakpoints": true
     },
     {
       "idx": 53,
       "version": "7",
-      "when": 1786109000053,
-      "tag": "0053_table_merge",
+      "when": 1788201000053,
+      "tag": "0053_create_menu_item_schedules",
       "breakpoints": true
     },
     {
       "idx": 54,
       "version": "7",
-      "when": 1786109000054,
-      "tag": "0054_order_item_seat_labels",
+      "when": 1788201000054,
+      "tag": "0054_create_menu_item_branch_overrides",
       "breakpoints": true
     },
     {
       "idx": 55,
       "version": "7",
-      "when": 1786109000055,
-      "tag": "0055_inventory_void_reversals",
+      "when": 1788201000055,
+      "tag": "0055_create_menu_item_channel_overrides",
       "breakpoints": true
     },
     {
       "idx": 56,
       "version": "7",
-      "when": 1786109000056,
-      "tag": "0056_menu_context_scopes",
+      "when": 1788201000056,
+      "tag": "0056_create_item_station_routing",
       "breakpoints": true
     },
     {
       "idx": 57,
       "version": "7",
-      "when": 1786109000057,
-      "tag": "0057_menu_schedules",
+      "when": 1788201000057,
+      "tag": "0057_create_promotions",
       "breakpoints": true
     },
     {
       "idx": 58,
       "version": "7",
-      "when": 1786109000058,
-      "tag": "0058_menu_item_channel_overrides",
+      "when": 1788201000058,
+      "tag": "0058_create_modifier_option_variant_prices",
       "breakpoints": true
     },
     {
       "idx": 59,
       "version": "7",
-      "when": 1786109000059,
-      "tag": "0059_variant_availability",
+      "when": 1788201000059,
+      "tag": "0059_create_combo_slot_options",
       "breakpoints": true
     },
     {
       "idx": 60,
       "version": "7",
-      "when": 1786109000060,
-      "tag": "0060_conditional_modifier_groups",
+      "when": 1788201000060,
+      "tag": "0060_create_price_rules",
       "breakpoints": true
     },
     {
       "idx": 61,
       "version": "7",
-      "when": 1786109000061,
-      "tag": "0061_substitution_modifier_groups",
+      "when": 1788201000061,
+      "tag": "0061_create_recipes",
       "breakpoints": true
     },
     {
       "idx": 62,
       "version": "7",
-      "when": 1786109000062,
-      "tag": "0062_guided_builder_display",
+      "when": 1788201000062,
+      "tag": "0062_create_orders",
       "breakpoints": true
     },
     {
       "idx": 63,
       "version": "7",
-      "when": 1786109000063,
-      "tag": "0063_combos",
+      "when": 1788201000063,
+      "tag": "0063_create_order_courses",
       "breakpoints": true
     },
     {
       "idx": 64,
       "version": "7",
-      "when": 1786109000064,
-      "tag": "0064_scheduled_menu_changes",
+      "when": 1788201000064,
+      "tag": "0064_create_order_status_history",
       "breakpoints": true
     },
     {
       "idx": 65,
       "version": "7",
-      "when": 1786109000065,
-      "tag": "0065_combo_parent_order_items",
+      "when": 1788201000065,
+      "tag": "0065_create_promotion_redemptions",
       "breakpoints": true
     },
     {
       "idx": 66,
       "version": "7",
-      "when": 1786109000066,
-      "tag": "0066_promotions",
+      "when": 1788201000066,
+      "tag": "0066_create_bills",
       "breakpoints": true
     },
     {
       "idx": 67,
       "version": "7",
-      "when": 1786109000067,
-      "tag": "0067_happy_hour",
+      "when": 1788201000067,
+      "tag": "0067_create_customer_requests",
       "breakpoints": true
     },
     {
       "idx": 68,
       "version": "7",
-      "when": 1786109000068,
-      "tag": "0068_bogo_promotions",
+      "when": 1788201000068,
+      "tag": "0068_create_customer_order_submissions",
       "breakpoints": true
     },
     {
       "idx": 69,
       "version": "7",
-      "when": 1786109000069,
-      "tag": "0069_loyalty_pricing",
+      "when": 1788201000069,
+      "tag": "0069_create_kitchen_tickets",
       "breakpoints": true
     },
     {
       "idx": 70,
       "version": "7",
-      "when": 1786109000070,
-      "tag": "0070_service_charge",
+      "when": 1788201000070,
+      "tag": "0070_create_payments",
       "breakpoints": true
     },
     {
       "idx": 71,
       "version": "7",
-      "when": 1786109000071,
-      "tag": "0071_rounding",
+      "when": 1788201000071,
+      "tag": "0071_create_order_items",
       "breakpoints": true
     },
     {
       "idx": 72,
       "version": "7",
-      "when": 1786109000072,
-      "tag": "0072_tax_modes",
+      "when": 1788201000072,
+      "tag": "0072_create_payment_refunds",
       "breakpoints": true
     },
     {
       "idx": 73,
       "version": "7",
-      "when": 1786109000073,
-      "tag": "0073_menu_pricing_permission",
+      "when": 1788201000073,
+      "tag": "0073_create_order_item_modifiers",
       "breakpoints": true
     },
     {
       "idx": 74,
       "version": "7",
-      "when": 1786109000074,
-      "tag": "0074_variant_modifier_recipes",
+      "when": 1788201000074,
+      "tag": "0074_create_order_item_seat_shares",
       "breakpoints": true
     },
     {
       "idx": 75,
       "version": "7",
-      "when": 1786109000075,
-      "tag": "0075_sub_recipes",
+      "when": 1788201000075,
+      "tag": "0075_create_order_inventory_deductions",
       "breakpoints": true
     },
     {
       "idx": 76,
       "version": "7",
-      "when": 1786109000076,
-      "tag": "0076_yield_wastage",
+      "when": 1788201000076,
+      "tag": "0076_create_bill_order_items",
       "breakpoints": true
     },
     {
       "idx": 77,
       "version": "7",
-      "when": 1786109000077,
-      "tag": "0077_modifier_computed_availability",
-      "breakpoints": true
-    },
-    {
-      "idx": 78,
-      "version": "7",
-      "when": 1786109000078,
-      "tag": "0078_phase_e_inventory_hardening",
-      "breakpoints": true
-    },
-    {
-      "idx": 79,
-      "version": "7",
-      "when": 1786109000079,
-      "tag": "0079_phase_e_completion",
-      "breakpoints": true
-    },
-    {
-      "idx": 80,
-      "version": "7",
-      "when": 1786109000080,
-      "tag": "0080_phase_f_kitchen_operations",
-      "breakpoints": true
-    },
-    {
-      "idx": 81,
-      "version": "7",
-      "when": 1786109000081,
-      "tag": "0081_phase_f_completion",
-      "breakpoints": true
-    },
-    {
-      "idx": 82,
-      "version": "7",
-      "when": 1786109000082,
-      "tag": "0082_phase_g_advanced_restaurant_models",
-      "breakpoints": true
-    },
-    {
-      "idx": 83,
-      "version": "7",
-      "when": 1786109000083,
-      "tag": "0083_phase_g_completion",
-      "breakpoints": true
-    },
-    {
-      "idx": 84,
-      "version": "7",
-      "when": 1786109000084,
-      "tag": "0084_phase_h_differentiators",
-      "breakpoints": true
-    },
-    {
-      "idx": 85,
-      "version": "7",
-      "when": 1786109000085,
-      "tag": "0085_phase_h_replay_snapshots",
-      "breakpoints": true
-    },
-    {
-      "idx": 86,
-      "version": "7",
-      "when": 1786109000086,
-      "tag": "0086_historical_resolver_replay_evidence",
+      "when": 1788201000077,
+      "tag": "0077_create_inventory_transactions",
       "breakpoints": true
     }
   ]

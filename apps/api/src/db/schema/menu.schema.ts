@@ -15,17 +15,19 @@ import {
   primaryKey,
   unique,
   jsonb,
+  check,
+  foreignKey,
+  type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { tenants } from "./tenant.schema";
 import { branches } from "./branch.schema";
-import { users } from "./auth.schema";
+import { users } from "./user.schema";
 import { taxModeEnum } from "./tax.schema";
 import { organizations } from "./organization.schema";
 
-// Multi-state item availability — replaces the old binary `isAvailable`
-// flag (kept as a derived/synced column for backward compat with the
-// waiter-app ordering views, which just check `isAvailable`).
+// Multi-state item availability is the persisted source of truth. API read
+// models may derive a convenient `isAvailable` boolean from these signals.
 export const menuItemStatusEnum = pgEnum("menu_item_status", [
   "ACTIVE",
   "OUT_OF_STOCK",
@@ -100,6 +102,9 @@ export const menus = pgTable(
   },
   (t) => ({
     tenantStatusIdx: index("menus_tenant_status_idx").on(t.tenantId, t.status),
+    organizationStatusIdx: index("menus_organization_status_idx")
+      .on(t.organizationId, t.status)
+      .where(sql`${t.organizationId} IS NOT NULL`),
     tenantName: uniqueIndex("menus_tenant_name_unique").on(t.tenantId, t.name).where(sql`${t.tenantId} IS NOT NULL`),
     organizationName: uniqueIndex("menus_organization_name_unique").on(t.organizationId, t.name).where(sql`${t.organizationId} IS NOT NULL`),
     oneDefault: uniqueIndex("menus_one_default_per_tenant")
@@ -108,6 +113,10 @@ export const menus = pgTable(
     oneOrgDefault: uniqueIndex("menus_one_default_per_organization")
       .on(t.organizationId)
       .where(sql`${t.isDefault} = true AND ${t.organizationId} IS NOT NULL`),
+    exactlyOneOwnerScope: check(
+      "menus_exactly_one_owner_scope",
+      sql`(${t.tenantId} IS NOT NULL) <> (${t.organizationId} IS NOT NULL)`,
+    ),
   }),
 );
 
@@ -128,7 +137,14 @@ export const menuCategories = pgTable(
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
-  (t) => ({ tenantIdx: index("menu_categories_tenant_idx").on(t.tenantId) }),
+  (t) => ({
+    tenantIdx: index("menu_categories_tenant_idx").on(t.tenantId),
+    branchTenantFk: foreignKey({
+      name: "menu_categories_branch_tenant_fk",
+      columns: [t.branchId, t.tenantId],
+      foreignColumns: [branches.id, branches.tenantId],
+    }).onDelete("cascade"),
+  }),
 );
 
 export const menuItems = pgTable(
@@ -159,7 +175,6 @@ export const menuItems = pgTable(
       .notNull()
       .default("0"),
     taxMode: taxModeEnum("tax_mode"),
-    isAvailable: boolean("is_available").notNull().default(true),
     imageUrl: varchar("image_url", { length: 500 }),
     foodType: foodTypeEnum("food_type").notNull().default("VEG"),
     spiceLevel: spiceLevelEnum("spice_level"),
@@ -209,6 +224,17 @@ export const menuItems = pgTable(
       t.tenantId,
       t.branchId,
       t.status,
+    ),
+    manualStockCountIdx: index("menu_items_manual_stock_count_idx")
+      .on(t.tenantId, t.manualStockCount)
+      .where(sql`${t.manualStockCount} IS NOT NULL`),
+    openPriceBandValid: check(
+      "menu_items_open_price_band_valid",
+      sql`${t.openPriceMin} IS NULL OR ${t.openPriceMax} IS NULL OR ${t.openPriceMin} <= ${t.openPriceMax}`,
+    ),
+    manualStockCountNonnegative: check(
+      "menu_items_manual_stock_count_nonnegative",
+      sql`${t.manualStockCount} IS NULL OR ${t.manualStockCount} >= 0`,
     ),
   }),
 );
@@ -293,19 +319,31 @@ export const menuChangeEvents = pgTable(
 // add-ons — `price` is the absolute price for the item when this variant is
 // selected, replacing basePrice rather than adding to it. Modifiers
 // (modifier_options below) are the additive kind, e.g. "Extra Cheese +₹30".
-export const menuItemVariants = pgTable("menu_item_variants", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  menuItemId: uuid("menu_item_id")
-    .notNull()
-    .references(() => menuItems.id, { onDelete: "cascade" }),
-  name: varchar("name", { length: 100 }).notNull(),
-  price: numeric("price", { precision: 10, scale: 2 }).notNull().default("0"),
-  status: menuItemStatusEnum("status").notNull().default("ACTIVE"),
-  manualOverrideStatus: menuItemStatusEnum("manual_override_status"),
-  manualOverrideReason: varchar("manual_override_reason", { length: 500 }),
-  manualStockCount: integer("manual_stock_count"),
-  manualStockCountUpdatedAt: timestamp("manual_stock_count_updated_at"),
-});
+export const menuItemVariants = pgTable(
+  "menu_item_variants",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    menuItemId: uuid("menu_item_id")
+      .notNull()
+      .references(() => menuItems.id, { onDelete: "cascade" }),
+    name: varchar("name", { length: 100 }).notNull(),
+    price: numeric("price", { precision: 10, scale: 2 }).notNull().default("0"),
+    status: menuItemStatusEnum("status").notNull().default("ACTIVE"),
+    manualOverrideStatus: menuItemStatusEnum("manual_override_status"),
+    manualOverrideReason: varchar("manual_override_reason", { length: 500 }),
+    manualStockCount: integer("manual_stock_count"),
+    manualStockCountUpdatedAt: timestamp("manual_stock_count_updated_at"),
+  },
+  (t) => ({
+    manualStockCountIdx: index("menu_item_variants_manual_stock_count_idx")
+      .on(t.manualStockCount)
+      .where(sql`${t.manualStockCount} IS NOT NULL`),
+    manualStockCountNonnegative: check(
+      "menu_item_variants_manual_stock_count_nonnegative",
+      sql`${t.manualStockCount} IS NULL OR ${t.manualStockCount} >= 0`,
+    ),
+  }),
+);
 
 // ─── Modifier Groups ──────────────────────────────────────────────────────────
 // Reusable "questions" (e.g. "Choose your sides") with selection rules,
@@ -332,11 +370,21 @@ export const modifierGroups = pgTable(
     minSelections: integer("min_selections").notNull().default(0),
     maxSelections: integer("max_selections"),
     sortOrder: integer("sort_order").notNull().default(0),
-    dependsOnOptionId: uuid("depends_on_option_id"),
+    dependsOnOptionId: uuid("depends_on_option_id").references(
+      (): AnyPgColumn => modifierOptions.id,
+      { onDelete: "set null" },
+    ),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
-  (t) => ({ tenantIdx: index("modifier_groups_tenant_idx").on(t.tenantId) }),
+  (t) => ({
+    tenantIdx: index("modifier_groups_tenant_idx").on(t.tenantId),
+    branchTenantFk: foreignKey({
+      name: "modifier_groups_branch_tenant_fk",
+      columns: [t.branchId, t.tenantId],
+      foreignColumns: [branches.id, branches.tenantId],
+    }).onDelete("cascade"),
+  }),
 );
 
 export const modifierOptions = pgTable("modifier_options", {
@@ -348,10 +396,9 @@ export const modifierOptions = pgTable("modifier_options", {
   additionalPrice: numeric("additional_price", { precision: 10, scale: 2 })
     .notNull()
     .default("0"),
-  // `isAvailable` remains the effective legacy field read by existing
-  // clients. E4 keeps recipe-derived availability separate from a manager
-  // hold so replenishment can never silently clear a manual 86.
-  isAvailable: boolean("is_available").notNull().default(true),
+  // Store independent availability signals only. The effective boolean is
+  // derived at the API boundary so recipe replenishment can never silently
+  // clear a manager hold.
   computedAvailability: boolean("computed_availability").notNull().default(true),
   manualOverrideAvailability: boolean("manual_override_availability"),
   maxQuantity: integer("max_quantity").notNull().default(1),
@@ -511,6 +558,11 @@ export const menuItemSchedules = pgTable(
     menuItemIdx: index("menu_schedules_menu_item_idx").on(t.menuItemId),
     branchIdx: index("menu_schedules_branch_idx").on(t.branchId),
     activeIdx: index("menu_schedules_active_idx").on(t.isActive),
+    branchTenantFk: foreignKey({
+      name: "menu_item_schedules_branch_tenant_fk",
+      columns: [t.branchId, t.tenantId],
+      foreignColumns: [branches.id, branches.tenantId],
+    }).onDelete("cascade"),
   }),
 );
 
@@ -598,6 +650,11 @@ export const menuItemBranchOverrides = pgTable(
       t.menuItemId,
       t.branchId,
     ),
+    branchTenantFk: foreignKey({
+      name: "menu_item_branch_overrides_branch_tenant_fk",
+      columns: [t.branchId, t.tenantId],
+      foreignColumns: [branches.id, branches.tenantId],
+    }).onDelete("cascade"),
   }),
 );
 
@@ -615,7 +672,14 @@ export const menuItemChannelOverrides = pgTable(
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
-  (t) => ({ itemChannelIdx: index("menu_item_channel_overrides_item_channel_idx").on(t.menuItemId, t.channel) }),
+  (t) => ({
+    itemChannelIdx: index("menu_item_channel_overrides_item_channel_idx").on(t.menuItemId, t.channel),
+    scopeUnique: uniqueIndex("menu_item_channel_overrides_scope_unique").on(
+      t.menuItemId,
+      t.channel,
+      sql`COALESCE(${t.fulfillmentType}, '')`,
+    ),
+  }),
 );
 
 // ─── Menu Templates ─────────────────────────────────────────────────────────

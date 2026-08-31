@@ -1,8 +1,4 @@
-/**
- * Menu templates repository — data access for the "templates" sub-domain
- * only. Extracted from the monolithic `menu/templates.service.ts`
- * verbatim (same queries, same transaction) — see docs/NEXT_STEPS.md.
- */
+/** Persistence operations for menu templates. */
 import { eq, and, isNull } from "drizzle-orm";
 import { db } from "../../../db";
 import {
@@ -213,7 +209,6 @@ export const templatesRepository = {
                 sortOrder: ti.sortOrder,
                 sku: null, // SKUs are meant to be unique — never carried over from a template
                 status: "ACTIVE" as const,
-                isAvailable: true,
                 isPublished: false, // draft until a manager reviews it — see function comment
                 publishedAt: null,
               })),

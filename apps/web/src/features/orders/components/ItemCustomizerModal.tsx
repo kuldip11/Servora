@@ -15,10 +15,10 @@ interface Props {
 }
 
 /**
- * Design-system Phase 10 (docs/design-system/00-PLAN.md), Sprint AD-8.
+ * Design-system Phase 10 (the design-system contract), Sprint AD-8.
  * This is one of the 4 hand-rolled `fixed inset-0` overlays the Phase 0
  * audit flagged as needing a full rewrite onto `Dialog`, not a drop-in
- * swap (`phase-0-ui-audit.md` §2 and the migration-map row for
+ * swap (`the design-system audit` §2 and the migration-map row for
  * OrdersPage/OrderDetailPage). Rewritten onto `Dialog` (Phase 5) below.
  *
  * Variant selection + modifier groups + quantity for a single menu item.

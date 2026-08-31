@@ -3,7 +3,7 @@ import { cn } from "../../utils/cn";
 
 /**
  * Shared foundation for Phase 6 — Navigation Components
- * (docs/design-system/00-PLAN.md): `Sidebar`, `TopNav`, `BottomNav`,
+ * (the design-system contract): `Sidebar`, `TopNav`, `BottomNav`,
  * `Breadcrumbs`, `Tabs`, `Accordion`, `UserMenu`, Command Palette.
  *
  * `packages/ui` is a Tier 1 package (docs/frontend/COMPONENT_GUIDE.md)

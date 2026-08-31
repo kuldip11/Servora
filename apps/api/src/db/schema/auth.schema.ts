@@ -4,21 +4,20 @@ import {
   varchar,
   text,
   timestamp,
-  integer,
   pgEnum,
   index,
   uniqueIndex,
   boolean,
+  check,
+  foreignKey,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { tenants } from "./tenant.schema";
 import { branches } from "./branch.schema";
+import { users, userStatusEnum } from "./user.schema";
 
-export const userStatusEnum = pgEnum("user_status", [
-  "ACTIVE",
-  "INACTIVE",
-  "SUSPENDED",
-]);
+export { users, userStatusEnum } from "./user.schema";
+
 export const roleScopeEnum = pgEnum("role_scope", [
   "GLOBAL",
   "TENANT",
@@ -30,29 +29,7 @@ export const membershipStatusEnum = pgEnum("membership_status", [
   "SUSPENDED",
 ]);
 
-// ─── Auth ─────────────────────────────────────────────────────────────────────
-
-export const users = pgTable(
-  "users",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    firstName: varchar("first_name", { length: 100 }).notNull(),
-    lastName: varchar("last_name", { length: 100 }).notNull(),
-    email: varchar("email", { length: 255 }).notNull(),
-    passwordHash: varchar("password_hash", { length: 255 }).notNull(),
-    status: userStatusEnum("status").notNull().default("ACTIVE"),
-    failedLoginAttempts: integer("failed_login_attempts").notNull().default(0),
-    lockedUntil: timestamp("locked_until"),
-    deletedAt: timestamp("deleted_at"),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  },
-  (t) => ({
-    emailLowerUnique: uniqueIndex("users_email_lower_unique")
-      .on(sql`lower(${t.email})`)
-      .where(sql`${t.deletedAt} IS NULL`),
-  }),
-);
+// ─── Auth / RBAC ──────────────────────────────────────────────────────────────
 
 export const roles = pgTable(
   "roles",
@@ -73,6 +50,16 @@ export const roles = pgTable(
     tenantActiveIdx: index("roles_tenant_active_idx").on(
       t.tenantId,
       t.isActive,
+    ),
+    systemNameScopeUnique: uniqueIndex("roles_system_name_scope_uniq")
+      .on(sql`lower(${t.name})`, t.scope)
+      .where(sql`${t.tenantId} IS NULL`),
+    tenantNameScopeUnique: uniqueIndex("roles_tenant_name_scope_uniq")
+      .on(t.tenantId, sql`lower(${t.name})`, t.scope)
+      .where(sql`${t.tenantId} IS NOT NULL`),
+    customScopeCheck: check(
+      "roles_custom_scope_check",
+      sql`${t.tenantId} IS NULL OR ${t.scope} IN ('TENANT', 'BRANCH')`,
     ),
   }),
 );
@@ -200,6 +187,11 @@ export const membershipBranches = pgTable(
     ),
     branchIdx: index("membership_branches_branch_idx").on(t.branchId),
     tenantIdx: index("membership_branches_tenant_idx").on(t.tenantId),
+    branchTenantFk: foreignKey({
+      name: "membership_branches_branch_tenant_fk",
+      columns: [t.branchId, t.tenantId],
+      foreignColumns: [branches.id, branches.tenantId],
+    }).onDelete("cascade"),
   }),
 );
 

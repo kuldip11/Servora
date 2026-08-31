@@ -1,16 +1,4 @@
-/**
- * Order-specific error factories.
- *
- * The pre-refactor controller signaled these with plain
- * `throw new Error('SOME_CODE')` and pattern-matched `err.message` in a
- * long if-chain per route. No frontend client checks these code strings
- * (verified — see docs/NEXT_STEPS.md), so this migration folds them into
- * the shared `AppError` taxonomy. Status codes are unchanged from what the
- * controller mapped them to; the one behavior change is dropping the
- * redundant `"ORDER_INVALID_STATE: "` prefix that used to appear inside
- * the user-facing `message` (the machine-readable part is `code` now, not
- * a hand-rolled prefix) — original wording kept in `details.reason`.
- */
+/** Order-domain error factories using the shared application error taxonomy. */
 import {
   NotFoundError,
   ConflictError,

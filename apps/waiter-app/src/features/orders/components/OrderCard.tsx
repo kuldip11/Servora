@@ -17,7 +17,7 @@ interface Props {
 }
 
 // Phase 11: rebuilt on `Card` (Phase 2) instead of the hand-rolled
-// `bg-white rounded-2xl ... border shadow-sm` shell — `00-PLAN.md`
+// `bg-white rounded-2xl ... border shadow-sm` shell — `the design-system contract`
 // names this file directly ("HomePage/OrderCard are good visual
 // references, just need to move onto shared primitives"). `Card`'s
 // own `rounded-lg` (16px) is overridden back to `rounded-2xl` (24px,

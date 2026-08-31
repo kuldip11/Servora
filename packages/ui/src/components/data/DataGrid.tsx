@@ -39,7 +39,7 @@ export type { Column, SortState, TableDensity };
 
 /**
  * Phase 7 (Part 2) — `DataGrid`. The virtualized, feature-complete
- * sibling to Part 1's `Table` (docs/design-system/README.md "Phase 7
+ * sibling to Part 1's `Table` (the design-system guidance "Phase 7
  * detail" has the split rationale): sort, bulk row selection, sticky
  * header + sticky columns, column visibility, an optional built-in
  * global search box, virtualized rows, and pass-through pagination.

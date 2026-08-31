@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 const { getDashboard } = vi.hoisted(() => ({ getDashboard: vi.fn() }));
 vi.mock("../analytics.service", () => ({ analyticsService: { getDashboard } }));
+import { ForbiddenError } from "../../../core/errors";
 import { analyticsController } from "../analytics.controller";
 const auth = {
   userId: "u1",
@@ -29,9 +30,8 @@ describe("analytics controller", () => {
     expect(getDashboard).toHaveBeenCalledWith(auth);
   });
   it("preserves service failures", async () => {
-    getDashboard.mockRejectedValue(new Error("FORBIDDEN"));
-    await expect(analyticsController.getDashboard(auth)).rejects.toThrow(
-      "FORBIDDEN",
-    );
+    const error = new ForbiddenError();
+    getDashboard.mockRejectedValue(error);
+    await expect(analyticsController.getDashboard(auth)).rejects.toBe(error);
   });
 });

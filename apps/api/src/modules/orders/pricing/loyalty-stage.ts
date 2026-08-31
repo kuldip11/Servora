@@ -2,7 +2,7 @@ import {
   loyaltyRepository,
   type LoyaltyTierRow,
 } from "../../loyalty/loyalty.repository";
-import type { PricedLine, PricingContext } from "./pricing-pipeline";
+import type { PricedLine, PricingContext } from "./pricing.types";
 import {
   allocateCents,
   applyPromotionStage,

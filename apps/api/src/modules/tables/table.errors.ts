@@ -1,15 +1,4 @@
-/**
- * Table-specific error factories.
- *
- * The pre-refactor controller used ad-hoc code strings for these
- * (`BRANCH_REQUIRED`, `BRANCH_NOT_FOUND`, `TABLES_DISABLED`,
- * `TABLE_HAS_ACTIVE_ORDER`, `TABLE_HAS_OPEN_ORDER`). No frontend client
- * checks those specific strings (verified — see docs/NEXT_STEPS.md), so
- * this migration folds them into the shared `AppError` taxonomy
- * (`NotFoundError`, `ConflictError`, `MissingBranchError`) and keeps the
- * original wording as `message` and the original code as `details.reason`
- * for anyone currently grepping logs for it. Status codes are unchanged.
- */
+/** Table-domain error factories using the shared application error taxonomy. */
 import {
   NotFoundError,
   ConflictError,

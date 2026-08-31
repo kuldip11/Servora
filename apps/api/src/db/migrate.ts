@@ -9,26 +9,17 @@ async function runMigrations() {
   if (!existsSync(migrationsFolder)) {
     console.log("⚠️  No migrations folder found.");
     console.log(
-      "   Run `bun run db:generate` first to generate SQL migrations from the schema,",
-    );
-    console.log(
-      "   OR run `bun run db:push` to push the schema directly (dev only).",
+      "   Restore/generate the canonical migration set before running db:migrate.",
     );
     await migrationClient.end();
     process.exit(1);
     return;
   }
 
-  // Detect the one drift pattern that turns into a confusing raw Postgres
-  // error mid-migration: `drizzle-kit push` (or any other out-of-band schema
-  // sync) already created application tables, but never recorded anything in
-  // drizzle's own migration-history table, since `push` diffs the live schema
-  // directly and doesn't go through the migrations folder at all. When that
-  // happens, `migrate()` below has no record of what's "already applied" and
-  // tries to replay every migration from 0000 — including RBAC reference-data
-  // migrations later in the chain — onto a database that already has that
-  // schema, which fails part-way through (e.g. "type already exists") and
-  // aborts before the RBAC seed migrations ever run.
+  // Refuse to replay the canonical migration baseline on a database that already
+  // contains application tables without Drizzle migration history. Servora v1
+  // treats the migration folder as the only supported schema-installation path
+  // because required platform reference data and SQL-only invariants live there.
   const db = drizzle(migrationClient);
   const appSchemaRows = await migrationClient`
     SELECT EXISTS (
@@ -57,15 +48,12 @@ async function runMigrations() {
     );
     console.error("");
     console.error(
-      "   This usually means `drizzle-kit push` was run against this database instead of",
+      "   The database was modified outside the canonical db:migrate flow, so Drizzle",
     );
     console.error(
-      "   `db:migrate` — push syncs the schema directly and skips the migrations folder",
+      "   has no trustworthy record of which schema, reference-data, or SQL-only invariants",
     );
-    console.error(
-      "   entirely, so RBAC reference-data migrations (roles/permissions) never ran, and",
-    );
-    console.error("   drizzle has no record of what's already applied.");
+    console.error("   are already applied.");
     console.error("");
     console.error(
       "   Fix: reset and re-migrate through the migrations folder so history stays",
@@ -75,10 +63,7 @@ async function runMigrations() {
     console.error("     bun run db:migrate");
     console.error("");
     console.error(
-      "   Avoid `db:push` on this project — required RBAC reference data lives in raw SQL",
-    );
-    console.error(
-      "   migrations, not in schema.ts, so push can never install it.",
+      "   Use db:migrate as the supported schema-installation path for this project.",
     );
     await migrationClient.end();
     process.exit(1);

@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { tableFormSchema } from "@pos/validation";
 import { appUrls } from "../../../config/app-urls";
-import type { z } from "zod";
 import {
   Plus,
   Table2,
@@ -43,6 +42,7 @@ import { useRegenerateTableQr } from "../hooks/useRegenerateTableQr";
 import { useOrders } from "../../orders/hooks/useOrders";
 import { useTransferTable } from "../../orders/hooks/useTransferTable";
 import { TableFormModal } from "../components/TableFormModal";
+import type { TableFormValues } from "../table-form.types";
 import type { RestaurantTable } from "../types";
 import { QRCodeSVG } from "qrcode.react";
 import { ordersService } from "../../orders/services/orders.service";
@@ -70,7 +70,6 @@ const STATUS_CARD_BORDER: Record<RestaurantTable["status"], string> = {
   RESERVED: "border-amber-200",
 };
 
-export type TableFormValues = z.input<typeof tableFormSchema>;
 
 const emptyForm: TableFormValues = {
   name: "",

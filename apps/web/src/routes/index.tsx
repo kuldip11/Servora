@@ -14,18 +14,8 @@ import { ForbiddenPage } from "../features/auth/pages/ForbiddenPage";
 import { userHasPermission } from "../shared/auth/permissions";
 import { useAuthStore } from "../store/auth";
 
-// Phase 14 perf pass: every route below except /login and /signup was
-// previously a static top-level import, so all 7 internal /dev/*
-// preview pages (Phase 1/2/3/4/5/6/7 exit-criteria routes, never linked
-// from app navigation — see the "Internal-only" comments this replaces)
-// and all 10 authenticated feature pages shipped in the single
-// production chunk every real user downloads, MenuPage included (this
-// app's largest feature at 123KB pre-minify, per a real `vite build`
-// with rollup-plugin-visualizer run this pass). Wrapping each in
-// `lazyPage` below turns every one into its own on-demand chunk instead
-// — login/signup stay eager since they're the one screen a logged-out
-// user needs immediately. Measured effect of this change is recorded in
-// docs/design-system/README.md "Phase 14 detail".
+// Route-level code splitting keeps product feature bundles isolated. Login and
+// signup stay eager because they are the first screens logged-out users need.
 function lazyPage(
   loader: () => Promise<{ default: ComponentType<Record<string, never>> }>,
 ) {
@@ -47,91 +37,6 @@ function lazyPage(
 
 // Root
 const rootRoute = createRootRoute({ component: RootLayout });
-
-// Internal-only, no auth guard — see docs/design-system/README.md
-// Phase 1 exit criteria. Not linked from app navigation.
-const themePreviewRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/dev/theme-preview",
-  component: lazyPage(() =>
-    import("../dev/ThemePreviewPage").then((m) => ({
-      default: m.ThemePreviewPage,
-    })),
-  ),
-});
-
-// Internal-only, no auth guard — Phase 2 exit criteria
-// (docs/design-system/00-PLAN.md). Not linked from app navigation.
-const layoutPreviewRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/dev/layout-preview",
-  component: lazyPage(() =>
-    import("../dev/LayoutPreviewPage").then((m) => ({
-      default: m.LayoutPreviewPage,
-    })),
-  ),
-});
-
-// Internal-only, no auth guard — Phase 3 exit criteria
-// (docs/design-system/00-PLAN.md). Not linked from app navigation.
-const formPreviewRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/dev/form-preview",
-  component: lazyPage(() =>
-    import("../dev/FormPreviewPage").then((m) => ({
-      default: m.FormPreviewPage,
-    })),
-  ),
-});
-
-// Internal-only, no auth guard — Phase 4 exit criteria
-// (docs/design-system/00-PLAN.md). Not linked from app navigation.
-const selectionPreviewRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/dev/selection-preview",
-  component: lazyPage(() =>
-    import("../dev/SelectionPreviewPage").then((m) => ({
-      default: m.SelectionPreviewPage,
-    })),
-  ),
-});
-
-// Internal-only, no auth guard — Phase 5 exit criteria
-// (docs/design-system/00-PLAN.md). Not linked from app navigation.
-const overlayPreviewRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/dev/overlay-preview",
-  component: lazyPage(() =>
-    import("../dev/OverlayPreviewPage").then((m) => ({
-      default: m.OverlayPreviewPage,
-    })),
-  ),
-});
-
-// Internal-only, no auth guard — Phase 6 exit criteria
-// (docs/design-system/00-PLAN.md). Not linked from app navigation.
-const navigationPreviewRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/dev/navigation-preview",
-  component: lazyPage(() =>
-    import("../dev/NavigationPreviewPage").then((m) => ({
-      default: m.NavigationPreviewPage,
-    })),
-  ),
-});
-
-// Internal-only, no auth guard — Phase 7 (Part 1) exit criteria
-// (docs/design-system/00-PLAN.md / README.md "Phase 7 detail"). Not
-// linked from app navigation.
-const dataPreviewRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/dev/data-preview",
-  component: lazyPage(() =>
-    import("../dev/DataPreviewPage").then((m) => ({
-      default: m.DataPreviewPage,
-    })),
-  ),
-});
 
 // Auth routes
 const authRoute = createRoute({
@@ -327,17 +232,6 @@ const settingsRoute = createRoute({
   ),
 });
 
-const differentiatorsRoute = createRoute({
-  getParentRoute: () => protectedRoute,
-  path: "/phase-h",
-  beforeLoad: requirePermission("analytics:read"),
-  component: lazyPage(() =>
-    import("../features/differentiators/pages/DifferentiatorsPage").then(
-      (m) => ({ default: m.DifferentiatorsPage }),
-    ),
-  ),
-});
-
 const branchesRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: "/branches",
@@ -363,13 +257,6 @@ const indexRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
-  themePreviewRoute,
-  layoutPreviewRoute,
-  formPreviewRoute,
-  selectionPreviewRoute,
-  overlayPreviewRoute,
-  navigationPreviewRoute,
-  dataPreviewRoute,
   authRoute.addChildren([loginRoute, signupRoute]),
   protectedRoute.addChildren([
     contextRoute,
@@ -387,7 +274,6 @@ const routeTree = rootRoute.addChildren([
     auditRoute,
     settingsRoute,
     branchesRoute,
-    differentiatorsRoute,
   ]),
 ]);
 

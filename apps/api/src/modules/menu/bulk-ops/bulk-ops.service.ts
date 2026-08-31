@@ -1,9 +1,4 @@
-/**
- * Menu bulk-operations service. The legacy controller had no business
- * rules of its own for these endpoints beyond validating the request
- * shape (now the `.validator.ts` schemas) and calling straight through to
- * the repository — this layer preserves that, so it's intentionally thin.
- */
+/** Thin orchestration layer for menu bulk operations. */
 import type { AuthContext } from "../../../core/auth";
 import {
   bulkOpsRepository,

@@ -26,6 +26,7 @@ import {
 } from "./schedule-precedence";
 import { writeAudit } from "../../../core/audit";
 import { eventBus } from "../../../lib/event-bus";
+import { ValidationError } from "../../../core/errors";
 
 function pad(n: number) {
   return String(n).padStart(2, "0");
@@ -459,7 +460,6 @@ export const availabilityService = {
       await availabilityRepository.setComputedModifierAvailability(
         optionId,
         canSatisfy,
-        effectiveAvailability,
       );
     await Promise.all([
       writeAudit({
@@ -503,7 +503,7 @@ export const availabilityService = {
     variantId?: string | null,
   ) {
     if (count !== null && (!Number.isInteger(count) || count < 0))
-      throw new Error(
+      throw new ValidationError(
         "Manual stock count must be a non-negative integer or null",
       );
     const updated = await availabilityRepository.setManualStockCount(
@@ -700,23 +700,6 @@ export const availabilityService = {
       reason:
         item.availabilityReason ?? "No active schedule — using base status",
     };
-  },
-
-  // Not currently wired to any endpoint (same as before this migration —
-  // preserved for behavior parity rather than dropped as "unused").
-  async getItemsAvailableAt(tenantId: string, branchId: string, at: Date) {
-    const items = await availabilityRepository.listActiveItemBasics(tenantId);
-    const available: string[] = [];
-    for (const item of items) {
-      const { status } = await availabilityService.getEffectiveStatus(
-        tenantId,
-        item.id,
-        branchId,
-        { channel: "UNSCOPED", fulfillmentType: "UNSCOPED", asOf: at },
-      );
-      if (status === "ACTIVE") available.push(item.id);
-    }
-    return available;
   },
 
   // ─── Manual availability override ───────────────────────────────────────

@@ -4,6 +4,7 @@
  */
 import { eq, and, isNull, gt, lt } from "drizzle-orm";
 import { db } from "../../db";
+import { ServiceUnavailableError } from "../../core/errors";
 import {
   users,
   roles,
@@ -217,8 +218,8 @@ export const authRepository = {
         .select({ id: permissions.id })
         .from(permissions);
       if (!allPermissions.length) {
-        throw new Error(
-          "RBAC reference data is not installed: permissions are missing",
+        throw new ServiceUnavailableError(
+          "RBAC reference data is not available. Run the database migrations before using authentication.",
         );
       }
 
@@ -268,8 +269,8 @@ export const authRepository = {
         .select({ id: permissions.id })
         .from(permissions);
       if (!allPermissions.length) {
-        throw new Error(
-          "RBAC reference data is not installed: permissions are missing",
+        throw new ServiceUnavailableError(
+          "RBAC reference data is not available. Run the database migrations before using authentication.",
         );
       }
       await tx

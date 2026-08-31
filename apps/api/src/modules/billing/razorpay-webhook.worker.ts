@@ -43,10 +43,7 @@ async function recoverDurableEvents() {
 
 export function startRazorpayWebhookWorker() {
   if (!queueUrl) {
-    console.warn(
-      "[Razorpay Worker] REDIS_URL is not configured; webhook worker is disabled",
-    );
-    return () => undefined;
+    throw new Error("REDIS_URL environment variable is required");
   }
 
   const workerRedis = new Redis(queueUrl, {

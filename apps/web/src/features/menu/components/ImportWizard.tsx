@@ -48,7 +48,7 @@ const PREVIEW_COLUMNS: Column<ValidatedRow>[] = [
 //
 // Rewritten onto `Dialog` (Phase 5/10) — this was one of the 4 hand-rolled
 // `fixed inset-0` overlays the Phase 0 audit flagged, per
-// docs/design-system/README.md's Phase 5 note that these are full rewrites,
+// the design-system guidance's Phase 5 note that these are full rewrites,
 // not drop-in swaps. The step-1/step-2 flow, its state machine, and every
 // data call are unchanged — only the chrome (overlay, close button, preview
 // table) moved onto shared components. `size="xl"` matches the old

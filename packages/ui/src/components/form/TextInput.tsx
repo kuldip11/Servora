@@ -37,7 +37,7 @@ export interface TextInputProps extends Omit<
 
 /**
  * Base single-line text field. Upgraded in place for Phase 3
- * (docs/design-system/00-PLAN.md) — now consumes `--surface`/`--border`/
+ * (the design-system contract) — now consumes `--surface`/`--border`/
  * `--primary`/`--danger` tokens instead of hardcoded `gray-*`/`violet-*`/
  * `red-*` classes, and gains prefix/suffix/icon/loading/char-count
  * support. Every existing prop (`label`/`error`/`hint`) keeps its exact

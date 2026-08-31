@@ -1,6 +1,6 @@
 import type { AuthContext } from "../../../core/auth";
 import { requirePermission } from "../../../core/auth";
-import { NotFoundError } from "../../../core/errors";
+import { InternalError, NotFoundError } from "../../../core/errors";
 import { orderRepository } from "../../orders/order.repository";
 import {
   pricingPipeline,
@@ -20,7 +20,7 @@ function money(value: number) {
  * Replays persisted post-base attribution (combo/promotion/loyalty) after the
  * authoritative base PricingPipeline replay. Promotion and loyalty allocation
  * are immutable order-line snapshots, so this helper never reads mutable menu
- * state and remains a defensive fallback when replay evidence is incomplete.
+ * state. Resolver replay evidence is mandatory for every real menu-item line.
  */
 export function replayPersistedLine(item: {
   quantity: number;
@@ -107,13 +107,16 @@ export const orderExplainService = {
   async explainOrder(auth: AuthContext, orderId: string) {
     requirePermission(auth, "orders:read");
     const order = await orderRepository.findById(auth.tenantId, orderId);
-    if (!order) throw new NotFoundError("Order not found");
+    if (!order) throw new NotFoundError("Order", orderId);
 
     const orderAsOf = order.resolutionAsOf ?? order.createdAt;
     const lines = [];
 
     for (const item of order.items) {
-      const lineAsOf = item.resolutionAsOf ?? order.resolutionAsOf ?? order.createdAt;
+      if (!item.resolutionAsOf) {
+        throw new InternalError("Order replay evidence is incomplete");
+      }
+      const lineAsOf = item.resolutionAsOf;
       const persistedReplay = replayPersistedLine(item);
 
       if (!item.menuItemId) {
@@ -121,7 +124,7 @@ export const orderExplainService = {
           orderItemId: item.id,
           name: item.menuItemName,
           asOf: lineAsOf.toISOString(),
-          historicalEvidenceComplete: Boolean(item.resolutionAsOf),
+          historicalEvidenceComplete: true,
           snapshotPrice: Number(item.unitPrice),
           pricingReplay: persistedReplay,
           trace: [
@@ -156,6 +159,10 @@ export const orderExplainService = {
         ? item.availabilityReplayEvidence
         : null;
 
+      if (!availability || !pricingEvidence || !availabilityEvidence) {
+        throw new InternalError("Order replay evidence is incomplete");
+      }
+
       let authoritativePricingReplay: {
         unitPrice: number;
         subtotal: number;
@@ -170,7 +177,7 @@ export const orderExplainService = {
         matchesSnapshot: boolean;
       } | null = null;
 
-      if (availability && availabilityEvidence && pricingEvidence) {
+      {
         const replayedAvailability = await availabilityService.getEffectiveItem(
           auth.tenantId,
           item.menuItemId,
@@ -215,29 +222,26 @@ export const orderExplainService = {
           [pricingEvidence.requestedLine],
         );
         const replayedLine = replayedPricing.lines[0];
-        if (replayedLine) {
-          const expectedBaseSubtotal = money(
-            Number(item.subtotal) - (item.pricingAttribution?.COMBO ?? 0),
-          );
-          const expectedBaseUnitPrice = money(expectedBaseSubtotal / item.quantity);
-          authoritativePricingReplay = {
-            unitPrice: money(replayedLine.unitPrice),
-            subtotal: money(replayedLine.subtotal),
-            taxRate: money(replayedLine.taxRate),
-            matchesSnapshot:
-              money(replayedLine.unitPrice) === expectedBaseUnitPrice &&
-              money(replayedLine.subtotal) === expectedBaseSubtotal &&
-              money(replayedLine.taxRate) === money(Number(item.taxRate)),
-          };
+        if (!replayedLine) {
+          throw new InternalError("Order pricing replay produced no line");
         }
+        const expectedBaseSubtotal = money(
+          Number(item.subtotal) - (item.pricingAttribution?.COMBO ?? 0),
+        );
+        const expectedBaseUnitPrice = money(expectedBaseSubtotal / item.quantity);
+        authoritativePricingReplay = {
+          unitPrice: money(replayedLine.unitPrice),
+          subtotal: money(replayedLine.subtotal),
+          taxRate: money(replayedLine.taxRate),
+          matchesSnapshot:
+            money(replayedLine.unitPrice) === expectedBaseUnitPrice &&
+            money(replayedLine.subtotal) === expectedBaseSubtotal &&
+            money(replayedLine.taxRate) === money(Number(item.taxRate)),
+        };
       }
 
       const historicalEvidenceComplete = Boolean(
-        item.resolutionAsOf &&
-          availability &&
-          pricingEvidence &&
-          availabilityEvidence &&
-          authoritativePricingReplay?.matchesSnapshot &&
+        authoritativePricingReplay?.matchesSnapshot &&
           authoritativeAvailabilityReplay?.matchesSnapshot,
       );
 
@@ -257,34 +261,26 @@ export const orderExplainService = {
         trace: [
           {
             stage: "CONTEXT",
-            explanation: availability
-              ? `Resolved for ${availability.channel}/${availability.fulfillmentType} at ${availability.asOf} in branch ${availability.branchId}.`
-              : "Exact resolver evidence is unavailable; using immutable money/kitchen snapshots only.",
+            explanation: `Resolved for ${availability.channel}/${availability.fulfillmentType} at ${availability.asOf} in branch ${availability.branchId}.`,
           },
           {
             stage: "AVAILABILITY_RESOLVER_REPLAY",
-            explanation: authoritativeAvailabilityReplay
-              ? authoritativeAvailabilityReplay.matchesSnapshot
-                ? "AvailabilityResolver re-ran against immutable fire-time inputs and exactly matched the stored availability snapshot."
-                : "AvailabilityResolver replay differed from the stored availability snapshot."
-              : "No immutable resolver inputs are available for this line.",
+            explanation: authoritativeAvailabilityReplay.matchesSnapshot
+              ? "AvailabilityResolver re-ran against immutable fire-time inputs and exactly matched the stored availability snapshot."
+              : "AvailabilityResolver replay differed from the stored availability snapshot.",
             replay: authoritativeAvailabilityReplay,
           },
           {
             stage: "PRICING_PIPELINE_STAGE_1",
-            explanation: persistedReplay.priceSource?.description ?? "Winning-price-source attribution is unavailable for this line.",
+            explanation: persistedReplay.priceSource?.description ?? "Menu-item base price attribution",
             source: persistedReplay.priceSource,
           },
           {
             stage: "PRICING_PIPELINE_REPLAY",
-            explanation: authoritativePricingReplay
-              ? authoritativePricingReplay.matchesSnapshot
-                ? "PricingPipeline re-ran against immutable fire-time inputs and exactly matched the stored base line price/tax snapshot."
-                : "PricingPipeline replay differed from the stored base line snapshot."
-              : persistedReplay.matchesSnapshot
-                ? "Persisted stage attribution is available, but raw pipeline replay evidence is incomplete."
-                : "Incomplete attribution cannot fully recompute this stored line subtotal.",
-            replay: authoritativePricingReplay ?? persistedReplay,
+            explanation: authoritativePricingReplay.matchesSnapshot
+              ? "PricingPipeline re-ran against immutable fire-time inputs and exactly matched the stored base line price/tax snapshot."
+              : "PricingPipeline replay differed from the stored base line snapshot.",
+            replay: authoritativePricingReplay,
           },
           ...changes.map((event) => ({
             stage: "CHANGE_EVENT",
@@ -305,8 +301,8 @@ export const orderExplainService = {
       asOf: orderAsOf.toISOString(),
       completeHistory: lines.every((line) => line.historicalEvidenceComplete),
       historyNotice: lines.every((line) => line.historicalEvidenceComplete)
-        ? "Deterministic historical AvailabilityResolver and PricingPipeline replay matched every fire-time snapshot."
-        : "Some lines have incomplete resolver replay evidence; those lines are explained from immutable order snapshots only.",
+        ? "Deterministic AvailabilityResolver and PricingPipeline replay matched every fire-time snapshot."
+        : "Replay evidence is present for every line, but one or more resolver results differ from the stored fire-time snapshot.",
       totals: {
         subtotal: Number(order.subtotal),
         discountAmount: Number(order.discountAmount),

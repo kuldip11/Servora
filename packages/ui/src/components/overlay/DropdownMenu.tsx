@@ -26,7 +26,7 @@ export interface DropdownMenuProps {
  * approach (`overlay/shared.tsx`).
  *
  * **`SplitButton`'s dropdown should be re-pointed at this**, per the
- * carry-over note in `docs/design-system/README.md`'s Phase 3 section
+ * carry-over note in `the design-system guidance`'s Phase 3 section
  * ("once `DropdownMenu` exists... re-pointed at it instead of keeping
  * two dropdown implementations"). Not done in this pass — `SplitButton`
  * pairs a primary-action button with an attached chevron in one

@@ -8,6 +8,7 @@
 import type { AuthContext } from "../../../core/auth";
 import { modifierRepository } from "./modifier.repository";
 import { requirePermission } from "../../../core/auth";
+import { ValidationError } from "../../../core/errors";
 import {
   assertMenuResourceBranch,
   resolveMenuBranch,
@@ -57,9 +58,8 @@ export interface CreateTagInput {
   color?: string | undefined;
 }
 
-// Converts the wire-shape `additionalPrice: number` into the string
-// Drizzle's `numeric` column type expects — same conversion the legacy
-// controller did inline at both the create and update/options call sites.
+// Convert the wire-shape `additionalPrice: number` into the string format
+// expected by Drizzle's `numeric` column type.
 
 async function assertNoCircularDependency(
   tenantId: string,
@@ -79,7 +79,7 @@ async function assertNoCircularDependency(
     if (!prerequisite) throw modifierOptionNotFound(prerequisiteOptionId);
 
     if (visitedGroupIds.has(prerequisite.modifierGroupId)) {
-      throw new Error("Circular modifier group dependency");
+      throw new ValidationError("Circular modifier group dependency");
     }
     visitedGroupIds.add(prerequisite.modifierGroupId);
 
@@ -122,9 +122,9 @@ export const modifierService = {
   async createGroup(auth: AuthContext, input: CreateModifierGroupInput) {
     requirePermission(auth, "menu:create");
     const branchId = resolveMenuBranch(auth, input.branchId);
-    if ((input.groupType ?? "ADDON") === "ADDON" && input.options?.some((option) => option.additionalPrice < 0)) throw new Error("Addon modifier prices cannot be negative");
+    if ((input.groupType ?? "ADDON") === "ADDON" && input.options?.some((option) => option.additionalPrice < 0)) throw new ValidationError("Addon modifier prices cannot be negative");
     if (input.options?.some((option) => option.variantPrices?.length)) {
-      throw new Error("Create the modifier group first, attach it to an item, then configure variant-specific prices");
+      throw new ValidationError("Create the modifier group first, attach it to an item, then configure variant-specific prices");
     }
     const created = await modifierRepository.createModifierGroup({
       ...input,
@@ -157,20 +157,20 @@ export const modifierService = {
       );
     }
     const { options, ...groupFields } = input;
-    if ((input.groupType ?? existing.groupType ?? "ADDON") === "ADDON" && options?.some((option) => option.additionalPrice < 0)) throw new Error("Addon modifier prices cannot be negative");
+    if ((input.groupType ?? existing.groupType ?? "ADDON") === "ADDON" && options?.some((option) => option.additionalPrice < 0)) throw new ValidationError("Addon modifier prices cannot be negative");
     if ((input.groupType ?? existing.groupType ?? "ADDON") === "ADDON" && options?.some((option) => option.variantPrices?.some((price) => price.additionalPrice < 0))) {
-      throw new Error("Addon variant-specific modifier prices cannot be negative");
+      throw new ValidationError("Addon variant-specific modifier prices cannot be negative");
     }
     for (const option of options ?? []) {
       const ids = option.variantPrices?.map((price) => price.variantId) ?? [];
-      if (new Set(ids).size !== ids.length) throw new Error("A modifier option can have only one price override per variant");
+      if (new Set(ids).size !== ids.length) throw new ValidationError("A modifier option can have only one price override per variant");
     }
     if (options?.some((option) => option.variantPrices?.length)) {
       const variantIds = [...new Set(options.flatMap((option) => option.variantPrices?.map((price) => price.variantId) ?? []))];
       const eligible = await modifierRepository.findEligibleVariantIdsForGroup(auth.tenantId, groupId, variantIds);
       const invalid = variantIds.filter((variantId) => !eligible.has(variantId));
       if (invalid.length) {
-        throw new Error("Variant-specific modifier prices can only target variants of tenant items that use this modifier group");
+        throw new ValidationError("Variant-specific modifier prices can only target variants of tenant items that use this modifier group");
       }
     }
     const group = await modifierRepository.updateModifierGroup(
@@ -192,7 +192,7 @@ export const modifierService = {
     return group;
   },
 
-  // Preserves the legacy behavior of not raising a not-found error on
+  // Keeps deletion idempotent by not raising a not-found error on
   // delete of a group that's already gone — same as the original
   // `deleteModifierGroup` route, which never checked the affected row count.
   async deleteGroup(auth: AuthContext, groupId: string) {
@@ -243,7 +243,7 @@ export const modifierService = {
     return created;
   },
 
-  // Same as deleteGroup — no not-found check, matching the legacy route.
+  // Same as deleteGroup: deletion is idempotent and does not require a not-found check.
   async deleteTag(auth: AuthContext, tagId: string) {
     requirePermission(auth, "menu:delete");
     await modifierRepository.deleteTag(auth.tenantId, tagId);

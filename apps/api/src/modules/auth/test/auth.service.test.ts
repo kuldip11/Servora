@@ -57,7 +57,7 @@ vi.mock("../auth.repository", () => ({
 const { listUserMemberships } = vi.hoisted(() => ({
   listUserMemberships: vi.fn(),
 }));
-vi.mock("../../../lib/authorization/membership-context", () => ({
+vi.mock("../../../core/auth/membership-context", () => ({
   listUserMemberships,
 }));
 const { signAccessToken } = vi.hoisted(() => ({

@@ -11,10 +11,10 @@ import { cn } from "../../utils/cn";
 
 /**
  * Shared foundation for Phase 4 — Selection Components
- * (docs/design-system/00-PLAN.md): `SelectMenu`, `MultiSelect`,
+ * (the design-system contract): `SelectMenu`, `MultiSelect`,
  * `Combobox`, `Autocomplete`.
  *
- * Build choice, resolved in docs/design-system/README.md's Phase 1
+ * Build choice, resolved in the design-system guidance's Phase 1
  * "Open decisions": Radix UI, not built from scratch. Concretely, all
  * four components here sit on **`@radix-ui/react-popover`** for
  * positioning/portal/outside-click/Escape/focus-return — not on
