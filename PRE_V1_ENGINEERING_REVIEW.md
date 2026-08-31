@@ -22,19 +22,19 @@ This is **not** a recommendation to rewrite Servora. The domain model and severa
 
 # 2. Executive assessment
 
-| Area | Rating | Assessment |
-| --- | ---: | --- |
-| Domain design | 8/10 | Strong restaurant/POS domain coverage and rules. |
-| Database integrity | 7/10 | Good constraints, but development-history migration complexity remains. |
-| API architecture | 6.5/10 | Good layering, but old/new patterns coexist. |
-| Security | 6.5/10 | Solid RBAC foundation; auth/client and ingress hardening remain. |
-| Frontend architecture | 6/10 | Functional, but several oversized components and weak typing remain. |
-| Pricing/order correctness | 8/10 | One of the strongest subsystems. |
-| Inventory | 7.5/10 | Strong recipe/deduction/reversal concepts; service is oversized. |
-| Testing | 7/10 | Broad suite, but too much implementation-coupled mocking and weak vertical E2E. |
-| Performance/scalability | 6/10 | Some clear N+1/repeated-resolution paths. |
-| Maintainability | 5.5/10 | Development/rework history still leaks into current architecture. |
-| Release readiness | ~6/10 | Technically close, but consolidation should precede first release. |
+| Area                      | Rating | Assessment                                                                      |
+| ------------------------- | -----: | ------------------------------------------------------------------------------- |
+| Domain design             |   8/10 | Strong restaurant/POS domain coverage and rules.                                |
+| Database integrity        |   7/10 | Good constraints, but development-history migration complexity remains.         |
+| API architecture          | 6.5/10 | Good layering, but old/new patterns coexist.                                    |
+| Security                  | 6.5/10 | Solid RBAC foundation; auth/client and ingress hardening remain.                |
+| Frontend architecture     |   6/10 | Functional, but several oversized components and weak typing remain.            |
+| Pricing/order correctness |   8/10 | One of the strongest subsystems.                                                |
+| Inventory                 | 7.5/10 | Strong recipe/deduction/reversal concepts; service is oversized.                |
+| Testing                   |   7/10 | Broad suite, but too much implementation-coupled mocking and weak vertical E2E. |
+| Performance/scalability   |   6/10 | Some clear N+1/repeated-resolution paths.                                       |
+| Maintainability           | 5.5/10 | Development/rework history still leaks into current architecture.               |
+| Release readiness         |  ~6/10 | Technically close, but consolidation should precede first release.              |
 
 ## Primary conclusion
 
@@ -111,24 +111,24 @@ This section specifically identifies code that sounds or behaves like rework and
 
 ## 4.1 Summary table
 
-| ID | Current artifact / behavior | Classification | Recommendation |
-| --- | --- | --- | --- |
-| R-01 | `0020_missing_indexes.sql` | Obsolete compatibility residue | Delete when migration baseline is rebuilt. It is explicitly a no-op compatibility migration. |
-| R-02 | 87 migrations `0000`–`0086` | Development-history residue | Squash/rebuild as clean v1 baseline before first release. |
-| R-03 | `*_phase_e_*`, `*_phase_f_*`, `*_phase_g_*`, `*_phase_h_*` migration names | Development-roadmap leakage | Replace with domain/table-oriented baseline migrations. |
-| R-04 | `verify-phase-g.mjs`, `verify-phase-h.mjs`, A–H source-string checks | Development-phase verification residue | Keep only as temporary architecture guards or replace with domain-oriented checks. Do not treat as functional certification. |
-| R-05 | `menuItems.isAvailable` backward-compat field | Unnecessary client compatibility | Move clients to the final availability model and remove derived legacy column/API use. |
-| R-06 | modifier `isAvailable` effective legacy field | Unnecessary client compatibility | Expose explicit computed/manual/effective availability model without legacy field semantics. |
-| R-07 | `availabilityService.getItemsAvailableAt()` retained for behavior parity but not wired | Dead migration/parity residue | Delete if still unreachable after final API review. |
-| R-08 | typed `AppError` plus legacy catch-all / string-error handling | Half-completed migration | Finish conversion and delete legacy error path. |
-| R-09 | authorization modules/comments described as additive “during migration” | Transitional architecture | Consolidate into final core auth/authorization architecture. |
-| R-10 | compatibility tenant/context wording for old clients/tokens | Pre-release residue | Model “no tenant/branch selected” explicitly; remove compatibility terminology/paths. |
-| R-11 | `/phase-h` product route and `DifferentiatorsPage` | Roadmap terminology leaked into product | Remove route or redistribute features to their real product areas. |
-| R-12 | seven production `/dev/*` preview routes | Development scaffolding in production router | Register only in development or move to Storybook/dev app. |
-| R-13 | customer `?demo=true` fixture ordering path | Development/demo scaffolding | Remove from production build; create separate demo build/app if needed. |
-| R-14 | “legacy evidence” fallback text in Order Explain | Historical fallback for data that cannot exist yet | Make current evidence mandatory where applicable and remove impossible legacy branches. |
-| R-15 | UI compatibility aliases / old-new component pairs | Internal transition residue | Standardize before v1 where practical. |
-| R-16 | source comments referencing past phase/design/NEXT_STEPS docs | Documentation-history residue | Remove or rewrite self-contained during consolidation. |
+| ID   | Current artifact / behavior                                                            | Classification                                     | Recommendation                                                                                                               |
+| ---- | -------------------------------------------------------------------------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| R-01 | `0020_missing_indexes.sql`                                                             | Obsolete compatibility residue                     | Delete when migration baseline is rebuilt. It is explicitly a no-op compatibility migration.                                 |
+| R-02 | 87 migrations `0000`–`0086`                                                            | Development-history residue                        | Squash/rebuild as clean v1 baseline before first release.                                                                    |
+| R-03 | `*_phase_e_*`, `*_phase_f_*`, `*_phase_g_*`, `*_phase_h_*` migration names             | Development-roadmap leakage                        | Replace with domain/table-oriented baseline migrations.                                                                      |
+| R-04 | `verify-phase-g.mjs`, `verify-phase-h.mjs`, A–H source-string checks                   | Development-phase verification residue             | Keep only as temporary architecture guards or replace with domain-oriented checks. Do not treat as functional certification. |
+| R-05 | `menuItems.isAvailable` backward-compat field                                          | Unnecessary client compatibility                   | Move clients to the final availability model and remove derived legacy column/API use.                                       |
+| R-06 | modifier `isAvailable` effective legacy field                                          | Unnecessary client compatibility                   | Expose explicit computed/manual/effective availability model without legacy field semantics.                                 |
+| R-07 | `availabilityService.getItemsAvailableAt()` retained for behavior parity but not wired | Dead migration/parity residue                      | Delete if still unreachable after final API review.                                                                          |
+| R-08 | typed `AppError` plus legacy catch-all / string-error handling                         | Half-completed migration                           | Finish conversion and delete legacy error path.                                                                              |
+| R-09 | authorization modules/comments described as additive “during migration”                | Transitional architecture                          | Consolidate into final core auth/authorization architecture.                                                                 |
+| R-10 | compatibility tenant/context wording for old clients/tokens                            | Pre-release residue                                | Model “no tenant/branch selected” explicitly; remove compatibility terminology/paths.                                        |
+| R-11 | `/phase-h` product route and `DifferentiatorsPage`                                     | Roadmap terminology leaked into product            | Remove route or redistribute features to their real product areas.                                                           |
+| R-12 | seven production `/dev/*` preview routes                                               | Development scaffolding in production router       | Register only in development or move to Storybook/dev app.                                                                   |
+| R-13 | customer `?demo=true` fixture ordering path                                            | Development/demo scaffolding                       | Remove from production build; create separate demo build/app if needed.                                                      |
+| R-14 | “legacy evidence” fallback text in Order Explain                                       | Historical fallback for data that cannot exist yet | Make current evidence mandatory where applicable and remove impossible legacy branches.                                      |
+| R-15 | UI compatibility aliases / old-new component pairs                                     | Internal transition residue                        | Standardize before v1 where practical.                                                                                       |
+| R-16 | source comments referencing past phase/design/NEXT_STEPS docs                          | Documentation-history residue                      | Remove or rewrite self-contained during consolidation.                                                                       |
 
 ---
 
@@ -410,7 +410,7 @@ Normal API requests are created with a configured Axios `baseURL`.
 The refresh call uses the global Axios instance:
 
 ```ts
-axios.post("/api/auth/refresh", { refreshToken })
+axios.post("/api/auth/refresh", { refreshToken });
 ```
 
 The source comment explicitly says this behavior was preserved from earlier implementations.

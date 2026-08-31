@@ -16,14 +16,14 @@ That document is the authoritative consolidation plan before the first productio
 
 ## Applications
 
-| Application | Package | Local dev |
-| --- | --- | --- |
-| API | `@pos/api` | `http://localhost:3000` |
-| POS / Admin Web | `@pos/web` | `http://localhost:5173` |
+| Application     | Package                | Local dev               |
+| --------------- | ---------------------- | ----------------------- |
+| API             | `@pos/api`             | `http://localhost:3000` |
+| POS / Admin Web | `@pos/web`             | `http://localhost:5173` |
 | Kitchen Display | `@pos/kitchen-display` | `http://localhost:5174` |
-| Waiter App | `@pos/waiter-app` | `http://localhost:5175` |
-| Customer QR App | `@pos/customer-app` | `http://localhost:5176` |
-| Public Website | `@pos/website` | `http://localhost:3001` |
+| Waiter App      | `@pos/waiter-app`      | `http://localhost:5175` |
+| Customer QR App | `@pos/customer-app`    | `http://localhost:5176` |
+| Public Website  | `@pos/website`         | `http://localhost:3001` |
 
 ## Shared packages
 
