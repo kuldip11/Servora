@@ -47,7 +47,7 @@ export const ProductDetail = ({ module }: { module: Module }) => {
         >
           <Link
             href="/product"
-            className="text-[var(--primary)] hover:underline"
+            className="text-[var(--primary)] underline underline-offset-2"
           >
             Product
           </Link>
@@ -103,12 +103,31 @@ export const ProductDetail = ({ module }: { module: Module }) => {
               />
               <h2 className="mt-5 text-lg font-semibold">{capability}</h2>
               <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
-                A capability represented in the current Servora product
-                architecture.
+                Built into the same operational flow, so teams can act without
+                copying information between disconnected tools.
               </p>
             </article>
           ))}
         </div>
+
+        {module.outcomes && (
+          <section className="mt-20 rounded-3xl bg-[#111827] px-8 py-10 text-white sm:px-10">
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-violet-300">
+              Operational value
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight">
+              Designed to improve the shift, not just digitize a screen.
+            </h2>
+            <div className="mt-8 grid gap-4 md:grid-cols-3">
+              {module.outcomes.map((outcome) => (
+                <div key={outcome} className="rounded-2xl border border-white/15 bg-white/5 p-5">
+                  <CheckCircle2 className="text-violet-300" size={20} />
+                  <p className="mt-3 font-semibold">{outcome}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         <div className="mt-20 grid gap-6 lg:grid-cols-2">
           <section className="rounded-3xl border border-[var(--border)] bg-[var(--surface-secondary)] p-8 sm:p-10">
