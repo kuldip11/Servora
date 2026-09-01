@@ -15,7 +15,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "payment:test:verify": "bun run --env-file=.env scripts/verify-razorpay-test.ts"
+    "payment:test:verify": "bun run --env-file=.env scripts/verify-razorpay-test.ts",
+    "demo:seed": "bun run --env-file=.env src/db/seed/index.ts",
+    "demo:reset": "bun run --env-file=.env src/db/seed/reset-cli.ts"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.0.2",

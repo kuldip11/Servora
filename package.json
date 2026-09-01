@@ -58,7 +58,9 @@
     "db:backup": "sh scripts/release/backup-postgres.sh",
     "db:restore": "sh scripts/release/restore-postgres.sh",
     "validate:production-env": "node scripts/release/validate-production-env.mjs",
-    "smoke:production": "node scripts/release/production-smoke.mjs"
+    "smoke:production": "node scripts/release/production-smoke.mjs",
+    "demo:seed": "cd apps/api && bun run demo:seed",
+    "demo:reset": "cd apps/api && bun run demo:reset"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
