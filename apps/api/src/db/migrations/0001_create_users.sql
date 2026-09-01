@@ -4,7 +4,10 @@ CREATE TABLE "users" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
   "first_name" varchar(100) NOT NULL,
   "last_name" varchar(100) NOT NULL,
+  "display_name" varchar(150),
   "email" varchar(255) NOT NULL,
+  "phone" varchar(30),
+  "profile_image_url" varchar(1000),
   "password_hash" varchar(255) NOT NULL,
   "status" "user_status" DEFAULT 'ACTIVE' NOT NULL,
   "failed_login_attempts" integer DEFAULT 0 NOT NULL,
@@ -17,4 +20,3 @@ CREATE TABLE "users" (
 CREATE UNIQUE INDEX "users_email_lower_unique" ON "users" USING btree (lower("email")) WHERE "deleted_at" IS NULL;
 
 CREATE INDEX "users_locked_until_idx" ON "users" USING btree ("locked_until");
-

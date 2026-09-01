@@ -31,6 +31,7 @@ import { TenantSwitcher } from "./TenantSwitcher";
 import { usePermissions } from "@/shared/auth/permissions";
 import { RealtimeNotifications } from "./RealtimeNotifications";
 import { authService } from "@/features/auth/services/auth.service";
+import { UserMenu } from "./UserMenu";
 
 const navItems = [
   {
@@ -84,8 +85,8 @@ const navItems = [
     permission: "billing:read",
   },
   {
-    to: "/branches",
-    label: "Branches",
+    to: "/business",
+    label: "Business",
     icon: Building2,
     permission: "branch:read",
   },
@@ -290,6 +291,7 @@ export const DashboardLayout = () => {
             >
               <Bell aria-hidden="true" className="w-5 h-5" />
             </button>
+            <UserMenu />
           </div>
         </header>
 

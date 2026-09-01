@@ -8,6 +8,7 @@ import {
   getDomainData,
   patchDomainData,
   postDomainData,
+  voidDomainRequest,
   type DomainHttpClient,
 } from "./shared";
 
@@ -53,15 +54,29 @@ export const createAuthApi = (client: DomainHttpClient) => {
       return getDomainData<OrganizationSummary[]>(client, "/organizations");
     },
     createOrganization(
-      name: string,
+      input: string | Record<string, unknown>,
     ): Promise<{ organization: OrganizationSummary; membershipId: string }> {
-      return postDomainData(client, "/organizations", { name });
+      return postDomainData(
+        client,
+        "/organizations",
+        typeof input === "string" ? { name: input } : input,
+      );
     },
     createTenant(
-      name: string,
-      organizationId: string,
+      input: string | Record<string, unknown>,
+      organizationId?: string,
     ): Promise<{ tenant: TenantSummary; membershipId: string }> {
-      return postDomainData(client, "/tenants", { name, organizationId });
+      return postDomainData(
+        client,
+        "/tenants",
+        typeof input === "string" ? { name: input, organizationId } : input,
+      );
+    },
+    updateTenant<T>(tenantId: string, input: Record<string, unknown>): Promise<T> {
+      return patchDomainData<T>(client, `/tenants/${tenantId}`, input);
+    },
+    archiveTenant(tenantId: string): Promise<void> {
+      return voidDomainRequest(client.delete(`/tenants/${tenantId}`));
     },
     me(): Promise<User> {
       return getDomainData<User>(client, "/auth/me");
@@ -69,8 +84,21 @@ export const createAuthApi = (client: DomainHttpClient) => {
     updateProfile(input: {
       firstName?: string;
       lastName?: string;
+      displayName?: string | null;
+      phone?: string | null;
+      profileImageUrl?: string | null;
     }): Promise<User> {
       return patchDomainData<User>(client, "/auth/me", input);
+    },
+    changePassword(input: {
+      currentPassword: string;
+      newPassword: string;
+    }): Promise<{ changed: boolean }> {
+      return postDomainData<{ changed: boolean }>(
+        client,
+        "/auth/me/change-password",
+        input,
+      );
     },
     listTenants(): Promise<Array<{ tenant: Tenant }>> {
       return getDomainData<Array<{ tenant: Tenant }>>(client, "/tenants");

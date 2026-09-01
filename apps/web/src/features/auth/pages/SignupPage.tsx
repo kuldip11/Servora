@@ -50,7 +50,7 @@ export const SignupPage = () => {
         title: "Account created. Choose or create a business.",
         tone: "success",
       });
-      router.navigate({ to: "/context" });
+      router.navigate({ to: "/business" });
     } catch (err: unknown) {
       toast({ title: extractApiError(err), tone: "danger" });
     } finally {

@@ -39,11 +39,20 @@ export const requireKitchenStatusPermission = (
   auth: AuthContext,
   newStatus: string,
 ): void => {
+  const management = auth.roles.some((role) =>
+    ["OWNER", "FRANCHISE_ADMIN", "MANAGER"].includes(role),
+  );
+  const waiter = auth.roles.includes("WAITER");
+  const kitchen = auth.permissions.includes("kitchen:update");
   const allowed =
-    auth.permissions.includes("kitchen:update") ||
-    (newStatus === "FIRED" && auth.permissions.includes("orders:update")) ||
+    kitchen ||
+    (newStatus === "FIRED" && auth.permissions.includes("orders:update") && management) ||
     (newStatus === "SERVED" &&
-      auth.permissions.includes("orders:update_status"));
+      auth.permissions.includes("orders:update_status") &&
+      (waiter || management)) ||
+    (["PREPARING", "READY"].includes(newStatus) &&
+      auth.permissions.includes("orders:update_status") &&
+      management);
 
   if (!allowed) {
     throw new ForbiddenError("Insufficient permissions", {

@@ -14,6 +14,27 @@ export const organizations = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     name: varchar("name", { length: 200 }).notNull(),
+    businessType: varchar("business_type", { length: 50 }),
+    country: varchar("country", { length: 2 }),
+    timezone: varchar("timezone", { length: 64 }),
+    currency: varchar("currency", { length: 3 }),
+    primaryContactName: varchar("primary_contact_name", { length: 150 }),
+    businessEmail: varchar("business_email", { length: 255 }),
+    businessPhone: varchar("business_phone", { length: 30 }),
+    addressLine1: varchar("address_line_1", { length: 300 }),
+    addressLine2: varchar("address_line_2", { length: 300 }),
+    city: varchar("city", { length: 120 }),
+    stateProvince: varchar("state_province", { length: 120 }),
+    postalCode: varchar("postal_code", { length: 24 }),
+    legalName: varchar("legal_name", { length: 200 }),
+    website: varchar("website", { length: 500 }),
+    taxRegistrationNumber: varchar("tax_registration_number", { length: 100 }),
+    gstin: varchar("gstin", { length: 15 }),
+    pan: varchar("pan", { length: 10 }),
+    companyRegistrationNumber: varchar("company_registration_number", {
+      length: 100,
+    }),
+    logoUrl: varchar("logo_url", { length: 1000 }),
     createdBy: uuid("created_by")
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),

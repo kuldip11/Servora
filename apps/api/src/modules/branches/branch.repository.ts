@@ -52,20 +52,7 @@ export const branchRepository = {
     return active.length;
   },
 
-  async create(data: {
-    tenantId: string;
-    name: string;
-    code: string;
-    timezone: string;
-    currency: string;
-    address?: string | undefined;
-    phone?: string | undefined;
-    dineInEnabled?: boolean | undefined;
-    takeawayEnabled?: boolean | undefined;
-    deliveryEnabled?: boolean | undefined;
-    onlineEnabled?: boolean | undefined;
-    tablesEnabled?: boolean | undefined;
-  }) {
+  async create(data: typeof branches.$inferInsert) {
     const [branch] = await db
       .insert(branches)
       .values(
@@ -75,13 +62,33 @@ export const branchRepository = {
           code: data.code,
           timezone: data.timezone,
           currency: data.currency,
-          address: data.address ?? "",
+          address: data.address ?? data.addressLine1 ?? "",
           phone: data.phone,
           dineInEnabled: data.dineInEnabled ?? true,
           takeawayEnabled: data.takeawayEnabled ?? true,
           deliveryEnabled: data.deliveryEnabled ?? true,
           onlineEnabled: data.onlineEnabled ?? true,
           tablesEnabled: data.tablesEnabled ?? true,
+          addressLine1: data.addressLine1,
+          addressLine2: data.addressLine2,
+          city: data.city,
+          stateProvince: data.stateProvince,
+          postalCode: data.postalCode,
+          country: data.country,
+          managerName: data.managerName,
+          email: data.email,
+          openingTime: data.openingTime,
+          closingTime: data.closingTime,
+          weeklyOperatingDays: data.weeklyOperatingDays,
+          taxOverride: data.taxOverride,
+          serviceChargeOverride: data.serviceChargeOverride,
+          invoicePrefix: data.invoicePrefix,
+          receiptFooter: data.receiptFooter,
+          inventoryTrackingEnabled: data.inventoryTrackingEnabled ?? true,
+          negativeStockPolicy: data.negativeStockPolicy ?? "BLOCK",
+          customerQrEnabled: data.customerQrEnabled ?? true,
+          kdsEnabled: data.kdsEnabled ?? true,
+          waiterAppEnabled: data.waiterAppEnabled ?? true,
         }) as typeof branches.$inferInsert,
       )
       .returning();
@@ -103,20 +110,7 @@ export const branchRepository = {
   async update(
     tenantId: string,
     id: string,
-    data: {
-      name?: string | undefined;
-      code?: string | undefined;
-      timezone?: string | undefined;
-      currency?: string | undefined;
-      address?: string | undefined;
-      phone?: string | undefined;
-      isActive?: boolean | undefined;
-      dineInEnabled?: boolean | undefined;
-      takeawayEnabled?: boolean | undefined;
-      deliveryEnabled?: boolean | undefined;
-      onlineEnabled?: boolean | undefined;
-      tablesEnabled?: boolean | undefined;
-    },
+    data: Partial<typeof branches.$inferInsert>,
   ) {
     const [updated] = await db
       .update(branches)

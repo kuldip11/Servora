@@ -195,6 +195,7 @@ export interface MenuItem {
   name: string;
   description: string | null;
   basePrice: number;
+  manualCost: number | null;
   pricingMode?: "FIXED" | "WEIGHT_BASED" | "OPEN";
   weightUnit?: "G" | "KG" | "LB" | "OZ" | null;
   openPriceMin?: number | null;

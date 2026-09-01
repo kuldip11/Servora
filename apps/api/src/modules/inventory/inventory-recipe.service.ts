@@ -385,7 +385,7 @@ export const inventoryRecipeService = {
     tenantId: string,
     branchId: string,
     items: RecipeNeedItemInput[],
-  ): Promise<number[]> {
+  ): Promise<Array<number | null>> {
     if (!items.length) return [];
     const menuItemIds = [...new Set(items.map((item) => item.menuItemId))];
     const recipeRows = await inventoryRepository.findRequiredRecipeLines(
@@ -400,7 +400,7 @@ export const inventoryRecipeService = {
       > | null
     >();
 
-    const costs: number[] = [];
+    const costs: Array<number | null> = [];
     for (const item of items) {
       const needs = aggregateRawNeeds(
         await resolveOrderItemRecipeNeeds(
@@ -413,14 +413,16 @@ export const inventoryRecipeService = {
         ),
       );
       costs.push(
-        Number(
-          needs
-            .reduce(
-              (sum, need) => sum + need.neededQuantity * need.costPerUnit,
-              0,
+        needs.length
+          ? Number(
+              needs
+                .reduce(
+                  (sum, need) => sum + need.neededQuantity * need.costPerUnit,
+                  0,
+                )
+                .toFixed(4),
             )
-            .toFixed(4),
-        ),
+          : null,
       );
     }
     return costs;
@@ -431,12 +433,12 @@ export const inventoryRecipeService = {
     branchId: string,
     item: RecipeNeedItemInput,
   ) {
-    const [cost = 0] = await inventoryRecipeService.computeRecipeCosts(
+    const [cost] = await inventoryRecipeService.computeRecipeCosts(
       tenantId,
       branchId,
       [item],
     );
-    return cost;
+    return cost ?? 0;
   },
 
   async deductForOrderItems(

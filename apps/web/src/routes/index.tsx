@@ -67,8 +67,8 @@ const protectedRoute = createRoute({
     if (!isAuthenticated) {
       throw redirect({ to: "/login" });
     }
-    if (!franchiseId && location.pathname !== "/context") {
-      throw redirect({ to: "/context" });
+    if (!franchiseId && location.pathname !== "/business") {
+      throw redirect({ to: "/business" });
     }
   },
   component: DashboardLayout,
@@ -91,11 +91,13 @@ const requirePermission = (permission: string) => {
 const contextRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: "/context",
-  component: lazyPage(() =>
-    import("../features/auth/pages/ContextPage").then((m) => ({
-      default: m.ContextPage,
-    })),
-  ),
+  beforeLoad: () => { throw redirect({ to: "/business" }); },
+});
+
+const businessRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/business",
+  component: lazyPage(() => import("../features/business/pages/BusinessPage").then((m) => ({ default: m.BusinessPage }))),
 });
 
 const dashboardRoute = createRoute({
@@ -231,15 +233,16 @@ const settingsRoute = createRoute({
   ),
 });
 
+const profileRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/profile",
+  component: lazyPage(() => import("../features/profile/pages/ProfilePage").then((m) => ({ default: m.ProfilePage }))),
+});
+
 const branchesRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: "/branches",
-  beforeLoad: requirePermission("branch:read"),
-  component: lazyPage(() =>
-    import("../features/branches/pages/BranchesPage").then((m) => ({
-      default: m.BranchesPage,
-    })),
-  ),
+  beforeLoad: () => { throw redirect({ to: "/business" }); },
 });
 
 const indexRoute = createRoute({
@@ -252,7 +255,7 @@ const indexRoute = createRoute({
         ? "/login"
         : franchiseId
           ? getAuthorizedHomePath(user)
-          : "/context",
+          : "/business",
     });
   },
 });
@@ -262,6 +265,7 @@ const routeTree = rootRoute.addChildren([
   authRoute.addChildren([loginRoute, signupRoute]),
   protectedRoute.addChildren([
     contextRoute,
+    businessRoute,
     forbiddenRoute,
     dashboardRoute,
     menuEngineeringRoute,
@@ -275,6 +279,7 @@ const routeTree = rootRoute.addChildren([
     billingRoute,
     auditRoute,
     settingsRoute,
+    profileRoute,
     branchesRoute,
   ]),
 ]);

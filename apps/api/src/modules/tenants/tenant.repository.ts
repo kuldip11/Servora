@@ -39,11 +39,7 @@ export const tenantRepository = {
     return db.query.tenants.findFirst({ where: eq(tenants.id, id) });
   },
 
-  async create(data: {
-    name: string;
-    createdBy: string;
-    organizationId: string;
-  }) {
+  async create(data: typeof tenants.$inferInsert) {
     return db.transaction(async (tx) => {
       const [tenant] = await tx.insert(tenants).values(data).returning();
       if (!tenant) throw new Error("Tenant creation failed");
@@ -59,18 +55,7 @@ export const tenantRepository = {
     });
   },
 
-  async update(
-    id: string,
-    changes: {
-      name?: string;
-      isActive?: boolean;
-      serviceChargePercent?: string | null;
-      serviceChargeTaxable?: boolean;
-      roundingPolicy?: "NONE" | "NEAREST_1" | "NEAREST_5" | "NEAREST_10";
-      defaultTaxMode?: "INCLUSIVE" | "EXCLUSIVE";
-      courseSequencingEnabled?: boolean;
-    },
-  ) {
+  async update(id: string, changes: Partial<typeof tenants.$inferInsert>) {
     const [tenant] = await db
       .update(tenants)
       .set({ ...changes, updatedAt: new Date() })

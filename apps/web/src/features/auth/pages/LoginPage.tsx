@@ -10,6 +10,8 @@ import { useAuthStore } from "@/store/auth";
 import { Button, Card, Input, toast } from "@pos/ui";
 import { extractApiError } from "@/shared/lib/api-client";
 import { loginSchema } from "@pos/validation";
+import { restoreActiveContext } from "@/shared/auth/active-context";
+import { getAuthorizedHomePath } from "@/shared/auth/default-route";
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
@@ -35,11 +37,13 @@ export const LoginPage = () => {
     try {
       const result = await authService.login(form);
       setAuth(result);
+      const memberships = await authService.memberships();
+      const restored = await restoreActiveContext(memberships);
       toast({
         title: `Welcome back, ${result.user.firstName}!`,
         tone: "success",
       });
-      router.navigate({ to: "/context" });
+      router.navigate({ to: restored ? getAuthorizedHomePath(useAuthStore.getState().user) : "/business" });
     } catch (err: unknown) {
       const msg = extractApiError(err);
       toast({ title: msg, tone: "danger" });

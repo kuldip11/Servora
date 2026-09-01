@@ -8,3 +8,5 @@ export * from "./orders";
 export * from "./realtime";
 export * from "./staff";
 export * from "./tables";
+
+export * from "./business";

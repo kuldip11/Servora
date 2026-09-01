@@ -131,6 +131,7 @@ export const itemRepository = {
     name: string;
     description?: string | null | undefined;
     basePrice: string;
+    manualCost?: string | null | undefined;
     pricingMode?: "FIXED" | "WEIGHT_BASED" | "OPEN" | undefined;
     weightUnit?: "G" | "KG" | "LB" | "OZ" | undefined;
     openPriceMin?: string | undefined;
@@ -168,6 +169,7 @@ export const itemRepository = {
           name: data.name,
           description: data.description ?? null,
           basePrice: data.basePrice,
+          manualCost: data.manualCost ?? null,
           pricingMode: data.pricingMode ?? "FIXED",
           weightUnit: data.weightUnit ?? null,
           openPriceMin: data.openPriceMin ?? null,
@@ -269,6 +271,7 @@ export const itemRepository = {
       name?: string | undefined;
       description?: string | null | undefined;
       basePrice?: string | undefined;
+      manualCost?: string | null | undefined;
       pricingMode?: "FIXED" | "WEIGHT_BASED" | "OPEN" | undefined;
       weightUnit?: "G" | "KG" | "LB" | "OZ" | null | undefined;
       openPriceMin?: string | null | undefined;
@@ -456,6 +459,7 @@ export const itemRepository = {
           name: options.name?.trim() || `${source.name} (Copy)`,
           description: source.description,
           basePrice: source.basePrice,
+          manualCost: source.manualCost,
           pricingMode: source.pricingMode,
           weightUnit: source.weightUnit,
           openPriceMin: source.openPriceMin,

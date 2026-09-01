@@ -5,6 +5,8 @@ import {
   boolean,
   timestamp,
   numeric,
+  text,
+  jsonb,
   pgEnum,
   index,
 } from "drizzle-orm/pg-core";
@@ -23,6 +25,17 @@ export const tenants = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     name: varchar("name", { length: 200 }).notNull(),
+    displayName: varchar("display_name", { length: 200 }),
+    description: text("description"),
+    cuisineTypes: jsonb("cuisine_types").$type<string[]>(),
+    businessModel: varchar("business_model", { length: 50 }),
+    defaultCurrency: varchar("default_currency", { length: 3 }),
+    defaultTimezone: varchar("default_timezone", { length: 64 }),
+    supportEmail: varchar("support_email", { length: 255 }),
+    supportPhone: varchar("support_phone", { length: 30 }),
+    website: varchar("website", { length: 500 }),
+    logoUrl: varchar("logo_url", { length: 1000 }),
+    primaryBrandImageUrl: varchar("primary_brand_image_url", { length: 1000 }),
     createdBy: uuid("created_by").notNull(),
     organizationId: uuid("organization_id")
       .notNull()
@@ -42,6 +55,18 @@ export const tenants = pgTable(
     defaultTaxMode: taxModeEnum("default_tax_mode")
       .notNull()
       .default("EXCLUSIVE"),
+    defaultTaxRate: numeric("default_tax_rate", { precision: 5, scale: 2 }),
+    dineInEnabled: boolean("dine_in_enabled").notNull().default(true),
+    takeawayEnabled: boolean("takeaway_enabled").notNull().default(true),
+    deliveryEnabled: boolean("delivery_enabled").notNull().default(true),
+    customerQrEnabled: boolean("customer_qr_enabled").notNull().default(true),
+    tableManagementEnabled: boolean("table_management_enabled")
+      .notNull()
+      .default(true),
+    kdsEnabled: boolean("kds_enabled").notNull().default(true),
+    waiterServiceEnabled: boolean("waiter_service_enabled")
+      .notNull()
+      .default(true),
     courseSequencingEnabled: boolean("course_sequencing_enabled")
       .notNull()
       .default(false),

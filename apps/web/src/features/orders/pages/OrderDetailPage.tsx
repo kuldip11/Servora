@@ -36,6 +36,8 @@ import { AddItemsModal } from "@/features/orders/components/AddItemsModal";
 import { OrderExplainDialog } from "@/features/orders/components/OrderExplainDialog";
 import { useRefireOrderItem } from "@/features/orders/hooks/useRefireOrderItem";
 import { useSetOrderItemSeatShares } from "@/features/orders/hooks/useSetOrderItemSeatShares";
+import { useOrdersRealtimeSync } from "@/features/orders/hooks/useOrdersRealtimeSync";
+import { useAuthStore } from "@/store/auth";
 
 const STATUS_TRANSITIONS: Record<string, { label: string; next: string }[]> = {
   OPEN: [{ label: "Cancel Order", next: "CANCELLED" }],
@@ -78,6 +80,7 @@ const OrderStatusBadge = ({ status }: { status: string }) => {
 };
 
 export const OrderDetailPage = () => {
+  useOrdersRealtimeSync();
   const { orderId } = useParams({ strict: false }) as { orderId: string };
   const [showAddItems, setShowAddItems] = useState(false);
   const [reasonAction, setReasonAction] = useState<
@@ -105,6 +108,11 @@ export const OrderDetailPage = () => {
   const voidItemMutation = useVoidOrderItem(orderId);
   const compItemMutation = useCompOrderItem(orderId);
   const { has } = usePermissions();
+  const roles = useAuthStore((state) => state.user?.roles.map((role) => role.name) ?? []);
+  const management = roles.some((role) => ["OWNER", "FRANCHISE_ADMIN", "MANAGER"].includes(role));
+  const canKitchen = has("kitchen:update") || (management && has("orders:update_status"));
+  const canFire = has("kitchen:update") || (management && has("orders:update"));
+  const canServe = has("kitchen:update") || ((management || roles.includes("WAITER")) && has("orders:update_status"));
   const { data: cancellationReasons = [] } = useCancellationReasons();
 
   const submitLineAdjustment = (
@@ -226,11 +234,11 @@ export const OrderDetailPage = () => {
                     }
                     tone={TICKET_STATUS_TONE[ticket.status] ?? "neutral"}
                   />
-                  {ticket.status === "HELD" && (
+                  {ticket.status === "HELD" && canFire && (
                     <Button
                       variant="primary"
                       size="sm"
-                      loading={updateTicketMutation.isPending}
+                      loading={updateTicketMutation.isPending && updateTicketMutation.variables?.ticketId === ticket.id}
                       onClick={() =>
                         updateTicketMutation.mutate({
                           ticketId: ticket.id,
@@ -241,11 +249,13 @@ export const OrderDetailPage = () => {
                       Fire Course Now
                     </Button>
                   )}
-                  {ticket.status === "READY" && (
+                  {ticket.status === "FIRED" && canKitchen && <Button variant="secondary" size="sm" loading={updateTicketMutation.isPending && updateTicketMutation.variables?.ticketId === ticket.id} onClick={() => updateTicketMutation.mutate({ ticketId: ticket.id, status: "PREPARING" })}>Start Preparing</Button>}
+                  {ticket.status === "PREPARING" && canKitchen && <Button variant="secondary" size="sm" loading={updateTicketMutation.isPending && updateTicketMutation.variables?.ticketId === ticket.id} onClick={() => updateTicketMutation.mutate({ ticketId: ticket.id, status: "READY" })}>Mark Ready</Button>}
+                  {ticket.status === "READY" && canServe && (
                     <Button
                       variant="secondary"
                       size="sm"
-                      loading={updateTicketMutation.isPending}
+                      loading={updateTicketMutation.isPending && updateTicketMutation.variables?.ticketId === ticket.id}
                       onClick={() =>
                         updateTicketMutation.mutate({
                           ticketId: ticket.id,

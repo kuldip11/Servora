@@ -130,6 +130,7 @@ describe("analytics service", () => {
         categoryId: "c1",
         category: { name: "Mains" },
         basePrice: "999.00",
+        manualCost: "70.00",
         variants: [{ id: "v1", name: "Large" }],
       },
     ]);
@@ -166,6 +167,10 @@ describe("analytics service", () => {
       expect.objectContaining({
         variantId: "v1",
         price: 140,
+        manualCost: 70,
+        recipeCost: 55,
+        effectiveCost: 55,
+        costSource: "RECIPE",
         cost: 55,
         margin: 85,
         marginPercent: 60.71,
@@ -173,9 +178,72 @@ describe("analytics service", () => {
       expect.objectContaining({
         variantId: null,
         price: 100,
+        manualCost: 70,
+        recipeCost: 40,
+        effectiveCost: 40,
+        costSource: "RECIPE",
         cost: 40,
         margin: 60,
         marginPercent: 60,
+      }),
+    ]);
+  });
+
+  it("uses manual cost when recipe cost is missing and preserves unknown cost", async () => {
+    findCostReportItems.mockResolvedValue([
+      {
+        id: "manual",
+        name: "Manual",
+        categoryId: "c1",
+        category: { name: "Mains" },
+        manualCost: "25.00",
+        variants: [],
+      },
+      {
+        id: "unknown",
+        name: "Unknown",
+        categoryId: "c1",
+        category: { name: "Mains" },
+        manualCost: null,
+        variants: [],
+      },
+      {
+        id: "zero",
+        name: "Zero",
+        categoryId: "c1",
+        category: { name: "Mains" },
+        manualCost: "0.00",
+        variants: [],
+      },
+    ]);
+    computeRecipeCosts.mockResolvedValue([null, null, null]);
+    price.mockResolvedValue({
+      lines: [{ unitPrice: 100 }, { unitPrice: 80 }, { unitPrice: 50 }],
+    });
+
+    const result = await analyticsService.getCostMarginReport(auth());
+
+    expect(result).toEqual([
+      expect.objectContaining({
+        menuItemId: "zero",
+        costSource: "MANUAL",
+        cost: 0,
+        margin: 50,
+        marginPercent: 100,
+      }),
+      expect.objectContaining({
+        menuItemId: "manual",
+        costSource: "MANUAL",
+        cost: 25,
+        margin: 75,
+        marginPercent: 75,
+      }),
+      expect.objectContaining({
+        menuItemId: "unknown",
+        costSource: "UNKNOWN",
+        cost: null,
+        margin: null,
+        marginPercent: null,
       }),
     ]);
   });
@@ -205,6 +273,10 @@ describe("H3 menu-engineering report", () => {
           variantId: null,
           variantName: null,
           price: 150,
+          manualCost: null,
+          recipeCost: 50,
+          effectiveCost: 50,
+          costSource: "RECIPE",
           cost: 50,
           margin: 100,
           marginPercent: 66.67,
@@ -217,6 +289,10 @@ describe("H3 menu-engineering report", () => {
           variantId: null,
           variantName: null,
           price: 140,
+          manualCost: null,
+          recipeCost: 50,
+          effectiveCost: 50,
+          costSource: "RECIPE",
           cost: 50,
           margin: 90,
           marginPercent: 64.29,
@@ -229,6 +305,10 @@ describe("H3 menu-engineering report", () => {
           variantId: null,
           variantName: null,
           price: 70,
+          manualCost: null,
+          recipeCost: 50,
+          effectiveCost: 50,
+          costSource: "RECIPE",
           cost: 50,
           margin: 20,
           marginPercent: 28.57,
@@ -241,6 +321,10 @@ describe("H3 menu-engineering report", () => {
           variantId: null,
           variantName: null,
           price: 60,
+          manualCost: null,
+          recipeCost: 50,
+          effectiveCost: 50,
+          costSource: "RECIPE",
           cost: 50,
           margin: 10,
           marginPercent: 16.67,

@@ -32,13 +32,27 @@ export const authRepository = {
 
   async updateUserProfile(
     userId: string,
-    data: { firstName?: string; lastName?: string },
+    data: {
+      firstName?: string;
+      lastName?: string;
+      displayName?: string | null;
+      phone?: string | null;
+      profileImageUrl?: string | null;
+    },
   ) {
     const [updated] = await db
       .update(users)
       .set({ ...data, updatedAt: new Date() })
       .where(and(eq(users.id, userId), isNull(users.deletedAt)))
       .returning();
+    return updated;
+  },
+  async updatePasswordHash(userId: string, passwordHash: string) {
+    const [updated] = await db
+      .update(users)
+      .set({ passwordHash, updatedAt: new Date() })
+      .where(and(eq(users.id, userId), isNull(users.deletedAt)))
+      .returning({ id: users.id });
     return updated;
   },
   async findStandaloneUserByEmail(email: string) {

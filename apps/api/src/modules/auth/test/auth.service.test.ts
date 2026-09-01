@@ -8,6 +8,7 @@ const {
   saveRefreshToken,
   findMembershipById,
   updateUserProfile,
+  updatePasswordHash,
   recordFailedLogin,
   resetLoginFailures,
   revokeRefreshToken,
@@ -25,6 +26,7 @@ const {
   saveRefreshToken: vi.fn(),
   findMembershipById: vi.fn(),
   updateUserProfile: vi.fn(),
+  updatePasswordHash: vi.fn(),
   recordFailedLogin: vi.fn(),
   resetLoginFailures: vi.fn(),
   revokeRefreshToken: vi.fn(),
@@ -44,6 +46,7 @@ vi.mock("../auth.repository", () => ({
     saveRefreshToken,
     findMembershipById,
     updateUserProfile,
+    updatePasswordHash,
     recordFailedLogin,
     resetLoginFailures,
     revokeRefreshToken,
@@ -115,6 +118,32 @@ describe("auth service", () => {
       firstName: "New",
       lastName: "Name",
     });
+  });
+
+  it("changes only the authenticated user's password after verifying the current password", async () => {
+    const bcrypt = await import("bcryptjs");
+    const passwordHash = await bcrypt.default.hash("current-pass", 4);
+    findUserById.mockResolvedValue({ ...user, passwordHash });
+    updatePasswordHash.mockResolvedValue({ id: "u1" });
+
+    await expect(
+      authService.changePassword("u1", {
+        currentPassword: "wrong-pass",
+        newPassword: "new-password-123",
+      }),
+    ).rejects.toThrow();
+    expect(updatePasswordHash).not.toHaveBeenCalled();
+
+    await expect(
+      authService.changePassword("u1", {
+        currentPassword: "current-pass",
+        newPassword: "new-password-123",
+      }),
+    ).resolves.toBeUndefined();
+    expect(updatePasswordHash).toHaveBeenCalledWith(
+      "u1",
+      expect.not.stringContaining("new-password-123"),
+    );
   });
 
   it("rejects duplicate signup and bootstraps a new user", async () => {

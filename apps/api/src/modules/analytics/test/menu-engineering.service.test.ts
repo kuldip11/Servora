@@ -35,6 +35,10 @@ const marginRow = (menuItemId: string, margin: number) => ({
   variantId: null,
   variantName: null,
   price: 100,
+  manualCost: null,
+  recipeCost: 100 - margin,
+  effectiveCost: 100 - margin,
+  costSource: "RECIPE" as const,
   cost: 100 - margin,
   margin,
   marginPercent: margin,
@@ -72,6 +76,37 @@ describe("H3 menu-engineering report", () => {
       ["dog", "DOG"],
     ]);
     expect(rows.every((row) => row.recommendation.length > 0)).toBe(true);
+  });
+
+  it("keeps unknown-cost items out of margin thresholds and marks them explicitly", async () => {
+    vi.spyOn(analyticsService, "getCostMarginReport").mockResolvedValue([
+      marginRow("known-high", 20),
+      marginRow("known-low", 5),
+      {
+        ...marginRow("missing", 0),
+        manualCost: null,
+        recipeCost: null,
+        effectiveCost: null,
+        costSource: "UNKNOWN",
+        cost: null,
+        margin: null,
+        marginPercent: null,
+      },
+    ]);
+    salesVolumeByItem.mockResolvedValue([
+      { menuItemId: "known-high", variantId: null, volume: 20 },
+      { menuItemId: "known-low", variantId: null, volume: 5 },
+      { menuItemId: "missing", variantId: null, volume: 999 },
+    ]);
+
+    const rows = await analyticsService.getMenuEngineeringReport(auth, 30);
+    expect(rows.find((row) => row.menuItemId === "missing")).toEqual(
+      expect.objectContaining({
+        quadrant: "COST_MISSING",
+        costSource: "UNKNOWN",
+        margin: null,
+      }),
+    );
   });
 
   it("uses the requested configurable analysis window", async () => {

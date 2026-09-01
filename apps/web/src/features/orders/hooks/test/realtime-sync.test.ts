@@ -5,6 +5,7 @@ const queryCache = vi.hoisted(() => ({ findAll: vi.fn() }));
 const queryClient = vi.hoisted(() => ({
   invalidateQueries: vi.fn(),
   setQueryData: vi.fn(),
+  getQueryData: vi.fn(),
   getQueryCache: vi.fn(),
 }));
 

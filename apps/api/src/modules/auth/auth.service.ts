@@ -4,7 +4,7 @@ import { authRepository } from "./auth.repository";
 import { listUserMemberships } from "@/core/auth/membership-context";
 import { resolveAuthorization, resolveMembership } from "@/core/auth/authorization";
 import { db } from "@/db";
-import { ConflictError, ForbiddenError } from "@/core/errors";
+import { ConflictError, ForbiddenError, ValidationError } from "@/core/errors";
 import { signAccessToken } from "@/lib/jwt";
 import { hasAppRoleAccess, hasMembershipAppAccess, type AuthApp } from "./auth-app";
 import type { SignupInput, LoginInput } from "@pos/validation";
@@ -85,7 +85,10 @@ export const authService = {
         branchId: null,
         firstName: fullUser.firstName,
         lastName: fullUser.lastName,
+        displayName: fullUser.displayName,
         email: fullUser.email,
+        phone: fullUser.phone,
+        profileImageUrl: fullUser.profileImageUrl,
         status: fullUser.status,
         roles: fullUser.globalUserRoles.map((ur) => ({
           id: ur.roleId,
@@ -200,7 +203,13 @@ export const authService = {
 
   async updateProfile(
     userId: string,
-    input: { firstName?: string; lastName?: string },
+    input: {
+      firstName?: string;
+      lastName?: string;
+      displayName?: string | null;
+      phone?: string | null;
+      profileImageUrl?: string | null;
+    },
   ) {
     const changes = Object.fromEntries(
       Object.entries(input).filter(([, value]) => value !== undefined),
@@ -210,6 +219,22 @@ export const authService = {
     const updated = await authRepository.updateUserProfile(userId, changes);
     if (!updated) throw authUserNotFound();
     return authRepository.findUserById(userId);
+  },
+
+  async changePassword(
+    userId: string,
+    input: { currentPassword: string; newPassword: string },
+  ) {
+    const user = await authRepository.findUserById(userId);
+    if (!user) throw authUserNotFound();
+    const matches = await bcrypt.compare(input.currentPassword, user.passwordHash);
+    if (!matches) throw invalidCredentials();
+    if (await bcrypt.compare(input.newPassword, user.passwordHash)) {
+      throw new ValidationError("New password must be different from the current password");
+    }
+    const passwordHash = await bcrypt.hash(input.newPassword, 12);
+    const updated = await authRepository.updatePasswordHash(userId, passwordHash);
+    if (!updated) throw authUserNotFound();
   },
 
   async _issueTokens(
@@ -266,7 +291,10 @@ export const authService = {
         branchId: null,
         firstName: user.firstName,
         lastName: user.lastName,
+        displayName: user.displayName,
         email: user.email,
+        phone: user.phone,
+        profileImageUrl: user.profileImageUrl,
         status: user.status,
         roles: globalRoles,
       },

@@ -184,6 +184,7 @@ export const menuItems = pgTable(
     basePrice: numeric("base_price", { precision: 10, scale: 2 })
       .notNull()
       .default("0"),
+    manualCost: numeric("manual_cost", { precision: 10, scale: 2 }),
     pricingMode: pricingModeEnum("pricing_mode").notNull().default("FIXED"),
     weightUnit: weightUnitEnum("weight_unit"),
     openPriceMin: numeric("open_price_min", { precision: 10, scale: 2 }),
@@ -252,6 +253,10 @@ export const menuItems = pgTable(
     manualStockCountNonnegative: check(
       "menu_items_manual_stock_count_nonnegative",
       sql`${t.manualStockCount} IS NULL OR ${t.manualStockCount} >= 0`,
+    ),
+    manualCostNonnegative: check(
+      "menu_items_manual_cost_nonnegative",
+      sql`${t.manualCost} IS NULL OR ${t.manualCost} >= 0`,
     ),
   }),
 );
@@ -749,6 +754,7 @@ export const menuTemplateItems = pgTable(
     basePrice: numeric("base_price", { precision: 10, scale: 2 })
       .notNull()
       .default("0"),
+    manualCost: numeric("manual_cost", { precision: 10, scale: 2 }),
     pricingMode: pricingModeEnum("pricing_mode").notNull().default("FIXED"),
     weightUnit: weightUnitEnum("weight_unit"),
     openPriceMin: numeric("open_price_min", { precision: 10, scale: 2 }),
