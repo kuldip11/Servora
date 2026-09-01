@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Input, Select } from "@pos/ui";
 import { createMenuApi } from "@pos/api-client";
 import { apiClient } from "@/shared/lib/api-client";
+import { useMenuCategories } from "@/features/menu/hooks/useMenuCategories";
 
 const menuApi = createMenuApi(apiClient);
 import type {
@@ -26,6 +27,17 @@ function PromotionStats({ id }: { id: string }) {
 
 export const PromotionsSection = () => {
   const queryClient = useQueryClient();
+  const { data: categories = [] } = useMenuCategories();
+  const categoryOptions = categories.map((category) => ({
+    value: category.id,
+    label: category.name,
+  }));
+  const itemOptions = categories.flatMap((category) =>
+    (category.menuItems ?? []).map((item) => ({
+      value: item.id,
+      label: `${item.name} · ${category.name}`,
+    })),
+  );
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [ruleType, setRuleType] = useState<Promotion["ruleType"]>("PERCENTAGE");
@@ -212,9 +224,13 @@ export const PromotionsSection = () => {
           />
         )}
         {ruleType !== "BOGO" && scope !== "ORDER" && (
-          <Input
-            label={scope === "CATEGORY" ? "Category ID" : "Menu item ID"}
+          <Select
+            label={scope === "CATEGORY" ? "Category" : "Menu item"}
             value={targetId}
+            options={[
+              { value: "", label: scope === "CATEGORY" ? "Choose a category" : "Choose an item" },
+              ...(scope === "CATEGORY" ? categoryOptions : itemOptions),
+            ]}
             onChange={(e) => setTargetId(e.target.value)}
           />
         )}
@@ -231,9 +247,16 @@ export const PromotionsSection = () => {
                 { value: "CATEGORY", label: "Category" },
               ]}
             />
-            <Input
-              label="Buy target ID"
+            <Select
+              label={triggerType === "ITEM" ? "Buy item" : "Buy category"}
               value={triggerId}
+              options={[
+                {
+                  value: "",
+                  label: triggerType === "ITEM" ? "Choose an item" : "Choose a category",
+                },
+                ...(triggerType === "ITEM" ? itemOptions : categoryOptions),
+              ]}
               onChange={(e) => setTriggerId(e.target.value)}
             />
             <Input
@@ -255,9 +278,16 @@ export const PromotionsSection = () => {
               ]}
             />
             {rewardType !== "SAME" && (
-              <Input
-                label="Reward target ID"
+              <Select
+                label={rewardType === "ITEM" ? "Reward item" : "Reward category"}
                 value={rewardId}
+                options={[
+                  {
+                    value: "",
+                    label: rewardType === "ITEM" ? "Choose an item" : "Choose a category",
+                  },
+                  ...(rewardType === "ITEM" ? itemOptions : categoryOptions),
+                ]}
                 onChange={(e) => setRewardId(e.target.value)}
               />
             )}

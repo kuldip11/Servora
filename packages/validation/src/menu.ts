@@ -80,6 +80,7 @@ export const menuItemFormSchema = z.object({
   enableRecipeDeduction: z.boolean(),
   variants: z.array(
     z.object({
+      id: z.string().uuid().optional(),
       name: z
         .string()
         .trim()

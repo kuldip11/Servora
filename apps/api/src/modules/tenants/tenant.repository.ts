@@ -8,6 +8,7 @@ import {
   tenantMemberships,
   tenants,
   organizationMemberships,
+  menus,
 } from "@/db/schema";
 
 export const tenantRepository = {
@@ -43,8 +44,19 @@ export const tenantRepository = {
     createdBy: string;
     organizationId: string;
   }) {
-    const [tenant] = await db.insert(tenants).values(data).returning();
-    return tenant!;
+    return db.transaction(async (tx) => {
+      const [tenant] = await tx.insert(tenants).values(data).returning();
+      if (!tenant) throw new Error("Tenant creation failed");
+
+      await tx.insert(menus).values({
+        tenantId: tenant.id,
+        name: "Default Menu",
+        status: "PUBLISHED",
+        isDefault: true,
+      });
+
+      return tenant;
+    });
   },
 
   async update(

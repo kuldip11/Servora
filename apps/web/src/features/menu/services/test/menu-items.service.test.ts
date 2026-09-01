@@ -10,14 +10,15 @@ const api = vi.hoisted(() => ({
 vi.mock("../../../../shared/lib/api-client", () => ({ apiClient: api }));
 
 import { menuItemsService } from "@/features/menu/services/menu-items.service";
+import type { CreateMenuItemInput } from "@pos/api-client";
 
-const payload = {
+const payload: CreateMenuItemInput = {
   categoryId: "cat-1",
   name: "Paneer",
   basePrice: 250,
   taxRate: 5,
   foodType: "VEG",
-  status: "ACTIVE" as never,
+  status: "ACTIVE",
   availabilityReason: null,
   enableRecipeDeduction: false,
   variants: [],
@@ -66,7 +67,8 @@ describe("menuItemsService", () => {
     expect(api.post).toHaveBeenCalledWith("/menu/items", payload);
 
     await menuItemsService.saveItem({ id: "item-1" } as never, payload);
-    expect(api.patch).toHaveBeenCalledWith("/menu/items/item-1", payload);
+    const { categoryId: _categoryId, ...expectedUpdate } = payload;
+    expect(api.patch).toHaveBeenCalledWith("/menu/items/item-1", expectedUpdate);
   });
 
   it("covers availability, deletion, duplication, and publish state", async () => {

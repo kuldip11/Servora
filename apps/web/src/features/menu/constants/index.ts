@@ -1,17 +1,8 @@
 export const MENU_TABS = [
   { id: "items", label: "Items" },
-  { id: "menus", label: "Menus" },
-  { id: "combos", label: "Combos" },
-  { id: "promotions", label: "Promotions" },
-  { id: "loyalty", label: "Loyalty" },
-  { id: "happy-hour", label: "Happy Hour" },
-  { id: "advanced", label: "Advanced Models" },
   { id: "categories", label: "Categories" },
   { id: "modifiers", label: "Modifiers" },
-  { id: "recipes", label: "Recipes" },
-  { id: "availability", label: "Availability" },
-  { id: "stations", label: "Stations" },
-  { id: "tools", label: "Tools" },
+  { id: "more", label: "More" },
 ] as const;
 
 export type MenuTabId = (typeof MENU_TABS)[number]["id"];
@@ -53,7 +44,7 @@ export const MENU_SELECT_CLASS =
 export const MENU_INPUT_CLASS =
   "rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-primary";
 
-import type { MenuItemStatus } from "@pos/types";
+import type { FoodType, MenuItemStatus, SpiceLevel } from "@pos/types";
 import type { StatusTone } from "@pos/ui";
 
 export const MENU_ITEM_STATUS_META: Record<
@@ -74,3 +65,54 @@ export const MENU_ITEM_STATUS_OPTIONS: {
   value,
   label: MENU_ITEM_STATUS_META[value].label,
 }));
+
+export const MENU_FOOD_TYPE_OPTIONS: { value: FoodType; label: string }[] = [
+  { value: "VEG", label: "Veg" },
+  { value: "NON_VEG", label: "Non-Veg" },
+  { value: "EGG", label: "Egg" },
+];
+
+export const MENU_SPICE_LEVEL_OPTIONS: {
+  value: SpiceLevel | "";
+  label: string;
+}[] = [
+  { value: "", label: "Not applicable" },
+  { value: "NONE", label: "Not spicy" },
+  { value: "MILD", label: "Mild" },
+  { value: "MEDIUM", label: "Medium" },
+  { value: "HOT", label: "Hot" },
+];
+
+export const MENU_MORE_SECTIONS = [
+  {
+    id: "menus",
+    title: "Menus & availability",
+    description:
+      "Optional branch, channel, schedule, and availability rules. Normal ordering does not require this.",
+  },
+  {
+    id: "offers",
+    title: "Offers & loyalty",
+    description:
+      "Combos, promotions, happy hour, loyalty tiers, and customers.",
+  },
+  {
+    id: "operations",
+    title: "Recipes & kitchen",
+    description:
+      "Ingredient deduction, sub-recipes, item availability, and kitchen station routing.",
+  },
+  {
+    id: "tools",
+    title: "Menu tools",
+    description: "Import/export, reusable templates, tags, and holidays.",
+  },
+  {
+    id: "advanced",
+    title: "Advanced configuration",
+    description:
+      "Customer groups, buffet pricing, and organization-level inheritance.",
+  },
+] as const;
+
+export type MenuMoreSectionId = (typeof MENU_MORE_SECTIONS)[number]["id"];

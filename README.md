@@ -8,7 +8,7 @@ Servora is a pre-production, multi-tenant restaurant operating platform built as
 
 ## Product roadmap
 
-Future product opportunities are captured in [`PRODUCT_FEATURE_ROADMAP.md`](./PRODUCT_FEATURE_ROADMAP.md). Security findings, remediation history, and remaining production-certification work are tracked in [`SECURITY_AUDIT.md`](./SECURITY_AUDIT.md).
+Future product opportunities are captured in [`PRODUCT_FEATURE_ROADMAP.md`](./PRODUCT_FEATURE_ROADMAP.md). Security findings, remediation history, and remaining production-certification work are tracked in [`SECURITY_AUDIT.md`](./SECURITY_AUDIT.md). The Menu subsystem audit, verified capabilities, fixes, and remaining UX gaps are tracked in [`MENU_FEATURE_AUDIT.md`](./MENU_FEATURE_AUDIT.md).
 
 ## Applications
 
@@ -69,7 +69,8 @@ Future product opportunities are captured in [`PRODUCT_FEATURE_ROADMAP.md`](./PR
 ├── bun.lock
 ├── README.md
 ├── PRODUCT_FEATURE_ROADMAP.md
-└── SECURITY_AUDIT.md
+├── SECURITY_AUDIT.md
+└── MENU_FEATURE_AUDIT.md
 ```
 
 ## Local setup
@@ -160,10 +161,11 @@ Static/source verifiers are architecture guards only. They do not replace TypeSc
 
 ## Documentation policy
 
-The active repository intentionally keeps only two Markdown documents:
+The active repository intentionally keeps only active, maintained Markdown documents:
 
 - `README.md` — project entry point, architecture conventions, setup, and verification commands.
 - `PRODUCT_FEATURE_ROADMAP.md` — product ideas reserved for later prioritization.
 - `SECURITY_AUDIT.md` — security findings, remediation status, and production-certification follow-up.
+- `MENU_FEATURE_AUDIT.md` — Menu capability matrix, confirmed fixes, UX gaps, and Menu production-certification follow-up.
 
 Historical engineering reviews, implementation-status reports, phase plans, runbooks, completion notes, and audit commentary are not retained in the active source tree. Operational runbook content that becomes necessary for production should be represented by executable scripts/configuration or reintroduced only when it is an active release requirement.

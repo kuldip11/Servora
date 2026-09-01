@@ -5,3 +5,6 @@ export const menuNotFound = (id: string) =>
 
 export const defaultMenuProtected = () =>
   new ConflictError("The Default Menu cannot be deleted");
+
+export const defaultMenuMustStayPublished = () =>
+  new ConflictError("The Default Menu must stay published");

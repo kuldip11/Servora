@@ -174,13 +174,13 @@ export const ModifierGroupsSection = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-0.5">
-                  <button
+                  <button type="button"
                     onClick={() => openEdit(group)}
                     className="p-1.5 text-text-disabled hover:text-primary"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                   </button>
-                  <button
+                  <button type="button"
                     onClick={() => {
                       if (confirm(`Delete "${group.name}"?`))
                         deleteMutation.mutate(group.id);

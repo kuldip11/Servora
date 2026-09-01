@@ -3,6 +3,7 @@ import {
   isEffectiveAt,
   itemMatchesBranch,
   menuMatchesContext,
+  preferSpecializedMenus,
 } from "./menu-resolver.service";
 
 const unrestricted = {
@@ -88,4 +89,22 @@ it("keeps scheduled changes hidden until the exact effective instant", () => {
     false,
   );
   expect(isEffectiveAt(midnight, midnight)).toBe(true);
+});
+
+describe("default menu fallback", () => {
+  it("uses the automatic default menu when no specialized menu matches", () => {
+    const resolved = preferSpecializedMenus([
+      { id: "default", isDefault: true },
+    ]);
+    expect(resolved.map((menu) => menu.id)).toEqual(["default"]);
+  });
+
+  it("prefers specialized menus over the automatic default menu", () => {
+    const resolved = preferSpecializedMenus([
+      { id: "default", isDefault: true },
+      { id: "breakfast", isDefault: false },
+      { id: "delivery", isDefault: false },
+    ]);
+    expect(resolved.map((menu) => menu.id)).toEqual(["breakfast", "delivery"]);
+  });
 });

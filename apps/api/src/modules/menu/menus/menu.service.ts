@@ -1,7 +1,11 @@
 import type { AuthContext } from "@/core/auth";
 import { requirePermission } from "@/core/auth";
 import { ValidationError } from "@/core/errors";
-import { defaultMenuProtected, menuNotFound } from "./menu.errors";
+import {
+  defaultMenuMustStayPublished,
+  defaultMenuProtected,
+  menuNotFound,
+} from "./menu.errors";
 import { menuRepository } from "./menu.repository";
 import {
   buildDiff,
@@ -42,6 +46,7 @@ const existingMenu = async (tenantId: string, id: string) => {
 export const menuService = {
   async list(auth: AuthContext) {
     requirePermission(auth, "menu:read");
+    await menuRepository.ensureDefaultMenu(auth.tenantId);
     return menuRepository.list(auth.tenantId);
   },
 
@@ -56,6 +61,7 @@ export const menuService = {
   ) {
     requirePermission(auth, "menu:read");
     if (!auth.branchId) return [];
+    await menuRepository.ensureDefaultMenu(auth.tenantId);
     return menuRepository.listActive(
       auth.tenantId,
       auth.branchId,
@@ -121,6 +127,7 @@ export const menuService = {
   async unpublish(auth: AuthContext, id: string) {
     requirePermission(auth, "menu:publish");
     const existing = await existingMenu(auth.tenantId, id);
+    if (existing.isDefault) throw defaultMenuMustStayPublished();
     const updated = await menuRepository.update(auth.tenantId, id, {
       status: "DRAFT",
     });

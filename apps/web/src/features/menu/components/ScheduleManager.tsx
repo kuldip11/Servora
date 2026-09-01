@@ -126,6 +126,7 @@ export const ScheduleManager = ({ itemId }: { itemId: string }) => {
                 </span>
               </div>
               <button
+                type="button"
                 onClick={() => deleteMutation.mutate(s.id)}
                 aria-label={`Remove schedule: ${describe(s)}`}
                 className="text-text-disabled hover:text-danger"
@@ -259,12 +260,14 @@ export const ScheduleManager = ({ itemId }: { itemId: string }) => {
 
           <div className="flex gap-2 justify-end pt-1">
             <button
+              type="button"
               onClick={() => setDraft(null)}
               className="text-xs text-text-secondary hover:text-text-primary px-2 py-1"
             >
               Cancel
             </button>
             <button
+              type="button"
               onClick={handleCreate}
               disabled={!canSave || createMutation.isPending}
               className="text-xs font-medium text-primary-foreground bg-primary hover:bg-primary-hover disabled:opacity-40 px-3 py-1 rounded-md"
@@ -275,6 +278,7 @@ export const ScheduleManager = ({ itemId }: { itemId: string }) => {
         </div>
       ) : (
         <button
+          type="button"
           onClick={() => setDraft(EMPTY_DRAFT)}
           className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary-hover"
         >

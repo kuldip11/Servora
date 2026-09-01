@@ -140,7 +140,7 @@ export const SubRecipeManager = () => {
                 {row.yieldQuantity} {row.yieldUnit}
                 {row.yieldPercent ? ` · ${row.yieldPercent}% yield` : ""}
               </span>
-              <button
+              <button type="button"
                 aria-label={`Delete ${row.name}`}
                 onClick={() => remove.mutate(row.id)}
                 className="text-text-disabled hover:text-danger"
@@ -292,7 +292,7 @@ export const SubRecipeManager = () => {
                     </option>
                   ))}
                 </select>
-                <button
+                <button type="button"
                   onClick={() =>
                     setIngredients((prev) => prev.filter((_, i) => i !== index))
                   }

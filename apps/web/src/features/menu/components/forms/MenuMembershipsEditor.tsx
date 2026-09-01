@@ -58,12 +58,27 @@ export const MenuMembershipsEditor = ({
           Menu assignments
         </h3>
         <p className="text-xs text-text-secondary">
-          Choose the category this item uses within each menu. “Not included”
-          removes it from that menu.
+          The Default Menu is automatic. Use these assignments only for optional
+          specialized menus.
         </p>
       </div>
       {menus?.map((menu) => {
         const currentCategoryId = categoryByMenu.get(menu.id);
+        if (menu.isDefault) {
+          return (
+            <div
+              key={menu.id}
+              className="rounded-md border border-border bg-surface-secondary px-3 py-2"
+            >
+              <p className="text-sm font-medium text-text-primary">
+                Default Menu
+              </p>
+              <p className="text-xs text-text-secondary">
+                Included automatically for normal ordering.
+              </p>
+            </div>
+          );
+        }
         return (
           <Select
             key={`${menu.id}:${currentCategoryId ?? "none"}`}

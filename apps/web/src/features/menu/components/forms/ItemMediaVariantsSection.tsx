@@ -1,6 +1,6 @@
 import { Button } from "@pos/ui";
 import { X } from "lucide-react";
-type Variant = { name: string; price: string };
+type Variant = { id?: string; name: string; price: string };
 export const ItemMediaVariantsSection = ({
   imageUrls,
   newImageUrl,
@@ -41,6 +41,7 @@ export const ItemMediaVariantsSection = ({
                   className="w-16 h-16 rounded-md object-cover border border-border"
                 />
                 <button
+                  type="button"
                   onClick={() => onRemoveImage(i)}
                   aria-label={`Remove image ${i + 1}`}
                   className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-surface rounded-full border border-border flex items-center justify-center text-text-disabled hover:text-danger"
@@ -59,7 +60,7 @@ export const ItemMediaVariantsSection = ({
             onChange={(e) => onNewImageUrl(e.target.value)}
             className="flex-1 px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
           />
-          <Button variant="secondary" size="sm" onClick={onAddImage}>
+          <Button type="button" variant="secondary" size="sm" onClick={onAddImage}>
             Add
           </Button>
         </div>
@@ -101,6 +102,7 @@ export const ItemMediaVariantsSection = ({
                 className="w-24 px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               />
               <button
+                type="button"
                 onClick={() => onRemoveVariant(i)}
                 aria-label={`Remove variant ${i + 1}`}
                 className="p-1.5 text-text-disabled hover:text-danger"
@@ -111,6 +113,7 @@ export const ItemMediaVariantsSection = ({
           ))}
         </div>
         <button
+          type="button"
           onClick={onAddVariant}
           className="mt-2 text-xs font-medium text-primary hover:text-primary-hover"
         >

@@ -141,6 +141,7 @@ export const RecipeBuilder = ({ item }: { item: MenuItem }) => {
           </p>
         </div>
         <button
+          type="button"
           onClick={handleSave}
           disabled={!dirty || saveMutation.isPending}
           className="text-xs font-medium text-primary hover:text-primary-hover disabled:text-text-disabled"
@@ -255,6 +256,7 @@ export const RecipeBuilder = ({ item }: { item: MenuItem }) => {
                     ))}
                   </select>
                   <button
+                    type="button"
                     onClick={() => removeRow(i)}
                     aria-label={`Remove recipe row ${i + 1}`}
                     className="p-2 text-text-disabled hover:text-danger"
@@ -359,6 +361,7 @@ export const RecipeBuilder = ({ item }: { item: MenuItem }) => {
         </div>
       )}
       <button
+        type="button"
         onClick={addRow}
         className="mt-2 flex items-center gap-1 text-xs font-medium text-primary hover:text-primary-hover"
       >

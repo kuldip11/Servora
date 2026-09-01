@@ -288,7 +288,7 @@ export const OrganizationManagementSection = () => {
                   {menu.isDefault ? " · Default" : ""}
                 </span>
                 <div className="flex gap-2">
-                  <button
+                  <button type="button"
                     className="text-primary"
                     onClick={() =>
                       toggleMenu.mutate({
@@ -300,7 +300,7 @@ export const OrganizationManagementSection = () => {
                   >
                     {menu.status === "PUBLISHED" ? "Draft" : "Publish"}
                   </button>
-                  <button
+                  <button type="button"
                     className="text-danger"
                     onClick={() => deleteMenu.mutate(menu.id)}
                   >
@@ -354,7 +354,7 @@ export const OrganizationManagementSection = () => {
                   {rule.menuItemSku ?? "General"} · ₹
                   {Number(rule.price ?? 0).toFixed(2)}
                 </span>
-                <button
+                <button type="button"
                   className="text-danger"
                   onClick={() => deleteRule.mutate(rule.id)}
                 >
@@ -425,7 +425,7 @@ export const OrganizationManagementSection = () => {
                   : `₹${Number(tier.discountFixed ?? 0).toFixed(2)} off`}{" "}
                 · organization-wide
               </span>
-              <button
+              <button type="button"
                 className="text-danger"
                 onClick={() => deleteLoyaltyTier.mutate(tier.id)}
               >

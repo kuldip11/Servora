@@ -18,7 +18,7 @@ import { inventoryService } from "@/modules/inventory/inventory.service";
 export interface CreateItemInput {
   categoryId: string;
   name: string;
-  description?: string | undefined;
+  description?: string | null | undefined;
   basePrice: number;
   pricingMode?: "FIXED" | "WEIGHT_BASED" | "OPEN" | undefined;
   weightUnit?: "G" | "KG" | "LB" | "OZ" | undefined;
@@ -28,19 +28,20 @@ export interface CreateItemInput {
   zonePricingRule?: "AVERAGE" | "HIGHER" | "SUM_HALF" | undefined;
   manualStockCount?: number | undefined;
   taxRate?: number | undefined;
-  taxMode?: "INCLUSIVE" | "EXCLUSIVE" | undefined;
+  taxMode?: "INCLUSIVE" | "EXCLUSIVE" | null | undefined;
   branchId?: string | undefined;
   foodType?: FoodType | undefined;
-  spiceLevel?: SpiceLevel | undefined;
-  sku?: string | undefined;
-  prepTimeMinutes?: number | undefined;
+  spiceLevel?: SpiceLevel | null | undefined;
+  sku?: string | null | undefined;
+  prepTimeMinutes?: number | null | undefined;
   sortOrder?: number | undefined;
-  hsnCode?: string | undefined;
+  hsnCode?: string | null | undefined;
   status?: MenuItemStatus | undefined;
   enableRecipeDeduction?: boolean | undefined;
   isPublished?: boolean | undefined;
   displayMode?: "STANDARD" | "GUIDED_BUILDER" | undefined;
-  effectiveFrom?: string | undefined;
+  effectiveFrom?: string | null | undefined;
+  availabilityReason?: string | null | undefined;
   variants?: Array<{ name: string; price: number }> | undefined;
   modifierGroupIds?: string[] | undefined;
   tagIds?: string[] | undefined;
@@ -50,7 +51,7 @@ export interface CreateItemInput {
 
 export interface UpdateItemInput {
   name?: string | undefined;
-  description?: string | undefined;
+  description?: string | null | undefined;
   basePrice?: number | undefined;
   pricingMode?: "FIXED" | "WEIGHT_BASED" | "OPEN" | undefined;
   weightUnit?: "G" | "KG" | "LB" | "OZ" | null | undefined;
@@ -61,7 +62,6 @@ export interface UpdateItemInput {
   manualStockCount?: number | null | undefined;
   taxRate?: number | undefined;
   taxMode?: "INCLUSIVE" | "EXCLUSIVE" | null | undefined;
-  isAvailable?: boolean | undefined;
   foodType?: FoodType | undefined;
   spiceLevel?: SpiceLevel | null | undefined;
   sku?: string | null | undefined;
@@ -77,6 +77,7 @@ export interface UpdateItemInput {
   allergenIds?: string[] | undefined;
   modifierGroupIds?: string[] | undefined;
   imageUrls?: string[] | undefined;
+  variants?: Array<{ id?: string; name: string; price: number }> | undefined;
 }
 
 export interface DuplicateItemInput {
@@ -230,8 +231,14 @@ export const itemService = {
     const existing = await itemRepository.findById(auth.tenantId, itemId);
     if (!existing) throw itemNotFound(itemId);
     assertMenuResourceBranch(auth, existing.branchId);
-    const { tagIds, allergenIds, modifierGroupIds, imageUrls, ...itemFields } =
-      input;
+    const {
+      tagIds,
+      allergenIds,
+      modifierGroupIds,
+      imageUrls,
+      variants,
+      ...itemFields
+    } = input;
     validateAdvancedPricing(itemFields, existing);
     await validateReferences(
       auth.tenantId,
@@ -239,6 +246,27 @@ export const itemService = {
       tagIds,
       modifierGroupIds,
     );
+    if (variants !== undefined) {
+      const variantValidation = await itemRepository.validateVariantSync(
+        auth.tenantId,
+        itemId,
+        variants.map((variant) => ({
+          ...(variant.id ? { id: variant.id } : {}),
+          name: variant.name,
+          price: String(variant.price),
+        })),
+      );
+      if (!variantValidation.ok) {
+        if (variantValidation.reason === "VARIANT_IN_USE") {
+          throw new ValidationError(
+            "This variant is already used by an order or combo and cannot be deleted. Rename it or change its price instead.",
+          );
+        }
+        throw new ValidationError(
+          "One or more variants do not belong to this menu item",
+        );
+      }
+    }
 
     const updated = await itemRepository.update(auth.tenantId, itemId, {
       ...itemFields,
@@ -285,6 +313,22 @@ export const itemService = {
       );
     if (imageUrls !== undefined)
       await itemRepository.setImages(auth.tenantId, itemId, imageUrls);
+    if (variants !== undefined) {
+      const variantsUpdated = await itemRepository.setVariants(
+        auth.tenantId,
+        itemId,
+        variants.map((variant) => ({
+          ...(variant.id ? { id: variant.id } : {}),
+          name: variant.name,
+          price: String(variant.price),
+        })),
+      );
+      if (!variantsUpdated) {
+        throw new ValidationError(
+          "One or more variants do not belong to this menu item",
+        );
+      }
+    }
 
     const result = await itemRepository.findById(auth.tenantId, itemId);
     if (!result) throw itemNotFound(itemId);

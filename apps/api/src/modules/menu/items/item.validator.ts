@@ -39,7 +39,7 @@ const ITEM_STATUS = t.Union([
 export const createItemBody = t.Object({
   categoryId: t.String(),
   name: t.String({ minLength: 1 }),
-  description: t.Optional(t.String()),
+  description: t.Optional(t.Union([t.String(), t.Null()])),
   basePrice: t.Number({ minimum: 0 }),
   pricingMode: t.Optional(PRICING_MODE),
   weightUnit: t.Optional(WEIGHT_UNIT),
@@ -49,21 +49,22 @@ export const createItemBody = t.Object({
   zonePricingRule: t.Optional(ZONE_PRICING_RULE),
   manualStockCount: t.Optional(t.Number({ minimum: 0 })),
   taxRate: t.Optional(t.Number()),
-  taxMode: t.Optional(TAX_MODE),
+  taxMode: t.Optional(t.Union([TAX_MODE, t.Null()])),
   branchId: t.Optional(t.String()),
   foodType: t.Optional(FOOD_TYPE),
-  spiceLevel: t.Optional(SPICE_LEVEL),
-  sku: t.Optional(t.String()),
-  prepTimeMinutes: t.Optional(t.Number({ minimum: 0 })),
+  spiceLevel: t.Optional(t.Union([SPICE_LEVEL, t.Null()])),
+  sku: t.Optional(t.Union([t.String(), t.Null()])),
+  prepTimeMinutes: t.Optional(t.Union([t.Number({ minimum: 0 }), t.Null()])),
   sortOrder: t.Optional(t.Number()),
-  hsnCode: t.Optional(t.String()),
+  hsnCode: t.Optional(t.Union([t.String(), t.Null()])),
   status: t.Optional(ITEM_STATUS),
   enableRecipeDeduction: t.Optional(t.Boolean()),
   isPublished: t.Optional(t.Boolean()),
   displayMode: t.Optional(
     t.Union([t.Literal("STANDARD"), t.Literal("GUIDED_BUILDER")]),
   ),
-  effectiveFrom: t.Optional(t.String()),
+  effectiveFrom: t.Optional(t.Union([t.String(), t.Null()])),
+  availabilityReason: t.Optional(t.Union([t.String(), t.Null()])),
 
   variants: t.Optional(
     t.Array(t.Object({ name: t.String(), price: t.Number({ minimum: 0 }) })),
@@ -76,7 +77,7 @@ export const createItemBody = t.Object({
 
 export const updateItemBody = t.Object({
   name: t.Optional(t.String()),
-  description: t.Optional(t.String()),
+  description: t.Optional(t.Union([t.String(), t.Null()])),
   basePrice: t.Optional(t.Number()),
   pricingMode: t.Optional(PRICING_MODE),
   weightUnit: t.Optional(t.Union([WEIGHT_UNIT, t.Null()])),
@@ -87,7 +88,6 @@ export const updateItemBody = t.Object({
   manualStockCount: t.Optional(t.Union([t.Number({ minimum: 0 }), t.Null()])),
   taxRate: t.Optional(t.Number()),
   taxMode: t.Optional(t.Union([TAX_MODE, t.Null()])),
-  isAvailable: t.Optional(t.Boolean()),
   foodType: t.Optional(FOOD_TYPE),
   spiceLevel: t.Optional(t.Union([SPICE_LEVEL, t.Null()])),
   sku: t.Optional(t.Union([t.String(), t.Null()])),
@@ -105,6 +105,15 @@ export const updateItemBody = t.Object({
   allergenIds: t.Optional(t.Array(t.String())),
   modifierGroupIds: t.Optional(t.Array(t.String())),
   imageUrls: t.Optional(t.Array(t.String())),
+  variants: t.Optional(
+    t.Array(
+      t.Object({
+        id: t.Optional(t.String()),
+        name: t.String(),
+        price: t.Number({ minimum: 0 }),
+      }),
+    ),
+  ),
 });
 
 export const duplicateItemBody = t.Optional(

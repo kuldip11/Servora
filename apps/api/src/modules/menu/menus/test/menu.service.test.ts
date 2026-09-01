@@ -1,7 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { list, findById, create, update, remove } = vi.hoisted(() => ({
+const {
+  ensureDefaultMenu,
+  list,
+  listActive,
+  findById,
+  create,
+  update,
+  remove,
+} = vi.hoisted(() => ({
+  ensureDefaultMenu: vi
+    .fn()
+    .mockResolvedValue({ id: "default", isDefault: true }),
   list: vi.fn(),
+  listActive: vi.fn(),
   findById: vi.fn(),
   create: vi.fn(),
   update: vi.fn(),
@@ -12,7 +24,15 @@ const { record } = vi.hoisted(() => ({
 }));
 
 vi.mock("../menu.repository", () => ({
-  menuRepository: { list, findById, create, update, remove },
+  menuRepository: {
+    ensureDefaultMenu,
+    list,
+    listActive,
+    findById,
+    create,
+    update,
+    remove,
+  },
 }));
 vi.mock("../../change-log/menu-change-log", async (importOriginal) => ({
   ...(await importOriginal<
@@ -23,10 +43,10 @@ vi.mock("../../change-log/menu-change-log", async (importOriginal) => ({
 
 import { menuService } from "@/modules/menu/menus/menu.service";
 
-const auth = (permissions: string[]) => ({
+const auth = (permissions: string[], branchId: string | null = null) => ({
   userId: "u1",
   tenantId: "t1",
-  branchId: null,
+  branchId,
   email: "owner@example.com",
   roles: [],
   permissions,
@@ -42,10 +62,20 @@ describe("menu service", () => {
     await expect(menuService.list(auth(["menu:read"]))).resolves.toEqual([
       { id: "m1" },
     ]);
+    expect(ensureDefaultMenu).toHaveBeenCalledWith("t1");
     expect(list).toHaveBeenCalledWith("t1");
     await expect(menuService.list(auth([]))).rejects.toThrow(
       "Insufficient permissions",
     );
+  });
+
+  it("repairs the default menu before resolving orderable menus", async () => {
+    listActive.mockResolvedValue([{ id: "default", status: "PUBLISHED" }]);
+    await expect(
+      menuService.listActive(auth(["menu:read"], "b1"), "STAFF", "DINE_IN"),
+    ).resolves.toEqual([{ id: "default", status: "PUBLISHED" }]);
+    expect(ensureDefaultMenu).toHaveBeenCalledWith("t1");
+    expect(listActive).toHaveBeenCalledWith("t1", "b1", "STAFF", "DINE_IN");
   });
 
   it("creates draft menus through the tenant repository", async () => {
@@ -69,6 +99,14 @@ describe("menu service", () => {
     expect(update).toHaveBeenNthCalledWith(2, "t1", "m1", {
       status: "DRAFT",
     });
+  });
+
+  it("keeps the automatic default menu published", async () => {
+    findById.mockResolvedValue({ id: "default", isDefault: true });
+    await expect(
+      menuService.unpublish(auth(["menu:publish"]), "default"),
+    ).rejects.toThrow("Default Menu must stay published");
+    expect(update).not.toHaveBeenCalled();
   });
 
   it("protects the tenant's default menu from deletion", async () => {

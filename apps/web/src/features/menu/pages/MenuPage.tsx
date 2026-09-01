@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ListChecks, Upload } from "lucide-react";
+import { ArrowLeft, ListChecks, Upload } from "lucide-react";
 import { Button, Page, PageHeader, Tabs, type TabItem } from "@pos/ui";
 import { ItemFormModal } from "@/features/menu/components/ItemFormModal";
 import { MenuItemsContent } from "@/features/menu/components/MenuItemsContent";
@@ -30,12 +30,17 @@ import { HappyHourSection } from "@/features/menu/components/HappyHourSection";
 import { CustomerGroupsSection } from "@/features/menu/components/CustomerGroupsSection";
 import { BuffetPricingSection } from "@/features/menu/components/BuffetPricingSection";
 import { OrganizationManagementSection } from "@/features/menu/components/OrganizationManagementSection";
-import { GuidedComboPromotionBuilder } from "@/features/menu/components/GuidedComboPromotionBuilder";
-
-import { MENU_TABS, type MenuTabId } from "@/features/menu/constants";
+import {
+  MENU_MORE_SECTIONS,
+  type MenuMoreSectionId,
+  type MenuTabId,
+} from "@/features/menu/constants";
 
 export const MenuPage = () => {
   const [tab, setTab] = useState<MenuTabId>("items");
+  const [moreSection, setMoreSection] = useState<MenuMoreSectionId | null>(
+    null,
+  );
   const [showImport, setShowImport] = useState(false);
   const [savingTemplateFor, setSavingTemplateFor] = useState<{
     id: string;
@@ -94,8 +99,7 @@ export const MenuPage = () => {
           Import & Export
         </h2>
         <p className="text-sm text-text-secondary mt-0.5">
-          Move menu data in bulk without adding operational controls to the
-          Items screen.
+          Move menu data in bulk.
         </p>
         <div className="flex flex-wrap gap-2 mt-3">
           <Button variant="secondary" onClick={() => setShowImport(true)}>
@@ -104,45 +108,74 @@ export const MenuPage = () => {
           <ExportMenu />
         </div>
       </section>
-      <section>
-        <TemplatesSection />
-      </section>
-      <section>
-        <TagsSection />
-      </section>
-      <section>
-        <HolidaysSection />
-      </section>
+      <TemplatesSection />
+      <TagsSection />
+      <HolidaysSection />
+    </div>
+  );
+
+  const moreContentBySection: Record<MenuMoreSectionId, React.ReactNode> = {
+    menus: (
+      <div className="space-y-10">
+        <MenusSection />
+        <MenuSpecializedSection mode="availability" />
+      </div>
+    ),
+    offers: (
+      <div className="space-y-10">
+        <CombosSection />
+        <PromotionsSection />
+        <LoyaltySection />
+        <HappyHourSection />
+      </div>
+    ),
+    operations: (
+      <div className="space-y-10">
+        <MenuSpecializedSection mode="recipes" />
+        <KitchenStationsSection />
+      </div>
+    ),
+    tools: toolsContent,
+    advanced: (
+      <div className="space-y-10">
+        <CustomerGroupsSection />
+        <BuffetPricingSection />
+        <OrganizationManagementSection />
+      </div>
+    ),
+  };
+
+  const moreContent = moreSection ? (
+    <div className="space-y-5">
+      <button
+        type="button"
+        className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:text-primary-hover"
+        onClick={() => setMoreSection(null)}
+      >
+        <ArrowLeft className="h-4 w-4" /> Back to More
+      </button>
+      {moreContentBySection[moreSection]}
+    </div>
+  ) : (
+    <div className="grid gap-3 md:grid-cols-2">
+      {MENU_MORE_SECTIONS.map((section) => (
+        <button
+          type="button"
+          key={section.id}
+          onClick={() => setMoreSection(section.id)}
+          className="rounded-xl border border-border bg-surface p-4 text-left transition-colors hover:border-primary hover:bg-primary-surface/30"
+        >
+          <p className="font-semibold text-text-primary">{section.title}</p>
+          <p className="mt-1 text-sm text-text-secondary">
+            {section.description}
+          </p>
+        </button>
+      ))}
     </div>
   );
 
   const tabItems: TabItem[] = [
     { value: "items", label: "Items", content: itemsContent },
-    { value: "menus", label: "Menus", content: <MenusSection /> },
-    {
-      value: "guided-builder",
-      label: "Guided Builder",
-      content: <GuidedComboPromotionBuilder />,
-    },
-    { value: "combos", label: "Combos", content: <CombosSection /> },
-    {
-      value: "promotions",
-      label: "Promotions",
-      content: <PromotionsSection />,
-    },
-    { value: "loyalty", label: "Loyalty", content: <LoyaltySection /> },
-    { value: "happy-hour", label: "Happy Hour", content: <HappyHourSection /> },
-    {
-      value: "advanced",
-      label: "Advanced Models",
-      content: (
-        <div className="space-y-10">
-          <CustomerGroupsSection />
-          <BuffetPricingSection />
-          <OrganizationManagementSection />
-        </div>
-      ),
-    },
     {
       value: "categories",
       label: "Categories",
@@ -153,22 +186,7 @@ export const MenuPage = () => {
       label: "Modifiers",
       content: <ModifierGroupsSection />,
     },
-    {
-      value: "recipes",
-      label: "Recipes",
-      content: <MenuSpecializedSection mode="recipes" />,
-    },
-    {
-      value: "availability",
-      label: "Availability",
-      content: <MenuSpecializedSection mode="availability" />,
-    },
-    {
-      value: "stations",
-      label: "Stations",
-      content: <KitchenStationsSection />,
-    },
-    { value: "tools", label: "Tools", content: toolsContent },
+    { value: "more", label: "More", content: moreContent },
   ];
 
   return (
@@ -178,18 +196,16 @@ export const MenuPage = () => {
         description={`${categories?.length ?? 0} categories`}
         actions={
           tab === "items" ? (
-            <>
-              <Button
-                variant={selectMode ? "primary" : "secondary"}
-                onClick={() => {
-                  setSelectMode((v) => !v);
-                  setSelectedIds([]);
-                }}
-              >
-                <ListChecks className="w-4 h-4" />{" "}
-                {selectMode ? "Done selecting" : "Select items"}
-              </Button>
-            </>
+            <Button
+              variant={selectMode ? "primary" : "secondary"}
+              onClick={() => {
+                setSelectMode((value) => !value);
+                setSelectedIds([]);
+              }}
+            >
+              <ListChecks className="w-4 h-4" />
+              {selectMode ? "Done selecting" : "Select items"}
+            </Button>
           ) : undefined
         }
       />
@@ -197,7 +213,11 @@ export const MenuPage = () => {
       <Tabs
         items={tabItems}
         value={tab}
-        onValueChange={(v) => setTab(v as MenuTabId)}
+        onValueChange={(value) => {
+          const next = value as MenuTabId;
+          setTab(next);
+          if (next !== "more") setMoreSection(null);
+        }}
       />
 
       {showImport && <ImportWizard onClose={() => setShowImport(false)} />}

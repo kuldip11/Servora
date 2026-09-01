@@ -29,6 +29,7 @@ export const MenuPicker = ({
   onTableChange,
   onFilterChange,
   onItemClick,
+  emptyMessage,
 }: {
   orderType: string;
   tableId: string;
@@ -41,6 +42,7 @@ export const MenuPicker = ({
   onTableChange: (v: string) => void;
   onFilterChange: (v: FoodType | "ALL") => void;
   onItemClick: (item: MenuItem) => void;
+  emptyMessage?: string | undefined;
 }) => {
   const visible = categories?.map((c) => ({
     ...c,
@@ -99,7 +101,7 @@ export const MenuPicker = ({
       <div className="space-y-4 max-h-80 overflow-y-auto pr-1">
         {!categories?.flatMap((c) => c.menuItems ?? []).length && (
           <p className="text-sm text-text-disabled text-center py-6">
-            No menu items yet.
+            {emptyMessage ?? "No menu items available for this order."}
           </p>
         )}
         {visible?.map((cat) =>

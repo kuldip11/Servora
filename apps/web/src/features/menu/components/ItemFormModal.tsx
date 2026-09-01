@@ -5,7 +5,11 @@ import { Button, Modal, Input, Select } from "@pos/ui";
 import { ItemMediaVariantsSection } from "./forms/ItemMediaVariantsSection";
 import { ItemAssociationsSection } from "./forms/ItemAssociationsSection";
 import { FoodTypeDot } from "./FoodTypeDot";
-import { MENU_ITEM_STATUS_OPTIONS } from "@/features/menu/constants";
+import {
+  MENU_FOOD_TYPE_OPTIONS,
+  MENU_ITEM_STATUS_OPTIONS,
+  MENU_SPICE_LEVEL_OPTIONS,
+} from "@/features/menu/constants";
 import { RecipeBuilder } from "./RecipeBuilder";
 import { ScheduleManager } from "./ScheduleManager";
 import { BranchOverridesPanel } from "./BranchOverridesPanel";
@@ -38,22 +42,9 @@ interface Props {
   onClose: () => void;
 }
 
-const FOOD_TYPE_OPTIONS: { value: FoodType; label: string }[] = [
-  { value: "VEG", label: "Veg" },
-  { value: "NON_VEG", label: "Non-Veg" },
-  { value: "EGG", label: "Egg" },
-];
-
-const SPICE_OPTIONS: { value: SpiceLevel | ""; label: string }[] = [
-  { value: "", label: "Not applicable" },
-  { value: "NONE", label: "Not spicy" },
-  { value: "MILD", label: "Mild" },
-  { value: "MEDIUM", label: "Medium" },
-  { value: "HOT", label: "Hot" },
-];
-
 export const ItemFormModal = ({ categoryId, item, onClose }: Props) => {
   const isEdit = !!item;
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const {
     register,
@@ -79,7 +70,7 @@ export const ItemFormModal = ({ categoryId, item, onClose }: Props) => {
       availabilityReason: item?.availabilityReason ?? "",
       enableRecipeDeduction: item?.enableRecipeDeduction ?? true,
       variants:
-        item?.variants.map((v) => ({ name: v.name, price: String(v.price) })) ??
+        item?.variants.map((v) => ({ id: v.id, name: v.name, price: String(v.price) })) ??
         [],
       imageUrls: item?.images?.map((i) => i.url) ?? [],
       modifierGroupIds:
@@ -89,8 +80,10 @@ export const ItemFormModal = ({ categoryId, item, onClose }: Props) => {
     },
   });
   const form = watch();
-  const [variants, setVariants] = useState(
-    item?.variants.map((v) => ({ name: v.name, price: String(v.price) })) ?? [],
+  const [variants, setVariants] = useState<
+    Array<{ id?: string; name: string; price: string }>
+  >(
+    item?.variants.map((v) => ({ id: v.id, name: v.name, price: String(v.price) })) ?? [],
   );
   const [imageUrls, setImageUrls] = useState(
     item?.images?.map((i) => i.url) ?? [],
@@ -197,7 +190,7 @@ export const ItemFormModal = ({ categoryId, item, onClose }: Props) => {
     const payload = {
       categoryId,
       name: values.name.trim(),
-      ...(values.description && { description: values.description.trim() }),
+      description: values.description.trim() || null,
       basePrice: Number(values.basePrice),
       pricingMode,
       ...(pricingMode === "WEIGHT_BASED"
@@ -225,12 +218,13 @@ export const ItemFormModal = ({ categoryId, item, onClose }: Props) => {
       taxRate: values.taxRate ? Number(values.taxRate) : 0,
       taxMode: taxMode || null,
       foodType: values.foodType,
-      ...(values.spiceLevel && { spiceLevel: values.spiceLevel }),
-      ...(values.sku && { sku: values.sku.trim() }),
-      ...(values.prepTimeMinutes && {
-        prepTimeMinutes: parseInt(values.prepTimeMinutes, 10),
-      }),
-      ...(values.hsnCode && { hsnCode: values.hsnCode.trim() }),
+      spiceLevel: values.spiceLevel || null,
+      sku: values.sku.trim() || null,
+      prepTimeMinutes:
+        values.prepTimeMinutes === ""
+          ? null
+          : parseInt(values.prepTimeMinutes, 10),
+      hsnCode: values.hsnCode.trim() || null,
       status: values.status,
       availabilityReason: values.availabilityReason.trim() || null,
       enableRecipeDeduction: values.enableRecipeDeduction,
@@ -240,7 +234,11 @@ export const ItemFormModal = ({ categoryId, item, onClose }: Props) => {
         : null,
       variants: variants
         .filter((v) => v.name.trim())
-        .map((v) => ({ name: v.name, price: parseFloat(v.price) || 0 })),
+        .map((v) => ({
+          ...(v.id ? { id: v.id } : {}),
+          name: v.name,
+          price: parseFloat(v.price) || 0,
+        })),
       modifierGroupIds: selectedGroupIds,
       tagIds: selectedTagIds,
       allergenIds: selectedAllergenIds,
@@ -265,26 +263,23 @@ export const ItemFormModal = ({ categoryId, item, onClose }: Props) => {
         noValidate
         onSubmit={handleSubmit(handleSave)}
       >
-        {item && (
-          <MenuMembershipsEditor item={item} categories={allCategories ?? []} />
-        )}
-        {}
         <Input
           label="Item name"
           placeholder="Chicken Tikka"
           error={errors.name?.message}
           {...register("name")}
         />
+
         <div>
           <label
             htmlFor="item-description"
             className="text-sm font-medium text-text-primary"
           >
-            Description
+            Description <span className="text-text-disabled">(optional)</span>
           </label>
           <textarea
             id="item-description"
-            placeholder="Optional description"
+            placeholder="Short description shown to staff and customers"
             {...register("description")}
             aria-invalid={!!errors.description}
             rows={2}
@@ -294,7 +289,7 @@ export const ItemFormModal = ({ categoryId, item, onClose }: Props) => {
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           <Input
-            label="Base Price (₹)"
+            label="Price (₹)"
             type="number"
             min="0"
             step="0.01"
@@ -303,7 +298,7 @@ export const ItemFormModal = ({ categoryId, item, onClose }: Props) => {
             {...register("basePrice")}
           />
           <Input
-            label="Tax Rate (%)"
+            label="Tax rate (%)"
             type="number"
             min="0"
             max="100"
@@ -319,136 +314,14 @@ export const ItemFormModal = ({ categoryId, item, onClose }: Props) => {
               setTaxMode(event.target.value as "" | "INCLUSIVE" | "EXCLUSIVE")
             }
             options={[
-              { value: "", label: "Inherit tenant default" },
-              { value: "EXCLUSIVE", label: "Tax exclusive" },
+              { value: "", label: "Use franchise default" },
+              { value: "EXCLUSIVE", label: "Tax added to price" },
               { value: "INCLUSIVE", label: "Tax included in price" },
             ]}
           />
         </div>
 
-        <section className="rounded-lg border border-border bg-surface-secondary/40 p-4 space-y-4">
-          <div>
-            <h3 className="text-sm font-semibold text-text-primary">
-              Advanced restaurant pricing
-            </h3>
-            <p className="mt-0.5 text-xs text-text-secondary">
-              Advanced pricing modes are opt-in. Existing items stay on fixed,
-              whole-item pricing.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-            <label className="text-sm font-medium text-text-primary">
-              Pricing mode
-              <select
-                className="mt-1.5 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm"
-                value={pricingMode}
-                onChange={(event) =>
-                  setPricingMode(event.target.value as typeof pricingMode)
-                }
-              >
-                <option value="FIXED">Fixed price</option>
-                <option value="WEIGHT_BASED">Weight based</option>
-                <option value="OPEN">Open / manual price</option>
-              </select>
-            </label>
-            {pricingMode === "WEIGHT_BASED" && (
-              <label className="text-sm font-medium text-text-primary">
-                Rate unit
-                <select
-                  className="mt-1.5 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm"
-                  value={weightUnit}
-                  onChange={(event) =>
-                    setWeightUnit(event.target.value as typeof weightUnit)
-                  }
-                >
-                  <option value="G">gram (g)</option>
-                  <option value="KG">kilogram (kg)</option>
-                  <option value="LB">pound (lb)</option>
-                  <option value="OZ">ounce (oz)</option>
-                </select>
-              </label>
-            )}
-            {pricingMode === "OPEN" && (
-              <>
-                <Input
-                  label="Minimum manual price"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={openPriceMin}
-                  onChange={(event) => setOpenPriceMin(event.target.value)}
-                />
-                <Input
-                  label="Maximum manual price"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={openPriceMax}
-                  onChange={(event) => setOpenPriceMax(event.target.value)}
-                />
-              </>
-            )}
-          </div>
-          {pricingMode === "OPEN" &&
-            openPriceMin !== "" &&
-            openPriceMax !== "" &&
-            Number(openPriceMin) > Number(openPriceMax) && (
-              <p className="text-xs text-danger">
-                Minimum manual price cannot exceed maximum.
-              </p>
-            )}
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <label className="flex items-center gap-2 text-sm font-medium text-text-primary">
-              <input
-                type="checkbox"
-                checked={supportsZones}
-                onChange={(event) => setSupportsZones(event.target.checked)}
-              />
-              Supports split zones / half-and-half
-            </label>
-            {supportsZones && (
-              <label className="text-sm font-medium text-text-primary">
-                Zone pricing rule
-                <select
-                  className="mt-1.5 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm"
-                  value={zonePricingRule}
-                  onChange={(event) =>
-                    setZonePricingRule(
-                      event.target.value as typeof zonePricingRule,
-                    )
-                  }
-                >
-                  <option value="HIGHER">Charge higher-priced zone</option>
-                  <option value="AVERAGE">Average zone modifier totals</option>
-                  <option value="SUM_HALF">Sum half of each zone</option>
-                </select>
-              </label>
-            )}
-          </div>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <label className="flex items-center gap-2 text-sm font-medium text-text-primary">
-              <input
-                type="checkbox"
-                checked={trackByCount}
-                onChange={(event) => setTrackByCount(event.target.checked)}
-              />
-              Track finite stock by item count
-            </label>
-            {trackByCount && (
-              <Input
-                label="Current stock count"
-                type="number"
-                min="0"
-                step="1"
-                value={manualStockCount}
-                onChange={(event) => setManualStockCount(event.target.value)}
-              />
-            )}
-          </div>
-        </section>
-
-        {}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <div>
             <span
               id="item-food-type-label"
@@ -461,7 +334,7 @@ export const ItemFormModal = ({ categoryId, item, onClose }: Props) => {
               aria-labelledby="item-food-type-label"
               className="flex gap-2"
             >
-              {FOOD_TYPE_OPTIONS.map((opt) => (
+              {MENU_FOOD_TYPE_OPTIONS.map((opt) => (
                 <button
                   type="button"
                   key={opt.value}
@@ -483,35 +356,11 @@ export const ItemFormModal = ({ categoryId, item, onClose }: Props) => {
             label="Spice level"
             error={errors.spiceLevel?.message}
             {...register("spiceLevel")}
-            options={SPICE_OPTIONS}
+            options={MENU_SPICE_LEVEL_OPTIONS}
           />
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
-          <Input
-            label="SKU (optional)"
-            placeholder="ITM-042"
-            error={errors.sku?.message}
-            {...register("sku")}
-          />
-          <Input
-            label="Prep time (min)"
-            type="number"
-            min="0"
-            placeholder="15"
-            error={errors.prepTimeMinutes?.message}
-            {...register("prepTimeMinutes")}
-          />
-          <Input
-            label="HSN code"
-            placeholder="996331"
-            error={errors.hsnCode?.message}
-            {...register("hsnCode")}
-          />
-        </div>
-
-        {}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <Select
             label="Status"
             error={errors.status?.message}
@@ -526,159 +375,327 @@ export const ItemFormModal = ({ categoryId, item, onClose }: Props) => {
           />
         </div>
 
-        <ItemMediaVariantsSection
-          imageUrls={imageUrls}
-          newImageUrl={newImageUrl}
-          variants={variants}
-          onNewImageUrl={setNewImageUrl}
-          onAddImage={() => {
-            if (newImageUrl.trim()) {
-              setImageUrls((p) => [...p, newImageUrl.trim()]);
-              setNewImageUrl("");
-            }
-          }}
-          onRemoveImage={(i) =>
-            setImageUrls((p) => p.filter((_, idx) => idx !== i))
-          }
-          onVariantChange={(i, patch) =>
-            setVariants((p) =>
-              p.map((x, idx) => (idx === i ? { ...x, ...patch } : x)),
-            )
-          }
-          onRemoveVariant={(i) =>
-            setVariants((p) => p.filter((_, idx) => idx !== i))
-          }
-          onAddVariant={() =>
-            setVariants((p) => [...p, { name: "", price: "0" }])
-          }
-        />
+        <button
+          type="button"
+          onClick={() => setShowAdvanced((current) => !current)}
+          className="text-sm font-medium text-primary hover:text-primary-hover"
+          aria-expanded={showAdvanced}
+        >
+          {showAdvanced ? "Hide advanced options" : "Show advanced options"}
+        </button>
 
-        <div className="rounded border border-border p-3 space-y-2">
-          <Select
-            label="Ordering experience"
-            value={displayMode}
-            options={[
-              { value: "STANDARD", label: "Standard item" },
-              { value: "GUIDED_BUILDER", label: "Guided build-your-own" },
-            ]}
-            onChange={(event) =>
-              setDisplayMode(
-                event.target.value as "STANDARD" | "GUIDED_BUILDER",
-              )
-            }
-          />
-          <Button
-            type="button"
-            size="sm"
-            variant="secondary"
-            onClick={() => {
-              setDisplayMode("GUIDED_BUILDER");
-              setSelectedGroupIds(
-                (allGroups ?? [])
-                  .filter((group) => group.minSelections > 0)
-                  .map((group) => group.id),
-              );
-            }}
-          >
-            Apply Build-Your-Own preset
-          </Button>
-          <Input
-            label="Effective from (optional)"
-            type="datetime-local"
-            value={effectiveFrom}
-            onChange={(event) => setEffectiveFrom(event.target.value)}
-          />
-          {effectiveFrom && new Date(effectiveFrom) > new Date() && (
-            <p className="text-xs text-warning">
-              Pending publish · live {new Date(effectiveFrom).toLocaleString()}
-            </p>
-          )}
-          <p className="text-xs text-text-secondary">
-            The preset attaches required modifier groups and presents them as
-            guided steps. Pricing and validation stay unchanged.
-          </p>
-        </div>
-        <ItemAssociationsSection
-          groups={allGroups ?? []}
-          tags={allTags ?? []}
-          allergens={allAllergens ?? []}
-          selectedGroupIds={selectedGroupIds}
-          selectedTagIds={selectedTagIds}
-          selectedAllergenIds={selectedAllergenIds}
-          toggle={(id, list) => {
-            if (list === "groups")
-              toggle(id, selectedGroupIds, setSelectedGroupIds);
-            else if (list === "tags")
-              toggle(id, selectedTagIds, setSelectedTagIds);
-            else toggle(id, selectedAllergenIds, setSelectedAllergenIds);
-          }}
-        />
+        {showAdvanced && (
+          <div className="space-y-5 rounded-lg border border-border bg-surface-secondary/20 p-4">
+            {item && (
+              <MenuMembershipsEditor
+                item={item}
+                categories={allCategories ?? []}
+              />
+            )}
 
-        {}
-        <div>
-          <label className="flex items-center gap-2 text-sm text-text-secondary mb-2">
-            <input
-              type="checkbox"
-              checked={form.enableRecipeDeduction}
-              onChange={(e) =>
-                setValue("enableRecipeDeduction", e.target.checked, {
-                  shouldValidate: true,
-                })
+            <section className="space-y-4">
+              <div>
+                <h3 className="text-sm font-semibold text-text-primary">
+                  Pricing & stock
+                </h3>
+                <p className="mt-0.5 text-xs text-text-secondary">
+                  Optional pricing modes, split-zone pricing, and finite stock
+                  tracking.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                <label className="text-sm font-medium text-text-primary">
+                  Pricing mode
+                  <select
+                    className="mt-1.5 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm"
+                    value={pricingMode}
+                    onChange={(event) =>
+                      setPricingMode(event.target.value as typeof pricingMode)
+                    }
+                  >
+                    <option value="FIXED">Fixed price</option>
+                    <option value="WEIGHT_BASED">Weight based</option>
+                    <option value="OPEN">Open / manual price</option>
+                  </select>
+                </label>
+                {pricingMode === "WEIGHT_BASED" && (
+                  <label className="text-sm font-medium text-text-primary">
+                    Rate unit
+                    <select
+                      className="mt-1.5 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm"
+                      value={weightUnit}
+                      onChange={(event) =>
+                        setWeightUnit(event.target.value as typeof weightUnit)
+                      }
+                    >
+                      <option value="G">gram (g)</option>
+                      <option value="KG">kilogram (kg)</option>
+                      <option value="LB">pound (lb)</option>
+                      <option value="OZ">ounce (oz)</option>
+                    </select>
+                  </label>
+                )}
+                {pricingMode === "OPEN" && (
+                  <>
+                    <Input
+                      label="Minimum manual price"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={openPriceMin}
+                      onChange={(event) => setOpenPriceMin(event.target.value)}
+                    />
+                    <Input
+                      label="Maximum manual price"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={openPriceMax}
+                      onChange={(event) => setOpenPriceMax(event.target.value)}
+                    />
+                  </>
+                )}
+              </div>
+              {pricingMode === "OPEN" &&
+                openPriceMin !== "" &&
+                openPriceMax !== "" &&
+                Number(openPriceMin) > Number(openPriceMax) && (
+                  <p className="text-xs text-danger">
+                    Minimum manual price cannot exceed maximum.
+                  </p>
+                )}
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-text-primary">
+                  <input
+                    type="checkbox"
+                    checked={supportsZones}
+                    onChange={(event) => setSupportsZones(event.target.checked)}
+                  />
+                  Supports split zones / half-and-half
+                </label>
+                {supportsZones && (
+                  <label className="text-sm font-medium text-text-primary">
+                    Zone pricing rule
+                    <select
+                      className="mt-1.5 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm"
+                      value={zonePricingRule}
+                      onChange={(event) =>
+                        setZonePricingRule(
+                          event.target.value as typeof zonePricingRule,
+                        )
+                      }
+                    >
+                      <option value="HIGHER">Charge higher-priced zone</option>
+                      <option value="AVERAGE">Average zone modifier totals</option>
+                      <option value="SUM_HALF">Sum half of each zone</option>
+                    </select>
+                  </label>
+                )}
+              </div>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-text-primary">
+                  <input
+                    type="checkbox"
+                    checked={trackByCount}
+                    onChange={(event) => setTrackByCount(event.target.checked)}
+                  />
+                  Track finite stock by item count
+                </label>
+                {trackByCount && (
+                  <Input
+                    label="Current stock count"
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={manualStockCount}
+                    onChange={(event) => setManualStockCount(event.target.value)}
+                  />
+                )}
+              </div>
+            </section>
+
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+              <Input
+                label="SKU (optional)"
+                placeholder="ITM-042"
+                error={errors.sku?.message}
+                {...register("sku")}
+              />
+              <Input
+                label="Prep time (min)"
+                type="number"
+                min="0"
+                placeholder="15"
+                error={errors.prepTimeMinutes?.message}
+                {...register("prepTimeMinutes")}
+              />
+              <Input
+                label="HSN code"
+                placeholder="996331"
+                error={errors.hsnCode?.message}
+                {...register("hsnCode")}
+              />
+            </div>
+
+            <ItemMediaVariantsSection
+              imageUrls={imageUrls}
+              newImageUrl={newImageUrl}
+              variants={variants}
+              onNewImageUrl={setNewImageUrl}
+              onAddImage={() => {
+                if (newImageUrl.trim()) {
+                  setImageUrls((previous) => [
+                    ...previous,
+                    newImageUrl.trim(),
+                  ]);
+                  setNewImageUrl("");
+                }
+              }}
+              onRemoveImage={(index) =>
+                setImageUrls((previous) =>
+                  previous.filter((_, currentIndex) => currentIndex !== index),
+                )
+              }
+              onVariantChange={(index, patch) =>
+                setVariants((previous) =>
+                  previous.map((variant, currentIndex) =>
+                    currentIndex === index ? { ...variant, ...patch } : variant,
+                  ),
+                )
+              }
+              onRemoveVariant={(index) =>
+                setVariants((previous) =>
+                  previous.filter((_, currentIndex) => currentIndex !== index),
+                )
+              }
+              onAddVariant={() =>
+                setVariants((previous) => [
+                  ...previous,
+                  { name: "", price: "0" },
+                ])
               }
             />
-            Auto-manage availability from inventory
-          </label>
-          {isEdit ? (
-            form.enableRecipeDeduction && <RecipeBuilder item={item!} />
-          ) : (
-            <p className="text-xs text-text-disabled">
-              Save the item first, then come back to link ingredients.
-            </p>
-          )}
-        </div>
 
-        {}
-        {isEdit && (
-          <div>
-            <ScheduleManager itemId={item!.id} />
-            <ChannelOverridesPanel itemId={item!.id} />
-            <VariantAvailabilityPanel
-              itemId={item!.id}
-              variants={item!.variants ?? []}
-            />
-            <VariantModifierPricingPanel
-              variants={item!.variants ?? []}
-              groups={(allGroups ?? []).filter((group) =>
-                selectedGroupIds.includes(group.id),
+            <div className="rounded border border-border p-3 space-y-2">
+              <Select
+                label="Ordering experience"
+                value={displayMode}
+                options={[
+                  { value: "STANDARD", label: "Standard item" },
+                  { value: "GUIDED_BUILDER", label: "Guided build-your-own" },
+                ]}
+                onChange={(event) =>
+                  setDisplayMode(
+                    event.target.value as "STANDARD" | "GUIDED_BUILDER",
+                  )
+                }
+              />
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => {
+                  setDisplayMode("GUIDED_BUILDER");
+                  setSelectedGroupIds(
+                    (allGroups ?? [])
+                      .filter((group) => group.minSelections > 0)
+                      .map((group) => group.id),
+                  );
+                }}
+              >
+                Apply Build-Your-Own preset
+              </Button>
+              <Input
+                label="Effective from (optional)"
+                type="datetime-local"
+                value={effectiveFrom}
+                onChange={(event) => setEffectiveFrom(event.target.value)}
+              />
+              {effectiveFrom && new Date(effectiveFrom) > new Date() && (
+                <p className="text-xs text-warning">
+                  Pending publish · live {new Date(effectiveFrom).toLocaleString()}
+                </p>
               )}
-            />
-            <PriceRulesPanel itemId={item!.id} branchId={item!.branchId} />
-          </div>
-        )}
+            </div>
 
-        {}
-        {isEdit && item!.branchId === null && (
-          <div>
-            <BranchOverridesPanel
-              itemId={item!.id}
-              basePrice={item!.basePrice}
-              baseTaxRate={item!.taxRate}
-              basePrepTimeMinutes={item!.prepTimeMinutes}
+            <ItemAssociationsSection
+              groups={allGroups ?? []}
+              tags={allTags ?? []}
+              allergens={allAllergens ?? []}
+              selectedGroupIds={selectedGroupIds}
+              selectedTagIds={selectedTagIds}
+              selectedAllergenIds={selectedAllergenIds}
+              toggle={(id, list) => {
+                if (list === "groups")
+                  toggle(id, selectedGroupIds, setSelectedGroupIds);
+                else if (list === "tags")
+                  toggle(id, selectedTagIds, setSelectedTagIds);
+                else toggle(id, selectedAllergenIds, setSelectedAllergenIds);
+              }}
             />
-          </div>
-        )}
 
-        {isEdit && (
-          <StationRoutingEditor
-            itemId={item!.id}
-            groups={(allGroups ?? []).filter((group) =>
-              selectedGroupIds.includes(group.id),
+            <div>
+              <label className="flex items-center gap-2 text-sm text-text-secondary mb-2">
+                <input
+                  type="checkbox"
+                  checked={form.enableRecipeDeduction}
+                  onChange={(event) =>
+                    setValue("enableRecipeDeduction", event.target.checked, {
+                      shouldValidate: true,
+                    })
+                  }
+                />
+                Auto-manage availability from inventory
+              </label>
+              {isEdit ? (
+                form.enableRecipeDeduction && <RecipeBuilder item={item!} />
+              ) : (
+                <p className="text-xs text-text-disabled">
+                  Save the item first, then edit it to link ingredients.
+                </p>
+              )}
+            </div>
+
+            {isEdit && (
+              <div className="space-y-5">
+                <ScheduleManager itemId={item!.id} />
+                <ChannelOverridesPanel itemId={item!.id} />
+                <VariantAvailabilityPanel
+                  itemId={item!.id}
+                  variants={item!.variants ?? []}
+                />
+                <VariantModifierPricingPanel
+                  variants={item!.variants ?? []}
+                  groups={(allGroups ?? []).filter((group) =>
+                    selectedGroupIds.includes(group.id),
+                  )}
+                />
+                <PriceRulesPanel itemId={item!.id} branchId={item!.branchId} />
+              </div>
             )}
-          />
+
+            {isEdit && item!.branchId === null && (
+              <BranchOverridesPanel
+                itemId={item!.id}
+                basePrice={item!.basePrice}
+                baseTaxRate={item!.taxRate}
+                basePrepTimeMinutes={item!.prepTimeMinutes}
+              />
+            )}
+
+            {isEdit && (
+              <StationRoutingEditor
+                itemId={item!.id}
+                groups={(allGroups ?? []).filter((group) =>
+                  selectedGroupIds.includes(group.id),
+                )}
+              />
+            )}
+          </div>
         )}
 
         <div className="flex gap-2 justify-end pt-2 border-t border-divider">
-          <Button variant="secondary" onClick={onClose}>
+          <Button type="button" variant="secondary" onClick={onClose}>
             Cancel
           </Button>
           <Button type="submit" loading={saveMutation.isPending}>
@@ -687,5 +704,5 @@ export const ItemFormModal = ({ categoryId, item, onClose }: Props) => {
         </div>
       </form>
     </Modal>
-  );
+  )
 };

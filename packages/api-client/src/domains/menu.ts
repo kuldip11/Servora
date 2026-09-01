@@ -1,5 +1,6 @@
 import { voidDomainRequest } from "./shared";
 import type {
+  FoodType,
   Holiday,
   ItemStationRoute,
   KitchenStation,
@@ -15,6 +16,7 @@ import type {
   ModifierGroup,
   OrderableMenuCategory,
   SubRecipe,
+  SpiceLevel,
   SubRecipeInput,
 } from "@pos/types";
 import {
@@ -25,10 +27,9 @@ import {
   type DomainHttpClient,
 } from "./shared";
 
-export interface SaveMenuItemInput {
-  categoryId: string;
+interface MenuItemWriteFields {
   name: string;
-  description?: string;
+  description?: string | null;
   basePrice: number;
   pricingMode?: "FIXED" | "WEIGHT_BASED" | "OPEN";
   weightUnit?: "G" | "KG" | "LB" | "OZ" | null;
@@ -39,21 +40,29 @@ export interface SaveMenuItemInput {
   manualStockCount?: number | null;
   taxRate: number;
   taxMode?: "INCLUSIVE" | "EXCLUSIVE" | null;
-  foodType: string;
-  spiceLevel?: string;
-  sku?: string;
-  prepTimeMinutes?: number;
-  hsnCode?: string;
+  foodType: FoodType;
+  spiceLevel?: SpiceLevel | null;
+  sku?: string | null;
+  prepTimeMinutes?: number | null;
+  hsnCode?: string | null;
   status: MenuItemStatus;
   availabilityReason: string | null;
   enableRecipeDeduction: boolean;
   displayMode?: "STANDARD" | "GUIDED_BUILDER";
   effectiveFrom?: string | null;
-  variants: Array<{ name: string; price: number }>;
   modifierGroupIds: string[];
   tagIds: string[];
   allergenIds: string[];
   imageUrls: string[];
+}
+
+export interface CreateMenuItemInput extends MenuItemWriteFields {
+  categoryId: string;
+  variants: Array<{ name: string; price: number }>;
+}
+
+export interface UpdateMenuItemInput extends MenuItemWriteFields {
+  variants: Array<{ id?: string; name: string; price: number }>;
 }
 
 export interface ModifierGroupPayload {
@@ -111,10 +120,10 @@ export const createMenuApi = (client: DomainHttpClient) => {
     deleteCategory(id: string): Promise<void> {
       return voidDomainRequest(client.delete(`/menu/categories/${id}`));
     },
-    createItem(input: SaveMenuItemInput): Promise<MenuItem> {
+    createItem(input: CreateMenuItemInput): Promise<MenuItem> {
       return postDomainData<MenuItem>(client, "/menu/items", input);
     },
-    updateItem(id: string, input: SaveMenuItemInput): Promise<MenuItem> {
+    updateItem(id: string, input: UpdateMenuItemInput): Promise<MenuItem> {
       return patchDomainData<MenuItem>(client, `/menu/items/${id}`, input);
     },
     setManualStockCount(
@@ -495,6 +504,12 @@ export const createMenuApi = (client: DomainHttpClient) => {
     },
     createCombo<T>(input: Record<string, unknown>): Promise<T> {
       return postDomainData<T>(client, "/menu/combos", input);
+    },
+    updateCombo<T>(id: string, input: Record<string, unknown>): Promise<T> {
+      return patchDomainData<T>(client, `/menu/combos/${id}`, input);
+    },
+    removeCombo(id: string): Promise<void> {
+      return voidDomainRequest(client.delete(`/menu/combos/${id}`));
     },
     previewCombo<T>(input: Record<string, unknown>): Promise<T> {
       return postDomainData<T>(client, "/menu/combos/preview", input);

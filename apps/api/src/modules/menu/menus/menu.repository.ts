@@ -1,9 +1,60 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
-import { menuSchedules, menus } from "@/db/schema";
+import { menuItems, menuMemberships, menuSchedules, menus } from "@/db/schema";
 import { compact } from "@/lib/object-utils";
 
 export const menuRepository = {
+  async ensureDefaultMenu(tenantId: string) {
+    return db.transaction(async (tx) => {
+      const existing = await tx.query.menus.findFirst({
+        where: and(eq(menus.tenantId, tenantId), eq(menus.isDefault, true)),
+      });
+      if (existing) return existing;
+
+      const [created] = await tx
+        .insert(menus)
+        .values({
+          tenantId,
+          name: "Default Menu",
+          status: "PUBLISHED",
+          isDefault: true,
+        })
+        .onConflictDoNothing()
+        .returning();
+
+      const defaultMenu =
+        created ??
+        (await tx.query.menus.findFirst({
+          where: and(eq(menus.tenantId, tenantId), eq(menus.isDefault, true)),
+        }));
+      if (!defaultMenu) throw new Error("Default menu could not be created");
+
+      if (created) {
+        const existingItems = await tx.query.menuItems.findMany({
+          where: and(
+            eq(menuItems.tenantId, tenantId),
+            isNull(menuItems.deletedAt),
+          ),
+          columns: { id: true, categoryId: true, sortOrder: true },
+        });
+        if (existingItems.length) {
+          await tx
+            .insert(menuMemberships)
+            .values(
+              existingItems.map((item) => ({
+                menuId: defaultMenu.id,
+                menuItemId: item.id,
+                categoryId: item.categoryId,
+                sortOrder: item.sortOrder,
+              })),
+            )
+            .onConflictDoNothing();
+        }
+      }
+
+      return defaultMenu;
+    });
+  },
   async list(tenantId: string) {
     return db.query.menus.findMany({
       where: eq(menus.tenantId, tenantId),

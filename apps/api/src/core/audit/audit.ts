@@ -47,6 +47,7 @@ export type AuditAction =
   | "ORGANIZATION_LOYALTY_TIER_UPDATED"
   | "ORGANIZATION_LOYALTY_TIER_DELETED"
   | "COMBO_CREATED"
+  | "COMBO_UPDATED"
   | "COMBO_DELETED";
 
 export interface AuditInput {

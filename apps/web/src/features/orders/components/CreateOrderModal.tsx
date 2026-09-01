@@ -243,6 +243,11 @@ export const CreateOrderModal = ({ onClose }: { onClose: () => void }) => {
             onTableChange={setTableId}
             onFilterChange={setFoodTypeFilter}
             onItemClick={handleItemClick}
+            emptyMessage={
+              activeMenus.length === 0
+                ? "No active menu is available for this branch and order type."
+                : "This menu has no published items available for this branch."
+            }
           />
         </div>
         <OrderCart

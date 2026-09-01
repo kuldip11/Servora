@@ -34,6 +34,13 @@ export const isEffectiveAt = (effectiveFrom: Date | null, asOf: Date) => {
   return !effectiveFrom || effectiveFrom <= asOf;
 };
 
+export const preferSpecializedMenus = <T extends { isDefault: boolean }>(
+  resolvedMenus: T[],
+) => {
+  const specialized = resolvedMenus.filter((menu) => !menu.isDefault);
+  return specialized.length ? specialized : resolvedMenus;
+};
+
 const activeTenantMenus = async (
   tenantId: string,
   branchId: string,
@@ -146,16 +153,16 @@ export const menuResolver = {
       fulfillmentType,
       asOf,
     );
+    const preferredLocal = preferSpecializedMenus(local);
+    if (preferredLocal.length) return preferredLocal;
 
-    return local.length
-      ? local
-      : inheritedOrganizationMenus(
-          tenantId,
-          branchId,
-          channel,
-          fulfillmentType,
-          asOf,
-        );
+    return inheritedOrganizationMenus(
+      tenantId,
+      branchId,
+      channel,
+      fulfillmentType,
+      asOf,
+    );
   },
   async getActiveItemIds(
     tenantId: string,

@@ -10,7 +10,7 @@ export type {
 export { createInventoryApi } from "./domains/inventory";
 export type { LogWasteInput } from "./domains/inventory";
 export { createMenuApi } from "./domains/menu";
-export type { SaveMenuItemInput } from "./domains/menu";
+export type { CreateMenuItemInput, UpdateMenuItemInput } from "./domains/menu";
 export { createCustomersApi } from "./domains/customers";
 export type {
   CreateLoyaltyCustomerInput,

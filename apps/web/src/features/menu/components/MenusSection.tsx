@@ -69,10 +69,13 @@ export const MenusSection = () => {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-base font-semibold text-text-primary">Menus</h2>
+        <h2 className="text-base font-semibold text-text-primary">
+          Advanced menus
+        </h2>
         <p className="text-sm text-text-secondary mt-0.5">
-          Create independent menu collections. Item assignment becomes available
-          in the next membership step.
+          Normal ordering uses the automatic Default Menu. Create another menu
+          only when you need different items by branch, channel, order type, or
+          schedule.
         </p>
       </div>
 
@@ -126,28 +129,36 @@ export const MenusSection = () => {
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-text-secondary">{menu.status}</p>
+                <p className="text-xs text-text-secondary">
+                  {menu.isDefault
+                    ? "Automatic fallback · all regular items are included"
+                    : menu.status}
+                </p>
               </div>
-              <Button
-                size="sm"
-                variant="secondary"
-                loading={setPublished.isPending}
-                onClick={() =>
-                  setPublished.mutate({
-                    id: menu.id,
-                    published: menu.status !== "PUBLISHED",
-                  })
-                }
-              >
-                {menu.status === "PUBLISHED" ? "Move to draft" : "Publish"}
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => startEditing(menu)}
-              >
-                <Pencil className="h-4 w-4" /> Availability
-              </Button>
+              {!menu.isDefault && (
+                <>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    loading={setPublished.isPending}
+                    onClick={() =>
+                      setPublished.mutate({
+                        id: menu.id,
+                        published: menu.status !== "PUBLISHED",
+                      })
+                    }
+                  >
+                    {menu.status === "PUBLISHED" ? "Move to draft" : "Publish"}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => startEditing(menu)}
+                  >
+                    <Pencil className="h-4 w-4" /> Availability
+                  </Button>
+                </>
+              )}
               {!menu.isDefault && (
                 <Button
                   size="sm"

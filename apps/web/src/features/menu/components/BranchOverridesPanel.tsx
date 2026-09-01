@@ -102,6 +102,7 @@ export const BranchOverridesPanel = ({
                       </span>
                       {override && (
                         <button
+                          type="button"
                           onClick={() => resetMutation.mutate(b.id)}
                           className="text-text-disabled hover:text-danger"
                           title="Reset to default"
@@ -110,6 +111,7 @@ export const BranchOverridesPanel = ({
                         </button>
                       )}
                       <button
+                        type="button"
                         onClick={() => {
                           setDraft(toDraft(override));
                           setEditingBranchId(b.id);
@@ -210,12 +212,14 @@ export const BranchOverridesPanel = ({
                   />
                   <div className="flex gap-2 justify-end">
                     <button
+                      type="button"
                       onClick={() => setEditingBranchId(null)}
                       className="text-xs text-text-secondary hover:text-text-primary px-2 py-1"
                     >
                       Cancel
                     </button>
                     <button
+                      type="button"
                       onClick={() =>
                         saveMutation.mutate(
                           { branchId: b.id, input: draft },
