@@ -56,6 +56,17 @@ export class AppError extends Error {
   static isAppError(error: unknown): error is AppError {
     return error instanceof AppError;
   }
+
+  static unwrap(error: unknown): AppError | undefined {
+    const seen = new Set<unknown>();
+    let current = error;
+    while (current && typeof current === "object" && !seen.has(current)) {
+      if (current instanceof AppError) return current;
+      seen.add(current);
+      current = "cause" in current ? (current as { cause?: unknown }).cause : undefined;
+    }
+    return undefined;
+  }
 }
 
 export class ValidationError extends AppError {

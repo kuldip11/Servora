@@ -6,6 +6,7 @@ import type { AvailableMembership, OrganizationSummary } from "@pos/types";
 
 import { extractApiError } from "@/shared/lib/api-client";
 import { useAuthStore } from "@/store/auth";
+import { getAuthorizedHomePath } from "@/shared/auth/default-route";
 import { authService } from "@/features/auth/services/auth.service";
 import { activateMembershipContext } from "@/shared/auth/active-context";
 
@@ -47,7 +48,7 @@ export const ContextPage = () => {
   const activate = async (membership: AvailableMembership) => {
     try {
       await activateMembershipContext(membership, items);
-      router.navigate({ to: "/dashboard" });
+      router.navigate({ to: getAuthorizedHomePath(useAuthStore.getState().user) });
     } catch (err: unknown) {
       toast({ title: extractApiError(err), tone: "danger" });
     }

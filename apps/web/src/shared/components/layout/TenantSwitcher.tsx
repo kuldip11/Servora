@@ -5,6 +5,7 @@ import type { AvailableMembership } from "@pos/types";
 import { useRouter } from "@tanstack/react-router";
 import { authService } from "@/features/auth/services/auth.service";
 import { useAuthStore } from "@/store/auth";
+import { getAuthorizedHomePath } from "@/shared/auth/default-route";
 import { cn } from "@/shared/utils";
 import { extractApiError } from "@/shared/lib/api-client";
 import { activateMembershipContext } from "@/shared/auth/active-context";
@@ -70,7 +71,7 @@ export const TenantSwitcher = () => {
     try {
       await activateMembershipContext(membership, items);
       setOpen(false);
-      router.navigate({ to: "/dashboard" });
+      router.navigate({ to: getAuthorizedHomePath(useAuthStore.getState().user) });
     } finally {
       setSwitching(false);
     }

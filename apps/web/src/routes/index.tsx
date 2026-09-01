@@ -12,6 +12,7 @@ import { LoginPage } from "@/features/auth/pages/LoginPage";
 import { SignupPage } from "@/features/auth/pages/SignupPage";
 import { ForbiddenPage } from "@/features/auth/pages/ForbiddenPage";
 import { userHasPermission } from "@/shared/auth/permissions";
+import { getAuthorizedHomePath } from "@/shared/auth/default-route";
 import { useAuthStore } from "@/store/auth";
 
 const lazyPage = (
@@ -39,8 +40,9 @@ const authRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "auth",
   beforeLoad: () => {
-    if (useAuthStore.getState().isAuthenticated) {
-      throw redirect({ to: "/dashboard" });
+    const state = useAuthStore.getState();
+    if (state.isAuthenticated) {
+      throw redirect({ to: getAuthorizedHomePath(state.user) });
     }
   },
 });
@@ -244,9 +246,13 @@ const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
   beforeLoad: () => {
-    const { isAuthenticated, franchiseId } = useAuthStore.getState();
+    const { isAuthenticated, franchiseId, user } = useAuthStore.getState();
     throw redirect({
-      to: !isAuthenticated ? "/login" : franchiseId ? "/dashboard" : "/context",
+      to: !isAuthenticated
+        ? "/login"
+        : franchiseId
+          ? getAuthorizedHomePath(user)
+          : "/context",
     });
   },
 });

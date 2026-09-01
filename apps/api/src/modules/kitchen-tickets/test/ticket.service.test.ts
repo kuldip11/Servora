@@ -103,6 +103,40 @@ describe("ticket service", () => {
       ticketService.updateStatus(auth(), logger, "t1", "READY"),
     ).rejects.toThrow("Cannot transition");
   });
+
+  it("allows order-status staff to mark a ready ticket served but not perform kitchen transitions", async () => {
+    const current = { id: "t1", branchId: "b1", status: "READY" };
+    const detailed = {
+      ...current,
+      status: "SERVED",
+      orderId: "o1",
+      items: [],
+      order: { id: "o1", table: null },
+    };
+    findById.mockResolvedValue(current);
+    setStatus.mockResolvedValue({ ...current, status: "SERVED" });
+    findDetailedById.mockResolvedValue(detailed);
+    findOrder.mockResolvedValue({ customerSessionId: null });
+    publish.mockResolvedValue(undefined);
+
+    await expect(
+      ticketService.updateStatus(
+        auth({ permissions: ["orders:update_status"] }),
+        logger,
+        "t1",
+        "SERVED",
+      ),
+    ).resolves.toEqual(detailed);
+
+    await expect(
+      ticketService.updateStatus(
+        auth({ permissions: ["orders:update_status"] }),
+        logger,
+        "t1",
+        "PREPARING",
+      ),
+    ).rejects.toThrow(/Insufficient permissions/);
+  });
   it("updates status, logs, and publishes the domain event", async () => {
     const current = { id: "t1", branchId: "b1", status: "PREPARING" };
     const updated = { ...current, status: "READY", orderId: "o1" };

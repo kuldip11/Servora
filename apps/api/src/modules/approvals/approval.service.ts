@@ -26,7 +26,7 @@ export const approvalService = {
     thresholdAmount: number,
     requiresRole = "Manager",
   ) {
-    requirePermission(auth, "roles:manage");
+    requirePermission(auth, "settings:update");
     if (!Number.isFinite(thresholdAmount) || thresholdAmount < 0)
       throw new ValidationError("Threshold must be zero or greater");
     const normalizedRole = requiresRole.trim();

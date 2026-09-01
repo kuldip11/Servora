@@ -28,7 +28,10 @@ export const SettingsPage = () => {
   const { user, setContext, franchiseId } = useAuthStore();
   const { has } = usePermissions();
   const queryClient = useQueryClient();
-  const { data: cancellationReasons = [] } = useCancellationReasons(false);
+  const { data: cancellationReasons = [] } = useCancellationReasons(
+    false,
+    has("settings:update") && has("orders:read"),
+  );
   const [newCancellationReason, setNewCancellationReason] = useState("");
   const reasonMutation = useMutation({
     mutationFn: (
@@ -136,7 +139,7 @@ export const SettingsPage = () => {
         {franchiseId && has("tenant:update") && (
           <KitchenOperationsSettingsCard tenantId={franchiseId} />
         )}
-        {has("roles:manage") && has("orders:update") && (
+        {has("settings:update") && has("orders:update") && (
           <ApprovalThresholdSettingsCard />
         )}
 

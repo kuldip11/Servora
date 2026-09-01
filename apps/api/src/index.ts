@@ -203,15 +203,16 @@ app = app.onError((context) => {
           .requestContext
       : undefined;
 
-  if (AppError.isAppError(error)) {
-    rootLogger.warn(`API Error: ${error.code}`, {
+  const appError = AppError.unwrap(error);
+  if (appError) {
+    rootLogger.warn(`API Error: ${appError.code}`, {
       requestId: requestContext?.requestId,
-      statusCode: error.statusCode,
-      message: error.message,
-      details: error.details,
+      statusCode: appError.statusCode,
+      message: appError.message,
+      details: appError.details,
     });
-    set.status = error.statusCode;
-    return error.toJSON();
+    set.status = appError.statusCode;
+    return appError.toJSON();
   }
 
   rootLogger.error(

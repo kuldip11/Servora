@@ -13,7 +13,7 @@ import { createLogger, type Logger } from "@/core/logger";
 import { requestContextPlugin } from "@/core/context";
 import {
   AUTH_APP_HEADER,
-  assertAppRoleAccess,
+  assertMembershipAppAccess,
   assertTokenApp,
   parseAuthApp,
   type AuthApp,
@@ -102,11 +102,6 @@ export const requireAuthPlugin = () =>
           throw new ForbiddenError("Franchise access denied");
         }
 
-        assertAppRoleAccess(
-          requestApp,
-          membership.roles.map((item) => item.role?.name ?? item.roleId),
-        );
-
         const baseContext = {
           userId: payload.sub,
           membershipId: membership.id,
@@ -135,6 +130,15 @@ export const requireAuthPlugin = () =>
         if (!decision.allowed) {
           throw new ForbiddenError("Franchise access denied");
         }
+
+        assertMembershipAppAccess(
+          requestApp,
+          membership.roles.map((item) => ({
+            name: item.role?.name ?? item.roleId,
+            isSystem: item.role?.isSystem ?? false,
+          })),
+          decision.permissionKeys,
+        );
 
         const roles = [
           ...new Set(

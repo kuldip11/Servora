@@ -11,6 +11,7 @@ CREATE TABLE "roles" (
   "created_at" timestamp DEFAULT now() NOT NULL,
   "updated_at" timestamp DEFAULT now() NOT NULL,
   CONSTRAINT "roles_custom_scope_check" CHECK ("tenant_id" IS NULL OR "scope" IN ('TENANT', 'BRANCH')),
+  CONSTRAINT "roles_reserved_system_name_check" CHECK ("tenant_id" IS NULL OR upper(trim("name")) NOT IN ('OWNER', 'FRANCHISE_ADMIN', 'MANAGER', 'CHEF', 'WAITER', 'CASHIER', 'INVENTORY_MANAGER', 'RECEPTIONIST', 'ACCOUNTANT')),
   CONSTRAINT "roles_tenant_id_tenants_id_fk" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE
 );
 

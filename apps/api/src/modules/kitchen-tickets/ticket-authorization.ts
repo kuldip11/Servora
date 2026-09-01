@@ -3,6 +3,11 @@ import { ForbiddenError } from "@/core/errors";
 
 export type KitchenPermission = "kitchen:read" | "kitchen:update";
 
+export type KitchenTicketStatusPermission =
+  | "kitchen:update"
+  | "orders:update"
+  | "orders:update_status";
+
 export const requireKitchenPermission = (
   auth: AuthContext,
   permission: KitchenPermission,
@@ -27,5 +32,27 @@ export const assertKitchenTicketAccess = (
 
   if (!auth.branchId || auth.branchId !== resourceBranchId) {
     throw new ForbiddenError("Kitchen ticket branch access denied");
+  }
+};
+
+export const requireKitchenStatusPermission = (
+  auth: AuthContext,
+  newStatus: string,
+): void => {
+  const allowed =
+    auth.permissions.includes("kitchen:update") ||
+    (newStatus === "FIRED" && auth.permissions.includes("orders:update")) ||
+    (newStatus === "SERVED" &&
+      auth.permissions.includes("orders:update_status"));
+
+  if (!allowed) {
+    throw new ForbiddenError("Insufficient permissions", {
+      required:
+        newStatus === "SERVED"
+          ? ["kitchen:update", "orders:update_status"]
+          : newStatus === "FIRED"
+            ? ["kitchen:update", "orders:update"]
+            : ["kitchen:update"],
+    });
   }
 };

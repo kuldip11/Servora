@@ -60,6 +60,14 @@ const { listUserMemberships } = vi.hoisted(() => ({
 vi.mock("../../../core/auth/membership-context", () => ({
   listUserMemberships,
 }));
+const { resolveMembership, resolveAuthorization } = vi.hoisted(() => ({
+  resolveMembership: vi.fn(),
+  resolveAuthorization: vi.fn(),
+}));
+vi.mock("../../../core/auth/authorization", () => ({
+  resolveMembership,
+  resolveAuthorization,
+}));
 const { signAccessToken } = vi.hoisted(() => ({
   signAccessToken: vi.fn().mockReturnValue("access"),
 }));
@@ -83,6 +91,8 @@ const user: any = {
 beforeEach(() => {
   vi.clearAllMocks();
   listUserMemberships.mockResolvedValue([]);
+  resolveMembership.mockResolvedValue(undefined);
+  resolveAuthorization.mockResolvedValue({ allowed: false, permissionKeys: [], roleIds: [], branchIds: [], tenantWide: false });
   createSession.mockResolvedValue({ id: "session-1" });
   touchSession.mockResolvedValue(undefined);
 });
@@ -196,8 +206,18 @@ describe("auth service", () => {
       { ...user, passwordHash: hash, globalUserRoles: [] },
     ]);
     listUserMemberships.mockResolvedValue([
-      { roles: [{ name: "CHEF" }] },
+      { tenant: { id: "t1" }, roles: [{ name: "CHEF" }] },
     ]);
+    resolveMembership.mockResolvedValue({
+      id: "m1",
+      tenantId: "t1",
+      roles: [{ roleId: "chef", role: { name: "CHEF", isSystem: true } }],
+      branches: [],
+    });
+    resolveAuthorization.mockResolvedValue({
+      allowed: true, permissionKeys: ["kitchen:read", "kitchen:update", "menu:read", "orders:read"],
+      roleIds: ["chef"], branchIds: ["b1"], tenantWide: false,
+    });
 
     await expect(
       authService.login(
@@ -214,8 +234,18 @@ describe("auth service", () => {
       { ...user, passwordHash: hash, globalUserRoles: [] },
     ]);
     listUserMemberships.mockResolvedValue([
-      { roles: [{ name: "CHEF" }] },
+      { tenant: { id: "t1" }, roles: [{ name: "CHEF" }] },
     ]);
+    resolveMembership.mockResolvedValue({
+      id: "m1",
+      tenantId: "t1",
+      roles: [{ roleId: "chef", role: { name: "CHEF", isSystem: true } }],
+      branches: [],
+    });
+    resolveAuthorization.mockResolvedValue({
+      allowed: true, permissionKeys: ["kitchen:read", "kitchen:update", "menu:read", "orders:read"],
+      roleIds: ["chef"], branchIds: ["b1"], tenantWide: false,
+    });
     saveRefreshToken.mockResolvedValue({});
 
     await expect(
@@ -303,11 +333,21 @@ describe("auth service", () => {
     await expect(authService.me("u1", "m1")).resolves.toMatchObject({
       membership: { id: "m1" },
     });
-    listUserMemberships.mockResolvedValue([
-      { id: "m1", roles: [{ name: "FRANCHISE_ADMIN" }] },
-    ]);
-    await expect(authService.memberships("u1")).resolves.toEqual([
-      { id: "m1", roles: [{ name: "FRANCHISE_ADMIN" }] },
-    ]);
+    const listed = {
+      membershipId: "m1",
+      tenant: { id: "t1", name: "Tenant" },
+      roles: [{ id: "admin", name: "FRANCHISE_ADMIN", scope: "TENANT" }],
+      branches: [],
+    };
+    listUserMemberships.mockResolvedValue([listed]);
+    resolveMembership.mockResolvedValue({
+      id: "m1", tenantId: "t1",
+      roles: [{ roleId: "admin", role: { name: "FRANCHISE_ADMIN", isSystem: true } }],
+      branches: [],
+    });
+    resolveAuthorization.mockResolvedValue({
+      allowed: true, permissionKeys: ["staff:read"], roleIds: ["admin"], branchIds: [], tenantWide: true,
+    });
+    await expect(authService.memberships("u1")).resolves.toEqual([listed]);
   });
 });

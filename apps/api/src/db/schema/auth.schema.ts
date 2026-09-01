@@ -59,6 +59,10 @@ export const roles = pgTable(
       "roles_custom_scope_check",
       sql`${t.tenantId} IS NULL OR ${t.scope} IN ('TENANT', 'BRANCH')`,
     ),
+    reservedSystemNameCheck: check(
+      "roles_reserved_system_name_check",
+      sql`${t.tenantId} IS NULL OR upper(trim(${t.name})) NOT IN ('OWNER', 'FRANCHISE_ADMIN', 'MANAGER', 'CHEF', 'WAITER', 'CASHIER', 'INVENTORY_MANAGER', 'RECEPTIONIST', 'ACCOUNTANT')`,
+    ),
   }),
 );
 

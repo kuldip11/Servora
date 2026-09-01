@@ -1,22 +1,24 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown, GitBranch } from "lucide-react";
+import { useBranches } from "@/features/branches/hooks/useBranches";
+import { userHasPermission } from "@/shared/auth/permissions";
 import { useAuthStore } from "@/store/auth";
 import { cn } from "@/shared/utils";
-import { useBranches } from "@/features/branches/hooks/useBranches";
 
 export const BranchSwitcher = () => {
-  const { memberships, membershipId, branchId, setContext } = useAuthStore();
+  const { memberships, membershipId, branchId, setContext, user } = useAuthStore();
   const membership = memberships.find(
     (item) => item.membershipId === membershipId,
   );
   const tenantWide =
     membership?.roles.some((role) => role.scope === "TENANT") ?? false;
-  const { data: tenantBranches = [] } = useBranches({
-    enabled: Boolean(membership && tenantWide),
-  });
-  const branches = (
-    tenantWide ? tenantBranches : (membership?.branches ?? [])
-  ).filter((branch) => branch.isActive);
+  const canReadBranches = userHasPermission(user, "branch:read");
+  const branchQuery = useBranches({ enabled: tenantWide && canReadBranches });
+  const branchSource =
+    tenantWide && canReadBranches
+      ? (branchQuery.data ?? membership?.branches ?? [])
+      : (membership?.branches ?? []);
+  const branches = branchSource.filter((branch) => branch.isActive);
   const [open, setOpen] = useState(false);
   const [switching, setSwitching] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);

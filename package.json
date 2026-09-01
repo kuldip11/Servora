@@ -20,7 +20,7 @@
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "test:a11y": "cd apps/web && bun run test:a11y",
-    "audit:rbac": "bash scripts/audit/rbac-static.sh",
+    "audit:rbac": "bash scripts/audit/rbac-static.sh && node scripts/audit/verify-permissions.mjs",
     "test:coverage": "bun run test:coverage:validation && bun run test:coverage:api-client && bun run test:coverage:realtime && bun run test:coverage:api && bun run test:coverage:ui && bun run test:coverage:web && bun run test:coverage:waiter && bun run test:coverage:kitchen && bun run test:coverage:customer",
     "test:coverage:api": "cd apps/api && bun run test:coverage",
     "test:coverage:ui": "cd packages/ui && bun run test:coverage",

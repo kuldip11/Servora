@@ -11,19 +11,19 @@ CREATE UNIQUE INDEX "role_permissions_role_permission_uniq" ON "role_permissions
 
 INSERT INTO "role_permissions" ("role_id", "permission_id")
 SELECT r."id", p."id" FROM "roles" r CROSS JOIN "permissions" p
-WHERE r."name" = 'FRANCHISE_ADMIN' AND r."tenant_id" IS NULL AND p."key" IN ('analytics:read', 'audit:read', 'billing:read', 'branch:archive', 'branch:create', 'branch:read', 'branch:update', 'inventory:adjust', 'inventory:create', 'inventory:read', 'inventory:update', 'inventory:waste', 'kitchen:read', 'kitchen:update', 'menu:create', 'menu:delete', 'menu:pricing:write', 'menu:publish', 'menu:read', 'menu:update', 'orders:cancel', 'orders:comp', 'orders:create', 'orders:read', 'orders:update', 'orders:update_status', 'orders:void', 'organization:manage', 'permissions:read', 'roles:archive', 'roles:assign_permissions', 'roles:create', 'roles:read', 'roles:update', 'settings:read', 'settings:update', 'staff:assign_branch', 'staff:assign_role', 'staff:create', 'staff:deactivate', 'staff:read', 'staff:update', 'tables:create', 'tables:delete', 'tables:read', 'tables:update', 'tenant:archive', 'tenant:manage_members', 'tenant:read', 'tenant:update');
+WHERE r."name" = 'FRANCHISE_ADMIN' AND r."tenant_id" IS NULL AND p."key" IN ('analytics:read', 'audit:read', 'billing:create', 'billing:read', 'billing:refund', 'branch:archive', 'branch:create', 'branch:read', 'branch:update', 'inventory:adjust', 'inventory:create', 'inventory:read', 'inventory:update', 'inventory:waste', 'kitchen:read', 'kitchen:update', 'menu:create', 'menu:delete', 'menu:pricing:write', 'menu:publish', 'menu:read', 'menu:update', 'orders:cancel', 'orders:comp', 'orders:create', 'orders:read', 'orders:update', 'orders:update_status', 'orders:void', 'organization:manage', 'permissions:read', 'roles:archive', 'roles:assign_permissions', 'roles:create', 'roles:read', 'roles:update', 'settings:read', 'settings:update', 'staff:assign_branch', 'staff:assign_role', 'staff:create', 'staff:deactivate', 'staff:read', 'staff:update', 'tables:create', 'tables:delete', 'tables:read', 'tables:update', 'tenant:archive', 'tenant:manage_members', 'tenant:read', 'tenant:update');
 
 INSERT INTO "role_permissions" ("role_id", "permission_id")
 SELECT r."id", p."id" FROM "roles" r CROSS JOIN "permissions" p
-WHERE r."name" = 'MANAGER' AND r."tenant_id" IS NULL AND p."key" IN ('analytics:read', 'audit:read', 'billing:read', 'branch:archive', 'branch:read', 'branch:update', 'inventory:adjust', 'inventory:create', 'inventory:read', 'inventory:update', 'inventory:waste', 'kitchen:read', 'kitchen:update', 'menu:create', 'menu:delete', 'menu:pricing:write', 'menu:publish', 'menu:read', 'menu:update', 'orders:cancel', 'orders:comp', 'orders:create', 'orders:read', 'orders:update', 'orders:update_status', 'orders:void', 'settings:read', 'staff:create', 'staff:read', 'staff:update', 'tables:create', 'tables:delete', 'tables:read', 'tables:update');
+WHERE r."name" = 'MANAGER' AND r."tenant_id" IS NULL AND p."key" IN ('analytics:read', 'audit:read', 'billing:create', 'billing:read', 'branch:read', 'branch:update', 'inventory:adjust', 'inventory:create', 'inventory:read', 'inventory:update', 'inventory:waste', 'kitchen:read', 'kitchen:update', 'menu:create', 'menu:delete', 'menu:pricing:write', 'menu:publish', 'menu:read', 'menu:update', 'orders:cancel', 'orders:comp', 'orders:create', 'orders:read', 'orders:update', 'orders:update_status', 'orders:void', 'settings:read', 'staff:create', 'staff:read', 'staff:update', 'tables:create', 'tables:delete', 'tables:read', 'tables:update');
 
 INSERT INTO "role_permissions" ("role_id", "permission_id")
 SELECT r."id", p."id" FROM "roles" r CROSS JOIN "permissions" p
-WHERE r."name" = 'CHEF' AND r."tenant_id" IS NULL AND p."key" IN ('kitchen:read', 'kitchen:update', 'menu:read', 'orders:read', 'orders:update_status');
+WHERE r."name" = 'CHEF' AND r."tenant_id" IS NULL AND p."key" IN ('kitchen:read', 'kitchen:update', 'menu:read', 'orders:read');
 
 INSERT INTO "role_permissions" ("role_id", "permission_id")
 SELECT r."id", p."id" FROM "roles" r CROSS JOIN "permissions" p
-WHERE r."name" = 'WAITER' AND r."tenant_id" IS NULL AND p."key" IN ('menu:read', 'orders:create', 'orders:read', 'orders:update', 'orders:update_status', 'tables:read', 'tables:update');
+WHERE r."name" = 'WAITER' AND r."tenant_id" IS NULL AND p."key" IN ('branch:read', 'menu:read', 'orders:create', 'orders:read', 'orders:update', 'orders:update_status', 'tables:read', 'tables:update');
 
 INSERT INTO "role_permissions" ("role_id", "permission_id")
 SELECT r."id", p."id" FROM "roles" r CROSS JOIN "permissions" p
@@ -31,7 +31,7 @@ WHERE r."name" = 'CASHIER' AND r."tenant_id" IS NULL AND p."key" IN ('billing:cr
 
 INSERT INTO "role_permissions" ("role_id", "permission_id")
 SELECT r."id", p."id" FROM "roles" r CROSS JOIN "permissions" p
-WHERE r."name" = 'INVENTORY_MANAGER' AND r."tenant_id" IS NULL AND p."key" IN ('inventory:adjust', 'inventory:read', 'inventory:update', 'inventory:waste');
+WHERE r."name" = 'INVENTORY_MANAGER' AND r."tenant_id" IS NULL AND p."key" IN ('inventory:adjust', 'inventory:create', 'inventory:read', 'inventory:update', 'inventory:waste');
 
 INSERT INTO "role_permissions" ("role_id", "permission_id")
 SELECT r."id", p."id" FROM "roles" r CROSS JOIN "permissions" p

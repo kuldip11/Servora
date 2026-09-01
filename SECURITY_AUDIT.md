@@ -18,8 +18,8 @@ Scope: Servora monorepo baseline `servora-product-roadmap-doc-cleanup.zip`
 
 ### Verification after remediation
 
-- API: **663/663 tests passed** across **194 test files**.
-- Web: **141/141**.
+- API: **683/683 tests passed** across **198 test files**.
+- Web: **148/148**.
 - Waiter: **49/49**.
 - KDS: **32/32**.
 - Customer: **14/14**.
@@ -30,7 +30,36 @@ Scope: Servora monorepo baseline `servora-product-roadmap-doc-cleanup.zip`
 - Website: **4/4**.
 - ESLint: **green**.
 - Migration integrity: **78/78**.
-- TypeScript: all 12 workspaces compile clean; the API, Web and shared types were explicitly recompiled after the final membership-scope correction.
+- TypeScript: **12/12 workspaces compile clean**.
+- RBAC static audit: **green**.
+- Permission catalog audit: **54/54 runtime permission keys seeded; 9 system-role matrices verified**.
+
+### RBAC / application-permission audit — 2026-09-01
+
+A full route-to-role permission audit was completed after Waiter/KDS permission failures exposed inconsistencies between application workflows and the seeded system-role matrix.
+
+Resolved findings:
+
+- `WAITER` now includes `branch:read`, which the Waiter application requires to load branch capabilities.
+- `WAITER` retains `menu:read`, `orders:create`, `orders:read`, `orders:update`, `orders:update_status`, `tables:read`, and `tables:update`.
+- Kitchen-ticket authorization is transition-specific: `HELD → FIRED` accepts `kitchen:update` or `orders:update`; kitchen production states require `kitchen:update`; `READY → SERVED` accepts `kitchen:update` or `orders:update_status`.
+- `CHEF` no longer receives broad `orders:update_status`; it keeps kitchen read/update plus the order/menu read capabilities required by KDS.
+- `FRANCHISE_ADMIN` explicitly includes payment collection/refund permissions now that GLOBAL OWNER permissions no longer bleed into tenant membership authorization.
+- `MANAGER` can collect payments but does not receive refund permission by default, and branch archival was removed from the default branch-scoped manager role.
+- `INVENTORY_MANAGER` includes `inventory:create` in addition to read/update/adjust/waste.
+- Runtime checks for nonexistent `roles:manage` were corrected to the existing `settings:update` permission where configuration changes are intended.
+- Reserved system role names cannot be reused by tenant custom roles. Application eligibility checks genuine system roles or a custom role's actual capabilities, so a custom role merely named `WAITER`/`CHEF` cannot spoof app eligibility.
+- Web no longer assumes every valid role can land on `/dashboard`; login/context switching chooses the first authorized route.
+- Shared Web layout requests are permission-aware: tenant-wide users with `branch:read` may load all branches, while roles without that permission do not make unauthorized `/branches` background requests.
+- Wrapped authorization errors are unwrapped by the global error handler so permission denials map to **403**, not **500**.
+
+Current local development CORS is also aligned with the four frontend applications: Web `5173`, Kitchen `5174`, Waiter `5175`, and Customer `5176`. The real `.env` is not intended for distribution; `.env.example` is the source-controlled reference.
+
+Automated guards:
+
+- `scripts/audit/rbac-static.sh` verifies protected surfaces keep explicit gates.
+- `scripts/audit/verify-permissions.mjs` verifies every runtime permission is seeded and critical system-role workflow permissions do not drift.
+- tenant custom roles are blocked from reserved system-role names at both service and database-constraint levels.
 
 ### Updated security verdict
 

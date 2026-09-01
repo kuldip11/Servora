@@ -8,6 +8,7 @@ import {
 } from "@/core/errors";
 import { writeAudit } from "@/core/audit";
 import { roleRepository } from "./role.repository";
+import { isReservedSystemRoleName } from "@/modules/permissions/constants/system-role-permissions";
 
 const normalizeName = (name: string) => {
   return name.trim().replace(/\s+/g, " ");
@@ -33,6 +34,9 @@ export const roleService = {
     requireRoleAdministration(auth, "roles:create");
     const name = normalizeName(input.name);
     if (!name) throw new ValidationError("Role name is required");
+    if (isReservedSystemRoleName(name)) {
+      throw new ConflictError("System role names are reserved");
+    }
     if (
       await roleRepository.findByNameAndScope(auth.tenantId, name, input.scope)
     ) {
@@ -66,6 +70,9 @@ export const roleService = {
       throw new ForbiddenError("System roles cannot be modified");
     if (input.name !== undefined) {
       const name = normalizeName(input.name);
+      if (isReservedSystemRoleName(name)) {
+        throw new ConflictError("System role names are reserved");
+      }
       const duplicate = await roleRepository.findByNameAndScope(
         auth.tenantId,
         name,

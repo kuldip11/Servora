@@ -113,6 +113,11 @@ describe("order presentational components", () => {
     ).toContain("Mark Round Served");
     expect(
       renderToStaticMarkup(
+        <TicketGroup ticket={readyTicket} isUpdating={false} />,
+      ),
+    ).not.toContain("Mark Round Served");
+    expect(
+      renderToStaticMarkup(
         <OrderActions
           order={order}
           canRequestBill={false}

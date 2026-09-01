@@ -157,7 +157,9 @@
         "permissions_key_unique": {
           "name": "permissions_key_unique",
           "nullsNotDistinct": false,
-          "columns": ["key"]
+          "columns": [
+            "key"
+          ]
         }
       },
       "policies": {},
@@ -189,7 +191,9 @@
         "menu_allergens_name_unique": {
           "name": "menu_allergens_name_unique",
           "nullsNotDistinct": false,
-          "columns": ["name"]
+          "columns": [
+            "name"
+          ]
         }
       },
       "policies": {},
@@ -309,7 +313,9 @@
         "payment_webhook_events_event_id_unique": {
           "name": "payment_webhook_events_event_id_unique",
           "nullsNotDistinct": false,
-          "columns": ["event_id"]
+          "columns": [
+            "event_id"
+          ]
         }
       },
       "policies": {},
@@ -383,8 +389,12 @@
           "name": "organizations_created_by_users_id_fk",
           "tableFrom": "organizations",
           "tableTo": "users",
-          "columnsFrom": ["created_by"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -486,8 +496,12 @@
           "name": "user_sessions_user_id_users_id_fk",
           "tableFrom": "user_sessions",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -602,8 +616,12 @@
           "name": "organization_memberships_user_id_users_id_fk",
           "tableFrom": "organization_memberships",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -612,8 +630,12 @@
           "name": "organization_memberships_organization_id_organizations_id_fk",
           "tableFrom": "organization_memberships",
           "tableTo": "organizations",
-          "columnsFrom": ["organization_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -739,8 +761,12 @@
           "name": "tenants_organization_id_organizations_id_fk",
           "tableFrom": "tenants",
           "tableTo": "organizations",
-          "columnsFrom": ["organization_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -956,8 +982,12 @@
           "name": "branches_tenant_id_tenants_id_fk",
           "tableFrom": "branches",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -968,7 +998,9 @@
         "branches_public_takeaway_qr_token_unique": {
           "name": "branches_public_takeaway_qr_token_unique",
           "nullsNotDistinct": false,
-          "columns": ["public_takeaway_qr_token"]
+          "columns": [
+            "public_takeaway_qr_token"
+          ]
         }
       },
       "policies": {},
@@ -1118,8 +1150,12 @@
           "name": "roles_tenant_id_tenants_id_fk",
           "tableFrom": "roles",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -1132,6 +1168,10 @@
         "roles_custom_scope_check": {
           "name": "roles_custom_scope_check",
           "value": "\"tenant_id\" IS NULL OR \"scope\" IN ('TENANT', 'BRANCH')"
+        },
+        "roles_reserved_system_name_check": {
+          "name": "roles_reserved_system_name_check",
+          "value": "\"tenant_id\" IS NULL OR upper(trim(\"name\")) NOT IN ('OWNER', 'FRANCHISE_ADMIN', 'MANAGER', 'CHEF', 'WAITER', 'CASHIER', 'INVENTORY_MANAGER', 'RECEPTIONIST', 'ACCOUNTANT')"
         }
       },
       "isRLSEnabled": false
@@ -1281,8 +1321,12 @@
           "name": "tenant_memberships_user_id_users_id_fk",
           "tableFrom": "tenant_memberships",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -1291,8 +1335,12 @@
           "name": "tenant_memberships_tenant_id_tenants_id_fk",
           "tableFrom": "tenant_memberships",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -1518,8 +1566,12 @@
           "name": "menus_tenant_id_tenants_id_fk",
           "tableFrom": "menus",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -1528,8 +1580,12 @@
           "name": "menus_organization_id_organizations_id_fk",
           "tableFrom": "menus",
           "tableTo": "organizations",
-          "columnsFrom": ["organization_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -1663,8 +1719,12 @@
           "name": "menu_change_events_tenant_id_tenants_id_fk",
           "tableFrom": "menu_change_events",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -1673,8 +1733,12 @@
           "name": "menu_change_events_changed_by_users_id_fk",
           "tableFrom": "menu_change_events",
           "tableTo": "users",
-          "columnsFrom": ["changed_by"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "changed_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -1761,8 +1825,12 @@
           "name": "combos_tenant_id_tenants_id_fk",
           "tableFrom": "combos",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -1817,8 +1885,12 @@
           "name": "menu_tags_tenant_id_tenants_id_fk",
           "tableFrom": "menu_tags",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -1907,8 +1979,12 @@
           "name": "holidays_tenant_id_tenants_id_fk",
           "tableFrom": "holidays",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -1992,8 +2068,12 @@
           "name": "menu_templates_tenant_id_tenants_id_fk",
           "tableFrom": "menu_templates",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -2098,8 +2178,12 @@
           "name": "customer_groups_tenant_id_tenants_id_fk",
           "tableFrom": "customer_groups",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -2218,8 +2302,12 @@
           "name": "cancellation_reasons_tenant_id_tenants_id_fk",
           "tableFrom": "cancellation_reasons",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -2340,8 +2428,12 @@
           "name": "waste_reasons_tenant_id_tenants_id_fk",
           "tableFrom": "waste_reasons",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -2459,8 +2551,12 @@
           "name": "customer_loyalty_tiers_tenant_id_tenants_id_fk",
           "tableFrom": "customer_loyalty_tiers",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -2469,8 +2565,12 @@
           "name": "customer_loyalty_tiers_organization_id_organizations_id_fk",
           "tableFrom": "customer_loyalty_tiers",
           "tableTo": "organizations",
-          "columnsFrom": ["organization_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -2570,8 +2670,12 @@
           "name": "void_comp_approval_thresholds_tenant_id_tenants_id_fk",
           "tableFrom": "void_comp_approval_thresholds",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -2684,8 +2788,12 @@
           "name": "manager_approval_tokens_tenant_id_tenants_id_fk",
           "tableFrom": "manager_approval_tokens",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -2694,8 +2802,12 @@
           "name": "manager_approval_tokens_approved_by_users_id_fk",
           "tableFrom": "manager_approval_tokens",
           "tableTo": "users",
-          "columnsFrom": ["approved_by"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "approved_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -2752,8 +2864,12 @@
           "name": "role_permissions_role_id_roles_id_fk",
           "tableFrom": "role_permissions",
           "tableTo": "roles",
-          "columnsFrom": ["role_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "role_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -2762,8 +2878,12 @@
           "name": "role_permissions_permission_id_permissions_id_fk",
           "tableFrom": "role_permissions",
           "tableTo": "permissions",
-          "columnsFrom": ["permission_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "permission_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -2827,8 +2947,12 @@
           "name": "global_user_roles_user_id_users_id_fk",
           "tableFrom": "global_user_roles",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -2837,8 +2961,12 @@
           "name": "global_user_roles_role_id_roles_id_fk",
           "tableFrom": "global_user_roles",
           "tableTo": "roles",
-          "columnsFrom": ["role_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "role_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -2932,8 +3060,12 @@
           "name": "membership_roles_membership_id_tenant_memberships_id_fk",
           "tableFrom": "membership_roles",
           "tableTo": "tenant_memberships",
-          "columnsFrom": ["membership_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "membership_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -2942,8 +3074,12 @@
           "name": "membership_roles_role_id_roles_id_fk",
           "tableFrom": "membership_roles",
           "tableTo": "roles",
-          "columnsFrom": ["role_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "role_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -3058,8 +3194,12 @@
           "name": "membership_branches_membership_id_tenant_memberships_id_fk",
           "tableFrom": "membership_branches",
           "tableTo": "tenant_memberships",
-          "columnsFrom": ["membership_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "membership_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -3068,8 +3208,12 @@
           "name": "membership_branches_tenant_id_tenants_id_fk",
           "tableFrom": "membership_branches",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -3078,8 +3222,12 @@
           "name": "membership_branches_branch_id_branches_id_fk",
           "tableFrom": "membership_branches",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -3088,8 +3236,14 @@
           "name": "membership_branches_branch_tenant_fk",
           "tableFrom": "membership_branches",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id", "tenant_id"],
-          "columnsTo": ["id", "tenant_id"],
+          "columnsFrom": [
+            "branch_id",
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id",
+            "tenant_id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -3208,8 +3362,12 @@
           "name": "refresh_tokens_user_id_users_id_fk",
           "tableFrom": "refresh_tokens",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -3218,8 +3376,12 @@
           "name": "refresh_tokens_membership_id_tenant_memberships_id_fk",
           "tableFrom": "refresh_tokens",
           "tableTo": "tenant_memberships",
-          "columnsFrom": ["membership_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "membership_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -3228,8 +3390,12 @@
           "name": "refresh_tokens_session_id_user_sessions_id_fk",
           "tableFrom": "refresh_tokens",
           "tableTo": "user_sessions",
-          "columnsFrom": ["session_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "session_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -3312,8 +3478,12 @@
           "name": "staff_shifts_user_id_users_id_fk",
           "tableFrom": "staff_shifts",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -3322,8 +3492,12 @@
           "name": "staff_shifts_branch_id_branches_id_fk",
           "tableFrom": "staff_shifts",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -3400,8 +3574,12 @@
           "name": "attendance_logs_user_id_users_id_fk",
           "tableFrom": "attendance_logs",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -3410,8 +3588,12 @@
           "name": "attendance_logs_branch_id_branches_id_fk",
           "tableFrom": "attendance_logs",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -3544,8 +3726,12 @@
           "name": "restaurant_tables_tenant_id_tenants_id_fk",
           "tableFrom": "restaurant_tables",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -3554,8 +3740,12 @@
           "name": "restaurant_tables_branch_id_branches_id_fk",
           "tableFrom": "restaurant_tables",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -3564,8 +3754,14 @@
           "name": "restaurant_tables_branch_tenant_fk",
           "tableFrom": "restaurant_tables",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id", "tenant_id"],
-          "columnsTo": ["id", "tenant_id"],
+          "columnsFrom": [
+            "branch_id",
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id",
+            "tenant_id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -3663,8 +3859,12 @@
           "name": "menu_categories_tenant_id_tenants_id_fk",
           "tableFrom": "menu_categories",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -3673,8 +3873,12 @@
           "name": "menu_categories_branch_id_branches_id_fk",
           "tableFrom": "menu_categories",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -3683,8 +3887,14 @@
           "name": "menu_categories_branch_tenant_fk",
           "tableFrom": "menu_categories",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id", "tenant_id"],
-          "columnsTo": ["id", "tenant_id"],
+          "columnsFrom": [
+            "branch_id",
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id",
+            "tenant_id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -3768,8 +3978,12 @@
           "name": "organization_menu_items_menu_id_menus_id_fk",
           "tableFrom": "organization_menu_items",
           "tableTo": "menus",
-          "columnsFrom": ["menu_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "menu_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -3887,8 +4101,12 @@
           "name": "modifier_groups_tenant_id_tenants_id_fk",
           "tableFrom": "modifier_groups",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -3897,8 +4115,12 @@
           "name": "modifier_groups_branch_id_branches_id_fk",
           "tableFrom": "modifier_groups",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -3907,8 +4129,12 @@
           "name": "modifier_groups_depends_on_option_id_modifier_options_id_fk",
           "tableFrom": "modifier_groups",
           "tableTo": "modifier_options",
-          "columnsFrom": ["depends_on_option_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "depends_on_option_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -3917,8 +4143,14 @@
           "name": "modifier_groups_branch_tenant_fk",
           "tableFrom": "modifier_groups",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id", "tenant_id"],
-          "columnsTo": ["id", "tenant_id"],
+          "columnsFrom": [
+            "branch_id",
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id",
+            "tenant_id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -4007,8 +4239,12 @@
           "name": "modifier_options_modifier_group_id_modifier_groups_id_fk",
           "tableFrom": "modifier_options",
           "tableTo": "modifier_groups",
-          "columnsFrom": ["modifier_group_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "modifier_group_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -4071,8 +4307,12 @@
           "name": "combo_slots_combo_id_combos_id_fk",
           "tableFrom": "combo_slots",
           "tableTo": "combos",
-          "columnsFrom": ["combo_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "combo_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -4193,8 +4433,12 @@
           "name": "menu_schedules_tenant_id_tenants_id_fk",
           "tableFrom": "menu_schedules",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -4203,8 +4447,12 @@
           "name": "menu_schedules_menu_id_menus_id_fk",
           "tableFrom": "menu_schedules",
           "tableTo": "menus",
-          "columnsFrom": ["menu_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "menu_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -4371,8 +4619,12 @@
           "name": "menu_template_items_template_id_menu_templates_id_fk",
           "tableFrom": "menu_template_items",
           "tableTo": "menu_templates",
-          "columnsFrom": ["template_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "template_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -4490,8 +4742,12 @@
           "name": "kitchen_stations_tenant_id_tenants_id_fk",
           "tableFrom": "kitchen_stations",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -4500,8 +4756,12 @@
           "name": "kitchen_stations_branch_id_branches_id_fk",
           "tableFrom": "kitchen_stations",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -4632,8 +4892,12 @@
           "name": "inventory_items_tenant_id_tenants_id_fk",
           "tableFrom": "inventory_items",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -4642,8 +4906,12 @@
           "name": "inventory_items_branch_id_branches_id_fk",
           "tableFrom": "inventory_items",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -4652,8 +4920,14 @@
           "name": "inventory_items_branch_tenant_fk",
           "tableFrom": "inventory_items",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id", "tenant_id"],
-          "columnsTo": ["id", "tenant_id"],
+          "columnsFrom": [
+            "branch_id",
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id",
+            "tenant_id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -4771,8 +5045,12 @@
           "name": "sub_recipes_tenant_id_tenants_id_fk",
           "tableFrom": "sub_recipes",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -4781,8 +5059,12 @@
           "name": "sub_recipes_branch_id_branches_id_fk",
           "tableFrom": "sub_recipes",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -4899,8 +5181,12 @@
           "name": "customers_tenant_id_tenants_id_fk",
           "tableFrom": "customers",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -4909,8 +5195,12 @@
           "name": "customers_loyalty_tier_id_customer_loyalty_tiers_id_fk",
           "tableFrom": "customers",
           "tableTo": "customer_loyalty_tiers",
-          "columnsFrom": ["loyalty_tier_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "loyalty_tier_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -5108,8 +5398,12 @@
           "name": "audit_logs_tenant_id_tenants_id_fk",
           "tableFrom": "audit_logs",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -5118,8 +5412,12 @@
           "name": "audit_logs_user_id_users_id_fk",
           "tableFrom": "audit_logs",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -5128,8 +5426,12 @@
           "name": "audit_logs_branch_id_branches_id_fk",
           "tableFrom": "audit_logs",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -5138,8 +5440,14 @@
           "name": "audit_logs_branch_tenant_fk",
           "tableFrom": "audit_logs",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id", "tenant_id"],
-          "columnsTo": ["id", "tenant_id"],
+          "columnsFrom": [
+            "branch_id",
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id",
+            "tenant_id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -5292,8 +5600,12 @@
           "name": "customer_sessions_tenant_id_tenants_id_fk",
           "tableFrom": "customer_sessions",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -5302,8 +5614,12 @@
           "name": "customer_sessions_branch_id_branches_id_fk",
           "tableFrom": "customer_sessions",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -5312,8 +5628,12 @@
           "name": "customer_sessions_table_id_restaurant_tables_id_fk",
           "tableFrom": "customer_sessions",
           "tableTo": "restaurant_tables",
-          "columnsFrom": ["table_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "table_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -5324,7 +5644,9 @@
         "customer_sessions_token_unique": {
           "name": "customer_sessions_token_unique",
           "nullsNotDistinct": false,
-          "columns": ["token"]
+          "columns": [
+            "token"
+          ]
         }
       },
       "policies": {},
@@ -5671,8 +5993,12 @@
           "name": "menu_items_tenant_id_tenants_id_fk",
           "tableFrom": "menu_items",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -5681,8 +6007,12 @@
           "name": "menu_items_branch_id_branches_id_fk",
           "tableFrom": "menu_items",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -5691,8 +6021,12 @@
           "name": "menu_items_category_id_menu_categories_id_fk",
           "tableFrom": "menu_items",
           "tableTo": "menu_categories",
-          "columnsFrom": ["category_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "category_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -5701,8 +6035,12 @@
           "name": "menu_items_manual_override_set_by_users_id_fk",
           "tableFrom": "menu_items",
           "tableTo": "users",
-          "columnsFrom": ["manual_override_set_by"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "manual_override_set_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -5824,8 +6162,12 @@
           "name": "sub_recipe_ingredients_sub_recipe_id_sub_recipes_id_fk",
           "tableFrom": "sub_recipe_ingredients",
           "tableTo": "sub_recipes",
-          "columnsFrom": ["sub_recipe_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "sub_recipe_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -5834,8 +6176,12 @@
           "name": "sub_recipe_ingredients_inventory_item_id_inventory_items_id_fk",
           "tableFrom": "sub_recipe_ingredients",
           "tableTo": "inventory_items",
-          "columnsFrom": ["inventory_item_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "inventory_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -5844,8 +6190,12 @@
           "name": "sub_recipe_ingredients_ingredient_sub_recipe_id_sub_recipes_id_fk",
           "tableFrom": "sub_recipe_ingredients",
           "tableTo": "sub_recipes",
-          "columnsFrom": ["ingredient_sub_recipe_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "ingredient_sub_recipe_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -5983,8 +6333,12 @@
           "name": "menu_memberships_menu_id_menus_id_fk",
           "tableFrom": "menu_memberships",
           "tableTo": "menus",
-          "columnsFrom": ["menu_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "menu_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -5993,8 +6347,12 @@
           "name": "menu_memberships_menu_item_id_menu_items_id_fk",
           "tableFrom": "menu_memberships",
           "tableTo": "menu_items",
-          "columnsFrom": ["menu_item_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "menu_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -6003,8 +6361,12 @@
           "name": "menu_memberships_category_id_menu_categories_id_fk",
           "tableFrom": "menu_memberships",
           "tableTo": "menu_categories",
-          "columnsFrom": ["category_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "category_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -6101,8 +6463,12 @@
           "name": "menu_item_variants_menu_item_id_menu_items_id_fk",
           "tableFrom": "menu_item_variants",
           "tableTo": "menu_items",
-          "columnsFrom": ["menu_item_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "menu_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -6149,8 +6515,12 @@
           "name": "menu_item_modifier_groups_menu_item_id_menu_items_id_fk",
           "tableFrom": "menu_item_modifier_groups",
           "tableTo": "menu_items",
-          "columnsFrom": ["menu_item_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "menu_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -6159,8 +6529,12 @@
           "name": "menu_item_modifier_groups_modifier_group_id_modifier_groups_id_fk",
           "tableFrom": "menu_item_modifier_groups",
           "tableTo": "modifier_groups",
-          "columnsFrom": ["modifier_group_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "modifier_group_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -6169,7 +6543,10 @@
       "compositePrimaryKeys": {
         "menu_item_modifier_groups_pk": {
           "name": "menu_item_modifier_groups_pk",
-          "columns": ["menu_item_id", "modifier_group_id"]
+          "columns": [
+            "menu_item_id",
+            "modifier_group_id"
+          ]
         }
       },
       "uniqueConstraints": {},
@@ -6200,8 +6577,12 @@
           "name": "menu_item_tags_menu_item_id_menu_items_id_fk",
           "tableFrom": "menu_item_tags",
           "tableTo": "menu_items",
-          "columnsFrom": ["menu_item_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "menu_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -6210,8 +6591,12 @@
           "name": "menu_item_tags_tag_id_menu_tags_id_fk",
           "tableFrom": "menu_item_tags",
           "tableTo": "menu_tags",
-          "columnsFrom": ["tag_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tag_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -6220,7 +6605,10 @@
       "compositePrimaryKeys": {
         "menu_item_tags_pk": {
           "name": "menu_item_tags_pk",
-          "columns": ["menu_item_id", "tag_id"]
+          "columns": [
+            "menu_item_id",
+            "tag_id"
+          ]
         }
       },
       "uniqueConstraints": {},
@@ -6251,8 +6639,12 @@
           "name": "menu_item_allergens_menu_item_id_menu_items_id_fk",
           "tableFrom": "menu_item_allergens",
           "tableTo": "menu_items",
-          "columnsFrom": ["menu_item_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "menu_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -6261,8 +6653,12 @@
           "name": "menu_item_allergens_allergen_id_menu_allergens_id_fk",
           "tableFrom": "menu_item_allergens",
           "tableTo": "menu_allergens",
-          "columnsFrom": ["allergen_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "allergen_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -6271,7 +6667,10 @@
       "compositePrimaryKeys": {
         "menu_item_allergens_pk": {
           "name": "menu_item_allergens_pk",
-          "columns": ["menu_item_id", "allergen_id"]
+          "columns": [
+            "menu_item_id",
+            "allergen_id"
+          ]
         }
       },
       "uniqueConstraints": {},
@@ -6316,8 +6715,12 @@
           "name": "menu_item_images_menu_item_id_menu_items_id_fk",
           "tableFrom": "menu_item_images",
           "tableTo": "menu_items",
-          "columnsFrom": ["menu_item_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "menu_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -6481,8 +6884,12 @@
           "name": "menu_item_schedules_tenant_id_tenants_id_fk",
           "tableFrom": "menu_item_schedules",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -6491,8 +6898,12 @@
           "name": "menu_item_schedules_menu_item_id_menu_items_id_fk",
           "tableFrom": "menu_item_schedules",
           "tableTo": "menu_items",
-          "columnsFrom": ["menu_item_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "menu_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -6501,8 +6912,12 @@
           "name": "menu_item_schedules_branch_id_branches_id_fk",
           "tableFrom": "menu_item_schedules",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -6511,8 +6926,14 @@
           "name": "menu_item_schedules_branch_tenant_fk",
           "tableFrom": "menu_item_schedules",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id", "tenant_id"],
-          "columnsTo": ["id", "tenant_id"],
+          "columnsFrom": [
+            "branch_id",
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id",
+            "tenant_id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -6654,8 +7075,12 @@
           "name": "menu_item_branch_overrides_tenant_id_tenants_id_fk",
           "tableFrom": "menu_item_branch_overrides",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -6664,8 +7089,12 @@
           "name": "menu_item_branch_overrides_menu_item_id_menu_items_id_fk",
           "tableFrom": "menu_item_branch_overrides",
           "tableTo": "menu_items",
-          "columnsFrom": ["menu_item_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "menu_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -6674,8 +7103,12 @@
           "name": "menu_item_branch_overrides_branch_id_branches_id_fk",
           "tableFrom": "menu_item_branch_overrides",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -6684,8 +7117,14 @@
           "name": "menu_item_branch_overrides_branch_tenant_fk",
           "tableFrom": "menu_item_branch_overrides",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id", "tenant_id"],
-          "columnsTo": ["id", "tenant_id"],
+          "columnsFrom": [
+            "branch_id",
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id",
+            "tenant_id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -6821,8 +7260,12 @@
           "name": "menu_item_channel_overrides_tenant_id_tenants_id_fk",
           "tableFrom": "menu_item_channel_overrides",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -6831,8 +7274,12 @@
           "name": "menu_item_channel_overrides_menu_item_id_menu_items_id_fk",
           "tableFrom": "menu_item_channel_overrides",
           "tableTo": "menu_items",
-          "columnsFrom": ["menu_item_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "menu_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -6948,8 +7395,12 @@
           "name": "item_station_routing_menu_item_id_menu_items_id_fk",
           "tableFrom": "item_station_routing",
           "tableTo": "menu_items",
-          "columnsFrom": ["menu_item_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "menu_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -6958,8 +7409,12 @@
           "name": "item_station_routing_station_id_kitchen_stations_id_fk",
           "tableFrom": "item_station_routing",
           "tableTo": "kitchen_stations",
-          "columnsFrom": ["station_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "station_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -6968,8 +7423,12 @@
           "name": "item_station_routing_modifier_option_id_modifier_options_id_fk",
           "tableFrom": "item_station_routing",
           "tableTo": "modifier_options",
-          "columnsFrom": ["modifier_option_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "modifier_option_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -7197,8 +7656,12 @@
           "name": "promotions_tenant_id_tenants_id_fk",
           "tableFrom": "promotions",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -7207,8 +7670,12 @@
           "name": "promotions_scope_category_id_menu_categories_id_fk",
           "tableFrom": "promotions",
           "tableTo": "menu_categories",
-          "columnsFrom": ["scope_category_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "scope_category_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -7217,8 +7684,12 @@
           "name": "promotions_scope_menu_item_id_menu_items_id_fk",
           "tableFrom": "promotions",
           "tableTo": "menu_items",
-          "columnsFrom": ["scope_menu_item_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "scope_menu_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -7227,8 +7698,12 @@
           "name": "promotions_trigger_menu_item_id_menu_items_id_fk",
           "tableFrom": "promotions",
           "tableTo": "menu_items",
-          "columnsFrom": ["trigger_menu_item_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "trigger_menu_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -7237,8 +7712,12 @@
           "name": "promotions_trigger_category_id_menu_categories_id_fk",
           "tableFrom": "promotions",
           "tableTo": "menu_categories",
-          "columnsFrom": ["trigger_category_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "trigger_category_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -7247,8 +7726,12 @@
           "name": "promotions_reward_menu_item_id_menu_items_id_fk",
           "tableFrom": "promotions",
           "tableTo": "menu_items",
-          "columnsFrom": ["reward_menu_item_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "reward_menu_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -7257,8 +7740,12 @@
           "name": "promotions_reward_category_id_menu_categories_id_fk",
           "tableFrom": "promotions",
           "tableTo": "menu_categories",
-          "columnsFrom": ["reward_category_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "reward_category_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -7370,8 +7857,12 @@
           "name": "modifier_option_variant_prices_modifier_option_id_modifier_options_id_fk",
           "tableFrom": "modifier_option_variant_prices",
           "tableTo": "modifier_options",
-          "columnsFrom": ["modifier_option_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "modifier_option_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -7380,8 +7871,12 @@
           "name": "modifier_option_variant_prices_variant_id_menu_item_variants_id_fk",
           "tableFrom": "modifier_option_variant_prices",
           "tableTo": "menu_item_variants",
-          "columnsFrom": ["variant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "variant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -7443,8 +7938,12 @@
           "name": "combo_slot_options_slot_id_combo_slots_id_fk",
           "tableFrom": "combo_slot_options",
           "tableTo": "combo_slots",
-          "columnsFrom": ["slot_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "slot_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -7453,8 +7952,12 @@
           "name": "combo_slot_options_menu_item_id_menu_items_id_fk",
           "tableFrom": "combo_slot_options",
           "tableTo": "menu_items",
-          "columnsFrom": ["menu_item_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "menu_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -7463,8 +7966,12 @@
           "name": "combo_slot_options_variant_id_menu_item_variants_id_fk",
           "tableFrom": "combo_slot_options",
           "tableTo": "menu_item_variants",
-          "columnsFrom": ["variant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "variant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -7707,8 +8214,12 @@
           "name": "price_rules_tenant_id_tenants_id_fk",
           "tableFrom": "price_rules",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -7717,8 +8228,12 @@
           "name": "price_rules_organization_id_organizations_id_fk",
           "tableFrom": "price_rules",
           "tableTo": "organizations",
-          "columnsFrom": ["organization_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -7727,8 +8242,12 @@
           "name": "price_rules_menu_item_id_menu_items_id_fk",
           "tableFrom": "price_rules",
           "tableTo": "menu_items",
-          "columnsFrom": ["menu_item_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "menu_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -7737,8 +8256,12 @@
           "name": "price_rules_variant_id_menu_item_variants_id_fk",
           "tableFrom": "price_rules",
           "tableTo": "menu_item_variants",
-          "columnsFrom": ["variant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "variant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -7747,8 +8270,12 @@
           "name": "price_rules_branch_id_branches_id_fk",
           "tableFrom": "price_rules",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -7757,8 +8284,12 @@
           "name": "price_rules_customer_group_id_customer_groups_id_fk",
           "tableFrom": "price_rules",
           "tableTo": "customer_groups",
-          "columnsFrom": ["customer_group_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "customer_group_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -8103,8 +8634,12 @@
           "name": "recipes_menu_item_id_menu_items_id_fk",
           "tableFrom": "recipes",
           "tableTo": "menu_items",
-          "columnsFrom": ["menu_item_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "menu_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -8113,8 +8648,12 @@
           "name": "recipes_inventory_item_id_inventory_items_id_fk",
           "tableFrom": "recipes",
           "tableTo": "inventory_items",
-          "columnsFrom": ["inventory_item_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "inventory_item_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -8123,8 +8662,12 @@
           "name": "recipes_sub_recipe_id_sub_recipes_id_fk",
           "tableFrom": "recipes",
           "tableTo": "sub_recipes",
-          "columnsFrom": ["sub_recipe_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "sub_recipe_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -8133,8 +8676,12 @@
           "name": "recipes_variant_id_menu_item_variants_id_fk",
           "tableFrom": "recipes",
           "tableTo": "menu_item_variants",
-          "columnsFrom": ["variant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "variant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -8143,8 +8690,12 @@
           "name": "recipes_modifier_option_id_modifier_options_id_fk",
           "tableFrom": "recipes",
           "tableTo": "modifier_options",
-          "columnsFrom": ["modifier_option_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "modifier_option_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -8497,8 +9048,12 @@
           "name": "orders_tenant_id_tenants_id_fk",
           "tableFrom": "orders",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -8507,8 +9062,12 @@
           "name": "orders_branch_id_branches_id_fk",
           "tableFrom": "orders",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -8517,8 +9076,12 @@
           "name": "orders_table_id_restaurant_tables_id_fk",
           "tableFrom": "orders",
           "tableTo": "restaurant_tables",
-          "columnsFrom": ["table_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "table_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -8527,8 +9090,12 @@
           "name": "orders_customer_group_id_customer_groups_id_fk",
           "tableFrom": "orders",
           "tableTo": "customer_groups",
-          "columnsFrom": ["customer_group_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "customer_group_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -8537,8 +9104,12 @@
           "name": "orders_merged_into_order_id_orders_id_fk",
           "tableFrom": "orders",
           "tableTo": "orders",
-          "columnsFrom": ["merged_into_order_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "merged_into_order_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -8547,8 +9118,12 @@
           "name": "orders_created_by_users_id_fk",
           "tableFrom": "orders",
           "tableTo": "users",
-          "columnsFrom": ["created_by"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -8557,8 +9132,12 @@
           "name": "orders_customer_session_id_customer_sessions_id_fk",
           "tableFrom": "orders",
           "tableTo": "customer_sessions",
-          "columnsFrom": ["customer_session_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "customer_session_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -8567,8 +9146,12 @@
           "name": "orders_per_cover_price_rule_id_price_rules_id_fk",
           "tableFrom": "orders",
           "tableTo": "price_rules",
-          "columnsFrom": ["per_cover_price_rule_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "per_cover_price_rule_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -8577,8 +9160,14 @@
           "name": "orders_branch_tenant_fk",
           "tableFrom": "orders",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id", "tenant_id"],
-          "columnsTo": ["id", "tenant_id"],
+          "columnsFrom": [
+            "branch_id",
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id",
+            "tenant_id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -8682,8 +9271,12 @@
           "name": "order_courses_order_id_orders_id_fk",
           "tableFrom": "order_courses",
           "tableTo": "orders",
-          "columnsFrom": ["order_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "order_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -8761,8 +9354,12 @@
           "name": "order_status_history_order_id_orders_id_fk",
           "tableFrom": "order_status_history",
           "tableTo": "orders",
-          "columnsFrom": ["order_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "order_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -8771,8 +9368,12 @@
           "name": "order_status_history_changed_by_users_id_fk",
           "tableFrom": "order_status_history",
           "tableTo": "users",
-          "columnsFrom": ["changed_by"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "changed_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "no action",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -8781,8 +9382,12 @@
           "name": "order_status_history_cancellation_reason_id_cancellation_reasons_id_fk",
           "tableFrom": "order_status_history",
           "tableTo": "cancellation_reasons",
-          "columnsFrom": ["cancellation_reason_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "cancellation_reason_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -8907,8 +9512,12 @@
           "name": "promotion_redemptions_promotion_id_promotions_id_fk",
           "tableFrom": "promotion_redemptions",
           "tableTo": "promotions",
-          "columnsFrom": ["promotion_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "promotion_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -8917,8 +9526,12 @@
           "name": "promotion_redemptions_order_id_orders_id_fk",
           "tableFrom": "promotion_redemptions",
           "tableTo": "orders",
-          "columnsFrom": ["order_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "order_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -9012,8 +9625,12 @@
           "name": "bills_order_id_orders_id_fk",
           "tableFrom": "bills",
           "tableTo": "orders",
-          "columnsFrom": ["order_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "order_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -9149,8 +9766,12 @@
           "name": "customer_requests_tenant_id_tenants_id_fk",
           "tableFrom": "customer_requests",
           "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "tenant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -9159,8 +9780,12 @@
           "name": "customer_requests_branch_id_branches_id_fk",
           "tableFrom": "customer_requests",
           "tableTo": "branches",
-          "columnsFrom": ["branch_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -9169,8 +9794,12 @@
           "name": "customer_requests_table_id_restaurant_tables_id_fk",
           "tableFrom": "customer_requests",
           "tableTo": "restaurant_tables",
-          "columnsFrom": ["table_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "table_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -9179,8 +9808,12 @@
           "name": "customer_requests_customer_session_id_customer_sessions_id_fk",
           "tableFrom": "customer_requests",
           "tableTo": "customer_sessions",
-          "columnsFrom": ["customer_session_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "customer_session_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -9189,8 +9822,12 @@
           "name": "customer_requests_order_id_orders_id_fk",
           "tableFrom": "customer_requests",
           "tableTo": "orders",
-          "columnsFrom": ["order_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "order_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -9199,8 +9836,12 @@
           "name": "customer_requests_resolved_by_users_id_fk",
           "tableFrom": "customer_requests",
           "tableTo": "users",
-          "columnsFrom": ["resolved_by"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "resolved_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "set null",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -9217,92 +9858,163 @@
     "public.user_status": {
       "name": "user_status",
       "schema": "public",
-      "values": ["ACTIVE", "INACTIVE", "SUSPENDED"]
+      "values": [
+        "ACTIVE",
+        "INACTIVE",
+        "SUSPENDED"
+      ]
     },
     "public.tax_mode": {
       "name": "tax_mode",
       "schema": "public",
-      "values": ["INCLUSIVE", "EXCLUSIVE"]
+      "values": [
+        "INCLUSIVE",
+        "EXCLUSIVE"
+      ]
     },
     "public.rounding_policy": {
       "name": "rounding_policy",
       "schema": "public",
-      "values": ["NONE", "NEAREST_1", "NEAREST_5", "NEAREST_10"]
+      "values": [
+        "NONE",
+        "NEAREST_1",
+        "NEAREST_5",
+        "NEAREST_10"
+      ]
     },
     "public.role_scope": {
       "name": "role_scope",
       "schema": "public",
-      "values": ["GLOBAL", "TENANT", "BRANCH"]
+      "values": [
+        "GLOBAL",
+        "TENANT",
+        "BRANCH"
+      ]
     },
     "public.membership_status": {
       "name": "membership_status",
       "schema": "public",
-      "values": ["ACTIVE", "INACTIVE", "SUSPENDED"]
+      "values": [
+        "ACTIVE",
+        "INACTIVE",
+        "SUSPENDED"
+      ]
     },
     "public.table_status": {
       "name": "table_status",
       "schema": "public",
-      "values": ["AVAILABLE", "OCCUPIED", "CLEANING", "RESERVED"]
+      "values": [
+        "AVAILABLE",
+        "OCCUPIED",
+        "CLEANING",
+        "RESERVED"
+      ]
     },
     "public.customer_session_mode": {
       "name": "customer_session_mode",
       "schema": "public",
-      "values": ["DINE_IN", "TAKEAWAY"]
+      "values": [
+        "DINE_IN",
+        "TAKEAWAY"
+      ]
     },
     "public.menu_item_status": {
       "name": "menu_item_status",
       "schema": "public",
-      "values": ["ACTIVE", "OUT_OF_STOCK", "HIDDEN", "SEASONAL", "DISCONTINUED"]
+      "values": [
+        "ACTIVE",
+        "OUT_OF_STOCK",
+        "HIDDEN",
+        "SEASONAL",
+        "DISCONTINUED"
+      ]
     },
     "public.food_type": {
       "name": "food_type",
       "schema": "public",
-      "values": ["VEG", "NON_VEG", "EGG"]
+      "values": [
+        "VEG",
+        "NON_VEG",
+        "EGG"
+      ]
     },
     "public.menu_item_display_mode": {
       "name": "menu_item_display_mode",
       "schema": "public",
-      "values": ["STANDARD", "GUIDED_BUILDER"]
+      "values": [
+        "STANDARD",
+        "GUIDED_BUILDER"
+      ]
     },
     "public.spice_level": {
       "name": "spice_level",
       "schema": "public",
-      "values": ["NONE", "MILD", "MEDIUM", "HOT"]
+      "values": [
+        "NONE",
+        "MILD",
+        "MEDIUM",
+        "HOT"
+      ]
     },
     "public.modifier_selection_type": {
       "name": "modifier_selection_type",
       "schema": "public",
-      "values": ["SINGLE", "MULTIPLE"]
+      "values": [
+        "SINGLE",
+        "MULTIPLE"
+      ]
     },
     "public.modifier_group_type": {
       "name": "modifier_group_type",
       "schema": "public",
-      "values": ["ADDON", "SUBSTITUTION"]
+      "values": [
+        "ADDON",
+        "SUBSTITUTION"
+      ]
     },
     "public.combo_price_policy": {
       "name": "combo_price_policy",
       "schema": "public",
-      "values": ["FIXED", "PERCENT_OFF_SUM"]
+      "values": [
+        "FIXED",
+        "PERCENT_OFF_SUM"
+      ]
     },
     "public.zone_pricing_rule": {
       "name": "zone_pricing_rule",
       "schema": "public",
-      "values": ["AVERAGE", "HIGHER", "SUM_HALF"]
+      "values": [
+        "AVERAGE",
+        "HIGHER",
+        "SUM_HALF"
+      ]
     },
     "public.pricing_mode": {
       "name": "pricing_mode",
       "schema": "public",
-      "values": ["FIXED", "WEIGHT_BASED", "OPEN"]
+      "values": [
+        "FIXED",
+        "WEIGHT_BASED",
+        "OPEN"
+      ]
     },
     "public.weight_unit": {
       "name": "weight_unit",
       "schema": "public",
-      "values": ["G", "KG", "LB", "OZ"]
+      "values": [
+        "G",
+        "KG",
+        "LB",
+        "OZ"
+      ]
     },
     "public.menu_status": {
       "name": "menu_status",
       "schema": "public",
-      "values": ["DRAFT", "PUBLISHED"]
+      "values": [
+        "DRAFT",
+        "PUBLISHED"
+      ]
     },
     "public.menu_change_entity_type": {
       "name": "menu_change_entity_type",
@@ -9327,37 +10039,68 @@
     "public.menu_change_type": {
       "name": "menu_change_type",
       "schema": "public",
-      "values": ["CREATED", "UPDATED", "PUBLISHED", "ARCHIVED", "DELETED"]
+      "values": [
+        "CREATED",
+        "UPDATED",
+        "PUBLISHED",
+        "ARCHIVED",
+        "DELETED"
+      ]
     },
     "public.menu_item_schedule_type": {
       "name": "menu_item_schedule_type",
       "schema": "public",
-      "values": ["DAILY", "WEEKLY", "SPECIFIC_DATE", "HOLIDAY"]
+      "values": [
+        "DAILY",
+        "WEEKLY",
+        "SPECIFIC_DATE",
+        "HOLIDAY"
+      ]
     },
     "public.order_source": {
       "name": "order_source",
       "schema": "public",
-      "values": ["STAFF", "CUSTOMER_QR"]
+      "values": [
+        "STAFF",
+        "CUSTOMER_QR"
+      ]
     },
     "public.order_type": {
       "name": "order_type",
       "schema": "public",
-      "values": ["DINE_IN", "TAKEAWAY", "DELIVERY", "ONLINE"]
+      "values": [
+        "DINE_IN",
+        "TAKEAWAY",
+        "DELIVERY",
+        "ONLINE"
+      ]
     },
     "public.cover_tier": {
       "name": "cover_tier",
       "schema": "public",
-      "values": ["ADULT", "CHILD"]
+      "values": [
+        "ADULT",
+        "CHILD"
+      ]
     },
     "public.order_status": {
       "name": "order_status",
       "schema": "public",
-      "values": ["OPEN", "BILL_REQUESTED", "PAID", "CLOSED", "CANCELLED"]
+      "values": [
+        "OPEN",
+        "BILL_REQUESTED",
+        "PAID",
+        "CLOSED",
+        "CANCELLED"
+      ]
     },
     "public.billing_mode": {
       "name": "billing_mode",
       "schema": "public",
-      "values": ["LINE_ITEMS", "PER_COVER"]
+      "values": [
+        "LINE_ITEMS",
+        "PER_COVER"
+      ]
     },
     "public.kitchen_ticket_status": {
       "name": "kitchen_ticket_status",
@@ -9374,62 +10117,118 @@
     "public.order_item_fulfillment_type": {
       "name": "order_item_fulfillment_type",
       "schema": "public",
-      "values": ["DINE_IN", "TAKEAWAY"]
+      "values": [
+        "DINE_IN",
+        "TAKEAWAY"
+      ]
     },
     "public.order_item_status": {
       "name": "order_item_status",
       "schema": "public",
-      "values": ["ACTIVE", "VOIDED", "COMPED", "REFIRED"]
+      "values": [
+        "ACTIVE",
+        "VOIDED",
+        "COMPED",
+        "REFIRED"
+      ]
     },
     "public.refire_type": {
       "name": "refire_type",
       "schema": "public",
-      "values": ["REFIRE", "REFILL"]
+      "values": [
+        "REFIRE",
+        "REFILL"
+      ]
     },
     "public.inventory_unit": {
       "name": "inventory_unit",
       "schema": "public",
-      "values": ["KG", "GRAMS", "LITERS", "ML", "PIECES", "PACKETS"]
+      "values": [
+        "KG",
+        "GRAMS",
+        "LITERS",
+        "ML",
+        "PIECES",
+        "PACKETS"
+      ]
     },
     "public.inventory_transaction_type": {
       "name": "inventory_transaction_type",
       "schema": "public",
-      "values": ["IN", "OUT", "ADJUSTMENT", "WASTE"]
+      "values": [
+        "IN",
+        "OUT",
+        "ADJUSTMENT",
+        "WASTE"
+      ]
     },
     "public.promotion_rule_type": {
       "name": "promotion_rule_type",
       "schema": "public",
-      "values": ["PERCENTAGE", "FIXED_AMOUNT", "BOGO"]
+      "values": [
+        "PERCENTAGE",
+        "FIXED_AMOUNT",
+        "BOGO"
+      ]
     },
     "public.promotion_scope": {
       "name": "promotion_scope",
       "schema": "public",
-      "values": ["ORDER", "CATEGORY", "ITEM"]
+      "values": [
+        "ORDER",
+        "CATEGORY",
+        "ITEM"
+      ]
     },
     "public.void_comp_action": {
       "name": "void_comp_action",
       "schema": "public",
-      "values": ["VOID", "COMP"]
+      "values": [
+        "VOID",
+        "COMP"
+      ]
     },
     "public.payment_method": {
       "name": "payment_method",
       "schema": "public",
-      "values": ["CASH", "CARD", "UPI", "RAZORPAY", "STRIPE"]
+      "values": [
+        "CASH",
+        "CARD",
+        "UPI",
+        "RAZORPAY",
+        "STRIPE"
+      ]
     },
     "public.payment_status": {
       "name": "payment_status",
       "schema": "public",
-      "values": ["PENDING", "SUCCESS", "FAILED", "REFUNDED"]
+      "values": [
+        "PENDING",
+        "SUCCESS",
+        "FAILED",
+        "REFUNDED"
+      ]
     },
     "public.customer_request_type": {
       "name": "customer_request_type",
       "schema": "public",
-      "values": ["CALL_WAITER", "WATER", "CUTLERY", "BILL", "ASSISTANCE"]
+      "values": [
+        "CALL_WAITER",
+        "WATER",
+        "CUTLERY",
+        "BILL",
+        "ASSISTANCE"
+      ]
     },
     "public.customer_request_status": {
       "name": "customer_request_status",
       "schema": "public",
-      "values": ["OPEN", "ACKNOWLEDGED", "RESOLVED", "CANCELLED"]
+      "values": [
+        "OPEN",
+        "ACKNOWLEDGED",
+        "RESOLVED",
+        "CANCELLED"
+      ]
     }
   },
   "schemas": {},

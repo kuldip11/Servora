@@ -8,7 +8,7 @@ Servora is a pre-production, multi-tenant restaurant operating platform built as
 
 ## Product roadmap
 
-Future product opportunities are captured in [`PRODUCT_FEATURE_ROADMAP.md`](./PRODUCT_FEATURE_ROADMAP.md). Security findings, remediation history, and remaining production-certification work are tracked in [`SECURITY_AUDIT.md`](./SECURITY_AUDIT.md). The Menu subsystem audit, verified capabilities, fixes, and remaining UX gaps are tracked in [`MENU_FEATURE_AUDIT.md`](./MENU_FEATURE_AUDIT.md).
+Future product opportunities are captured in [`PRODUCT_FEATURE_ROADMAP.md`](./PRODUCT_FEATURE_ROADMAP.md). Security findings, remediation history, and remaining production-certification work are tracked in [`SECURITY_AUDIT.md`](./SECURITY_AUDIT.md). The Menu subsystem audit, verified capabilities, fixes, and remaining UX gaps are tracked in [`MENU_FEATURE_AUDIT.md`](./MENU_FEATURE_AUDIT.md). The next planned implementation workstream for Business management, Profile, context persistence, and Order round operations is documented in [`BUSINESS_PROFILE_ORDER_OPERATIONS_PLAN.md`](./BUSINESS_PROFILE_ORDER_OPERATIONS_PLAN.md).
 
 ## Applications
 
@@ -70,7 +70,8 @@ Future product opportunities are captured in [`PRODUCT_FEATURE_ROADMAP.md`](./PR
 ├── README.md
 ├── PRODUCT_FEATURE_ROADMAP.md
 ├── SECURITY_AUDIT.md
-└── MENU_FEATURE_AUDIT.md
+├── MENU_FEATURE_AUDIT.md
+└── BUSINESS_PROFILE_ORDER_OPERATIONS_PLAN.md
 ```
 
 ## Local setup
@@ -82,6 +83,14 @@ bun install
 ```
 
 Create the required environment files from each application's `.env.example` and configure local PostgreSQL/Redis URLs and development secrets.
+
+For the local multi-app setup, the API must trust all four frontend origins:
+
+```env
+CORS_ORIGIN=http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176
+```
+
+The checked-in `apps/api/.env.example` already contains this value. Keep production CORS explicit as well; do not use `*`.
 
 Start infrastructure when using the local Compose stack:
 
@@ -167,5 +176,6 @@ The active repository intentionally keeps only active, maintained Markdown docum
 - `PRODUCT_FEATURE_ROADMAP.md` — product ideas reserved for later prioritization.
 - `SECURITY_AUDIT.md` — security findings, remediation status, and production-certification follow-up.
 - `MENU_FEATURE_AUDIT.md` — Menu capability matrix, confirmed fixes, UX gaps, and Menu production-certification follow-up.
+- `BUSINESS_PROFILE_ORDER_OPERATIONS_PLAN.md` — planned next workstream covering `/business`, onboarding, context persistence, `/profile`, and management-role Order round operations. This document describes future work and is not an implementation-status claim.
 
 Historical engineering reviews, implementation-status reports, phase plans, runbooks, completion notes, and audit commentary are not retained in the active source tree. Operational runbook content that becomes necessary for production should be represented by executable scripts/configuration or reintroduced only when it is an active release requirement.

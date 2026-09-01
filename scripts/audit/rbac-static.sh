@@ -39,7 +39,10 @@ require_pattern apps/api/src/modules/inventory/inventory-stock.service.ts 'requi
 
 # Kitchen-operations surfaces.
 require_pattern apps/api/src/modules/kitchen-tickets/ticket.service.ts 'requireKitchenPermission(auth, "kitchen:read")' 'Station-filtered KDS reads require kitchen:read'
-require_pattern apps/api/src/modules/kitchen-tickets/ticket.service.ts 'requireKitchenPermission(auth, "kitchen:update")' 'Kitchen status/course fire requires kitchen:update'
+require_pattern apps/api/src/modules/kitchen-tickets/ticket.service.ts 'requireKitchenStatusPermission(auth, newStatus)' 'Kitchen ticket status changes use transition-specific RBAC'
+require_pattern apps/api/src/modules/kitchen-tickets/ticket-authorization.ts 'auth.permissions.includes("orders:update_status")' 'Waiter SERVED transition accepts orders:update_status'
+require_pattern apps/api/src/modules/kitchen-tickets/ticket-authorization.ts 'newStatus === "FIRED" && auth.permissions.includes("orders:update")' 'Waiter held-course fire accepts orders:update'
+require_pattern apps/api/src/modules/kitchen-tickets/ticket-authorization.ts 'auth.permissions.includes("kitchen:update")' 'Kitchen production transitions require kitchen:update'
 require_pattern apps/api/src/modules/orders/order-kitchen.service.ts 'requireOrdersPermission(auth, "orders:update")' 'Refire item writes require orders:update'
 require_pattern apps/api/src/modules/orders/order-fire.service.ts 'requireOrdersPermission(auth, "orders:update")' 'Later-round course writes require orders:update'
 require_pattern apps/api/src/modules/orders/order-kitchen.service.ts 'if (alsoCompOriginal) requireOrdersPermission(auth, "orders:comp")' 'Refire comp-original path requires orders:comp'

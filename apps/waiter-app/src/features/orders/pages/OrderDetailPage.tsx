@@ -230,7 +230,11 @@ export const OrderDetailPage = ({ orderId, onBack, onAddItems }: Props) => {
           <TicketGroup
             key={ticket.id}
             ticket={ticket}
-            onMarkServed={handleMarkServed}
+            onMarkServed={
+              hasPermission("orders:update_status")
+                ? handleMarkServed
+                : undefined
+            }
             isUpdating={isTicketUpdating(ticket.id)}
             canVoid={order.status === "OPEN" && hasPermission("orders:void")}
             canComp={order.status === "OPEN" && hasPermission("orders:comp")}
@@ -238,7 +242,7 @@ export const OrderDetailPage = ({ orderId, onBack, onAddItems }: Props) => {
               setReasonAction({ type: action, itemId })
             }
             onFireHeld={
-              order.status === "OPEN" && hasPermission("kitchen:update")
+              order.status === "OPEN" && hasPermission("orders:update")
                 ? (ticketId) =>
                     updateTicketStatus.mutate({ ticketId, status: "FIRED" })
                 : undefined

@@ -26,6 +26,9 @@ beforeEach(() => {
     memberships: [membership],
     membershipId: "m1",
     branchId: null,
+    user: {
+      roles: [{ permissions: [{ key: "branch:read" }] }],
+    },
     setContext,
   });
   useBranches.mockReturnValue({

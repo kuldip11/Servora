@@ -28,7 +28,6 @@ import { cn } from "@/shared/utils";
 import { Dialog, SkipLink, toast } from "@pos/ui";
 import { BranchSwitcher } from "./BranchSwitcher";
 import { TenantSwitcher } from "./TenantSwitcher";
-import { useBranches } from "@/features/branches/hooks/useBranches";
 import { usePermissions } from "@/shared/auth/permissions";
 import { RealtimeNotifications } from "./RealtimeNotifications";
 import { authService } from "@/features/auth/services/auth.service";
@@ -100,7 +99,7 @@ const navItems = [
 ];
 
 export const DashboardLayout = () => {
-  const { user, branchId, logout } = useAuthStore();
+  const { user, branchId, memberships, membershipId, logout } = useAuthStore();
   const { has } = usePermissions();
   const router = useRouter();
   const pathname = useRouterState({
@@ -122,12 +121,13 @@ export const DashboardLayout = () => {
     requestAnimationFrame(() => mobileNavTriggerRef.current?.focus());
   }
 
-  const { data: branchesInScope } = useBranches({
-    enabled: !!branchId && branchId !== "all",
-  });
-
+  const activeMembership = memberships.find(
+    (membership) => membership.membershipId === membershipId,
+  );
   const currentBranch =
-    branchesInScope?.length === 1 ? branchesInScope[0] : undefined;
+    branchId && branchId !== "all"
+      ? activeMembership?.branches.find((branch) => branch.id === branchId)
+      : undefined;
   const tablesHidden =
     branchId !== "all" && currentBranch ? !currentBranch.tablesEnabled : false;
 

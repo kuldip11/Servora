@@ -14,6 +14,7 @@ import { ticketNotFound, branchRequired } from "./ticket.errors";
 import {
   assertKitchenTicketAccess,
   requireKitchenPermission,
+  requireKitchenStatusPermission,
 } from "./ticket-authorization";
 
 export const ticketService = {
@@ -43,7 +44,7 @@ export const ticketService = {
     ticketId: string,
     newStatus: KitchenTicketStatus,
   ) {
-    requireKitchenPermission(auth, "kitchen:update");
+    requireKitchenStatusPermission(auth, newStatus);
     const current = await ticketRepository.findById(auth.tenantId, ticketId);
     if (!current) throw ticketNotFound(ticketId);
     assertKitchenTicketAccess(auth, current.branchId);

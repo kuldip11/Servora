@@ -6,11 +6,12 @@ export const cancellationReasonKeys = {
   active: ["cancellation-reasons", "active"] as const,
 };
 
-export const useCancellationReasons = (activeOnly = true) => {
+export const useCancellationReasons = (activeOnly = true, enabled = true) => {
   return useQuery({
     queryKey: activeOnly
       ? cancellationReasonKeys.active
       : cancellationReasonKeys.all,
+    enabled,
     queryFn: () =>
       activeOnly
         ? cancellationReasonsService.list(true)

@@ -2,10 +2,11 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { authRepository } from "./auth.repository";
 import { listUserMemberships } from "@/core/auth/membership-context";
+import { resolveAuthorization, resolveMembership } from "@/core/auth/authorization";
 import { db } from "@/db";
 import { ConflictError, ForbiddenError } from "@/core/errors";
 import { signAccessToken } from "@/lib/jwt";
-import { hasAppRoleAccess, type AuthApp } from "./auth-app";
+import { hasAppRoleAccess, hasMembershipAppAccess, type AuthApp } from "./auth-app";
 import type { SignupInput, LoginInput } from "@pos/validation";
 import {
   invalidCredentials,
@@ -19,19 +20,39 @@ const hashToken = (token: string): string => {
   return crypto.createHash("sha256").update(token).digest("hex");
 };
 
+const membershipHasAppAccess = async (
+  userId: string,
+  tenantId: string,
+  app: AuthApp,
+): Promise<boolean> => {
+  const membership = await resolveMembership(db, userId, tenantId);
+  if (!membership) return false;
+  const decision = await resolveAuthorization(db, { userId, tenantId });
+  if (!decision.allowed) return false;
+  return hasMembershipAppAccess(
+    app,
+    membership.roles.map((item) => ({
+      name: item.role?.name ?? item.roleId,
+      isSystem: item.role?.isSystem ?? false,
+    })),
+    decision.permissionKeys,
+  );
+};
+
 const assertUserAppAccess = async (
   user: NonNullable<Awaited<ReturnType<typeof authRepository.findUserById>>>,
   app: AuthApp,
 ): Promise<void> => {
   const globalRoleNames = user.globalUserRoles.map((item) => item.role.name);
+  if (hasAppRoleAccess(app, globalRoleNames)) return;
+
   const memberships = await listUserMemberships(db, user.id);
-  const membershipRoleNames = memberships.flatMap((membership) =>
-    membership.roles.map((role) => role.name),
+  const access = await Promise.all(
+    memberships.map((membership) =>
+      membershipHasAppAccess(user.id, membership.tenant.id, app),
+    ),
   );
-  if (
-    !hasAppRoleAccess(app, globalRoleNames) &&
-    !hasAppRoleAccess(app, membershipRoleNames)
-  ) {
+  if (!access.some(Boolean)) {
     throw new ForbiddenError("Account does not have access to this application");
   }
 };
@@ -169,12 +190,12 @@ export const authService = {
 
   async memberships(userId: string, app: AuthApp = "web") {
     const memberships = await listUserMemberships(db, userId);
-    return memberships.filter((membership) =>
-      hasAppRoleAccess(
-        app,
-        membership.roles.map((role) => role.name),
+    const allowed = await Promise.all(
+      memberships.map((membership) =>
+        membershipHasAppAccess(userId, membership.tenant.id, app),
       ),
     );
+    return memberships.filter((_, index) => allowed[index]);
   },
 
   async updateProfile(
