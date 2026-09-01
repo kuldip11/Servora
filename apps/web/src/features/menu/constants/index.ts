@@ -86,33 +86,35 @@ export const MENU_SPICE_LEVEL_OPTIONS: {
 export const MENU_MORE_SECTIONS = [
   {
     id: "menus",
-    title: "Menus & availability",
+    title: "Advanced menus",
     description:
-      "Optional branch, channel, schedule, and availability rules. Normal ordering does not require this.",
+      "Create a specialized menu only when items differ by branch, channel, order type, or schedule.",
   },
   {
     id: "offers",
-    title: "Offers & loyalty",
-    description:
-      "Combos, promotions, happy hour, loyalty tiers, and customers.",
+    title: "Offers",
+    description: "Combos, promotions, happy hour, and loyalty pricing.",
   },
   {
     id: "operations",
     title: "Recipes & kitchen",
     description:
-      "Ingredient deduction, sub-recipes, item availability, and kitchen station routing.",
+      "Ingredient deduction, sub-recipes, and kitchen station routing.",
   },
   {
     id: "tools",
     title: "Menu tools",
     description: "Import/export, reusable templates, tags, and holidays.",
   },
-  {
-    id: "advanced",
-    title: "Advanced configuration",
-    description:
-      "Customer groups, buffet pricing, and organization-level inheritance.",
-  },
 ] as const;
 
-export type MenuMoreSectionId = (typeof MENU_MORE_SECTIONS)[number]["id"];
+export const MENU_ADVANCED_SECTION = {
+  id: "advanced",
+  title: "Advanced configuration",
+  description:
+    "Customer groups, buffet pricing, and organization-level inheritance.",
+} as const;
+
+export type MenuMoreSectionId =
+  | (typeof MENU_MORE_SECTIONS)[number]["id"]
+  | typeof MENU_ADVANCED_SECTION.id;

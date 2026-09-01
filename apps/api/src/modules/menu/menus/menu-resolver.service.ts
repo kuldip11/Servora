@@ -34,6 +34,17 @@ export const isEffectiveAt = (effectiveFrom: Date | null, asOf: Date) => {
   return !effectiveFrom || effectiveFrom <= asOf;
 };
 
+export const itemIsPublishedAt = (
+  item: Pick<typeof menuItems.$inferSelect, "isPublished" | "deletedAt" | "effectiveFrom">,
+  asOf: Date,
+) => {
+  return (
+    item.isPublished &&
+    item.deletedAt === null &&
+    isEffectiveAt(item.effectiveFrom, asOf)
+  );
+};
+
 export const preferSpecializedMenus = <T extends { isDefault: boolean }>(
   resolvedMenus: T[],
 ) => {
@@ -76,7 +87,14 @@ const activeTenantMenus = async (
       return match ? menu : null;
     }),
   );
-  return active.filter((menu): menu is NonNullable<typeof menu> => !!menu);
+  return active
+    .filter((menu): menu is NonNullable<typeof menu> => !!menu)
+    .map((menu) => ({
+      ...menu,
+      memberships: menu.memberships.filter((membership) =>
+        itemIsPublishedAt(membership.item, asOf),
+      ),
+    }));
 };
 
 const inheritedOrganizationMenus = async (
@@ -109,9 +127,11 @@ const inheritedOrganizationMenus = async (
     ),
   ];
   if (!skus.length) return [];
-  const localItems = await db.query.menuItems.findMany({
-    where: and(eq(menuItems.tenantId, tenantId), inArray(menuItems.sku, skus)),
-  });
+  const localItems = (
+    await db.query.menuItems.findMany({
+      where: and(eq(menuItems.tenantId, tenantId), inArray(menuItems.sku, skus)),
+    })
+  ).filter((item) => itemIsPublishedAt(item, asOf));
   const itemBySku = new Map(
     localItems
       .filter((item) => item.sku)

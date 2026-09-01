@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   isEffectiveAt,
   itemMatchesBranch,
+  itemIsPublishedAt,
   menuMatchesContext,
   preferSpecializedMenus,
 } from "./menu-resolver.service";
@@ -106,5 +107,74 @@ describe("default menu fallback", () => {
       { id: "delivery", isDefault: false },
     ]);
     expect(resolved.map((menu) => menu.id)).toEqual(["breakfast", "delivery"]);
+  });
+});
+
+
+describe("adversarial menu visibility", () => {
+  it("rejects a menu scoped to another channel, order type, or branch", () => {
+    const menu = {
+      availableChannels: ["CUSTOMER_QR"],
+      availableFulfillmentTypes: ["DELIVERY"],
+      availableBranchIds: ["branch-b"],
+    };
+
+    expect(menuMatchesContext(menu, "branch-a", "STAFF", "DINE_IN")).toBe(
+      false,
+    );
+  });
+
+  it("keeps future menus inactive until their effective instant", () => {
+    const effectiveFrom = new Date("2026-09-02T00:00:00.000Z");
+    expect(
+      isEffectiveAt(effectiveFrom, new Date("2026-09-01T23:59:59.999Z")),
+    ).toBe(false);
+    expect(isEffectiveAt(effectiveFrom, effectiveFrom)).toBe(true);
+  });
+
+  it("does not expose an item assigned to a different branch", () => {
+    expect(itemMatchesBranch("branch-b", "branch-a")).toBe(false);
+    expect(itemMatchesBranch("branch-a", "branch-a")).toBe(true);
+    expect(itemMatchesBranch(null, "branch-a")).toBe(true);
+  });
+});
+
+
+describe("orderable membership publication", () => {
+  const asOf = new Date("2026-09-01T12:00:00.000Z");
+
+  it("accepts only published, non-deleted items whose effective time has arrived", () => {
+    expect(
+      itemIsPublishedAt(
+        { isPublished: true, deletedAt: null, effectiveFrom: null },
+        asOf,
+      ),
+    ).toBe(true);
+    expect(
+      itemIsPublishedAt(
+        { isPublished: false, deletedAt: null, effectiveFrom: null },
+        asOf,
+      ),
+    ).toBe(false);
+    expect(
+      itemIsPublishedAt(
+        {
+          isPublished: true,
+          deletedAt: null,
+          effectiveFrom: new Date("2026-09-02T00:00:00.000Z"),
+        },
+        asOf,
+      ),
+    ).toBe(false);
+    expect(
+      itemIsPublishedAt(
+        {
+          isPublished: true,
+          deletedAt: new Date("2026-09-01T00:00:00.000Z"),
+          effectiveFrom: null,
+        },
+        asOf,
+      ),
+    ).toBe(false);
   });
 });

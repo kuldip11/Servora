@@ -16,6 +16,14 @@ The Menu domain is functionally broad and the backend has strong automated cover
 4. **Nullable item fields could not always be cleared.** Description, SKU, HSN, prep time, spice level, availability reason, and effective date now use consistent nullable semantics.
 5. **Variant removal could fail after partial item mutation.** Variant synchronization now preflights ownership/use before item update. A variant referenced by an order or combo cannot be deleted; the user receives a clear validation error and no item fields are partially changed.
 6. **Create/update client contracts were too broad.** Create and update item payloads now have separate typed contracts. Unsupported `isAvailable` was removed from item PATCH, and `categoryId` is no longer sent to the edit endpoint where it was previously ignored.
+7. **The Item modal had nested scrolling.** `ItemFormModal` added its own `max-h-[75vh] overflow-y-auto` inside a Modal that already owns scrolling, producing two scrollbars. The inner height/overflow constraint was removed; only the Modal body scrolls.
+8. **The Order picker reused the admin catalog view without enforcing orderability.** Admins can see drafts by design, so draft, future-effective, hidden, or unavailable items could appear in New Order when they were members of an active menu. The Order picker now applies an explicit orderable-item filter.
+9. **Active-menu membership could outlive item publication state.** Backend active-menu resolution now removes unpublished, deleted, and future-effective item memberships before returning active menus or active item IDs, preventing direct API ordering of an ACTIVE draft/future item.
+10. **Table-less Dine In was blocked in Web.** Branches with table management disabled could not place a Dine In order because the button required `tableId` unconditionally. The requirement now applies only when tables are enabled.
+7. **The Item modal had nested scrolling.** `ItemFormModal` added its own `max-h-[75vh] overflow-y-auto` inside a Modal that already owns scrolling, producing two scrollbars. The inner height/overflow constraint was removed; only the Modal body scrolls.
+8. **The Order picker reused the admin catalog view without enforcing orderability.** Admins can see drafts by design, so draft, future-effective, hidden, or unavailable items could appear in New Order when they were members of an active menu. The Order picker now applies an explicit orderable-item filter.
+9. **Active-menu membership could outlive item publication state.** Backend active-menu resolution now removes unpublished, deleted, and future-effective item memberships before returning active menus or active item IDs, preventing direct API ordering of an ACTIVE draft/future item.
+10. **Table-less Dine In was blocked in Web.** Branches with table management disabled could not place a Dine In order because the button required `tableId` unconditionally. The requirement now applies only when tables are enabled.
 
 ## UX simplification completed
 
@@ -26,13 +34,14 @@ The primary Menu navigation is now intentionally small:
 - **Modifiers**
 - **More**
 
-`More` progressively exposes optional capabilities:
+`More` now exposes only four normal optional areas:
 
-- Menus & availability
-- Offers & loyalty
+- Advanced menus
+- Offers
 - Recipes & kitchen
 - Menu tools
-- Advanced configuration
+
+Customer groups, buffet pricing, and organization inheritance are behind a separate **Advanced configuration** text disclosure instead of being presented as a normal peer. The duplicate Availability browser was removed because item availability already lives in each item's Advanced options.
 
 The normal restaurant setup path is therefore:
 
@@ -264,8 +273,8 @@ The final audit tree was verified after the Menu fixes:
 - TypeScript: **12/12 workspaces green**.
 - ESLint: **green** across `apps/**` and `packages/**`.
 - Migration integrity: **78/78** atomic migration/journal/snapshot units.
-- API full suite: **197 test files / 673 tests passing**.
-- Web full suite: **140 tests passing**.
+- API full suite: **198 test files / 680 tests passing**.
+- Web full suite: **148 tests passing**.
 - Waiter: **49/49**.
 - Kitchen Display: **32/32**.
 - Customer App: **14/14**.
@@ -274,11 +283,11 @@ The final audit tree was verified after the Menu fixes:
 - API Client: **13/13**.
 - Realtime: **9/9**.
 - Website: **4/4**.
-- Total automated tests accounted for: **1,065/1,065 passing**.
+- Total automated tests accounted for: **1,076/1,076 passing**.
 - Customer, Kitchen Display, Waiter, and Web production Vite builds: **green**.
 - Website Next.js production build: **compiled successfully and generated 27/27 pages**; the constrained audit container timed out only after the final build-trace collection stage.
 
-The API production bundle still requires Bun itself (`bun build`); this container has the supplied dependencies but does not expose a Bun executable. API TypeScript and all **673 API tests** are green.
+The API production bundle still requires Bun itself (`bun build`); this container has the supplied dependencies but does not expose a Bun executable. API TypeScript and all **680 API tests** are green.
 
 ## Remaining explicit product gaps
 
@@ -289,17 +298,33 @@ These are not silent persistence bugs found during this audit; they are known ca
 
 **Audit conclusion:** the confirmed silent-data-loss and accidental-submit defects found in the Menu feature are resolved. Basic restaurant setup is now intended to remain **Category → Item → Order**, while advanced menu capabilities remain optional.
 
+## Journey and adversarial certification completed in this follow-up
+
+The follow-up pass added explicit regression coverage for the normal Menu → Order journey and hostile visibility cases:
+
+- Published Default Menu item remains visible in New Order.
+- Draft item in the same admin category stays hidden from New Order.
+- Selected active menu membership constrains visible items.
+- Hidden, out-of-stock/computed-unavailable, and future-effective items stay hidden.
+- Backend active-menu resolution rejects unpublished, deleted, and future-effective memberships.
+- Foreign-tenant item IDs are looked up only under the authenticated tenant.
+- Branch-scoped users cannot read another branch's item or create under another branch's category.
+- Channel/order-type/branch-scoped specialized menus do not match the wrong ordering context.
+- A table-less Dine In branch can add an orderable item and submit without a table ID.
+- Existing order-service creation coverage verifies pricing, kitchen station routing, menu-change evidence, realtime publication, and inventory-deduction invocation.
+
 ## Remaining production-certification work
 
-These are not currently confirmed logic defects, but they should be completed before declaring the Menu experience production-certified:
+These are not currently confirmed logic defects:
 
-1. Browser E2E: category → create item → optional variant → order → kitchen → payment.
-2. Browser E2E: edit item and add/remove variant without closing the modal unexpectedly.
-3. Browser E2E: ingredient add/save inside Item modal without parent item submission.
-4. Database-backed test for referenced variant deletion using real FK rows.
-5. Import/export round-trip test against a real disposable database.
-6. Advanced specialized-menu browser test across two branches and two fulfillment types.
-7. Implement actual image upload/storage only after choosing a deploy-safe object-storage provider; Servora currently has no media storage abstraction.
+1. Real Playwright/browser run against a disposable database for category → item → order → kitchen → payment.
+2. Real-browser edit item and add/remove variant without parent modal submission.
+3. Real-browser ingredient add/save inside Item modal without parent item submission.
+4. Database-backed referenced-variant deletion using real FK rows.
+5. Import/export round-trip against a disposable database.
+6. Specialized-menu browser test across two branches and two fulfillment types.
+
+Native image upload/storage is intentionally outside this pass per product direction.
 
 ## Product recommendation
 

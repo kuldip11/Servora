@@ -259,7 +259,7 @@ export const ItemFormModal = ({ categoryId, item, onClose }: Props) => {
       size="xl"
     >
       <form
-        className="space-y-5 max-h-[75vh] overflow-y-auto pr-1"
+        className="space-y-5"
         noValidate
         onSubmit={handleSubmit(handleSave)}
       >

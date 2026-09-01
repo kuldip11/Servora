@@ -31,6 +31,7 @@ import { CustomerGroupsSection } from "@/features/menu/components/CustomerGroups
 import { BuffetPricingSection } from "@/features/menu/components/BuffetPricingSection";
 import { OrganizationManagementSection } from "@/features/menu/components/OrganizationManagementSection";
 import {
+  MENU_ADVANCED_SECTION,
   MENU_MORE_SECTIONS,
   type MenuMoreSectionId,
   type MenuTabId,
@@ -115,12 +116,7 @@ export const MenuPage = () => {
   );
 
   const moreContentBySection: Record<MenuMoreSectionId, React.ReactNode> = {
-    menus: (
-      <div className="space-y-10">
-        <MenusSection />
-        <MenuSpecializedSection mode="availability" />
-      </div>
-    ),
+    menus: <MenusSection />,
     offers: (
       <div className="space-y-10">
         <CombosSection />
@@ -157,20 +153,29 @@ export const MenuPage = () => {
       {moreContentBySection[moreSection]}
     </div>
   ) : (
-    <div className="grid gap-3 md:grid-cols-2">
-      {MENU_MORE_SECTIONS.map((section) => (
-        <button
-          type="button"
-          key={section.id}
-          onClick={() => setMoreSection(section.id)}
-          className="rounded-xl border border-border bg-surface p-4 text-left transition-colors hover:border-primary hover:bg-primary-surface/30"
-        >
-          <p className="font-semibold text-text-primary">{section.title}</p>
-          <p className="mt-1 text-sm text-text-secondary">
-            {section.description}
-          </p>
-        </button>
-      ))}
+    <div className="space-y-5">
+      <div className="grid gap-3 md:grid-cols-2">
+        {MENU_MORE_SECTIONS.map((section) => (
+          <button
+            type="button"
+            key={section.id}
+            onClick={() => setMoreSection(section.id)}
+            className="rounded-xl border border-border bg-surface p-4 text-left transition-colors hover:border-primary hover:bg-primary-surface/30"
+          >
+            <p className="font-semibold text-text-primary">{section.title}</p>
+            <p className="mt-1 text-sm text-text-secondary">
+              {section.description}
+            </p>
+          </button>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={() => setMoreSection(MENU_ADVANCED_SECTION.id)}
+        className="text-sm font-medium text-text-secondary underline-offset-4 hover:text-primary hover:underline"
+      >
+        {MENU_ADVANCED_SECTION.title}
+      </button>
     </div>
   );
 

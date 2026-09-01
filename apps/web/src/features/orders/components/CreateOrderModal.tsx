@@ -9,6 +9,7 @@ import { useCreateOrder } from "@/features/orders/hooks/useCreateOrder";
 import { toCartItemPayload } from "@/features/orders/services/orders.service";
 import { ItemCustomizerModal } from "./ItemCustomizerModal";
 import { cartItemKey, type CartItem } from "@/features/orders/utils/cartTypes";
+import { scopeCategoriesForOrder } from "@/features/orders/utils/orderable-menu";
 import type { FoodType, MenuCategory, MenuItem } from "@pos/types";
 import { createOrderSchema } from "@pos/validation";
 import { useBranches } from "@/features/branches/hooks/useBranches";
@@ -68,21 +69,11 @@ export const CreateOrderModal = ({ onClose }: { onClose: () => void }) => {
     if (!activeMenus.some((menu) => menu.id === selectedMenuId))
       setSelectedMenuId(activeMenus[0]?.id ?? "");
   }, [activeMenus, selectedMenuId]);
-  const visibleItemIds = new Set(
-    activeMenus
-      .filter((menu) => !selectedMenuId || menu.id === selectedMenuId)
-      .flatMap((menu) =>
-        menu.memberships.map((membership) => membership.menuItemId),
-      ),
+  const scopedCategories = scopeCategoriesForOrder(
+    categories as MenuCategory[] | undefined,
+    activeMenus,
+    selectedMenuId,
   );
-  const scopedCategories = categories
-    ?.map((category: MenuCategory) => ({
-      ...category,
-      menuItems: (category.menuItems ?? []).filter((item) =>
-        visibleItemIds.has(item.id),
-      ),
-    }))
-    .filter((category) => category.menuItems.length > 0);
 
   const { data: tables } = useTables({
     enabled: orderType === "DINE_IN" && tablesEnabled,
@@ -258,7 +249,7 @@ export const CreateOrderModal = ({ onClose }: { onClose: () => void }) => {
           canSubmit={
             !!items.length &&
             !!availableOrderTypes.length &&
-            !(orderType === "DINE_IN" && !tableId)
+            !(orderType === "DINE_IN" && tablesEnabled && !tableId)
           }
           validationError={validationError}
           courseMode={courseMode}
