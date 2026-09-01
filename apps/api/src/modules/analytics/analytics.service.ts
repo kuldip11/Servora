@@ -135,9 +135,30 @@ export const analyticsService = {
     ]);
 
     const rows: CostMarginRow[] = selections.map((selection, index) => {
-      const cost = costs[index] ?? 0;
+      const recipeCost =
+        costs[index] == null ? null : Number(costs[index]!.toFixed(2));
+      const manualCost =
+        selection.item.manualCost == null
+          ? null
+          : Number(selection.item.manualCost);
+      const effectiveCost = recipeCost ?? manualCost;
+      const costSource =
+        recipeCost !== null
+          ? ("RECIPE" as const)
+          : manualCost !== null
+            ? ("MANUAL" as const)
+            : ("UNKNOWN" as const);
       const price = pricing.lines[index]?.unitPrice ?? 0;
-      const margin = Number((price - cost).toFixed(2));
+      const margin =
+        effectiveCost === null
+          ? null
+          : Number((price - effectiveCost).toFixed(2));
+      const marginPercent =
+        margin === null
+          ? null
+          : price > 0
+            ? Number(((margin / price) * 100).toFixed(2))
+            : 0;
       return {
         menuItemId: selection.item.id,
         menuItemName: selection.item.name,
@@ -146,13 +167,20 @@ export const analyticsService = {
         variantId: selection.variantId,
         variantName: selection.variantName,
         price,
-        cost: Number(cost.toFixed(2)),
+        manualCost,
+        recipeCost,
+        effectiveCost,
+        costSource,
+        cost: effectiveCost,
         margin,
-        marginPercent:
-          price > 0 ? Number(((margin / price) * 100).toFixed(2)) : 0,
+        marginPercent,
       };
     });
-    return rows.sort((a, b) => b.marginPercent - a.marginPercent);
+    return rows.sort((a, b) => {
+      if (a.marginPercent === null) return 1;
+      if (b.marginPercent === null) return -1;
+      return b.marginPercent - a.marginPercent;
+    });
   },
 
   async getMenuEngineeringReport(auth: AuthContext, windowDays = 90) {
@@ -184,8 +212,14 @@ export const analyticsService = {
       const sorted = [...values].sort((a, b) => a - b);
       return sorted.length ? sorted[Math.floor(sorted.length / 2)]! : 0;
     };
-    const marginThreshold = median(margins.map((row) => row.margin));
-    const volumeThreshold = median(volumes);
+    const known = margins
+      .map((row, index) => ({ row, volume: volumes[index]! }))
+      .filter(
+        (entry): entry is { row: CostMarginRow & { margin: number }; volume: number } =>
+          entry.row.margin !== null,
+      );
+    const marginThreshold = median(known.map((entry) => entry.row.margin));
+    const volumeThreshold = median(known.map((entry) => entry.volume));
     const recommendations: Record<MenuEngineeringQuadrant, string> = {
       STAR: "Protect consistency and visibility; this item earns well and sells well.",
       PUZZLE:
@@ -193,14 +227,19 @@ export const analyticsService = {
       PLOWHORSE:
         "High sales, thin margin — review portion cost or a relevant modifier upcharge.",
       DOG: "Low sales and margin — simplify, reposition, or consider retiring after review.",
+      COST_MISSING:
+        "Cost is not configured. Add a recipe cost or manual item cost before using this item in margin-based decisions.",
     };
     return margins.map((row, index): MenuEngineeringRow => {
-      const quadrant = classifyMenuEngineering(
-        row.margin,
-        volumes[index]!,
-        marginThreshold,
-        volumeThreshold,
-      );
+      const quadrant: MenuEngineeringQuadrant =
+        row.margin === null
+          ? "COST_MISSING"
+          : classifyMenuEngineering(
+              row.margin,
+              volumes[index]!,
+              marginThreshold,
+              volumeThreshold,
+            );
       return {
         ...row,
         salesVolume: volumes[index]!,

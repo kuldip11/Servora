@@ -42,7 +42,30 @@ export const tenantService = {
 
   async create(
     auth: AuthContext,
-    input: { name: string; organizationId: string },
+    input: {
+      name: string;
+      organizationId: string;
+      displayName?: string | null;
+      description?: string | null;
+      cuisineTypes?: string[];
+      businessModel?: string | null;
+      defaultCurrency?: string | null;
+      defaultTimezone?: string | null;
+      supportEmail?: string | null;
+      supportPhone?: string | null;
+      website?: string | null;
+      logoUrl?: string | null;
+      primaryBrandImageUrl?: string | null;
+      defaultTaxMode?: "INCLUSIVE" | "EXCLUSIVE";
+      defaultTaxRate?: number | null;
+      dineInEnabled?: boolean;
+      takeawayEnabled?: boolean;
+      deliveryEnabled?: boolean;
+      customerQrEnabled?: boolean;
+      tableManagementEnabled?: boolean;
+      kdsEnabled?: boolean;
+      waiterServiceEnabled?: boolean;
+    },
   ) {
     if (!auth.roles.includes("OWNER")) {
       throw new ForbiddenError("Only the global Owner can create tenants");
@@ -60,7 +83,16 @@ export const tenantService = {
     }
 
     const tenant = await tenantRepository.create({
+      ...input,
       name: input.name.trim(),
+      cuisineTypes: input.cuisineTypes ?? null,
+      defaultCurrency: input.defaultCurrency?.trim().toUpperCase() || null,
+      defaultTimezone: input.defaultTimezone?.trim() || null,
+      supportEmail: input.supportEmail?.trim().toLowerCase() || null,
+      defaultTaxRate:
+        input.defaultTaxRate === undefined || input.defaultTaxRate === null
+          ? null
+          : input.defaultTaxRate.toFixed(2),
       createdBy: auth.userId,
       organizationId: input.organizationId,
     });
@@ -98,6 +130,25 @@ export const tenantService = {
       roundingPolicy?: "NONE" | "NEAREST_1" | "NEAREST_5" | "NEAREST_10";
       defaultTaxMode?: "INCLUSIVE" | "EXCLUSIVE";
       courseSequencingEnabled?: boolean;
+      displayName?: string | null;
+      description?: string | null;
+      cuisineTypes?: string[] | null;
+      businessModel?: string | null;
+      defaultCurrency?: string | null;
+      defaultTimezone?: string | null;
+      supportEmail?: string | null;
+      supportPhone?: string | null;
+      website?: string | null;
+      logoUrl?: string | null;
+      primaryBrandImageUrl?: string | null;
+      defaultTaxRate?: number | null;
+      dineInEnabled?: boolean;
+      takeawayEnabled?: boolean;
+      deliveryEnabled?: boolean;
+      customerQrEnabled?: boolean;
+      tableManagementEnabled?: boolean;
+      kdsEnabled?: boolean;
+      waiterServiceEnabled?: boolean;
     },
   ) {
     requirePermission(auth, "tenant:update");
@@ -121,8 +172,23 @@ export const tenantService = {
         "Service charge percent must be between 0 and 100",
       );
     }
+    const {
+      serviceChargePercent: _serviceChargePercent,
+      defaultTaxRate: _defaultTaxRate,
+      ...repositoryChanges
+    } = changes;
     const updated = await tenantRepository.update(tenantId, {
+      ...repositoryChanges,
       ...(changes.name !== undefined ? { name: changes.name.trim() } : {}),
+      ...(changes.defaultCurrency !== undefined
+        ? { defaultCurrency: changes.defaultCurrency?.trim().toUpperCase() || null }
+        : {}),
+      ...(changes.defaultTimezone !== undefined
+        ? { defaultTimezone: changes.defaultTimezone?.trim() || null }
+        : {}),
+      ...(changes.supportEmail !== undefined
+        ? { supportEmail: changes.supportEmail?.trim().toLowerCase() || null }
+        : {}),
       ...(changes.serviceChargePercent !== undefined
         ? {
             serviceChargePercent:
@@ -142,6 +208,14 @@ export const tenantService = {
         : {}),
       ...(changes.courseSequencingEnabled !== undefined
         ? { courseSequencingEnabled: changes.courseSequencingEnabled }
+        : {}),
+      ...(changes.defaultTaxRate !== undefined
+        ? {
+            defaultTaxRate:
+              changes.defaultTaxRate === null
+                ? null
+                : changes.defaultTaxRate.toFixed(2),
+          }
         : {}),
     });
     if (!updated) throw tenantNotFound(tenantId);

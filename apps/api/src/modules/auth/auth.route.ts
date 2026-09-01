@@ -15,6 +15,7 @@ import {
   signupBody,
   loginBody,
   profileBody,
+  changePasswordBody,
   sessionIdParams,
 } from "./auth.validator";
 
@@ -59,6 +60,11 @@ export const authMeRouter = new Elysia()
     "/api/auth/me",
     ({ auth, body }) => authController.updateProfile(auth, body),
     { body: profileBody },
+  )
+  .post(
+    "/api/auth/me/change-password",
+    ({ auth, body }) => authController.changePassword(auth, body),
+    { body: changePasswordBody },
   )
   .get("/api/auth/memberships", ({ auth }) => authController.memberships(auth))
   .get("/api/auth/sessions", ({ auth }) => authController.sessions(auth))

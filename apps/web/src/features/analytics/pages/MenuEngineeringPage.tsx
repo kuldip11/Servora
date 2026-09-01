@@ -6,15 +6,20 @@ import { apiClient, extractApiError } from "@/shared/lib/api-client";
 const analyticsApi = createAnalyticsApi(apiClient);
 import { formatCurrency } from "@/shared/utils/format";
 
-type EngineeringQuadrant = "STAR" | "PUZZLE" | "PLOWHORSE" | "DOG";
+type EngineeringQuadrant =
+  | "STAR"
+  | "PUZZLE"
+  | "PLOWHORSE"
+  | "DOG"
+  | "COST_MISSING";
 type EngineeringSort = "margin" | "volume" | "name";
 
 type EngineeringRow = {
   menuItemId: string;
   menuItemName: string;
   variantName: string | null;
-  margin: number;
-  marginPercent?: number;
+  margin: number | null;
+  marginPercent: number | null;
   salesVolume: number;
   quadrant: EngineeringQuadrant;
   recommendation: string;
@@ -54,7 +59,11 @@ export const MenuEngineeringPage = () => {
         ? [...rows]
         : rows.filter((row) => row.quadrant === quadrant);
     return filtered.sort((left, right) => {
-      if (sort === "margin") return right.margin - left.margin;
+      if (sort === "margin") {
+        if (left.margin === null) return 1;
+        if (right.margin === null) return -1;
+        return right.margin - left.margin;
+      }
       if (sort === "volume") return right.salesVolume - left.salesVolume;
       return (
         left.menuItemName.localeCompare(right.menuItemName) ||
@@ -101,6 +110,7 @@ export const MenuEngineeringPage = () => {
               <option value="PUZZLE">Puzzles</option>
               <option value="PLOWHORSE">Plowhorses</option>
               <option value="DOG">Dogs</option>
+              <option value="COST_MISSING">Cost missing</option>
             </select>
           </label>
           <label className="text-sm font-medium text-text-primary">
@@ -155,11 +165,14 @@ export const MenuEngineeringPage = () => {
                     {row.variantName ? ` — ${row.variantName}` : ""}
                   </h2>
                   <p className="mt-1 text-sm text-text-secondary">
-                    {row.salesVolume} sold · {formatCurrency(row.margin)}{" "}
-                    contribution margin
-                    {typeof row.marginPercent === "number"
-                      ? ` · ${row.marginPercent.toFixed(1)}%`
-                      : ""}
+                    {row.salesVolume} sold ·{" "}
+                    {row.margin === null
+                      ? "Cost not configured"
+                      : `${formatCurrency(row.margin)} contribution margin${
+                          row.marginPercent === null
+                            ? ""
+                            : ` · ${row.marginPercent.toFixed(1)}%`
+                        }`}
                   </p>
                 </div>
                 <Badge
@@ -171,7 +184,9 @@ export const MenuEngineeringPage = () => {
                         : "warning"
                   }
                 >
-                  {row.quadrant}
+                  {row.quadrant === "COST_MISSING"
+                    ? "Cost missing"
+                    : row.quadrant}
                 </Badge>
               </div>
               <div className="mt-4 rounded-lg bg-surface-secondary p-3">

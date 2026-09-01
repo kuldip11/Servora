@@ -72,11 +72,13 @@ export const DashboardPage = () => {
     const rows = (costMargins ?? []).filter(
       (row) => marginCategory === "all" || row.categoryId === marginCategory,
     );
-    return [...rows].sort((a, b) =>
-      marginSort === "high"
+    return [...rows].sort((a, b) => {
+      if (a.marginPercent === null) return 1;
+      if (b.marginPercent === null) return -1;
+      return marginSort === "high"
         ? b.marginPercent - a.marginPercent
-        : a.marginPercent - b.marginPercent,
-    );
+        : a.marginPercent - b.marginPercent;
+    });
   }, [costMargins, marginCategory, marginSort]);
 
   const scopeLabel = branchId === "all" ? "All branches" : "Selected branch";
@@ -380,7 +382,7 @@ export const DashboardPage = () => {
           </div>
         ) : !visibleMargins.length ? (
           <p className="py-8 text-center text-sm text-text-disabled">
-            No recipe-backed menu items to report yet.
+            No menu items to report yet.
           </p>
         ) : (
           <div className="overflow-x-auto">
@@ -413,23 +415,27 @@ export const DashboardPage = () => {
                       {formatCurrency(row.price)}
                     </td>
                     <td className="py-2.5 pr-3 text-right">
-                      {formatCurrency(row.cost)}
+                      {row.cost === null ? "—" : formatCurrency(row.cost)}
                     </td>
                     <td className="py-2.5 pr-3 text-right font-medium">
-                      {formatCurrency(row.margin)}
+                      {row.margin === null ? "—" : formatCurrency(row.margin)}
                     </td>
                     <td className="py-2.5 text-right">
-                      <Badge
-                        variant={
-                          row.marginPercent >= 50
-                            ? "success"
-                            : row.marginPercent >= 25
-                              ? "warning"
-                              : "danger"
-                        }
-                      >
-                        {row.marginPercent.toFixed(1)}%
-                      </Badge>
+                      {row.marginPercent === null ? (
+                        <Badge variant="warning">Cost not configured</Badge>
+                      ) : (
+                        <Badge
+                          variant={
+                            row.marginPercent >= 50
+                              ? "success"
+                              : row.marginPercent >= 25
+                                ? "warning"
+                                : "danger"
+                          }
+                        >
+                          {row.marginPercent.toFixed(1)}%
+                        </Badge>
+                      )}
                     </td>
                   </tr>
                 ))}

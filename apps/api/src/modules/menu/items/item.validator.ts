@@ -41,6 +41,7 @@ export const createItemBody = t.Object({
   name: t.String({ minLength: 1 }),
   description: t.Optional(t.Union([t.String(), t.Null()])),
   basePrice: t.Number({ minimum: 0 }),
+  manualCost: t.Optional(t.Union([t.Number({ minimum: 0 }), t.Null()])),
   pricingMode: t.Optional(PRICING_MODE),
   weightUnit: t.Optional(WEIGHT_UNIT),
   openPriceMin: t.Optional(t.Number({ minimum: 0 })),
@@ -78,7 +79,8 @@ export const createItemBody = t.Object({
 export const updateItemBody = t.Object({
   name: t.Optional(t.String()),
   description: t.Optional(t.Union([t.String(), t.Null()])),
-  basePrice: t.Optional(t.Number()),
+  basePrice: t.Optional(t.Number({ minimum: 0 })),
+  manualCost: t.Optional(t.Union([t.Number({ minimum: 0 }), t.Null()])),
   pricingMode: t.Optional(PRICING_MODE),
   weightUnit: t.Optional(t.Union([WEIGHT_UNIT, t.Null()])),
   openPriceMin: t.Optional(t.Union([t.Number({ minimum: 0 }), t.Null()])),

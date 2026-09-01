@@ -27,6 +27,24 @@
           "primaryKey": false,
           "notNull": true
         },
+        "display_name": {
+          "name": "display_name",
+          "type": "varchar(150)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "phone": {
+          "name": "phone",
+          "type": "varchar(32)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "profile_image_url": {
+          "name": "profile_image_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "email": {
           "name": "email",
           "type": "varchar(255)",
@@ -157,7 +175,9 @@
         "permissions_key_unique": {
           "name": "permissions_key_unique",
           "nullsNotDistinct": false,
-          "columns": ["key"]
+          "columns": [
+            "key"
+          ]
         }
       },
       "policies": {},
@@ -189,7 +209,9 @@
         "menu_allergens_name_unique": {
           "name": "menu_allergens_name_unique",
           "nullsNotDistinct": false,
-          "columns": ["name"]
+          "columns": [
+            "name"
+          ]
         }
       },
       "policies": {},
@@ -309,7 +331,9 @@
         "payment_webhook_events_event_id_unique": {
           "name": "payment_webhook_events_event_id_unique",
           "nullsNotDistinct": false,
-          "columns": ["event_id"]
+          "columns": [
+            "event_id"
+          ]
         }
       },
       "policies": {},
@@ -332,6 +356,120 @@
           "type": "varchar(200)",
           "primaryKey": false,
           "notNull": true
+        },
+        "business_type": {
+          "name": "business_type",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "country": {
+          "name": "country",
+          "type": "varchar(2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "timezone": {
+          "name": "timezone",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "currency": {
+          "name": "currency",
+          "type": "varchar(3)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "primary_contact_name": {
+          "name": "primary_contact_name",
+          "type": "varchar(150)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "business_email": {
+          "name": "business_email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "business_phone": {
+          "name": "business_phone",
+          "type": "varchar(30)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "address_line_1": {
+          "name": "address_line_1",
+          "type": "varchar(300)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "address_line_2": {
+          "name": "address_line_2",
+          "type": "varchar(300)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "city": {
+          "name": "city",
+          "type": "varchar(120)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "state_province": {
+          "name": "state_province",
+          "type": "varchar(120)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "postal_code": {
+          "name": "postal_code",
+          "type": "varchar(24)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "legal_name": {
+          "name": "legal_name",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "website": {
+          "name": "website",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tax_registration_number": {
+          "name": "tax_registration_number",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "gstin": {
+          "name": "gstin",
+          "type": "varchar(15)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pan": {
+          "name": "pan",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "company_registration_number": {
+          "name": "company_registration_number",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "logo_url": {
+          "name": "logo_url",
+          "type": "varchar(1000)",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_by": {
           "name": "created_by",
@@ -383,8 +521,12 @@
           "name": "organizations_created_by_users_id_fk",
           "tableFrom": "organizations",
           "tableTo": "users",
-          "columnsFrom": ["created_by"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -486,8 +628,12 @@
           "name": "user_sessions_user_id_users_id_fk",
           "tableFrom": "user_sessions",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -602,8 +748,12 @@
           "name": "organization_memberships_user_id_users_id_fk",
           "tableFrom": "organization_memberships",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -612,8 +762,12 @@
           "name": "organization_memberships_organization_id_organizations_id_fk",
           "tableFrom": "organization_memberships",
           "tableTo": "organizations",
-          "columnsFrom": ["organization_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -641,6 +795,72 @@
           "type": "varchar(200)",
           "primaryKey": false,
           "notNull": true
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cuisine_types": {
+          "name": "cuisine_types",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "business_model": {
+          "name": "business_model",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "default_currency": {
+          "name": "default_currency",
+          "type": "varchar(3)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "default_timezone": {
+          "name": "default_timezone",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "support_email": {
+          "name": "support_email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "support_phone": {
+          "name": "support_phone",
+          "type": "varchar(30)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "website": {
+          "name": "website",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "logo_url": {
+          "name": "logo_url",
+          "type": "varchar(1000)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "primary_brand_image_url": {
+          "name": "primary_brand_image_url",
+          "type": "varchar(1000)",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_by": {
           "name": "created_by",
@@ -695,6 +915,61 @@
           "notNull": true,
           "default": "'EXCLUSIVE'"
         },
+        "default_tax_rate": {
+          "name": "default_tax_rate",
+          "type": "numeric(5,2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dine_in_enabled": {
+          "name": "dine_in_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "true"
+        },
+        "takeaway_enabled": {
+          "name": "takeaway_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "true"
+        },
+        "delivery_enabled": {
+          "name": "delivery_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "true"
+        },
+        "customer_qr_enabled": {
+          "name": "customer_qr_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "true"
+        },
+        "table_management_enabled": {
+          "name": "table_management_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "true"
+        },
+        "kds_enabled": {
+          "name": "kds_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "true"
+        },
+        "waiter_service_enabled": {
+          "name": "waiter_service_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "true"
+        },
         "course_sequencing_enabled": {
           "name": "course_sequencing_enabled",
           "type": "boolean",
@@ -739,8 +1014,12 @@
           "name": "tenants_organization_id_organizations_id_fk",
           "tableFrom": "tenants",
           "tableTo": "organizations",
-          "columnsFrom": ["organization_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "restrict",
           "onUpdate": "no action",
           "schemaTo": "public"
@@ -757,92 +1036,163 @@
     "public.user_status": {
       "name": "user_status",
       "schema": "public",
-      "values": ["ACTIVE", "INACTIVE", "SUSPENDED"]
+      "values": [
+        "ACTIVE",
+        "INACTIVE",
+        "SUSPENDED"
+      ]
     },
     "public.tax_mode": {
       "name": "tax_mode",
       "schema": "public",
-      "values": ["INCLUSIVE", "EXCLUSIVE"]
+      "values": [
+        "INCLUSIVE",
+        "EXCLUSIVE"
+      ]
     },
     "public.rounding_policy": {
       "name": "rounding_policy",
       "schema": "public",
-      "values": ["NONE", "NEAREST_1", "NEAREST_5", "NEAREST_10"]
+      "values": [
+        "NONE",
+        "NEAREST_1",
+        "NEAREST_5",
+        "NEAREST_10"
+      ]
     },
     "public.role_scope": {
       "name": "role_scope",
       "schema": "public",
-      "values": ["GLOBAL", "TENANT", "BRANCH"]
+      "values": [
+        "GLOBAL",
+        "TENANT",
+        "BRANCH"
+      ]
     },
     "public.membership_status": {
       "name": "membership_status",
       "schema": "public",
-      "values": ["ACTIVE", "INACTIVE", "SUSPENDED"]
+      "values": [
+        "ACTIVE",
+        "INACTIVE",
+        "SUSPENDED"
+      ]
     },
     "public.table_status": {
       "name": "table_status",
       "schema": "public",
-      "values": ["AVAILABLE", "OCCUPIED", "CLEANING", "RESERVED"]
+      "values": [
+        "AVAILABLE",
+        "OCCUPIED",
+        "CLEANING",
+        "RESERVED"
+      ]
     },
     "public.customer_session_mode": {
       "name": "customer_session_mode",
       "schema": "public",
-      "values": ["DINE_IN", "TAKEAWAY"]
+      "values": [
+        "DINE_IN",
+        "TAKEAWAY"
+      ]
     },
     "public.menu_item_status": {
       "name": "menu_item_status",
       "schema": "public",
-      "values": ["ACTIVE", "OUT_OF_STOCK", "HIDDEN", "SEASONAL", "DISCONTINUED"]
+      "values": [
+        "ACTIVE",
+        "OUT_OF_STOCK",
+        "HIDDEN",
+        "SEASONAL",
+        "DISCONTINUED"
+      ]
     },
     "public.food_type": {
       "name": "food_type",
       "schema": "public",
-      "values": ["VEG", "NON_VEG", "EGG"]
+      "values": [
+        "VEG",
+        "NON_VEG",
+        "EGG"
+      ]
     },
     "public.menu_item_display_mode": {
       "name": "menu_item_display_mode",
       "schema": "public",
-      "values": ["STANDARD", "GUIDED_BUILDER"]
+      "values": [
+        "STANDARD",
+        "GUIDED_BUILDER"
+      ]
     },
     "public.spice_level": {
       "name": "spice_level",
       "schema": "public",
-      "values": ["NONE", "MILD", "MEDIUM", "HOT"]
+      "values": [
+        "NONE",
+        "MILD",
+        "MEDIUM",
+        "HOT"
+      ]
     },
     "public.modifier_selection_type": {
       "name": "modifier_selection_type",
       "schema": "public",
-      "values": ["SINGLE", "MULTIPLE"]
+      "values": [
+        "SINGLE",
+        "MULTIPLE"
+      ]
     },
     "public.modifier_group_type": {
       "name": "modifier_group_type",
       "schema": "public",
-      "values": ["ADDON", "SUBSTITUTION"]
+      "values": [
+        "ADDON",
+        "SUBSTITUTION"
+      ]
     },
     "public.combo_price_policy": {
       "name": "combo_price_policy",
       "schema": "public",
-      "values": ["FIXED", "PERCENT_OFF_SUM"]
+      "values": [
+        "FIXED",
+        "PERCENT_OFF_SUM"
+      ]
     },
     "public.zone_pricing_rule": {
       "name": "zone_pricing_rule",
       "schema": "public",
-      "values": ["AVERAGE", "HIGHER", "SUM_HALF"]
+      "values": [
+        "AVERAGE",
+        "HIGHER",
+        "SUM_HALF"
+      ]
     },
     "public.pricing_mode": {
       "name": "pricing_mode",
       "schema": "public",
-      "values": ["FIXED", "WEIGHT_BASED", "OPEN"]
+      "values": [
+        "FIXED",
+        "WEIGHT_BASED",
+        "OPEN"
+      ]
     },
     "public.weight_unit": {
       "name": "weight_unit",
       "schema": "public",
-      "values": ["G", "KG", "LB", "OZ"]
+      "values": [
+        "G",
+        "KG",
+        "LB",
+        "OZ"
+      ]
     },
     "public.menu_status": {
       "name": "menu_status",
       "schema": "public",
-      "values": ["DRAFT", "PUBLISHED"]
+      "values": [
+        "DRAFT",
+        "PUBLISHED"
+      ]
     },
     "public.menu_change_entity_type": {
       "name": "menu_change_entity_type",
@@ -867,37 +1217,68 @@
     "public.menu_change_type": {
       "name": "menu_change_type",
       "schema": "public",
-      "values": ["CREATED", "UPDATED", "PUBLISHED", "ARCHIVED", "DELETED"]
+      "values": [
+        "CREATED",
+        "UPDATED",
+        "PUBLISHED",
+        "ARCHIVED",
+        "DELETED"
+      ]
     },
     "public.menu_item_schedule_type": {
       "name": "menu_item_schedule_type",
       "schema": "public",
-      "values": ["DAILY", "WEEKLY", "SPECIFIC_DATE", "HOLIDAY"]
+      "values": [
+        "DAILY",
+        "WEEKLY",
+        "SPECIFIC_DATE",
+        "HOLIDAY"
+      ]
     },
     "public.order_source": {
       "name": "order_source",
       "schema": "public",
-      "values": ["STAFF", "CUSTOMER_QR"]
+      "values": [
+        "STAFF",
+        "CUSTOMER_QR"
+      ]
     },
     "public.order_type": {
       "name": "order_type",
       "schema": "public",
-      "values": ["DINE_IN", "TAKEAWAY", "DELIVERY", "ONLINE"]
+      "values": [
+        "DINE_IN",
+        "TAKEAWAY",
+        "DELIVERY",
+        "ONLINE"
+      ]
     },
     "public.cover_tier": {
       "name": "cover_tier",
       "schema": "public",
-      "values": ["ADULT", "CHILD"]
+      "values": [
+        "ADULT",
+        "CHILD"
+      ]
     },
     "public.order_status": {
       "name": "order_status",
       "schema": "public",
-      "values": ["OPEN", "BILL_REQUESTED", "PAID", "CLOSED", "CANCELLED"]
+      "values": [
+        "OPEN",
+        "BILL_REQUESTED",
+        "PAID",
+        "CLOSED",
+        "CANCELLED"
+      ]
     },
     "public.billing_mode": {
       "name": "billing_mode",
       "schema": "public",
-      "values": ["LINE_ITEMS", "PER_COVER"]
+      "values": [
+        "LINE_ITEMS",
+        "PER_COVER"
+      ]
     },
     "public.kitchen_ticket_status": {
       "name": "kitchen_ticket_status",
@@ -914,62 +1295,118 @@
     "public.order_item_fulfillment_type": {
       "name": "order_item_fulfillment_type",
       "schema": "public",
-      "values": ["DINE_IN", "TAKEAWAY"]
+      "values": [
+        "DINE_IN",
+        "TAKEAWAY"
+      ]
     },
     "public.order_item_status": {
       "name": "order_item_status",
       "schema": "public",
-      "values": ["ACTIVE", "VOIDED", "COMPED", "REFIRED"]
+      "values": [
+        "ACTIVE",
+        "VOIDED",
+        "COMPED",
+        "REFIRED"
+      ]
     },
     "public.refire_type": {
       "name": "refire_type",
       "schema": "public",
-      "values": ["REFIRE", "REFILL"]
+      "values": [
+        "REFIRE",
+        "REFILL"
+      ]
     },
     "public.inventory_unit": {
       "name": "inventory_unit",
       "schema": "public",
-      "values": ["KG", "GRAMS", "LITERS", "ML", "PIECES", "PACKETS"]
+      "values": [
+        "KG",
+        "GRAMS",
+        "LITERS",
+        "ML",
+        "PIECES",
+        "PACKETS"
+      ]
     },
     "public.inventory_transaction_type": {
       "name": "inventory_transaction_type",
       "schema": "public",
-      "values": ["IN", "OUT", "ADJUSTMENT", "WASTE"]
+      "values": [
+        "IN",
+        "OUT",
+        "ADJUSTMENT",
+        "WASTE"
+      ]
     },
     "public.promotion_rule_type": {
       "name": "promotion_rule_type",
       "schema": "public",
-      "values": ["PERCENTAGE", "FIXED_AMOUNT", "BOGO"]
+      "values": [
+        "PERCENTAGE",
+        "FIXED_AMOUNT",
+        "BOGO"
+      ]
     },
     "public.promotion_scope": {
       "name": "promotion_scope",
       "schema": "public",
-      "values": ["ORDER", "CATEGORY", "ITEM"]
+      "values": [
+        "ORDER",
+        "CATEGORY",
+        "ITEM"
+      ]
     },
     "public.void_comp_action": {
       "name": "void_comp_action",
       "schema": "public",
-      "values": ["VOID", "COMP"]
+      "values": [
+        "VOID",
+        "COMP"
+      ]
     },
     "public.payment_method": {
       "name": "payment_method",
       "schema": "public",
-      "values": ["CASH", "CARD", "UPI", "RAZORPAY", "STRIPE"]
+      "values": [
+        "CASH",
+        "CARD",
+        "UPI",
+        "RAZORPAY",
+        "STRIPE"
+      ]
     },
     "public.payment_status": {
       "name": "payment_status",
       "schema": "public",
-      "values": ["PENDING", "SUCCESS", "FAILED", "REFUNDED"]
+      "values": [
+        "PENDING",
+        "SUCCESS",
+        "FAILED",
+        "REFUNDED"
+      ]
     },
     "public.customer_request_type": {
       "name": "customer_request_type",
       "schema": "public",
-      "values": ["CALL_WAITER", "WATER", "CUTLERY", "BILL", "ASSISTANCE"]
+      "values": [
+        "CALL_WAITER",
+        "WATER",
+        "CUTLERY",
+        "BILL",
+        "ASSISTANCE"
+      ]
     },
     "public.customer_request_status": {
       "name": "customer_request_status",
       "schema": "public",
-      "values": ["OPEN", "ACKNOWLEDGED", "RESOLVED", "CANCELLED"]
+      "values": [
+        "OPEN",
+        "ACKNOWLEDGED",
+        "RESOLVED",
+        "CANCELLED"
+      ]
     }
   },
   "schemas": {},

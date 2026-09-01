@@ -27,10 +27,24 @@ export const authController = {
 
   async updateProfile(
     auth: AuthContext,
-    input: { firstName?: string; lastName?: string },
+    input: {
+      firstName?: string;
+      lastName?: string;
+      displayName?: string | null;
+      phone?: string | null;
+      profileImageUrl?: string | null;
+    },
   ) {
     await authService.updateProfile(auth.userId, input);
     return authController.me(auth);
+  },
+
+  async changePassword(
+    auth: AuthContext,
+    input: { currentPassword: string; newPassword: string },
+  ) {
+    await authService.changePassword(auth.userId, input);
+    return successResponse({ changed: true });
   },
 
   async me(auth: AuthContext) {
@@ -59,7 +73,10 @@ export const authController = {
       branchId: auth.branchId,
       firstName: user.firstName,
       lastName: user.lastName,
+      displayName: user.displayName,
       email: user.email,
+      phone: user.phone,
+      profileImageUrl: user.profileImageUrl,
       status: user.status,
       roles,
       permissions: auth.permissions,

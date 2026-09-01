@@ -8,6 +8,7 @@ const {
   saveRefreshToken,
   findMembershipById,
   updateUserProfile,
+  updatePasswordHash,
   recordFailedLogin,
   resetLoginFailures,
   revokeRefreshToken,
@@ -25,6 +26,7 @@ const {
   saveRefreshToken: vi.fn(),
   findMembershipById: vi.fn(),
   updateUserProfile: vi.fn(),
+  updatePasswordHash: vi.fn(),
   recordFailedLogin: vi.fn(),
   resetLoginFailures: vi.fn(),
   revokeRefreshToken: vi.fn(),
@@ -44,6 +46,7 @@ vi.mock("../auth.repository", () => ({
     saveRefreshToken,
     findMembershipById,
     updateUserProfile,
+    updatePasswordHash,
     recordFailedLogin,
     resetLoginFailures,
     revokeRefreshToken,
@@ -92,7 +95,13 @@ beforeEach(() => {
   vi.clearAllMocks();
   listUserMemberships.mockResolvedValue([]);
   resolveMembership.mockResolvedValue(undefined);
-  resolveAuthorization.mockResolvedValue({ allowed: false, permissionKeys: [], roleIds: [], branchIds: [], tenantWide: false });
+  resolveAuthorization.mockResolvedValue({
+    allowed: false,
+    permissionKeys: [],
+    roleIds: [],
+    branchIds: [],
+    tenantWide: false,
+  });
   createSession.mockResolvedValue({ id: "session-1" });
   touchSession.mockResolvedValue(undefined);
 });
@@ -115,6 +124,32 @@ describe("auth service", () => {
       firstName: "New",
       lastName: "Name",
     });
+  });
+
+  it("changes only the authenticated user's password after verifying the current password", async () => {
+    const bcrypt = await import("bcryptjs");
+    const passwordHash = await bcrypt.default.hash("current-pass", 4);
+    findUserById.mockResolvedValue({ ...user, passwordHash });
+    updatePasswordHash.mockResolvedValue({ id: "u1" });
+
+    await expect(
+      authService.changePassword("u1", {
+        currentPassword: "wrong-pass",
+        newPassword: "new-password-123",
+      }),
+    ).rejects.toThrow();
+    expect(updatePasswordHash).not.toHaveBeenCalled();
+
+    await expect(
+      authService.changePassword("u1", {
+        currentPassword: "current-pass",
+        newPassword: "new-password-123",
+      }),
+    ).resolves.toBeUndefined();
+    expect(updatePasswordHash).toHaveBeenCalledWith(
+      "u1",
+      expect.not.stringContaining("new-password-123"),
+    );
   });
 
   it("rejects duplicate signup and bootstraps a new user", async () => {
@@ -198,7 +233,6 @@ describe("auth service", () => {
     expect(resetLoginFailures).toHaveBeenCalledWith("u1");
   });
 
-
   it("rejects a Chef account from the Web application", async () => {
     const bcrypt = await import("bcryptjs");
     const hash = await bcrypt.hash("secret", 1);
@@ -215,8 +249,16 @@ describe("auth service", () => {
       branches: [],
     });
     resolveAuthorization.mockResolvedValue({
-      allowed: true, permissionKeys: ["kitchen:read", "kitchen:update", "menu:read", "orders:read"],
-      roleIds: ["chef"], branchIds: ["b1"], tenantWide: false,
+      allowed: true,
+      permissionKeys: [
+        "kitchen:read",
+        "kitchen:update",
+        "menu:read",
+        "orders:read",
+      ],
+      roleIds: ["chef"],
+      branchIds: ["b1"],
+      tenantWide: false,
     });
 
     await expect(
@@ -243,8 +285,16 @@ describe("auth service", () => {
       branches: [],
     });
     resolveAuthorization.mockResolvedValue({
-      allowed: true, permissionKeys: ["kitchen:read", "kitchen:update", "menu:read", "orders:read"],
-      roleIds: ["chef"], branchIds: ["b1"], tenantWide: false,
+      allowed: true,
+      permissionKeys: [
+        "kitchen:read",
+        "kitchen:update",
+        "menu:read",
+        "orders:read",
+      ],
+      roleIds: ["chef"],
+      branchIds: ["b1"],
+      tenantWide: false,
     });
     saveRefreshToken.mockResolvedValue({});
 
@@ -254,10 +304,7 @@ describe("auth service", () => {
         "kitchen",
       ),
     ).resolves.toMatchObject({ accessToken: "access" });
-    expect(signAccessToken).toHaveBeenCalledWith(
-      expect.any(Object),
-      "kitchen",
-    );
+    expect(signAccessToken).toHaveBeenCalledWith(expect.any(Object), "kitchen");
   });
 
   it("revokes the refresh token on logout", async () => {
@@ -341,12 +388,19 @@ describe("auth service", () => {
     };
     listUserMemberships.mockResolvedValue([listed]);
     resolveMembership.mockResolvedValue({
-      id: "m1", tenantId: "t1",
-      roles: [{ roleId: "admin", role: { name: "FRANCHISE_ADMIN", isSystem: true } }],
+      id: "m1",
+      tenantId: "t1",
+      roles: [
+        { roleId: "admin", role: { name: "FRANCHISE_ADMIN", isSystem: true } },
+      ],
       branches: [],
     });
     resolveAuthorization.mockResolvedValue({
-      allowed: true, permissionKeys: ["staff:read"], roleIds: ["admin"], branchIds: [], tenantWide: true,
+      allowed: true,
+      permissionKeys: ["staff:read"],
+      roleIds: ["admin"],
+      branchIds: [],
+      tenantWide: true,
     });
     await expect(authService.memberships("u1")).resolves.toEqual([listed]);
   });

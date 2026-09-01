@@ -5,6 +5,7 @@ const queryCache = vi.hoisted(() => ({ findAll: vi.fn() }));
 const queryClient = vi.hoisted(() => ({
   invalidateQueries: vi.fn(),
   setQueryData: vi.fn(),
+  getQueryData: vi.fn(),
   getQueryCache: vi.fn(),
 }));
 
@@ -103,5 +104,45 @@ describe("order realtime synchronization", () => {
     }) => unknown;
     const current = { id: "o1" };
     expect(updater(current)).toBe(current);
+  });
+
+  it("ignores stale order and kitchen-ticket events", () => {
+    const currentOrder = {
+      id: "o1",
+      status: "READY",
+      updatedAt: "2026-08-25T13:00:00Z",
+      kitchenTickets: [
+        {
+          id: "t1",
+          status: "READY",
+          updatedAt: "2026-08-25T13:00:00Z",
+        },
+      ],
+    };
+    queryClient.getQueryData.mockReturnValue(currentOrder);
+
+    handlers.get("order.updated")?.({
+      type: "order.updated",
+      payload: {
+        ...currentOrder,
+        status: "OPEN",
+        updatedAt: "2026-08-25T12:00:00Z",
+      },
+    });
+    expect(queryClient.setQueryData).not.toHaveBeenCalled();
+
+    handlers.get("kitchen.ticket.updated")?.({
+      type: "kitchen.ticket.updated",
+      payload: {
+        id: "t1",
+        orderId: "o1",
+        status: "PREPARING",
+        updatedAt: "2026-08-25T12:00:00Z",
+      },
+    });
+    const updater = queryClient.setQueryData.mock.calls[0]?.[1] as (
+      current: typeof currentOrder,
+    ) => typeof currentOrder;
+    expect(updater(currentOrder)).toBe(currentOrder);
   });
 });

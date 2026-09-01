@@ -13,6 +13,9 @@ export const authService = {
   organizations: authApi.organizations,
   createOrganization: authApi.createOrganization,
   createTenant: authApi.createTenant,
+  updateTenant: authApi.updateTenant,
+  archiveTenant: authApi.archiveTenant,
   me: authApi.me,
   updateProfile: authApi.updateProfile,
+  changePassword: authApi.changePassword,
 };

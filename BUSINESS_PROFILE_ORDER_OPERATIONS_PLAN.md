@@ -1,8 +1,10 @@
 # Business, Profile & Order Operations — Next Work Plan
 
-> Status: **PLANNED — NOT YET IMPLEMENTED**
+> Status: **COMPLETE — IMPLEMENTED AND CERTIFIED 2026-09-01**
 >
 > Purpose: This document is the next implementation workstream after the certified RBAC/security and Menu audits. It defines the product, UX, authorization, persistence, and verification requirements for Business management, user Profile, context selection, and Order round operations.
+
+All 14 implementation-order items and the acceptance criteria in this plan are implemented in this checkpoint.
 
 ## 1. Goals
 

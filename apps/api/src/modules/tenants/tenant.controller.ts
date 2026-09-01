@@ -11,21 +11,14 @@ export const tenantController = {
   },
   async create(
     auth: AuthContext,
-    input: { name: string; organizationId: string },
+    input: Parameters<typeof tenantService.create>[1],
   ) {
     return createdResponse(await tenantService.create(auth, input));
   },
   async update(
     auth: AuthContext,
     tenantId: string,
-    changes: {
-      name?: string;
-      serviceChargePercent?: number | null;
-      serviceChargeTaxable?: boolean;
-      roundingPolicy?: "NONE" | "NEAREST_1" | "NEAREST_5" | "NEAREST_10";
-      defaultTaxMode?: "INCLUSIVE" | "EXCLUSIVE";
-      courseSequencingEnabled?: boolean;
-    },
+    changes: Parameters<typeof tenantService.update>[2],
   ) {
     return successResponse(await tenantService.update(auth, tenantId, changes));
   },

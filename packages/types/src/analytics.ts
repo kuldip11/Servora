@@ -17,6 +17,8 @@ export interface DashboardStats {
   }[];
 }
 
+export type CostSource = "RECIPE" | "MANUAL" | "UNKNOWN";
+
 export interface CostMarginRow {
   menuItemId: string;
   menuItemName: string;
@@ -25,12 +27,21 @@ export interface CostMarginRow {
   variantId: string | null;
   variantName: string | null;
   price: number;
-  cost: number;
-  margin: number;
-  marginPercent: number;
+  manualCost: number | null;
+  recipeCost: number | null;
+  effectiveCost: number | null;
+  costSource: CostSource;
+  cost: number | null;
+  margin: number | null;
+  marginPercent: number | null;
 }
 
-export type MenuEngineeringQuadrant = "STAR" | "PUZZLE" | "PLOWHORSE" | "DOG";
+export type MenuEngineeringQuadrant =
+  | "STAR"
+  | "PUZZLE"
+  | "PLOWHORSE"
+  | "DOG"
+  | "COST_MISSING";
 export interface MenuEngineeringRow extends CostMarginRow {
   salesVolume: number;
   quadrant: MenuEngineeringQuadrant;

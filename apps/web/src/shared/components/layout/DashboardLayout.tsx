@@ -1,9 +1,4 @@
-import {
-  Outlet,
-  Link,
-  useRouter,
-  useRouterState,
-} from "@tanstack/react-router";
+import { Outlet, Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -14,7 +9,6 @@ import {
   Receipt,
   Settings,
   ShieldCheck,
-  LogOut,
   ChefHat,
   Bell,
   Building2,
@@ -23,14 +17,13 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "@/store/auth";
-import { queryClient } from "@/shared/lib/query-client";
 import { cn } from "@/shared/utils";
-import { Dialog, SkipLink, toast } from "@pos/ui";
+import { Dialog, SkipLink } from "@pos/ui";
 import { BranchSwitcher } from "./BranchSwitcher";
 import { TenantSwitcher } from "./TenantSwitcher";
 import { usePermissions } from "@/shared/auth/permissions";
 import { RealtimeNotifications } from "./RealtimeNotifications";
-import { authService } from "@/features/auth/services/auth.service";
+import { UserMenu } from "./UserMenu";
 
 const navItems = [
   {
@@ -84,8 +77,8 @@ const navItems = [
     permission: "billing:read",
   },
   {
-    to: "/branches",
-    label: "Branches",
+    to: "/business",
+    label: "Business",
     icon: Building2,
     permission: "branch:read",
   },
@@ -99,9 +92,8 @@ const navItems = [
 ];
 
 export const DashboardLayout = () => {
-  const { user, branchId, memberships, membershipId, logout } = useAuthStore();
+  const { user, branchId, memberships, membershipId } = useAuthStore();
   const { has } = usePermissions();
-  const router = useRouter();
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
@@ -130,17 +122,6 @@ export const DashboardLayout = () => {
       : undefined;
   const tablesHidden =
     branchId !== "all" && currentBranch ? !currentBranch.tablesEnabled : false;
-
-  async function handleLogout() {
-    try {
-      await authService.logout();
-    } finally {
-      logout();
-      queryClient.clear();
-      toast({ title: "Logged out successfully", tone: "success" });
-      router.navigate({ to: "/login" });
-    }
-  }
 
   return (
     <div className="flex h-screen min-w-0 bg-background overflow-hidden">
@@ -216,13 +197,6 @@ export const DashboardLayout = () => {
               </p>
             </div>
           </div>
-          <button
-            onClick={() => void handleLogout()}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-text-secondary hover:bg-danger-surface hover:text-danger transition-colors"
-          >
-            <LogOut aria-hidden="true" className="w-4 h-4" />
-            Sign out
-          </button>
         </div>
       </aside>
 
@@ -290,6 +264,7 @@ export const DashboardLayout = () => {
             >
               <Bell aria-hidden="true" className="w-5 h-5" />
             </button>
+            <UserMenu />
           </div>
         </header>
 

@@ -59,6 +59,7 @@ export const ItemFormModal = ({ categoryId, item, onClose }: Props) => {
       name: item?.name ?? "",
       description: item?.description ?? "",
       basePrice: item ? String(item.basePrice) : "",
+      manualCost: item?.manualCost != null ? String(item.manualCost) : "",
       taxRate: item ? String(item.taxRate) : "0",
       foodType: (item?.foodType ?? "VEG") as FoodType,
       spiceLevel: (item?.spiceLevel ?? "") as SpiceLevel | "",
@@ -192,6 +193,7 @@ export const ItemFormModal = ({ categoryId, item, onClose }: Props) => {
       name: values.name.trim(),
       description: values.description.trim() || null,
       basePrice: Number(values.basePrice),
+      manualCost: values.manualCost === "" ? null : Number(values.manualCost),
       pricingMode,
       ...(pricingMode === "WEIGHT_BASED"
         ? { weightUnit }
@@ -287,9 +289,9 @@ export const ItemFormModal = ({ categoryId, item, onClose }: Props) => {
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <Input
-            label="Price (₹)"
+            label="Selling price (₹)"
             type="number"
             min="0"
             step="0.01"
@@ -297,6 +299,18 @@ export const ItemFormModal = ({ categoryId, item, onClose }: Props) => {
             error={errors.basePrice?.message}
             {...register("basePrice")}
           />
+          <Input
+            label="Cost (₹)"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="Not configured"
+            error={errors.manualCost?.message}
+            {...register("manualCost")}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <Input
             label="Tax rate (%)"
             type="number"

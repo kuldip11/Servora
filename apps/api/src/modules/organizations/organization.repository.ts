@@ -31,7 +31,9 @@ export const organizationRepository = {
     });
   },
 
-  async create(data: { name: string; createdBy: string }) {
+  async create(
+    data: typeof organizations.$inferInsert & { createdBy: string },
+  ) {
     return db.transaction(async (tx) => {
       const [organization] = await tx
         .insert(organizations)
@@ -195,7 +197,10 @@ export const organizationRepository = {
     return deleted;
   },
 
-  async update(id: string, changes: { name?: string; isActive?: boolean }) {
+  async update(
+    id: string,
+    changes: Partial<typeof organizations.$inferInsert>,
+  ) {
     const [organization] = await db
       .update(organizations)
       .set({ ...changes, updatedAt: new Date() })

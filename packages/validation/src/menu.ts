@@ -12,6 +12,7 @@ export const createMenuItemSchema = z.object({
   name: z.string().min(1).max(200),
   description: z.string().max(1000).optional(),
   basePrice: z.number().min(0),
+  manualCost: z.number().min(0).nullable().optional(),
   taxRate: z.number().min(0).max(100).default(0),
   branchId: z.string().uuid().optional(),
   variants: z
@@ -51,6 +52,13 @@ export const menuItemFormSchema = z.object({
       (v) => Number.isFinite(Number(v)) && Number(v) >= 0,
       "Base price must be 0 or greater",
     ),
+  manualCost: z
+    .string()
+    .refine(
+      (v) => v === "" || (Number.isFinite(Number(v)) && Number(v) >= 0),
+      "Cost must be 0 or greater",
+    )
+    .default(""),
   taxRate: z
     .string()
     .refine(

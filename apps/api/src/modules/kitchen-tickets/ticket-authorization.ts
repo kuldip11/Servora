@@ -4,9 +4,7 @@ import { ForbiddenError } from "@/core/errors";
 export type KitchenPermission = "kitchen:read" | "kitchen:update";
 
 export type KitchenTicketStatusPermission =
-  | "kitchen:update"
-  | "orders:update"
-  | "orders:update_status";
+  "kitchen:update" | "orders:update" | "orders:update_status";
 
 export const requireKitchenPermission = (
   auth: AuthContext,
@@ -39,11 +37,22 @@ export const requireKitchenStatusPermission = (
   auth: AuthContext,
   newStatus: string,
 ): void => {
+  const management = auth.roles.some((role) =>
+    ["OWNER", "FRANCHISE_ADMIN", "MANAGER"].includes(role),
+  );
+  const waiter = auth.roles.includes("WAITER");
+  const kitchen = auth.permissions.includes("kitchen:update");
+  const canFire =
+    newStatus === "FIRED" && auth.permissions.includes("orders:update");
   const allowed =
-    auth.permissions.includes("kitchen:update") ||
-    (newStatus === "FIRED" && auth.permissions.includes("orders:update")) ||
+    kitchen ||
+    (canFire && management) ||
     (newStatus === "SERVED" &&
-      auth.permissions.includes("orders:update_status"));
+      auth.permissions.includes("orders:update_status") &&
+      (waiter || management)) ||
+    (["PREPARING", "READY"].includes(newStatus) &&
+      auth.permissions.includes("orders:update_status") &&
+      management);
 
   if (!allowed) {
     throw new ForbiddenError("Insufficient permissions", {

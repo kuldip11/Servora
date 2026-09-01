@@ -67,6 +67,7 @@ describe("menuItemFormSchema", () => {
     name: " Pizza ",
     description: "",
     basePrice: "100",
+    manualCost: "",
     taxRate: "5",
     foodType: "VEG" as const,
     spiceLevel: "MILD" as const,
@@ -91,6 +92,15 @@ describe("menuItemFormSchema", () => {
     expect(
       menuItemFormSchema.safeParse({ ...valid, taxRate: "101" }).success,
     ).toBe(false);
+    expect(
+      menuItemFormSchema.safeParse({ ...valid, manualCost: "-0.01" }).success,
+    ).toBe(false);
+    expect(
+      menuItemFormSchema.safeParse({ ...valid, manualCost: "" }).success,
+    ).toBe(true);
+    expect(
+      menuItemFormSchema.safeParse({ ...valid, manualCost: "0" }).success,
+    ).toBe(true);
     expect(
       menuItemFormSchema.safeParse({ ...valid, prepTimeMinutes: "1.5" })
         .success,

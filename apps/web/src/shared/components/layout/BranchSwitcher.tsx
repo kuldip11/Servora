@@ -4,6 +4,7 @@ import { useBranches } from "@/features/branches/hooks/useBranches";
 import { userHasPermission } from "@/shared/auth/permissions";
 import { useAuthStore } from "@/store/auth";
 import { cn } from "@/shared/utils";
+import { persistActiveContext } from "@/shared/auth/active-context";
 
 export const BranchSwitcher = () => {
   const { memberships, membershipId, branchId, setContext, user } = useAuthStore();
@@ -63,6 +64,11 @@ export const BranchSwitcher = () => {
         membershipId: activeMembership.membershipId,
         franchiseId: activeMembership.tenant.id,
         branchId: value === "all" ? null : value,
+      });
+      persistActiveContext({
+        membershipId: activeMembership.membershipId,
+        franchiseId: activeMembership.tenant.id,
+        branchId: value,
       });
       setOpen(false);
     } finally {

@@ -17,9 +17,8 @@ export default function ProductPage() {
           office.
         </h1>
         <p className="mt-5 max-w-2xl text-lg leading-8 text-[var(--text-secondary)]">
-          From guest ordering and kitchen execution to menu profitability and
-          multi-branch control, each capability works as part of the same
-          operational flow.
+          Explore the capabilities currently represented in the Servora
+          application.
         </p>
         <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {modules.map((m) => (

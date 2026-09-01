@@ -2,11 +2,57 @@ import type { AvailableMembership } from "@pos/types";
 import { authService } from "@/features/auth/services/auth.service";
 import { useAuthStore } from "@/store/auth";
 
+const STORAGE_KEY = "servora.active-context.v1";
+type SavedContext = {
+  membershipId: string;
+  franchiseId: string;
+  branchId: string;
+};
+
+const readSavedContext = (): SavedContext | null => {
+  try {
+    const value = localStorage.getItem(STORAGE_KEY);
+    return value ? (JSON.parse(value) as SavedContext) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const persistActiveContext = (context: SavedContext) => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(context));
+};
+
+export const clearPersistedContext = () => localStorage.removeItem(STORAGE_KEY);
+
 const defaultBranchForMembership = (
   membership: AvailableMembership,
 ): string | null => {
-  if (membership.roles.some((role) => role.scope === "TENANT")) return null;
+  const saved = readSavedContext();
+  if (saved?.membershipId === membership.membershipId) {
+    if (
+      saved.branchId === "all" &&
+      membership.roles.some((role) => role.scope === "TENANT")
+    )
+      return null;
+    if (membership.branches.some((branch) => branch.id === saved.branchId))
+      return saved.branchId;
+  }
   return membership.branches[0]?.id ?? null;
+};
+
+export const restoreActiveContext = async (
+  memberships: AvailableMembership[],
+) => {
+  if (!memberships.length) return false;
+  const saved = readSavedContext();
+  const membership =
+    memberships.find(
+      (item) =>
+        item.membershipId === saved?.membershipId &&
+        item.tenant.id === saved.franchiseId,
+    ) ?? memberships[0]!;
+  await activateMembershipContext(membership, memberships);
+  return true;
 };
 
 export const activateMembershipContext = async (
@@ -23,6 +69,11 @@ export const activateMembershipContext = async (
     franchiseId: membership.tenant.id,
     memberships,
     branchId,
+  });
+  persistActiveContext({
+    membershipId: membership.membershipId,
+    franchiseId: membership.tenant.id,
+    branchId: branchId ?? "all",
   });
 
   try {

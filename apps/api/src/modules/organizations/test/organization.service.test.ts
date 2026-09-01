@@ -46,7 +46,7 @@ describe("organizationService", () => {
     ]);
 
     await expect(organizationService.list(auth)).resolves.toEqual([
-      { id: "membership-1", organization: { id: "org-1", name: "Acme" } },
+      { id: "org-1", name: "Acme" },
     ]);
     expect(repository.findMembershipsByUserId).toHaveBeenCalledWith("user-1");
   });
@@ -120,15 +120,15 @@ describe("G7 organization inheritance authorization", () => {
     expect(repository.listMenus).not.toHaveBeenCalled();
   });
 
-  it("does not allow a member to manage an organization outside the active tenant boundary", async () => {
+  it("allows an organization member to manage it independently of the selected franchise", async () => {
     repository.findTenant.mockResolvedValue({
       id: "tenant-1",
       organizationId: "org-2",
     });
     await expect(
       organizationService.listMenus(orgAuth, "org-1"),
-    ).rejects.toEqual(organizationNotFound("org-1"));
-    expect(repository.listMenus).not.toHaveBeenCalled();
+    ).resolves.toBeUndefined();
+    expect(repository.listMenus).toHaveBeenCalledWith("org-1");
   });
 
   it("creates an organization menu by stable SKU and writes an audit record", async () => {

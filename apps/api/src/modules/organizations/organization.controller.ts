@@ -46,13 +46,16 @@ export const organizationController = {
   async list(auth: AuthContext) {
     return successResponse(await organizationService.list(auth));
   },
-  async create(auth: AuthContext, input: { name: string }) {
+  async create(
+    auth: AuthContext,
+    input: Parameters<typeof organizationService.create>[1],
+  ) {
     return createdResponse(await organizationService.create(auth, input));
   },
   async update(
     auth: AuthContext,
     organizationId: string,
-    changes: { name?: string },
+    changes: Parameters<typeof organizationService.update>[2],
   ) {
     return successResponse(
       await organizationService.update(auth, organizationId, changes),

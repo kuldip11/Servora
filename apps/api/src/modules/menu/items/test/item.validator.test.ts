@@ -39,6 +39,16 @@ describe("item.validator validators", () => {
         variants: [{ id: "v1", name: "Half", price: 90 }],
       }),
     ).toBe(true);
+    expect(
+      Value.Check(createItemBody, {
+        categoryId: "c1",
+        name: "Tea",
+        basePrice: 10,
+        manualCost: 0,
+      }),
+    ).toBe(true);
+    expect(Value.Check(updateItemBody, { manualCost: null })).toBe(true);
+    expect(Value.Check(updateItemBody, { manualCost: -0.01 })).toBe(false);
   });
   it("validates status, availability, and id params", () => {
     expect(Value.Check(duplicateItemBody, {})).toBe(true);

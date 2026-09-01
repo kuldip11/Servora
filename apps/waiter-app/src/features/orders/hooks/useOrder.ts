@@ -6,17 +6,25 @@ import {
   orderKeys,
   ORDER_DETAIL_POLL_INTERVAL_MS,
 } from "@/features/orders/constants";
+import {
+  mergeRealtimeTicket,
+  shouldApplyRealtime,
+} from "@/features/orders/utils/realtime";
 
 export const useOrder = (orderId: string | null) => {
   const qc = useQueryClient();
 
   useRealtimeEvent("order.updated", (event) => {
     if (orderId && event.payload.id === orderId)
-      qc.setQueryData(orderKeys.detail(orderId), event.payload);
+      qc.setQueryData<Order>(orderKeys.detail(orderId), (current) =>
+        shouldApplyRealtime(current, event.payload) ? event.payload : current,
+      );
   });
   useRealtimeEvent("order.created", (event) => {
     if (orderId && event.payload.id === orderId)
-      qc.setQueryData(orderKeys.detail(orderId), event.payload);
+      qc.setQueryData<Order>(orderKeys.detail(orderId), (current) =>
+        shouldApplyRealtime(current, event.payload) ? event.payload : current,
+      );
   });
   useRealtimeEvent("kitchen.ticket.updated", (event) => {
     if (!orderId || event.payload.orderId !== orderId) return;
@@ -24,8 +32,9 @@ export const useOrder = (orderId: string | null) => {
       current
         ? {
             ...current,
-            kitchenTickets: (current.kitchenTickets ?? []).map((ticket) =>
-              ticket.id === event.payload.id ? event.payload : ticket,
+            kitchenTickets: mergeRealtimeTicket(
+              current.kitchenTickets ?? [],
+              event.payload,
             ),
           }
         : current,

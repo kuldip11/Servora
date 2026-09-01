@@ -4,7 +4,7 @@ test("homepage exposes primary conversion paths", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveTitle(/Servora/);
   await expect(
-    page.getByRole("link", { name: /book a demo|request a demo/i }).first(),
+    page.getByRole("link", { name: /request a demo/i }).first(),
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: /pricing/i }).first(),

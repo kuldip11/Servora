@@ -121,7 +121,7 @@ describe("ticket service", () => {
 
     await expect(
       ticketService.updateStatus(
-        auth({ permissions: ["orders:update_status"] }),
+        auth({ roles: ["WAITER"], permissions: ["orders:update_status"] }),
         logger,
         "t1",
         "SERVED",
@@ -130,7 +130,7 @@ describe("ticket service", () => {
 
     await expect(
       ticketService.updateStatus(
-        auth({ permissions: ["orders:update_status"] }),
+        auth({ roles: ["WAITER"], permissions: ["orders:update_status"] }),
         logger,
         "t1",
         "PREPARING",

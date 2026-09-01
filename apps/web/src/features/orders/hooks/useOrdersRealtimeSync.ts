@@ -11,13 +11,18 @@ const matchesFilters = (order: Order, filters: OrdersListFilters) => {
 };
 
 const upsertOrder = (order: Order) => {
-  queryClient.setQueryData(orderKeys.detail(order.id), order);
+  const currentDetail = queryClient.getQueryData<Order>(orderKeys.detail(order.id));
+  if (!currentDetail || new Date(currentDetail.updatedAt).getTime() <= new Date(order.updatedAt).getTime()) {
+    queryClient.setQueryData(orderKeys.detail(order.id), order);
+  }
   for (const query of queryClient
     .getQueryCache()
     .findAll({ queryKey: orderKeys.lists() })) {
     const filters = (query.queryKey.at(-1) ?? {}) as OrdersListFilters;
     queryClient.setQueryData<Order[]>(query.queryKey, (current) => {
       if (!current) return current;
+      const existing = current.find((item) => item.id === order.id);
+      if (existing && new Date(existing.updatedAt).getTime() > new Date(order.updatedAt).getTime()) return current;
       const without = current.filter((item) => item.id !== order.id);
       return matchesFilters(order, filters) ? [order, ...without] : without;
     });
@@ -33,6 +38,8 @@ export const useOrdersRealtimeSync = () => {
       orderKeys.detail(event.payload.orderId),
       (current) => {
         if (!current?.kitchenTickets) return current;
+        const existing = current.kitchenTickets.find((ticket) => ticket.id === event.payload.id);
+        if (existing && new Date(existing.updatedAt).getTime() > new Date(event.payload.updatedAt).getTime()) return current;
         return {
           ...current,
           kitchenTickets: current.kitchenTickets.map((ticket) =>

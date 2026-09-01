@@ -20,6 +20,7 @@ export interface CreateItemInput {
   name: string;
   description?: string | null | undefined;
   basePrice: number;
+  manualCost?: number | null | undefined;
   pricingMode?: "FIXED" | "WEIGHT_BASED" | "OPEN" | undefined;
   weightUnit?: "G" | "KG" | "LB" | "OZ" | undefined;
   openPriceMin?: number | undefined;
@@ -53,6 +54,7 @@ export interface UpdateItemInput {
   name?: string | undefined;
   description?: string | null | undefined;
   basePrice?: number | undefined;
+  manualCost?: number | null | undefined;
   pricingMode?: "FIXED" | "WEIGHT_BASED" | "OPEN" | undefined;
   weightUnit?: "G" | "KG" | "LB" | "OZ" | null | undefined;
   openPriceMin?: number | null | undefined;
@@ -198,6 +200,8 @@ export const itemService = {
       ...input,
       branchId,
       basePrice: String(input.basePrice),
+      manualCost:
+        input.manualCost == null ? input.manualCost : String(input.manualCost),
       openPriceMin:
         input.openPriceMin === undefined
           ? undefined
@@ -274,6 +278,12 @@ export const itemService = {
         itemFields.basePrice !== undefined
           ? String(itemFields.basePrice)
           : undefined,
+      manualCost:
+        itemFields.manualCost === undefined
+          ? undefined
+          : itemFields.manualCost === null
+            ? null
+            : String(itemFields.manualCost),
       taxRate:
         itemFields.taxRate !== undefined
           ? String(itemFields.taxRate)

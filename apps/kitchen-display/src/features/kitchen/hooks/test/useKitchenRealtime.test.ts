@@ -70,6 +70,19 @@ describe("useKitchenRealtime", () => {
     };
     expect(updaterCall()([{ id: "t1", status: "READY" }])).toEqual([]);
   });
+  it("ignores stale ticket events", () => {
+    const current = [
+      { id: "t1", status: "READY", updatedAt: "2026-08-27T12:00:00.000Z" },
+    ];
+    const stale = {
+      id: "t1",
+      status: "PREPARING",
+      updatedAt: "2026-08-27T11:00:00.000Z",
+    };
+    expect(mergeKitchenTicketIntoQueue(current as any, stale as any)).toBe(
+      current,
+    );
+  });
   it("projects a void event onto the assigned station immediately without polling", () => {
     useKitchenRealtime("grill");
     const voidHandler = mocks.handlers.find(

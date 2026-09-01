@@ -2,6 +2,7 @@ import { requirePermission } from "@/core/auth";
 import type { AuthContext } from "@/core/auth";
 import { branchRepository } from "./branch.repository";
 import { writeAudit } from "@/core/audit";
+import { compact } from "@/lib/object-utils";
 import { NotFoundError, ValidationError } from "@/core/errors";
 import {
   branchNotFound,
@@ -19,12 +20,32 @@ export interface CreateBranchInput {
   timezone: string;
   currency: string;
   address?: string | undefined;
+  addressLine1?: string | null;
+  addressLine2?: string | null;
+  city?: string | null;
+  stateProvince?: string | null;
+  postalCode?: string | null;
+  country?: string | null;
   phone?: string | undefined;
+  managerName?: string | null;
+  email?: string | null;
+  openingTime?: string | null;
+  closingTime?: string | null;
+  weeklyOperatingDays?: string[] | null;
+  taxOverride?: number | null;
+  serviceChargeOverride?: number | null;
+  invoicePrefix?: string | null;
+  receiptFooter?: string | null;
+  inventoryTrackingEnabled?: boolean;
+  negativeStockPolicy?: "BLOCK" | "ALLOW" | "WARN";
   dineInEnabled?: boolean | undefined;
   takeawayEnabled?: boolean | undefined;
   deliveryEnabled?: boolean | undefined;
   onlineEnabled?: boolean | undefined;
   tablesEnabled?: boolean | undefined;
+  customerQrEnabled?: boolean;
+  kdsEnabled?: boolean;
+  waiterAppEnabled?: boolean;
 }
 
 export interface UpdateBranchInput {
@@ -39,6 +60,27 @@ export interface UpdateBranchInput {
   deliveryEnabled?: boolean | undefined;
   onlineEnabled?: boolean | undefined;
   tablesEnabled?: boolean | undefined;
+  addressLine1?: string | null;
+  addressLine2?: string | null;
+  city?: string | null;
+  stateProvince?: string | null;
+  postalCode?: string | null;
+  country?: string | null;
+  managerName?: string | null;
+  email?: string | null;
+  openingTime?: string | null;
+  closingTime?: string | null;
+  weeklyOperatingDays?: string[] | null;
+  taxOverride?: number | null;
+  serviceChargeOverride?: number | null;
+  invoicePrefix?: string | null;
+  receiptFooter?: string | null;
+  inventoryTrackingEnabled?: boolean;
+  negativeStockPolicy?: "BLOCK" | "ALLOW" | "WARN";
+  customerQrEnabled?: boolean;
+  kdsEnabled?: boolean;
+  waiterAppEnabled?: boolean;
+  isActive?: boolean;
 }
 
 const assertValidTimezone = (timezone: string) => {
@@ -97,13 +139,25 @@ export const branchService = {
       normalizedCode,
     );
     if (existingCode) throw branchCodeAlreadyExists(normalizedCode);
-    const branch = await branchRepository.create({
+    const branch = await branchRepository.create(compact({
       tenantId: auth.tenantId,
       ...input,
+      ...(input.addressLine1 !== undefined || input.address !== undefined
+        ? { address: input.addressLine1?.trim() || input.address || "" }
+        : {}),
+      taxOverride:
+        input.taxOverride === undefined || input.taxOverride === null
+          ? input.taxOverride
+          : input.taxOverride.toFixed(2),
+      serviceChargeOverride:
+        input.serviceChargeOverride === undefined ||
+        input.serviceChargeOverride === null
+          ? input.serviceChargeOverride
+          : input.serviceChargeOverride.toFixed(2),
       code: normalizedCode,
       timezone: normalizedTimezone,
       currency: input.currency.trim().toUpperCase(),
-    });
+    }) as Parameters<typeof branchRepository.create>[0]);
     await writeAudit({
       tenantId: auth.tenantId,
       userId: auth.userId,
@@ -148,6 +202,9 @@ export const branchService = {
     if (changes.currency !== undefined) {
       changes = { ...changes, currency: changes.currency.trim().toUpperCase() };
     }
+    if (changes.addressLine1 !== undefined && changes.address === undefined) {
+      changes = { ...changes, address: changes.addressLine1?.trim() || "" };
+    }
 
     const touchesCapabilities = BRANCH_CAPABILITY_FIELDS.some(
       (field) => changes[field] !== undefined,
@@ -180,7 +237,18 @@ export const branchService = {
     const updated = await branchRepository.update(
       auth.tenantId,
       branchId,
-      changes,
+      compact({
+        ...changes,
+        taxOverride:
+          changes.taxOverride === undefined || changes.taxOverride === null
+            ? changes.taxOverride
+            : changes.taxOverride.toFixed(2),
+        serviceChargeOverride:
+          changes.serviceChargeOverride === undefined ||
+          changes.serviceChargeOverride === null
+            ? changes.serviceChargeOverride
+            : changes.serviceChargeOverride.toFixed(2),
+      }) as Parameters<typeof branchRepository.update>[2],
     );
     if (!updated) throw branchNotFound(branchId);
     await writeAudit({

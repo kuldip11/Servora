@@ -63,7 +63,7 @@ export const SiteHeader = () => {
           servora<span className="text-[var(--primary)]">.</span>
         </Link>
         <nav
-          className="hidden items-center gap-4 lg:flex"
+          className="hidden items-center gap-7 md:flex"
           aria-label="Primary navigation"
         >
           <div ref={productRef} className="relative">
@@ -109,12 +109,6 @@ export const SiteHeader = () => {
               </div>
             )}
           </div>
-          <Link href="/solutions" className="text-sm font-medium">
-            Solutions
-          </Link>
-          <Link href="/workflow" className="text-sm font-medium">
-            How it works
-          </Link>
           <div ref={appsRef} className="relative">
             <div className="flex items-center gap-1">
               <Link href="/apps" className="text-sm font-medium">
@@ -141,9 +135,9 @@ export const SiteHeader = () => {
                   {servoraApps.map((app) => {
                     const Icon = app.icon;
                     return (
-                      <Link
+                      <a
                         key={app.key}
-                        href={app.detailHref}
+                        href={app.href}
                         onClick={closeMenus}
                         role="menuitem"
                         className="flex gap-3 rounded-xl p-3 hover:bg-[var(--primary-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
@@ -159,7 +153,7 @@ export const SiteHeader = () => {
                             {app.description}
                           </span>
                         </span>
-                      </Link>
+                      </a>
                     );
                   })}
                 </div>
@@ -187,7 +181,7 @@ export const SiteHeader = () => {
         </nav>
         <button
           type="button"
-          className="rounded-lg p-2 hover:bg-[var(--surface-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] lg:hidden"
+          className="rounded-lg p-2 hover:bg-[var(--surface-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] md:hidden"
           onClick={() => setMobileOpen((value) => !value)}
           aria-expanded={mobileOpen}
           aria-controls="mobile-nav"
@@ -199,7 +193,7 @@ export const SiteHeader = () => {
       {mobileOpen && (
         <nav
           id="mobile-nav"
-          className="border-t border-[var(--border)] bg-[var(--surface)] px-6 py-5 lg:hidden"
+          className="border-t border-[var(--border)] bg-[var(--surface)] px-6 py-5 md:hidden"
           aria-label="Mobile navigation"
         >
           <div className="grid gap-1">
@@ -221,16 +215,6 @@ export const SiteHeader = () => {
               </Link>
             ))}
             <div className="my-2 border-t border-[var(--border)]" />
-            <Link onClick={closeMenus} href="/solutions" className="rounded-lg px-3 py-2.5 text-sm font-semibold">
-              Solutions
-            </Link>
-            <Link onClick={closeMenus} href="/workflow" className="rounded-lg px-3 py-2.5 text-sm font-medium">
-              How it works
-            </Link>
-            <Link onClick={closeMenus} href="/resources" className="rounded-lg px-3 py-2.5 text-sm font-medium">
-              Resources
-            </Link>
-            <div className="my-2 border-t border-[var(--border)]" />
             <Link
               onClick={closeMenus}
               href="/apps"
@@ -239,14 +223,14 @@ export const SiteHeader = () => {
               Servora Apps
             </Link>
             {servoraApps.map((app) => (
-              <Link
+              <a
                 onClick={closeMenus}
                 key={app.key}
-                href={app.detailHref}
+                href={app.href}
                 className="rounded-lg px-3 py-2.5 pl-6 text-sm text-[var(--text-secondary)] hover:bg-[var(--primary-surface)] hover:text-[var(--text-primary)]"
               >
                 {app.name}
-              </Link>
+              </a>
             ))}
             <div className="my-2 border-t border-[var(--border)]" />
             <Link
