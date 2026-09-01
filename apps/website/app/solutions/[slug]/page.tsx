@@ -1,0 +1,10 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { CheckCircle2 } from "lucide-react";
+import { solutionBySlug, solutions } from "@/content/solutions";
+import { CtaBanner } from "@/components/marketing/CtaBanner";
+
+export const generateStaticParams = () => solutions.map(({ slug }) => ({ slug }));
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> { const item = solutionBySlug[(await params).slug]; return item ? { title: item.name, description: item.description } : {}; }
+export default async function SolutionPage({ params }: { params: Promise<{ slug: string }> }) { const item = solutionBySlug[(await params).slug]; if (!item) notFound(); return <><section className="mx-auto max-w-7xl px-6 pb-20 pt-16 lg:px-8 lg:pt-24"><p className="text-sm font-semibold uppercase tracking-[.16em] text-primary">{item.eyebrow}</p><h1 className="mt-4 max-w-4xl text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">{item.headline}</h1><p className="mt-6 max-w-3xl text-lg leading-8 text-text-secondary">{item.description}</p><div className="mt-12 grid gap-6 lg:grid-cols-2"><section className="rounded-3xl border border-border bg-surface p-8"><h2 className="text-2xl font-semibold">What the operation needs</h2><div className="mt-6 space-y-4">{item.needs.map((need) => <div key={need} className="flex items-center gap-3"><CheckCircle2 className="text-primary" size={20} /><span>{need}</span></div>)}</div></section><section className="rounded-3xl bg-[#111827] p-8 text-white"><h2 className="text-2xl font-semibold">How Servora supports it</h2><div className="mt-6 space-y-4">{item.servora.map((value) => <div key={value} className="flex items-center gap-3"><CheckCircle2 className="text-violet-300" size={20} /><span>{value}</span></div>)}</div></section></div><div className="mt-10"><Link href="/solutions" className="text-sm font-semibold text-primary">← All solutions</Link></div></section><CtaBanner title={`Explore Servora for ${item.name.toLowerCase()}.`} /></>; }

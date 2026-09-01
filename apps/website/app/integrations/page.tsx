@@ -1,0 +1,12 @@
+import type { Metadata } from "next";
+import { CreditCard, FileUp, Globe2, Radio, Webhook } from "lucide-react";
+import { CtaBanner } from "@/components/marketing/CtaBanner";
+export const metadata: Metadata = { title: "Integrations & Connections", description: "Understand the payment, data and realtime connection points represented in Servora." };
+const items = [
+  [CreditCard, "Payments", "Support restaurant settlement workflows and configured payment providers, including online payment for eligible takeaway orders."],
+  [FileUp, "Menu data", "Bring menu information in and out through the implemented import and export workflows, then control publication centrally."],
+  [Radio, "Realtime operations", "Keep management, kitchen, waiter and customer experiences synchronized through live operational events with resilient fallbacks."],
+  [Webhook, "Payment events", "Use protected payment-event handling to keep transaction state aligned with restaurant orders."],
+  [Globe2, "Deployment-ready app links", "Connect the public site to separately deployed management, kitchen, waiter and customer experiences."],
+];
+export default function IntegrationsPage(){return <><section className="mx-auto max-w-7xl px-6 py-20 lg:px-8"><div className="max-w-4xl"><p className="text-sm font-semibold text-primary">Integrations and connections</p><h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">Connect the restaurant workflow without overpromising the ecosystem.</h1><p className="mt-5 max-w-3xl text-lg leading-8 text-text-secondary">Servora already contains important operational connection points. Provider availability and deployment details should be confirmed during solution design.</p></div><div className="mt-12 grid gap-5 md:grid-cols-2">{items.map(([Icon,title,text]) => {const C=Icon as typeof CreditCard; return <article key={title as string} className="rounded-2xl border border-border bg-surface p-7"><C className="text-primary" /><h2 className="mt-5 text-xl font-semibold">{title as string}</h2><p className="mt-3 text-sm leading-6 text-text-secondary">{text as string}</p></article>})}</div><div className="mt-10 rounded-2xl border border-warning/30 bg-warning-surface p-6"><h2 className="font-semibold">Need a specific provider?</h2><p className="mt-2 text-sm leading-6 text-text-secondary">Bring the provider, hardware and regional requirements to the demo. The team can confirm current support and scope any required integration.</p></div></section><CtaBanner title="Map Servora to your restaurant stack." /></>}

@@ -14,13 +14,13 @@ export const metadata: Metadata = {
     template: "%s | Servora",
   },
   description:
-    "Servora connects restaurant orders, kitchen operations, billing, staff, inventory, analytics and customer QR ordering.",
+    "Servora connects management and POS, kitchen display, waiter operations, customer QR ordering, billing, inventory and restaurant insights.",
   robots: { index: true, follow: true },
   openGraph: {
     type: "website",
     siteName: "Servora",
     title: "Servora — Restaurant operations, connected.",
-    description: "A connected platform for restaurant operations.",
+    description: "One connected platform for guests, waiters, kitchen teams and restaurant operators.",
   },
 };
 

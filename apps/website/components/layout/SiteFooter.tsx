@@ -7,8 +7,8 @@ import { servoraApps } from "@/lib/servora-apps";
 export const SiteFooter = () => {
   return (
     <footer className="border-t border-border bg-surface">
-      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
-        <div className="lg:col-span-2">
+      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-5 lg:px-8">
+        <div>
           <Link href="/" className="text-xl font-bold tracking-tight">
             servora<span className="text-primary">.</span>
           </Link>
@@ -52,20 +52,41 @@ export const SiteFooter = () => {
           </ul>
         </div>
         <div>
-          <h2 className="text-sm font-semibold">Servora Apps</h2>
+          <h2 className="text-sm font-semibold">Apps</h2>
           <ul className="mt-4 space-y-3 text-sm text-text-secondary">
             {servoraApps.map((app) => (
               <li key={app.key}>
-                <a className="hover:text-text-primary" href={app.href}>
+                <Link className="hover:text-text-primary" href={app.detailHref}>
                   {app.shortName}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
         </div>
         <div>
+          <h2 className="text-sm font-semibold">Learn</h2>
+          <ul className="mt-4 space-y-3 text-sm text-text-secondary">
+            <li><Link className="hover:text-text-primary" href="/workflow">How it works</Link></li>
+            <li><Link className="hover:text-text-primary" href="/solutions">Solutions</Link></li>
+            <li><Link className="hover:text-text-primary" href="/onboarding">Onboarding</Link></li>
+            <li><Link className="hover:text-text-primary" href="/integrations">Integrations</Link></li>
+            <li><Link className="hover:text-text-primary" href="/resources">Resources</Link></li>
+            <li><Link className="hover:text-text-primary" href="/faq">FAQ</Link></li>
+          </ul>
+        </div>
+        <div>
           <h2 className="text-sm font-semibold">Company</h2>
           <ul className="mt-4 space-y-3 text-sm text-text-secondary">
+            <li>
+              <Link className="hover:text-text-primary" href="/customers">
+                Customers
+              </Link>
+            </li>
+            <li>
+              <Link className="hover:text-text-primary" href="/updates">
+                Product Updates
+              </Link>
+            </li>
             <li>
               <Link className="hover:text-text-primary" href="/pricing">
                 Pricing

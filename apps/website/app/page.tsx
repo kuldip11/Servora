@@ -13,6 +13,7 @@ import { modules } from "@/content/modules";
 import { ModuleCard } from "@/components/marketing/ModuleCard";
 import { CtaBanner } from "@/components/marketing/CtaBanner";
 import { ProductPreview } from "@/components/marketing/ProductPreview";
+import { ConnectedWorkflow } from "@/components/marketing/ConnectedWorkflow";
 
 export const metadata: Metadata = {
   title: "Servora — Restaurant operations, connected.",
@@ -169,6 +170,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <ConnectedWorkflow />
       <CtaBanner />
     </>
   );
