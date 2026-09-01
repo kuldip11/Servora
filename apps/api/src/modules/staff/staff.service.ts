@@ -1,10 +1,10 @@
 import bcrypt from "bcryptjs";
-import type { AuthContext } from "../../core/auth";
-import { requirePermission } from "../../core/auth";
+import type { AuthContext } from "@/core/auth";
+import { requirePermission } from "@/core/auth";
 import { staffRepository } from "./staff.repository";
 import { staffNotFound, branchRequiredForStaff } from "./staff.errors";
-import { ForbiddenError, ValidationError } from "../../core/errors";
-import { writeAudit } from "../../core/audit";
+import { ForbiddenError, ValidationError } from "@/core/errors";
+import { writeAudit } from "@/core/audit";
 
 export interface CreateStaffInput {
   firstName: string;
@@ -23,10 +23,14 @@ export interface UpdateStaffInput {
   branchIds?: string[] | undefined;
 }
 
-function canManageTarget(auth: AuthContext, membership: any) {
+type StaffMembership = NonNullable<
+  Awaited<ReturnType<typeof staffRepository.findMembership>>
+>;
+
+const canManageTarget = (auth: AuthContext, membership: StaffMembership) => {
   if (!membership) throw staffNotFound("unknown");
   if (auth.tenantWide) return;
-  const targetBranches = membership.branches.map((item: any) => item.branchId);
+  const targetBranches = membership.branches.map((item) => item.branchId);
   if (
     !targetBranches.some((id: string) =>
       (auth.authorizedBranchIds ?? []).includes(id),
@@ -34,27 +38,23 @@ function canManageTarget(auth: AuthContext, membership: any) {
   ) {
     throw staffNotFound(membership.userId);
   }
-}
+};
 
-async function validateRole(auth: AuthContext, roleId: string) {
+const validateRole = async (auth: AuthContext, roleId: string) => {
   const role = await staffRepository.findRoleById(roleId, auth.tenantId);
   if (!role) throw new ValidationError("Invalid role");
-  if (role.name === "OWNER" && !auth.roles.includes("OWNER")) {
-    throw new ForbiddenError("Only an Owner can assign the Owner role");
+  if (role.scope === "GLOBAL") {
+    throw new ForbiddenError("Global roles cannot be assigned from a franchise");
   }
-  if (
-    (role.scope === "GLOBAL" || role.scope === "TENANT") &&
-    !auth.roles.includes("OWNER") &&
-    !auth.tenantWide
-  ) {
+  if (role.scope === "TENANT" && !auth.tenantWide) {
     throw new ForbiddenError(
       "Branch-scoped memberships cannot assign tenant-wide roles",
     );
   }
   return role;
-}
+};
 
-async function validateBranches(auth: AuthContext, branchIds: string[]) {
+const validateBranches = async (auth: AuthContext, branchIds: string[]) => {
   const unique = [...new Set(branchIds)];
   const branches = await staffRepository.findBranchesByIds(
     auth.tenantId,
@@ -73,7 +73,7 @@ async function validateBranches(auth: AuthContext, branchIds: string[]) {
     );
   }
   return unique;
-}
+};
 
 export const staffService = {
   async list(auth: AuthContext) {
@@ -176,8 +176,7 @@ export const staffService = {
       requirePermission(auth, "staff:assign_role");
       const role = await validateRole(auth, input.roleId);
       const targetBranches =
-        input.branchIds ??
-        membership.branches.map((item: any) => item.branchId);
+        input.branchIds ?? membership.branches.map((item) => item.branchId);
       if (
         (role.scope === "GLOBAL" || role.scope === "TENANT") &&
         targetBranches.length
@@ -255,10 +254,9 @@ export const staffService = {
     requirePermission(auth, "staff:read");
     const roles = await staffRepository.findAllRoles(auth.tenantId);
     return roles.filter(
-      (role: any) =>
-        auth.roles.includes("OWNER") ||
-        auth.tenantWide ||
-        role.scope === "BRANCH",
+      (role) =>
+        role.scope !== "GLOBAL" &&
+        (auth.tenantWide || role.scope === "BRANCH"),
     );
   },
 };

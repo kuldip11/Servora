@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { inventoryItemsQuery } from "../query-options";
+import { inventoryItemsQuery } from "@/features/inventory/query-options";
 
-export function useInventoryItems() {
+export const useInventoryItems = () => {
   return useQuery(inventoryItemsQuery());
-}
+};

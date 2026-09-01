@@ -1,13 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
 import {
   modifierGroupsService,
   type ModifierGroupPayload,
-} from "../services/modifier-groups.service";
-import { menuKeys } from "../query-keys";
+} from "@/features/menu/services/modifier-groups.service";
+import { menuKeys } from "@/features/menu/query-keys";
 
-export function useSaveModifierGroup() {
+export const useSaveModifierGroup = () => {
   return useMutation({
     mutationFn: ({
       existingId,
@@ -25,4 +25,4 @@ export function useSaveModifierGroup() {
     },
     onError: (err) => notifyError(err, "Failed to save modifier group"),
   });
-}
+};

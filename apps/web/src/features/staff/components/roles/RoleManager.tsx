@@ -2,16 +2,19 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Button, Card, Input, Modal, Select, StatusBadge } from "@pos/ui";
 import { KeyRound, Plus, Shield, Trash2 } from "lucide-react";
-import { rolesService, type Role } from "../../services/roles.service";
+import {
+  rolesService,
+  type Role,
+} from "@/features/staff/services/roles.service";
 import {
   permissionsService,
   type Permission,
-} from "../../services/permissions.service";
-import { queryClient } from "../../../../shared/lib/query-client";
-import { roleKeys } from "../../query-keys";
-import { notifyError, notifySuccess } from "../../../../shared/lib/notify";
+} from "@/features/staff/services/permissions.service";
+import { queryClient } from "@/shared/lib/query-client";
+import { roleKeys } from "@/features/staff/query-keys";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
 
-export function RoleManager({
+export const RoleManager = ({
   roles,
   canManage,
   canManagePermissions,
@@ -19,7 +22,7 @@ export function RoleManager({
   roles: Role[];
   canManage: boolean;
   canManagePermissions: boolean;
-}) {
+}) => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -314,4 +317,4 @@ export function RoleManager({
       </Modal>
     </Card>
   );
-}
+};

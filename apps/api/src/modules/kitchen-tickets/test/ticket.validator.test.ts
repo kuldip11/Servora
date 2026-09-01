@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { Value } from "@sinclair/typebox/value";
-import { updateTicketStatusBody, ticketIdParams } from "../ticket.validator";
+import {
+  updateTicketStatusBody,
+  ticketIdParams,
+} from "@/modules/kitchen-tickets/ticket.validator";
 
 describe("kitchen ticket validators", () => {
   it("accepts supported statuses and rejects unknown values", () => {

@@ -12,6 +12,10 @@ export type RealtimeEvent =
       payload: Order;
     }
   | {
+      type: "order.item.voided";
+      payload: KitchenTicket;
+    }
+  | {
       type: "kitchen.ticket.created";
       payload: KitchenTicket & { customerSessionId?: string };
     }
@@ -22,6 +26,21 @@ export type RealtimeEvent =
   | {
       type: "inventory.low_stock";
       payload: InventoryItem;
+    }
+  | {
+      type: "menu.availability.updated";
+      payload: {
+        source: "INVENTORY" | "MANUAL_STOCK_COUNT";
+        entityType: "ITEM" | "VARIANT" | "MODIFIER_OPTION";
+        entityId: string;
+        menuItemId: string;
+        computedStatus?: "ACTIVE" | "OUT_OF_STOCK";
+        effectiveStatus?: string;
+        computedAvailability?: boolean;
+        effectiveAvailability?: boolean;
+        manualStockCount?: number | null;
+        reason?: string | null;
+      };
     }
   | {
       type: "payment.updated";

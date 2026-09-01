@@ -64,6 +64,9 @@ vi.mock("./features/analytics/hooks/useDashboardStats", () => ({
 vi.mock("./features/analytics/hooks/useDashboardRealtimeSync", () => ({
   useDashboardRealtimeSync: () => undefined,
 }));
+vi.mock("./features/analytics/hooks/useCostMarginReport", () => ({
+  useCostMarginReport: () => ({ data: [], isLoading: false }),
+}));
 vi.mock("./features/orders/hooks/useOrders", () => ({
   useOrders: () => ({ data: [], isLoading: false }),
 }));
@@ -111,6 +114,16 @@ vi.mock("./features/inventory/hooks/useInventoryRealtimeSync", () => ({
 vi.mock("./features/inventory/hooks/useInventoryTransactions", () => ({
   useInventoryTransactions: () => ({ data: [], isLoading: false }),
 }));
+vi.mock("./features/inventory/hooks/useWasteReasons", () => ({
+  useWasteReasons: () => ({ data: [], isLoading: false }),
+}));
+vi.mock("./features/inventory/hooks/useInventoryRecipeImpact", () => ({
+  useInventoryRecipeImpact: () => ({ data: undefined, isLoading: false }),
+}));
+vi.mock("./features/inventory/hooks/useLogInventoryWaste", () => ({
+  useLogInventoryWaste: () => ({ mutate: vi.fn(), isPending: false }),
+  useCreateWasteReason: () => ({ mutate: vi.fn(), isPending: false }),
+}));
 
 vi.mock("./features/tables/hooks/useTables", () => ({
   useTables: () => ({ data: [], isLoading: false }),
@@ -154,13 +167,30 @@ vi.mock("./features/billing/hooks/useCollectPayment", () => ({
   useCollectPayment: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 
-function renderPage(Page: React.ComponentType) {
+vi.mock("./features/orders/hooks/useCancellationReasons", () => ({
+  cancellationReasonKeys: {
+    all: ["cancellation-reasons"],
+    active: ["cancellation-reasons", "active"],
+  },
+  useCancellationReasons: () => ({ data: [], isLoading: false }),
+}));
+vi.mock("./features/settings/components/PricingSettingsCard", () => ({
+  PricingSettingsCard: () => <div>PricingSettingsCard</div>,
+}));
+vi.mock("./features/settings/components/KitchenOperationsSettingsCard", () => ({
+  KitchenOperationsSettingsCard: () => <div>KitchenOperationsSettingsCard</div>,
+}));
+vi.mock("./features/settings/components/ApprovalThresholdSettingsCard", () => ({
+  ApprovalThresholdSettingsCard: () => <div>ApprovalThresholdSettingsCard</div>,
+}));
+
+const renderPage = (Page: React.ComponentType) => {
   const host = document.createElement("div");
   document.body.appendChild(host);
   const root = createRoot(host);
   const queryClient = new QueryClient({
     defaultOptions: {
-      queries: { retry: false },
+      queries: { retry: false, gcTime: Infinity },
       mutations: { retry: false },
     },
   });
@@ -173,8 +203,12 @@ function renderPage(Page: React.ComponentType) {
       </QueryClientProvider>,
     ),
   );
-  return () => act(() => root.unmount());
-}
+  return () => {
+    act(() => root.unmount());
+    queryClient.clear();
+    host.remove();
+  };
+};
 
 describe("page rendering coverage", () => {
   afterEach(() => {

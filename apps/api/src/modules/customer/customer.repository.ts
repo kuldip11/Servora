@@ -1,5 +1,5 @@
 import { and, eq, isNull, or, notInArray } from "drizzle-orm";
-import { db } from "../../db";
+import { db } from "@/db";
 import {
   branches,
   customerSessions,
@@ -8,7 +8,11 @@ import {
   restaurantTables,
   orders,
   kitchenTickets,
-} from "../../db/schema";
+} from "@/db/schema";
+import {
+  withEffectiveMenuItemAvailability,
+  withEffectiveModifierAvailability,
+} from "@/modules/menu/availability/availability-view";
 
 export const customerRepository = {
   async findBranchByTakeawayQrToken(token: string) {
@@ -52,7 +56,7 @@ export const customerRepository = {
         eq(orders.customerSessionId, sessionId),
         notInArray(orders.status, ["PAID", "CLOSED", "CANCELLED"]),
       ),
-      columns: { id: true, status: true },
+      columns: { id: true, status: true, customerId: true },
     });
   },
 
@@ -97,7 +101,6 @@ export const customerRepository = {
       where: and(
         eq(menuItems.tenantId, tenantId),
         eq(menuItems.isPublished, true),
-        eq(menuItems.isAvailable, true),
         or(eq(menuItems.branchId, branchId), isNull(menuItems.branchId)),
         isNull(menuItems.deletedAt),
       ),
@@ -111,6 +114,18 @@ export const customerRepository = {
       orderBy: (t, { asc }) => [asc(t.sortOrder), asc(t.name)],
     });
 
-    return { categories, items };
+    return {
+      categories,
+      items: items.map((item) => ({
+        ...withEffectiveMenuItemAvailability(item),
+        modifierGroupLinks: item.modifierGroupLinks.map((link) => ({
+          ...link,
+          group: {
+            ...link.group,
+            options: link.group.options.map(withEffectiveModifierAvailability),
+          },
+        })),
+      })),
+    };
   },
 };

@@ -9,23 +9,18 @@ export interface SectionProps extends Omit<
   children: ReactNode;
   title?: ReactNode;
   description?: ReactNode;
-  /** Rendered on the same row as the title, right-aligned (e.g. a button). */
+
   actions?: ReactNode;
 }
 
-/**
- * A labeled sub-region of a page — e.g. "Account" / "Notifications"
- * blocks on a settings page. Not a visual container itself (no border/
- * background); wrap in `Card` if you need one.
- */
-export function Section({
+export const Section = ({
   children,
   title,
   description,
   actions,
   className,
   ...props
-}: SectionProps) {
+}: SectionProps) => {
   return (
     <section className={cn(className)} {...props}>
       {(title || description || actions) && (
@@ -54,4 +49,4 @@ export function Section({
       {children}
     </section>
   );
-}
+};

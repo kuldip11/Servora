@@ -7,7 +7,7 @@ const api = vi.hoisted(() => ({
 }));
 vi.mock("../../../../shared/lib/api-client", () => ({ apiClient: api }));
 
-import { menuSchedulesService } from "../menu-schedules.service";
+import { menuSchedulesService } from "@/features/menu/services/menu-schedules.service";
 
 describe("menuSchedulesService", () => {
   beforeEach(() => {

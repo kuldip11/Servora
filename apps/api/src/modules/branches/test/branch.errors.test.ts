@@ -7,7 +7,7 @@ import {
   branchHasOpenOrders,
   branchCodeAlreadyExists,
   tablesRequireDineIn,
-} from "../branch.errors";
+} from "@/modules/branches/branch.errors";
 describe("branch errors", () => {
   it("creates a stable not-found error with the branch id", () => {
     const error = branchNotFound("b1");

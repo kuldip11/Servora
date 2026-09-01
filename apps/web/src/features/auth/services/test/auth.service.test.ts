@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const api = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), patch: vi.fn() }));
 vi.mock("../../../../shared/lib/api-client", () => ({ apiClient: api }));
-import { authService } from "../auth.service";
+import { authService } from "@/features/auth/services/auth.service";
 
 const user = { id: "u1", tenantId: "t1", branchId: "b1" } as any;
 
@@ -33,28 +33,18 @@ describe("authService", () => {
   });
 
   it("logs in", async () => {
-    const data = { accessToken: "a", refreshToken: "r", expiresIn: 60, user };
+    const data = { accessToken: "a", expiresIn: 60, user };
     api.post.mockResolvedValue({ data: { data } });
     await expect(
       authService.login({ email: "a@b.com", password: "secret" }),
     ).resolves.toEqual(data);
   });
 
-  it("refreshes using the persisted refresh token", async () => {
-    localStorage.setItem("pos-refresh-token", "r1");
-    const data = { accessToken: "a2", refreshToken: "r2", expiresIn: 60, user };
+  it("refreshes through the API-owned HttpOnly cookie", async () => {
+    const data = { accessToken: "a2", expiresIn: 60, user };
     api.post.mockResolvedValue({ data: { data } });
     await expect(authService.refresh()).resolves.toEqual(data);
-    expect(api.post).toHaveBeenCalledWith("/auth/refresh", {
-      refreshToken: "r1",
-    });
-  });
-
-  it("rejects refresh when no refresh token exists", async () => {
-    await expect(authService.refresh()).rejects.toThrow(
-      "No refresh token available",
-    );
-    expect(api.post).not.toHaveBeenCalled();
+    expect(api.post).toHaveBeenCalledWith("/auth/refresh");
   });
 
   it("loads organizations and memberships, creates a tenant under an organization, and loads the current user", async () => {

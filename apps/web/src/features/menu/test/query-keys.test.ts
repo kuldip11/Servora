@@ -4,7 +4,7 @@ vi.mock("../../../store/auth", () => ({
   useAuthStore: { getState: () => ({ franchiseId: "fr-1", branchId: "br-1" }) },
 }));
 
-import { menuKeys } from "../query-keys";
+import { menuKeys } from "@/features/menu/query-keys";
 
 describe("menuKeys", () => {
   it("separates branch-scoped and franchise-scoped resources", () => {

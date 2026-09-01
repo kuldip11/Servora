@@ -2,7 +2,7 @@ import { useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { Button, toast } from "@pos/ui";
 import type { AvailableMembership } from "@pos/types";
-export function BranchSelector({
+export const BranchSelector = ({
   branches,
   onSelect,
   onBack,
@@ -10,7 +10,7 @@ export function BranchSelector({
   branches: AvailableMembership["branches"];
   onSelect: (id: string) => void;
   onBack: () => void;
-}) {
+}) => {
   const [selected, setSelected] = useState("");
   function confirm() {
     if (!selected) {
@@ -53,4 +53,4 @@ export function BranchSelector({
       </Button>
     </div>
   );
-}
+};

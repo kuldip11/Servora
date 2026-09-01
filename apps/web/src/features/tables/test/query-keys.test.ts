@@ -4,7 +4,7 @@ vi.mock("../../../store/auth", () => ({
   useAuthStore: { getState: () => ({ franchiseId: "fr-1", branchId: "br-1" }) },
 }));
 
-import { tableKeys } from "../query-keys";
+import { tableKeys } from "@/features/tables/query-keys";
 
 describe("tableKeys", () => {
   it("scopes table lists to the active branch context", () => {

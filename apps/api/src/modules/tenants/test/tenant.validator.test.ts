@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createTenantBody } from "../tenant.validator";
+import { createTenantBody } from "@/modules/tenants/tenant.validator";
 
 describe("franchise creation contract", () => {
   it("requires organizationId", () => {

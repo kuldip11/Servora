@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Value } from "@sinclair/typebox/value";
-import { createRoleBody } from "../role.validator";
+import { createRoleBody } from "@/modules/roles/role.validator";
 
 describe("role validator", () => {
   it("accepts tenant and branch custom roles", () => {

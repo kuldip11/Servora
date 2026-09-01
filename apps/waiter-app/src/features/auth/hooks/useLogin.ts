@@ -2,9 +2,21 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "@pos/ui";
 import { extractApiError } from "@pos/api-client";
-import { login, fetchMemberships } from "../api/login";
-import { saveTokens, saveProfile, saveContext, clearTokens } from "../storage";
-import type { AvailableMembership, CredentialsForm } from "../types";
+import {
+  login,
+  fetchMemberships,
+  fetchMe,
+} from "@/features/auth/api/login";
+import {
+  saveTokens,
+  saveProfile,
+  saveContext,
+  clearTokens,
+} from "@/features/auth/storage";
+import type {
+  AvailableMembership,
+  CredentialsForm,
+} from "@/features/auth/types";
 
 interface UseLoginResult {
   step: "credentials" | "membership" | "branch";
@@ -17,7 +29,7 @@ interface UseLoginResult {
   resetToCredentials: () => void;
 }
 
-export function useLogin(onLogin: () => void): UseLoginResult {
+export const useLogin = (onLogin: () => void): UseLoginResult => {
   const [step, setStep] = useState<"credentials" | "membership" | "branch">(
     "credentials",
   );
@@ -32,6 +44,8 @@ export function useLogin(onLogin: () => void): UseLoginResult {
       ? null
       : (membership.branches[0]?.id ?? null);
     saveContext(membership.tenant.id, branchId);
+    const activeUser = await fetchMe();
+    saveProfile(activeUser);
     if (branchId || membership.roles.some((role) => role.scope === "TENANT")) {
       onLogin();
       return;
@@ -43,7 +57,7 @@ export function useLogin(onLogin: () => void): UseLoginResult {
   const mutation = useMutation({
     mutationFn: async (creds: CredentialsForm) => {
       const result = await login(creds.email, creds.password);
-      saveTokens(result.accessToken, result.refreshToken);
+      saveTokens(result.accessToken);
       saveProfile(result.user);
       const list = await fetchMemberships();
       if (!list.length)
@@ -73,7 +87,14 @@ export function useLogin(onLogin: () => void): UseLoginResult {
     selectBranchForMembership: (id) => {
       if (!activeMembership) return;
       saveContext(activeMembership.tenant.id, id);
-      onLogin();
+      void fetchMe()
+        .then((activeUser) => {
+          saveProfile(activeUser);
+          onLogin();
+        })
+        .catch((err: unknown) =>
+          toast({ title: extractApiError(err), tone: "danger" }),
+        );
     },
     isLoading: mutation.isPending,
     resetToCredentials: () => {
@@ -83,4 +104,4 @@ export function useLogin(onLogin: () => void): UseLoginResult {
       clearTokens();
     },
   };
-}
+};

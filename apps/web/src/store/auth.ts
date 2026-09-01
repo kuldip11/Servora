@@ -1,31 +1,10 @@
 import { create } from "zustand";
 import type { AvailableMembership, User } from "@pos/types";
 
-const REFRESH_TOKEN_KEY = "pos-refresh-token";
-
-function readRefreshToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(REFRESH_TOKEN_KEY);
-}
-
-function writeRefreshToken(token: string | null): void {
-  if (typeof window === "undefined") return;
-  if (token) window.localStorage.setItem(REFRESH_TOKEN_KEY, token);
-  else window.localStorage.removeItem(REFRESH_TOKEN_KEY);
-}
-
-/**
- * Authentication/session state.
- *
- * Access tokens are memory-only. The only authentication value persisted by
- * this store is the refresh token. Server state (franchises, branches,
- * orders, etc.) belongs in TanStack Query, not localStorage/Zustand.
- */
 interface AuthState {
   user: User | null;
   accessToken: string | null;
-  refreshToken: string | null;
-  /** Internal server access record for the active franchise. Not persisted. */
+
   membershipId: string | null;
   organizationId: string | null;
   memberships: AvailableMembership[];
@@ -36,11 +15,10 @@ interface AuthState {
   setAuth: (data: {
     user: User;
     accessToken: string;
-    refreshToken: string;
     membershipId?: string | null;
     memberships?: AvailableMembership[];
   }) => void;
-  setTokens: (accessToken: string, refreshToken: string) => void;
+  setAccessToken: (accessToken: string) => void;
   setContext: (data: {
     membershipId: string | null;
     organizationId?: string | null;
@@ -56,7 +34,6 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   accessToken: null,
-  refreshToken: readRefreshToken(),
   membershipId: null,
   organizationId: null,
   memberships: [],
@@ -64,18 +41,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   branchId: null,
   isAuthenticated: false,
 
-  setAuth: ({
-    user,
-    accessToken,
-    refreshToken,
-    membershipId = null,
-    memberships = [],
-  }) => {
-    writeRefreshToken(refreshToken);
+  setAuth: ({ user, accessToken, membershipId = null, memberships = [] }) => {
     set({
       user,
       accessToken,
-      refreshToken,
       membershipId,
       organizationId: null,
       memberships,
@@ -103,19 +72,16 @@ export const useAuthStore = create<AuthState>((set) => ({
       isAuthenticated: state.isAuthenticated || Boolean(state.accessToken),
     })),
 
-  setTokens: (accessToken, refreshToken) => {
-    writeRefreshToken(refreshToken);
-    set({ accessToken, refreshToken, isAuthenticated: true });
+  setAccessToken: (accessToken) => {
+    set({ accessToken, isAuthenticated: true });
   },
 
   setBranchId: (branchId) => set({ branchId }),
 
   logout: () => {
-    writeRefreshToken(null);
     set({
       user: null,
       accessToken: null,
-      refreshToken: null,
       membershipId: null,
       organizationId: null,
       memberships: [],
@@ -125,5 +91,3 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
   },
 }));
-
-export { REFRESH_TOKEN_KEY };

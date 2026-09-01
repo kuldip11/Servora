@@ -1,7 +1,7 @@
 import type { ComponentType } from "react";
 import { cn } from "../utils/cn";
 
-export function StatCard({
+export const StatCard = ({
   title,
   value,
   subtitle,
@@ -15,7 +15,7 @@ export function StatCard({
   icon: ComponentType<{ className?: string }>;
   trend?: { value: number; label: string };
   color?: "violet" | "emerald" | "amber" | "blue" | "red";
-}) {
+}) => {
   const colors = {
     violet: "bg-violet-50 text-violet-600",
     emerald: "bg-emerald-50 text-emerald-600",
@@ -54,4 +54,4 @@ export function StatCard({
       )}
     </div>
   );
-}
+};

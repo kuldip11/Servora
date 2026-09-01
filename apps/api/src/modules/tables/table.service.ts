@@ -1,12 +1,7 @@
-/**
- * Table service — business rules that used to live inline in the
- * controller: branch resolution/validation on create, and blocking
- * status/delete changes while a table has an active order.
- */
 import type { TableStatus } from "@pos/types";
-import type { AuthContext } from "../../core/auth";
+import type { AuthContext } from "@/core/auth";
 import { tableRepository } from "./table.repository";
-import { branchRepository } from "../branches/branch.repository";
+import { branchRepository } from "@/modules/branches/branch.repository";
 import {
   tableNotFound,
   branchNotFound,
@@ -37,8 +32,6 @@ export interface UpdateTableInput {
 }
 
 export const tableService = {
-  // Branch-locked staff see only their own branch; OWNER/MANAGER can pass
-  // `null` (resolved from "all branches") to see everything, tagged by branch.
   async list(auth: AuthContext) {
     requireTablesPermission(auth, "tables:read");
     assertTableListScope(auth);
@@ -56,9 +49,6 @@ export const tableService = {
     }
     if (!branchId) throw branchRequiredForTable();
 
-    // Enforcement point for "tables disabled" (e.g. a delivery-only cloud
-    // kitchen) — the UI hiding the Tables page is just a convenience on
-    // top of this.
     const branch = await branchRepository.findById(auth.tenantId, branchId);
     if (!branch) throw branchNotFound(branchId);
     if (!branch.tablesEnabled) throw tablesDisabledForBranch();
@@ -104,11 +94,6 @@ export const tableService = {
     return updated;
   },
 
-  // Dedicated status endpoint — the one the waiter/kitchen apps hit
-  // frequently to flip a table between AVAILABLE / OCCUPIED / CLEANING /
-  // RESERVED. Blocked while the table has an active order; status then
-  // only changes automatically as a side effect of the order lifecycle
-  // (see modules/orders/order.service.ts).
   async updateStatus(auth: AuthContext, tableId: string, status: TableStatus) {
     requireTablesPermission(auth, "tables:update");
     const table = await tableRepository.findById(auth.tenantId, tableId);

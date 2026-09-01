@@ -1,5 +1,6 @@
-import { apiClient } from "../../../shared/lib/api-client";
-import type { Order } from "@pos/types";
+import { createBillingApi, createOrdersApi } from "@pos/api-client";
+import { apiClient } from "@/shared/lib/api-client";
+import type { CancellationReason, Order } from "@pos/types";
 import {
   addOrderItemsSchema,
   updateOrderStatusSchema,
@@ -11,44 +12,154 @@ export interface AddOrderItemInput {
   variantId?: string;
   quantity: number;
   chefNotes?: string;
-  selectedOptions?: Array<{ optionId: string; quantity?: number }>;
+  seatLabel?: string;
+  courseNumber?: number;
+  weightQuantity?: number;
+  manualPrice?: number;
+  selectedOptions?: Array<{
+    optionId: string;
+    quantity?: number;
+    zoneLabel?: string;
+  }>;
 }
 
-export async function fetchOrders(): Promise<Order[]> {
-  const res = await apiClient.get("/orders");
-  return res.data.data;
+const ordersApi = createOrdersApi(apiClient);
+const billingApi = createBillingApi(apiClient);
+
+export interface AddOrderComboInput {
+  comboId: string;
+  quantity?: number;
+  selections: Array<{ slotId: string; optionIds: string[] }>;
 }
 
-export async function fetchOrder(orderId: string): Promise<Order> {
-  const res = await apiClient.get(`/orders/${orderId}`);
-  return res.data.data;
-}
+export const fetchOrders = async (): Promise<Order[]> => {
+  return ordersApi.list();
+};
 
-export async function updateOrderStatus(
+export const fetchOrder = async (orderId: string): Promise<Order> => {
+  return ordersApi.get(orderId);
+};
+
+export const updateOrderStatus = async (
   id: string,
   status: string,
-): Promise<void> {
+  reason?: { cancellationReasonId?: string; reason?: string },
+): Promise<void> => {
   const validated = updateOrderStatusSchema.parse({ status });
-  await apiClient.patch(`/orders/${id}/status`, validated);
-}
+  await ordersApi.updateStatus(id, { ...validated, ...reason });
+};
 
-export async function addOrderItems(
+export const fetchCancellationReasons = async (): Promise<
+  CancellationReason[]
+> => {
+  return ordersApi.listCancellationReasons();
+};
+
+export const addOrderItems = async (
   orderId: string,
   items: AddOrderItemInput[],
+  combos: AddOrderComboInput[],
   notes?: string,
-): Promise<{ id: string }> {
+  pricing?: { couponCode?: string; promotionIds?: string[] },
+): Promise<{ id: string }> => {
   const validated = addOrderItemsSchema.parse({
-    items,
+    ...(items.length ? { items } : {}),
+    ...(combos.length ? { combos } : {}),
     ...(notes !== undefined ? { notes } : {}),
+    ...(pricing?.couponCode ? { couponCode: pricing.couponCode } : {}),
+    ...(pricing?.promotionIds?.length
+      ? { promotionIds: pricing.promotionIds }
+      : {}),
   });
-  const res = await apiClient.post(`/orders/${orderId}/items`, validated);
-  return res.data.data;
-}
+  return ordersApi.addItems(orderId, validated);
+};
 
-export async function updateTicketStatus(
+export const updateTicketStatus = async (
   ticketId: string,
   status: string,
-): Promise<void> {
+): Promise<void> => {
   const validated = updateKitchenTicketStatusSchema.parse({ status });
-  await apiClient.patch(`/kitchen-tickets/${ticketId}/status`, validated);
-}
+  await ordersApi.updateTicketStatus(ticketId, validated);
+};
+
+export const refireOrderItem = async (
+  orderId: string,
+  orderItemId: string,
+  reason: string,
+  alsoCompOriginal = true,
+): Promise<Order> => {
+  return ordersApi.refireItem(orderId, orderItemId, reason, alsoCompOriginal);
+};
+
+export const refillOrderItem = async (
+  orderId: string,
+  orderItemId: string,
+): Promise<Order> => {
+  return ordersApi.refillItem(orderId, orderItemId);
+};
+
+export const setOrderItemSeatShares = async (
+  orderId: string,
+  orderItemId: string,
+  shares: Array<{ seatLabel: string; shareRatio: number }>,
+): Promise<void> => {
+  await ordersApi.setItemSeatShares(orderId, orderItemId, shares);
+};
+
+export const voidOrderItem = async (
+  orderId: string,
+  orderItemId: string,
+  reason: {
+    cancellationReasonId?: string;
+    reason?: string;
+    approvalToken?: string;
+  },
+): Promise<Order> => {
+  return ordersApi.voidItem(orderId, orderItemId, reason);
+};
+
+export const compOrderItem = async (
+  orderId: string,
+  orderItemId: string,
+  reason: {
+    cancellationReasonId?: string;
+    reason?: string;
+    approvalToken?: string;
+  },
+): Promise<Order> => {
+  return ordersApi.compItem(orderId, orderItemId, reason);
+};
+
+export const transferOrderTable = async (
+  orderId: string,
+  newTableId: string,
+  reason?: string,
+): Promise<Order> => {
+  return ordersApi.transferTable(orderId, newTableId, reason);
+};
+
+export const splitOrderBill = async (
+  orderId: string,
+  ways: number,
+): Promise<void> => {
+  await billingApi.splitOrder(orderId, ways);
+};
+export const splitOrderBillByItems = async (
+  orderId: string,
+  allocations: Array<{ label: string; orderItemIds: string[] }>,
+): Promise<void> => {
+  await billingApi.splitOrderByItems(orderId, allocations);
+};
+export const splitOrderBillBySeat = async (
+  orderId: string,
+  sharedItemStrategy: "EVEN_SPLIT" | "MANUAL",
+) => {
+  return billingApi.splitOrderBySeat(orderId, sharedItemStrategy);
+};
+
+export const mergeOrders = async (
+  sourceOrderId: string,
+  targetOrderId: string,
+): Promise<void> => {
+  await ordersApi.merge(sourceOrderId, targetOrderId);
+};

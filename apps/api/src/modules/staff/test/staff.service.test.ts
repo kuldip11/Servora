@@ -50,7 +50,7 @@ vi.mock("../../../core/auth", () => ({
 vi.mock("bcryptjs", () => ({
   default: { hash: vi.fn().mockResolvedValue("HASH") },
 }));
-import { staffService } from "../staff.service";
+import { staffService } from "@/modules/staff/staff.service";
 const base: any = {
   userId: "admin",
   tenantId: "t1",

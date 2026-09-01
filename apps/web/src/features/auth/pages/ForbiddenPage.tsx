@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ShieldAlert } from "lucide-react";
 import { Button, Card, Page } from "@pos/ui";
 
-export function ForbiddenPage() {
+export const ForbiddenPage = () => {
   return (
     <Page className="min-h-full flex items-center justify-center">
       <Card className="max-w-md text-center">
@@ -23,4 +23,4 @@ export function ForbiddenPage() {
       </Card>
     </Page>
   );
-}
+};

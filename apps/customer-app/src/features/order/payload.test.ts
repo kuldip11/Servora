@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createOrderPayload } from "./payload";
-import type { CartLine } from "../cart/pricing";
+import type { CartLine } from "@/features/cart/pricing";
 
 const item = {
   id: "item-1",

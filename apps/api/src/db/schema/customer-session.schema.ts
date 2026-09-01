@@ -41,5 +41,10 @@ export const customerSessions = pgTable(
       t.tableId,
       t.active,
     ),
+    branchModeIdx: index("customer_sessions_branch_mode_idx").on(
+      t.branchId,
+      t.mode,
+      t.active,
+    ),
   }),
 );

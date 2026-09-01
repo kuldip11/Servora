@@ -1,0 +1,1 @@
+export const CUSTOMER_SESSION_TTL_MINUTES = 12 * 60;

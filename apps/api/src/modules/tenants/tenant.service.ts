@@ -1,22 +1,24 @@
-import type { AuthContext } from "../../core/auth";
-import { requirePermission } from "../../core/auth";
+import type { AuthContext } from "@/core/auth";
+import { requirePermission } from "@/core/auth";
 import { tenantRepository } from "./tenant.repository";
-import { branchRepository } from "../branches/branch.repository";
+import { branchRepository } from "@/modules/branches/branch.repository";
 import { tenantNotFound } from "./tenant.errors";
-import { ForbiddenError } from "../../core/errors";
-import { writeAudit } from "../../core/audit";
+import {
+  ForbiddenError,
+  ServiceUnavailableError,
+  ValidationError,
+} from "@/core/errors";
+import { writeAudit } from "@/core/audit";
 
 export const tenantService = {
   async list(auth: AuthContext) {
-    // Franchise selection is a context operation. Any authenticated user may
-    // list the franchises they are already authorized to access.
     const memberships = await tenantRepository.findMembershipsByUserId(
       auth.userId,
     );
     return Promise.all(
       memberships.map(async (membership) => {
         const tenantWide = membership.roles.some(
-          (item: any) => item.role.scope === "TENANT",
+          (item) => item.role.scope === "TENANT",
         );
         const branchIds = tenantWide
           ? (await branchRepository.findMany(membership.tenant.id, null)).map(
@@ -27,7 +29,7 @@ export const tenantService = {
         return {
           membershipId: membership.id,
           tenant: membership.tenant,
-          roles: membership.roles.map((item: any) => ({
+          roles: membership.roles.map((item) => ({
             id: item.roleId,
             name: item.role.name,
             scope: item.role.scope,
@@ -42,8 +44,6 @@ export const tenantService = {
     auth: AuthContext,
     input: { name: string; organizationId: string },
   ) {
-    // Creating a new franchise is an ownership operation, not a generic
-    // tenant permission. Only the global OWNER can create another franchise.
     if (!auth.roles.includes("OWNER")) {
       throw new ForbiddenError("Only the global Owner can create tenants");
     }
@@ -66,8 +66,8 @@ export const tenantService = {
     });
     const tenantRole = await tenantRepository.findRoleByName("FRANCHISE_ADMIN");
     if (!tenantRole || tenantRole.scope !== "TENANT")
-      throw new Error(
-        "RBAC reference data is not installed: TENANT FRANCHISE_ADMIN role is missing",
+      throw new ServiceUnavailableError(
+        "RBAC reference data is unavailable: TENANT FRANCHISE_ADMIN role is missing",
       );
     const membership = await tenantRepository.createOwnerMembership(
       auth.userId,
@@ -91,7 +91,14 @@ export const tenantService = {
   async update(
     auth: AuthContext,
     tenantId: string,
-    changes: { name?: string },
+    changes: {
+      name?: string;
+      serviceChargePercent?: number | null;
+      serviceChargeTaxable?: boolean;
+      roundingPolicy?: "NONE" | "NEAREST_1" | "NEAREST_5" | "NEAREST_10";
+      defaultTaxMode?: "INCLUSIVE" | "EXCLUSIVE";
+      courseSequencingEnabled?: boolean;
+    },
   ) {
     requirePermission(auth, "tenant:update");
     const tenant = await tenantRepository.findById(tenantId);
@@ -102,11 +109,40 @@ export const tenantService = {
         tenant.organizationId,
       );
     if (!organizationMembership) throw tenantNotFound(tenantId);
-    if (!auth.roles.includes("OWNER") && tenantId !== auth.tenantId)
-      throw tenantNotFound(tenantId);
+    if (tenantId !== auth.tenantId) throw tenantNotFound(tenantId);
+    if (
+      changes.serviceChargePercent !== undefined &&
+      changes.serviceChargePercent !== null &&
+      (!Number.isFinite(changes.serviceChargePercent) ||
+        changes.serviceChargePercent < 0 ||
+        changes.serviceChargePercent > 100)
+    ) {
+      throw new ValidationError(
+        "Service charge percent must be between 0 and 100",
+      );
+    }
     const updated = await tenantRepository.update(tenantId, {
-      ...changes,
       ...(changes.name !== undefined ? { name: changes.name.trim() } : {}),
+      ...(changes.serviceChargePercent !== undefined
+        ? {
+            serviceChargePercent:
+              changes.serviceChargePercent === null
+                ? null
+                : changes.serviceChargePercent.toFixed(2),
+          }
+        : {}),
+      ...(changes.serviceChargeTaxable !== undefined
+        ? { serviceChargeTaxable: changes.serviceChargeTaxable }
+        : {}),
+      ...(changes.roundingPolicy !== undefined
+        ? { roundingPolicy: changes.roundingPolicy }
+        : {}),
+      ...(changes.defaultTaxMode !== undefined
+        ? { defaultTaxMode: changes.defaultTaxMode }
+        : {}),
+      ...(changes.courseSequencingEnabled !== undefined
+        ? { courseSequencingEnabled: changes.courseSequencingEnabled }
+        : {}),
     });
     if (!updated) throw tenantNotFound(tenantId);
     await writeAudit({
@@ -133,8 +169,7 @@ export const tenantService = {
         tenant.organizationId,
       );
     if (!organizationMembership) throw tenantNotFound(tenantId);
-    if (!auth.roles.includes("OWNER") && tenantId !== auth.tenantId)
-      throw tenantNotFound(tenantId);
+    if (tenantId !== auth.tenantId) throw tenantNotFound(tenantId);
     const updated = await tenantRepository.update(tenantId, {
       isActive: false,
     });

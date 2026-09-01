@@ -22,17 +22,53 @@ import {
   spiceLevelEnum,
   modifierSelectionTypeEnum,
   menuItemScheduleTypeEnum,
-} from "../menu.schema";
+  menus,
+  menuStatusEnum,
+  menuMemberships,
+} from "@/db/schema/menu.schema";
+import { priceRules } from "@/db/schema/pricing.schema";
 
-function expectTable(table: any, name: string, columns: string[]) {
+const expectTable = (table: any, name: string, columns: string[]) => {
   expect(getTableConfig(table).name).toBe(name);
   const actual = Object.keys(table[Symbol.for("drizzle:Columns")]);
   expect(actual).toEqual(expect.arrayContaining(columns));
   expect(actual).toHaveLength(columns.length);
-}
+};
 
 describe("menu.schema.ts", () => {
   const cases: [any, string, string[]][] = [
+    [
+      menus,
+      "menus",
+      [
+        "id",
+        "tenantId",
+        "organizationId",
+        "name",
+        "description",
+        "status",
+        "isDefault",
+        "availableChannels",
+        "availableFulfillmentTypes",
+        "availableBranchIds",
+        "effectiveFrom",
+        "createdAt",
+        "updatedAt",
+      ],
+    ],
+    [
+      menuMemberships,
+      "menu_memberships",
+      [
+        "id",
+        "menuId",
+        "menuItemId",
+        "categoryId",
+        "sortOrder",
+        "createdAt",
+        "updatedAt",
+      ],
+    ],
     [
       menuCategories,
       "menu_categories",
@@ -59,8 +95,16 @@ describe("menu.schema.ts", () => {
         "name",
         "description",
         "basePrice",
+        "pricingMode",
+        "weightUnit",
+        "openPriceMin",
+        "openPriceMax",
+        "supportsZones",
+        "zonePricingRule",
+        "manualStockCount",
+        "manualStockCountUpdatedAt",
         "taxRate",
-        "isAvailable",
+        "taxMode",
         "imageUrl",
         "foodType",
         "spiceLevel",
@@ -69,9 +113,15 @@ describe("menu.schema.ts", () => {
         "sortOrder",
         "hsnCode",
         "status",
+        "manualOverrideStatus",
+        "manualOverrideReason",
+        "manualOverrideSetBy",
+        "manualOverrideSetAt",
         "availabilityReason",
         "statusChangedAt",
         "enableRecipeDeduction",
+        "displayMode",
+        "effectiveFrom",
         "isPublished",
         "publishedAt",
         "deletedAt",
@@ -82,7 +132,17 @@ describe("menu.schema.ts", () => {
     [
       menuItemVariants,
       "menu_item_variants",
-      ["id", "menuItemId", "name", "price"],
+      [
+        "id",
+        "menuItemId",
+        "name",
+        "price",
+        "status",
+        "manualOverrideStatus",
+        "manualOverrideReason",
+        "manualStockCount",
+        "manualStockCountUpdatedAt",
+      ],
     ],
     [
       modifierGroups,
@@ -93,9 +153,11 @@ describe("menu.schema.ts", () => {
         "branchId",
         "name",
         "selectionType",
+        "groupType",
         "minSelections",
         "maxSelections",
         "sortOrder",
+        "dependsOnOptionId",
         "createdAt",
         "updatedAt",
       ],
@@ -108,9 +170,12 @@ describe("menu.schema.ts", () => {
         "modifierGroupId",
         "name",
         "additionalPrice",
-        "isAvailable",
+        "computedAvailability",
+        "manualOverrideAvailability",
         "maxQuantity",
         "sortOrder",
+        "isDefault",
+        "replacesDefaultComponent",
       ],
     ],
     [
@@ -193,12 +258,51 @@ describe("menu.schema.ts", () => {
         "name",
         "description",
         "basePrice",
+        "pricingMode",
+        "weightUnit",
+        "openPriceMin",
+        "openPriceMax",
+        "supportsZones",
+        "zonePricingRule",
+        "manualStockCount",
+        "manualStockCountUpdatedAt",
         "taxRate",
+        "taxMode",
         "foodType",
         "spiceLevel",
         "prepTimeMinutes",
         "hsnCode",
         "sortOrder",
+      ],
+    ],
+    [
+      priceRules,
+      "price_rules",
+      [
+        "id",
+        "tenantId",
+        "organizationId",
+        "menuItemId",
+        "menuItemSku",
+        "variantId",
+        "branchId",
+        "channel",
+        "fulfillmentType",
+        "customerGroupId",
+        "coverTier",
+        "isPerCover",
+        "startDate",
+        "endDate",
+        "startTime",
+        "endTime",
+        "price",
+        "percentOff",
+        "taxRate",
+        "priority",
+        "effectiveFrom",
+        "isActive",
+        "createdAt",
+        "updatedAt",
       ],
     ],
   ];
@@ -233,5 +337,6 @@ describe("menu.schema.ts", () => {
       "SPECIFIC_DATE",
       "HOLIDAY",
     ]);
+    expect(menuStatusEnum.enumValues).toEqual(["DRAFT", "PUBLISHED"]);
   });
 });

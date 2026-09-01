@@ -47,7 +47,7 @@ vi.mock("../table.controller", () => ({
     remove: vi.fn(),
   },
 }));
-import { tablesRouter } from "../table.route";
+import { tablesRouter } from "@/modules/tables/table.route";
 describe("table routes", () => {
   it("registers authenticated table CRUD/status endpoints", () => {
     const routes = (tablesRouter as any).routes;

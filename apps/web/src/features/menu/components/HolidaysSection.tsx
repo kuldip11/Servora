@@ -3,11 +3,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { createHolidaySchema, type CreateHolidayInput } from "@pos/validation";
 import { Plus, X, CalendarDays } from "lucide-react";
 import { Button, Input } from "@pos/ui";
-import { useMenuHolidays } from "../hooks/useMenuHolidays";
-import { useAddHoliday } from "../hooks/useAddHoliday";
-import { useDeleteHoliday } from "../hooks/useDeleteHoliday";
+import { useMenuHolidays } from "@/features/menu/hooks/useMenuHolidays";
+import { useAddHoliday } from "@/features/menu/hooks/useAddHoliday";
+import { useDeleteHoliday } from "@/features/menu/hooks/useDeleteHoliday";
 
-export function HolidaysSection() {
+export const HolidaysSection = () => {
   const {
     register,
     handleSubmit,
@@ -50,7 +50,7 @@ export function HolidaysSection() {
                 <span className="text-xs text-text-disabled">({h.region})</span>
               )}
             </div>
-            <button
+            <button type="button"
               onClick={() => {
                 if (confirm(`Remove holiday "${h.name}"?`))
                   deleteMutation.mutate(h.id);
@@ -104,4 +104,4 @@ export function HolidaysSection() {
       </form>
     </div>
   );
-}
+};

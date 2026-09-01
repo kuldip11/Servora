@@ -10,7 +10,7 @@ const FULFILLMENT_LABEL: Record<OrderItemFulfillmentType, string> = {
   TAKEAWAY: "Takeaway",
 };
 
-export function TicketItems({ notes, items }: Props) {
+export const TicketItems = ({ notes, items }: Props) => {
   const groups: OrderItemFulfillmentType[] = ["DINE_IN", "TAKEAWAY"];
 
   return (
@@ -24,7 +24,9 @@ export function TicketItems({ notes, items }: Props) {
       <div className="space-y-3 flex-1">
         {groups.map((fulfillmentType) => {
           const groupItems = items?.filter(
-            (item) => (item.fulfillmentType ?? "DINE_IN") === fulfillmentType,
+            (item) =>
+              item.menuItemId !== null &&
+              (item.fulfillmentType ?? "DINE_IN") === fulfillmentType,
           );
           if (!groupItems.length) return null;
 
@@ -41,7 +43,10 @@ export function TicketItems({ notes, items }: Props) {
               </div>
               <div className="space-y-1.5">
                 {groupItems.map((item) => (
-                  <div key={item.id} className="flex items-start gap-2">
+                  <div
+                    key={item.id}
+                    className={`flex items-start gap-2 ${item.itemStatus === "VOIDED" || item.itemStatus === "REFIRED" ? "opacity-60 line-through" : ""}`}
+                  >
                     <span className="text-warning font-bold text-sm min-w-[1.5rem]">
                       {item.quantity}×
                     </span>
@@ -55,6 +60,35 @@ export function TicketItems({ notes, items }: Props) {
                           </span>
                         )}
                       </p>
+                      {item.itemStatus === "VOIDED" && (
+                        <p className="text-xs text-danger no-underline">
+                          VOIDED
+                        </p>
+                      )}
+                      {item.itemStatus === "REFIRED" && (
+                        <p className="text-xs font-bold text-warning no-underline">
+                          REFIRED · replacement sent
+                        </p>
+                      )}
+                      {item.refiresOrderItemId && (
+                        <p
+                          className={`text-xs font-bold no-underline ${item.refireType === "REFILL" ? "text-success" : "text-warning"}`}
+                        >
+                          {item.refireType === "REFILL"
+                            ? "REFILL · INCLUDED"
+                            : "REFIRE"}
+                        </p>
+                      )}
+                      {item.weightQuantity != null && (
+                        <p className="text-xs font-semibold text-info no-underline">
+                          {Number(item.weightQuantity)} {item.weightUnit ?? ""}
+                        </p>
+                      )}
+                      {item.comboGroupId && (
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-info no-underline">
+                          Combo · {item.comboGroupId.slice(0, 6)}
+                        </p>
+                      )}
                       {item.chefNotes && (
                         <p className="text-xs text-warning mt-0.5">
                           📝 {item.chefNotes}
@@ -62,7 +96,11 @@ export function TicketItems({ notes, items }: Props) {
                       )}
                       {item.modifiers?.map((m, i) => (
                         <p key={i} className="text-xs text-text-secondary">
-                          + {m.name}
+                          +{" "}
+                          {m.zoneLabel && m.zoneLabel !== "WHOLE"
+                            ? `${m.zoneLabel}: `
+                            : ""}
+                          {m.name}
                           {m.quantity > 1 ? ` ×${m.quantity}` : ""}
                           {m.modifierGroupName ? (
                             <span className="text-text-disabled">
@@ -82,4 +120,4 @@ export function TicketItems({ notes, items }: Props) {
       </div>
     </>
   );
-}
+};

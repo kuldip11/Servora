@@ -1,14 +1,14 @@
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { StatusBadge } from "../StatusBadge";
-import { OrderBanners } from "../OrderBanners";
-import { OrderTimeline } from "../OrderTimeline";
-import { OrderTotals } from "../OrderTotals";
-import { OrderCard } from "../OrderCard";
-import { OrderDetailHeader } from "../OrderDetailHeader";
-import { TicketGroup } from "../TicketGroup";
-import { OrderActions } from "../OrderActions";
+import { StatusBadge } from "@/features/orders/components/StatusBadge";
+import { OrderBanners } from "@/features/orders/components/OrderBanners";
+import { OrderTimeline } from "@/features/orders/components/OrderTimeline";
+import { OrderTotals } from "@/features/orders/components/OrderTotals";
+import { OrderCard } from "@/features/orders/components/OrderCard";
+import { OrderDetailHeader } from "@/features/orders/components/OrderDetailHeader";
+import { TicketGroup } from "@/features/orders/components/TicketGroup";
+import { OrderActions } from "@/features/orders/components/OrderActions";
 
 const order: any = {
   id: "12345678-1234",
@@ -111,6 +111,11 @@ describe("order presentational components", () => {
         />,
       ),
     ).toContain("Mark Round Served");
+    expect(
+      renderToStaticMarkup(
+        <TicketGroup ticket={readyTicket} isUpdating={false} />,
+      ),
+    ).not.toContain("Mark Round Served");
     expect(
       renderToStaticMarkup(
         <OrderActions

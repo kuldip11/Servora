@@ -4,12 +4,6 @@ import { TextInput, type TextInputProps } from "./TextInput";
 
 export type PasswordInputProps = Omit<TextInputProps, "suffix" | "type">;
 
-/**
- * `TextInput` preset that toggles between `type="password"` and
- * `type="text"` via a trailing icon button. The toggle button is a real
- * `<button>` with an `aria-label` that flips with the state ("Show
- * password" / "Hide password"), not an icon-only decoration.
- */
 export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
   (props, ref) => {
     const [visible, setVisible] = useState(false);

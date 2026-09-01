@@ -4,7 +4,7 @@ vi.mock("../../../store/auth", () => ({
   useAuthStore: { getState: () => ({ franchiseId: "fr-1", branchId: "br-1" }) },
 }));
 
-import { analyticsKeys } from "../query-keys";
+import { analyticsKeys } from "@/features/analytics/query-keys";
 
 describe("analyticsKeys", () => {
   it("builds a stable root key", () => {

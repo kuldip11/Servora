@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const api = vi.hoisted(() => ({ get: vi.fn(), put: vi.fn(), delete: vi.fn() }));
 vi.mock("../../../../shared/lib/api-client", () => ({ apiClient: api }));
 
-import { menuBranchOverridesService } from "../menu-branch-overrides.service";
+import { menuBranchOverridesService } from "@/features/menu/services/menu-branch-overrides.service";
 
 describe("menuBranchOverridesService", () => {
   beforeEach(() => {

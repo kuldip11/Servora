@@ -1,6 +1,12 @@
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
+vi.mock("@tanstack/react-query", async (importOriginal) => ({
+  ...(await importOriginal<any>()),
+  useQuery: vi.fn(() => ({ data: [] })),
+  useMutation: vi.fn(() => ({ isPending: false, mutate: vi.fn() })),
+  useQueryClient: vi.fn(() => ({ invalidateQueries: vi.fn() })),
+}));
 vi.mock("../../hooks/useOrder", () => ({
   useOrder: vi.fn(() => ({ data: null, isLoading: true })),
 }));
@@ -14,7 +20,16 @@ vi.mock("../../hooks/useUpdateTicketStatus", () => ({
     mutate: vi.fn(),
   })),
 }));
-import { OrderDetailPage } from "../OrderDetailPage";
+vi.mock("../../hooks/useLineAdjustments", () => ({
+  useLineAdjustments: vi.fn(() => ({ isPending: false, mutate: vi.fn() })),
+}));
+vi.mock("../../hooks/useTransferTable", () => ({
+  useTransferTable: vi.fn(() => ({ isPending: false, mutate: vi.fn() })),
+}));
+vi.mock("../../../menu/hooks/useTables", () => ({
+  useTables: vi.fn(() => ({ data: [] })),
+}));
+import { OrderDetailPage } from "@/features/orders/pages/OrderDetailPage";
 describe("OrderDetailPage", () => {
   it("renders loading state", () => {
     const html = renderToStaticMarkup(

@@ -1,75 +1,209 @@
-import { useState, useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { X, ShoppingBag } from "lucide-react";
 import { IconButton, toast } from "@pos/ui";
-import { useRealtimeEvent } from "../../../shared/lib/realtime";
-import { useCreateOrder } from "../../orders/hooks/useCreateOrder";
-import { useAddOrderItems } from "../../orders/hooks/useAddOrderItems";
-import { useMenuCategories } from "../hooks/useMenuCategories";
-import { useMyBranch } from "../hooks/useMyBranch";
-import { useTables } from "../hooks/useTables";
-import { useCustomerSearch } from "../hooks/useCustomerSearch";
-import { ALL_ORDER_TYPES } from "../constants";
-import type { CartItem } from "../types";
-import type { AddOrderItemInput } from "../../orders/api/orders";
-import type { CreateOrderInput } from "../../orders/api/createOrder";
+import { useRealtimeEvent } from "@/shared/lib/realtime";
+import { useCreateOrder } from "@/features/orders/hooks/useCreateOrder";
+import { useAddOrderItems } from "@/features/orders/hooks/useAddOrderItems";
+import { useMenuCategories } from "@/features/menu/hooks/useMenuCategories";
+import { useMyBranch } from "@/features/menu/hooks/useMyBranch";
+import { useTables } from "@/features/menu/hooks/useTables";
+import { useCustomerSearch } from "@/features/menu/hooks/useCustomerSearch";
+import { ALL_ORDER_TYPES } from "@/features/menu/constants";
+import type { CartItem } from "@/features/menu/types";
+import type { AddOrderItemInput } from "@/features/orders/api/orders";
+import type { CreateOrderInput } from "@/features/orders/api/createOrder";
+import type {
+  WaiterCombo,
+  WaiterComboCartLine,
+  WaiterComboMenuItem,
+  WaiterComboSelection,
+} from "@/features/menu/combo";
+import { comboLineKey, estimateComboSubtotal } from "@/features/menu/combo";
 import { addOrderItemsSchema, createOrderSchema } from "@pos/validation";
-import { cartItemKey } from "../utils/cart";
-import { ItemCustomiser } from "../components/ItemCustomiser";
-import { SearchBar } from "../components/SearchBar";
-import { CategoryTabs } from "../components/CategoryTabs";
-import { MenuGrid } from "../components/MenuGrid";
-import { OrderOptionsPanel } from "../components/OrderOptionsPanel";
-import { CartSummary } from "../components/CartSummary";
+import { cartItemKey } from "@/features/menu/utils/cart";
+import { ItemCustomiser } from "@/features/menu/components/ItemCustomiser";
+import { SearchBar } from "@/features/menu/components/SearchBar";
+import { CategoryTabs } from "@/features/menu/components/CategoryTabs";
+import { MenuGrid } from "@/features/menu/components/MenuGrid";
+import { OrderOptionsPanel } from "@/features/menu/components/OrderOptionsPanel";
+import { CartSummary } from "@/features/menu/components/CartSummary";
+import { ComboCustomiser } from "@/features/menu/components/ComboCustomiser";
+import { apiClient } from "@/shared/lib/api-client";
+import {
+  createAuthApi,
+  createCustomersApi,
+  createMenuApi,
+} from "@pos/api-client";
+import { STORAGE_KEYS } from "@/shared/constants/storage-keys";
+import type { OrderableMenuItem, Tenant } from "@pos/types";
+import type { WaiterMenuCategory } from "@/features/menu/api/menu";
+
+const menuApi = createMenuApi(apiClient);
+const customersApi = createCustomersApi(apiClient);
+const authApi = createAuthApi(apiClient);
+
+type ActiveMenu = {
+  id: string;
+  name: string;
+  memberships: Array<{ menuItemId: string }>;
+};
 
 interface Props {
   onBack: () => void;
   onOrderPlaced: (orderId: string) => void;
-  /** When set, adds items to an existing order instead of creating new */
+
   existingOrderId?: string;
 }
 
-// Design-system Phase 11, Sprint WA-2: this page's own chrome (header,
-// cart strip) retokenized, and its back button moved onto `IconButton`
-// (Phase 3) — `size="lg"` plus a `w-9 h-9` override reproduces the
-// original 36px circle with a 20px icon exactly (`IconButton`'s own
-// `md` default is a smaller 16px icon). One flagged, accepted loss:
-// `IconButton`'s `ghost` variant has no persistent fill, only a hover
-// fill, so the always-on `bg-surface-secondary` circle is forced via
-// `className` — the original's `active:bg-gray-200` tap-darken feedback
-// doesn't have an equivalent prop to carry over and is dropped here,
-// same category of small interaction-detail loss `StaffPage`'s row
-// actions accepted in Sprint AD-3.
-//
-// `SearchBar`/`CategoryTabs`/`MenuGrid`/`MenuItemCard`/
-// `OrderOptionsPanel` (rendered below) are NOT touched this sprint —
-// each is its own reasonably-sized component and a fair next sprint,
-// not mechanically bundled in here just because this page renders them.
-// This sprint's real work is `CartSummary`/`ItemCustomiser`, the app's
-// 2 flagged overlays (see those files' own doc comments) — this page
-// only needed its own wrapper chrome touched to render them.
-export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
+export const MenuPage = ({ onBack, onOrderPlaced, existingOrderId }: Props) => {
   const qc = useQueryClient();
   const isAddingToExisting = !!existingOrderId;
 
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [comboCart, setComboCart] = useState<WaiterComboCartLine[]>([]);
+  const [customisingCombo, setCustomisingCombo] = useState<WaiterCombo | null>(
+    null,
+  );
+  const [comboSelections, setComboSelections] = useState<
+    WaiterComboSelection[]
+  >([]);
+  const [couponCode, setCouponCode] = useState("");
+  const [selectedPromotionIds, setSelectedPromotionIds] = useState<string[]>(
+    [],
+  );
   const [orderType, setOrderType] = useState<
     "DINE_IN" | "TAKEAWAY" | "DELIVERY"
   >("DINE_IN");
   const [tableId, setTableId] = useState("");
   const [customerId, setCustomerId] = useState("");
   const [customerName, setCustomerName] = useState("");
+  const [customerGroupId, setCustomerGroupId] = useState("");
+  const [billingMode, setBillingMode] = useState<"LINE_ITEMS" | "PER_COVER">(
+    "LINE_ITEMS",
+  );
+  const [coverCount, setCoverCount] = useState(1);
+  const [perCoverPriceRuleId, setPerCoverPriceRuleId] = useState("");
   const [orderNotes, setOrderNotes] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showCart, setShowCart] = useState(false);
-  const [customising, setCustomising] = useState<{ item: any } | null>(null);
+  const [customising, setCustomising] = useState<{
+    item: OrderableMenuItem;
+  } | null>(null);
   const [customerSearch, setCustomerSearch] = useState("");
   const [menuSearch, setMenuSearch] = useState("");
   const [foodTypeFilter, setFoodTypeFilter] = useState<
     "ALL" | "VEG" | "NON_VEG" | "EGG"
   >("ALL");
+  const [selectedMenuId, setSelectedMenuId] = useState("");
+  const [courseMode, setCourseMode] = useState(false);
+  const [roundCourseNumber, setRoundCourseNumber] = useState(1);
 
   const { data: categories, isLoading: menuLoading } = useMenuCategories();
+  const { data: activeMenus = [], isLoading: activeMenusLoading } = useQuery<
+    ActiveMenu[]
+  >({
+    queryKey: ["menus", "active", orderType],
+    queryFn: () => menuApi.listActiveMenus<ActiveMenu>(orderType),
+  });
+  useEffect(() => {
+    if (!activeMenus.some((menu) => menu.id === selectedMenuId))
+      setSelectedMenuId(activeMenus[0]?.id ?? "");
+  }, [activeMenus, selectedMenuId]);
+  const visibleIds = new Set(
+    activeMenus
+      .filter((menu) => !selectedMenuId || menu.id === selectedMenuId)
+      .flatMap((menu) =>
+        menu.memberships.map((membership) => membership.menuItemId),
+      ),
+  );
+  const scopedCategories = activeMenusLoading
+    ? categories
+    : categories
+        ?.map((category) => ({
+          ...category,
+          menuItems: (category.menuItems ?? []).filter((item) =>
+            visibleIds.has(item.id),
+          ),
+        }))
+        .filter((category) => category.menuItems.length > 0);
+  const tenantId = localStorage.getItem(STORAGE_KEYS.tenant);
+  const { data: tenantSettings } = useQuery<Tenant | null>({
+    queryKey: ["tenant-settings", tenantId],
+    enabled: !!tenantId,
+    queryFn: async () => {
+      const memberships = await authApi.listTenants();
+      return (
+        memberships.find((entry) => entry.tenant.id === tenantId)?.tenant ??
+        null
+      );
+    },
+  });
+  const courseSequencingAvailable =
+    tenantSettings?.courseSequencingEnabled === true;
+
+  const { data: combos = [] } = useQuery<WaiterCombo[]>({
+    queryKey: ["menu-combos"],
+    queryFn: () => menuApi.listCombos<WaiterCombo>(),
+    enabled: !isAddingToExisting,
+  });
+  const { data: promotions = [] } = useQuery<
+    Array<{
+      id: string;
+      name: string;
+      couponCode: string | null;
+      isActive: boolean;
+    }>
+  >({
+    queryKey: ["menu-promotions"],
+    queryFn: () =>
+      menuApi.listPromotions<{
+        id: string;
+        name: string;
+        couponCode: string | null;
+        isActive: boolean;
+      }>(),
+  });
+  const { data: customerGroups = [] } = useQuery<
+    Array<{ id: string; name: string }>
+  >({
+    queryKey: ["customer-groups"],
+    queryFn: () => customersApi.listGroups(),
+    enabled: !isAddingToExisting,
+  });
+  const { data: priceRules = [] } = useQuery<
+    Array<{
+      id: string;
+      isPerCover?: boolean;
+      coverTier?: "ADULT" | "CHILD" | null;
+      price: string | number | null;
+    }>
+  >({
+    queryKey: ["menu-price-rules", "per-cover"],
+    queryFn: () =>
+      menuApi.listPriceRules<{
+        id: string;
+        isPerCover?: boolean;
+        coverTier?: "ADULT" | "CHILD" | null;
+        price: string | number | null;
+      }>(),
+    enabled: !isAddingToExisting,
+  });
+  const perCoverRules = priceRules.filter((rule) => rule.isPerCover);
+  const activeCombos = combos.filter((combo) => combo.status === "ACTIVE");
+  const menuById = useMemo(
+    () =>
+      new Map<string, WaiterComboMenuItem>(
+        (
+          scopedCategories?.flatMap(
+            (category: { menuItems?: WaiterComboMenuItem[] }) =>
+              category.menuItems ?? [],
+          ) ?? []
+        ).map((item) => [item.id, item]),
+      ),
+    [scopedCategories],
+  );
+
   const { data: myBranch } = useMyBranch();
 
   const availableOrderTypes = myBranch
@@ -91,19 +225,29 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
     qc.invalidateQueries({ queryKey: ["tables"] });
   });
 
+  useRealtimeEvent("menu.availability.updated", () => {
+    qc.invalidateQueries({ queryKey: ["menu-categories"] });
+    qc.invalidateQueries({ queryKey: ["menus", "active"] });
+    qc.invalidateQueries({ queryKey: ["menu-combos"] });
+  });
+
   const { data: customerResults } = useCustomerSearch(customerSearch);
 
   useEffect(() => {
-    if (categories?.length && !activeCategory)
-      setActiveCategory(categories[0]?.id ?? null);
-  }, [categories, activeCategory]);
+    if (scopedCategories?.length && !activeCategory)
+      setActiveCategory(scopedCategories[0]?.id ?? null);
+  }, [scopedCategories, activeCategory]);
 
   const addItemsMutation = useAddOrderItems();
   const createOrderMutation = useCreateOrder();
 
-  function handleItemTap(item: any) {
+  function handleItemTap(item: OrderableMenuItem) {
     const hasOptions =
-      item.variants?.length > 0 || item.modifierGroupLinks?.length > 0;
+      item.variants?.length > 0 ||
+      item.modifierGroupLinks?.length > 0 ||
+      item.supportsZones === true ||
+      item.pricingMode === "WEIGHT_BASED" ||
+      item.pricingMode === "OPEN";
     if (hasOptions) {
       setCustomising({ item });
       return;
@@ -111,12 +255,13 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
     addOrIncrementItem({
       menuItemId: item.id,
       name: item.name,
-      basePrice: parseFloat(item.basePrice),
+      basePrice: Number(item.basePrice),
       modifiers: [],
       chefNotes: "",
-      course: 1,
+      seatLabel: "",
+      ...(courseMode ? { course: 1 } : {}),
       quantity: 1,
-      unitPrice: parseFloat(item.basePrice),
+      unitPrice: Number(item.basePrice),
     });
   }
 
@@ -132,12 +277,6 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         );
       return [...prev, newItem];
     });
-    // Phase 14 toast consolidation: `@pos/ui`'s `toast()` supports `duration`
-    // but has no per-call `icon` override (icon is derived from `tone` via
-    // `TONE_ICON` — see Toast.tsx) — dropping the custom '✓' override since
-    // `tone: 'success'` already renders a check icon (`CheckCircle2`), just
-    // not this exact glyph. Flagged since it's a small but real visual
-    // change, not a silent drop.
     toast({ title: `${newItem.name} added`, tone: "success", duration: 1000 });
   }
 
@@ -151,6 +290,111 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
     );
   }
 
+  function openCombo(combo: WaiterCombo) {
+    setCustomisingCombo(combo);
+    setComboSelections(
+      combo.slots.map((slot) => ({ slotId: slot.id, optionIds: [] })),
+    );
+  }
+
+  function toggleComboOption(slotId: string, optionId: string) {
+    if (!customisingCombo) return;
+    const slot = customisingCombo.slots.find((value) => value.id === slotId);
+    if (!slot) return;
+    setComboSelections((previous) =>
+      previous.map((selection) => {
+        if (selection.slotId !== slotId) return selection;
+        if (selection.optionIds.includes(optionId)) {
+          return {
+            ...selection,
+            optionIds: selection.optionIds.filter((id) => id !== optionId),
+          };
+        }
+        if (selection.optionIds.length >= slot.maxSelections) {
+          if (slot.maxSelections === 1)
+            return { ...selection, optionIds: [optionId] };
+          return selection;
+        }
+        return { ...selection, optionIds: [...selection.optionIds, optionId] };
+      }),
+    );
+  }
+
+  function addSelectedCombo() {
+    if (!customisingCombo) return;
+    const line: WaiterComboCartLine = {
+      combo: customisingCombo,
+      quantity: 1,
+      selections: comboSelections,
+      ...(courseMode && !isAddingToExisting ? { courseNumber: 1 } : {}),
+    };
+    const key = comboLineKey(line);
+    setComboCart((previous) => {
+      const existing = previous.find((value) => comboLineKey(value) === key);
+      if (existing)
+        return previous.map((value) =>
+          comboLineKey(value) === key
+            ? { ...value, quantity: value.quantity + 1 }
+            : value,
+        );
+      return [...previous, line];
+    });
+    setCustomisingCombo(null);
+    setComboSelections([]);
+    toast({
+      title: `${customisingCombo.name} added`,
+      tone: "success",
+      duration: 1000,
+    });
+  }
+
+  function updateComboQty(key: string, delta: number) {
+    setComboCart((previous) =>
+      previous
+        .map((value) =>
+          comboLineKey(value) === key
+            ? { ...value, quantity: value.quantity + delta }
+            : value,
+        )
+        .filter((value) => value.quantity > 0),
+    );
+  }
+
+  function setCourseModeEnabled(enabled: boolean) {
+    setCourseMode(enabled);
+    if (isAddingToExisting) return;
+    setCart((current) =>
+      current.map((item) =>
+        enabled
+          ? { ...item, course: item.course ?? 1 }
+          : (({ course: _course, ...rest }) => rest)(item),
+      ),
+    );
+    setComboCart((current) =>
+      current.map((line) =>
+        enabled
+          ? { ...line, courseNumber: line.courseNumber ?? 1 }
+          : (({ courseNumber: _courseNumber, ...rest }) => rest)(line),
+      ),
+    );
+  }
+
+  function updateItemCourse(key: string, course: number) {
+    setCart((current) =>
+      current.map((item) =>
+        cartItemKey(item) === key ? { ...item, course } : item,
+      ),
+    );
+  }
+
+  function updateComboCourse(key: string, courseNumber: number) {
+    setComboCart((current) =>
+      current.map((line) =>
+        comboLineKey(line) === key ? { ...line, courseNumber } : line,
+      ),
+    );
+  }
+
   function handleSubmit() {
     const items: AddOrderItemInput[] = cart.map((i) => {
       const item: AddOrderItemInput = {
@@ -158,14 +402,21 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         quantity: i.quantity,
       };
 
-      // With exactOptionalPropertyTypes enabled, optional properties must be
-      // omitted rather than explicitly carrying `undefined`.
       if (i.variantId) item.variantId = i.variantId;
       if (i.chefNotes) item.chefNotes = i.chefNotes;
+      if (i.seatLabel) item.seatLabel = i.seatLabel;
+      if (i.weightQuantity !== undefined)
+        item.weightQuantity = i.weightQuantity;
+      if (i.manualPrice !== undefined) item.manualPrice = i.manualPrice;
+      if (courseMode)
+        item.courseNumber = isAddingToExisting
+          ? roundCourseNumber
+          : (i.course ?? 1);
       if (i.modifiers.length) {
         item.selectedOptions = i.modifiers.map((m) => ({
           optionId: m.optionId,
           quantity: m.quantity,
+          ...(m.zoneLabel ? { zoneLabel: m.zoneLabel } : {}),
         }));
       }
 
@@ -173,8 +424,21 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
     });
 
     if (isAddingToExisting) {
+      const combos = comboCart.map((line) => ({
+        comboId: line.combo.id,
+        quantity: line.quantity,
+        selections: line.selections,
+        ...(courseMode
+          ? {
+              courseNumber: isAddingToExisting
+                ? roundCourseNumber
+                : (line.courseNumber ?? 1),
+            }
+          : {}),
+      }));
       const validated = addOrderItemsSchema.safeParse({
-        items,
+        ...(items.length ? { items } : {}),
+        ...(combos.length ? { combos } : {}),
         ...(orderNotes ? { notes: orderNotes } : {}),
       });
       if (!validated.success) {
@@ -185,32 +449,66 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         {
           orderId: existingOrderId!,
           items,
+          combos,
           ...(orderNotes ? { notes: orderNotes } : {}),
+          ...(couponCode.trim() ? { couponCode: couponCode.trim() } : {}),
+          ...(selectedPromotionIds.length
+            ? { promotionIds: selectedPromotionIds }
+            : {}),
         },
         { onSuccess: () => onOrderPlaced(existingOrderId!) },
       );
     } else {
+      const combos = comboCart.map((line) => ({
+        comboId: line.combo.id,
+        quantity: line.quantity,
+        selections: line.selections,
+        ...(courseMode
+          ? {
+              courseNumber: isAddingToExisting
+                ? roundCourseNumber
+                : (line.courseNumber ?? 1),
+            }
+          : {}),
+      }));
       const validated = createOrderSchema.safeParse({
         type: orderType,
         ...(orderType === "DINE_IN" && tableId ? { tableId } : {}),
         ...(customerId ? { customerId } : {}),
+        ...(customerGroupId ? { customerGroupId } : {}),
+        billingMode,
+        ...(billingMode === "PER_COVER"
+          ? { coverCount, perCoverPriceRuleId }
+          : {}),
         ...(orderNotes ? { notes: orderNotes } : {}),
-        items,
+        ...(couponCode.trim() ? { couponCode: couponCode.trim() } : {}),
+        ...(selectedPromotionIds.length
+          ? { promotionIds: selectedPromotionIds }
+          : {}),
+        ...(items.length ? { items } : {}),
+        ...(combos.length ? { combos } : {}),
       });
       if (!validated.success) {
         toast({ title: "Please check the order details", tone: "danger" });
         return;
       }
-      // Use the strictly typed `items` built above rather than `validated.data.items`.
-      // The Zod schema permits optional fields to be `undefined`, while the
-      // API input types use `exactOptionalPropertyTypes`, which requires those
-      // fields to be omitted when they are not present.
+
       const orderInput: CreateOrderInput = {
         type: validated.data.type,
-        items,
+        ...(items.length ? { items } : {}),
+        ...(combos.length ? { combos } : {}),
+        ...(couponCode.trim() ? { couponCode: couponCode.trim() } : {}),
+        ...(selectedPromotionIds.length
+          ? { promotionIds: selectedPromotionIds }
+          : {}),
         ...(validated.data.tableId ? { tableId: validated.data.tableId } : {}),
         ...(validated.data.customerId
           ? { customerId: validated.data.customerId }
+          : {}),
+        ...(customerGroupId ? { customerGroupId } : {}),
+        billingMode,
+        ...(billingMode === "PER_COVER"
+          ? { coverCount, perCoverPriceRuleId }
           : {}),
         ...(validated.data.notes ? { notes: validated.data.notes } : {}),
       };
@@ -220,29 +518,41 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
     }
   }
 
-  const totalItems = cart.reduce((s, i) => s + i.quantity, 0);
-  const totalPrice = cart.reduce((s, i) => s + i.unitPrice * i.quantity, 0);
-  const allItems = categories?.flatMap((c: any) => c.menuItems ?? []) ?? [];
-  const activeItems: any[] = (
-    menuSearch.length >= 2
-      ? allItems.filter(
-          (i: any) =>
-            i.isAvailable &&
-            i.name.toLowerCase().includes(menuSearch.toLowerCase()),
-        )
-      : (categories
-          ?.find((c: any) => c.id === activeCategory)
-          ?.menuItems?.filter((i: any) => i.isAvailable) ?? [])
-  ).filter(
-    (i: any) => foodTypeFilter === "ALL" || i.foodType === foodTypeFilter,
+  const totalItems =
+    cart.reduce((s, i) => s + i.quantity, 0) +
+    comboCart.reduce((s, line) => s + line.quantity, 0);
+  const lineItemTotal =
+    cart.reduce((s, i) => s + i.unitPrice * i.quantity, 0) +
+    comboCart.reduce(
+      (sum, line) => sum + estimateComboSubtotal(line, menuById),
+      0,
+    );
+  const selectedCoverRule = perCoverRules.find(
+    (rule) => rule.id === perCoverPriceRuleId,
   );
+  const selectedCoverRate = Number(selectedCoverRule?.price ?? 0);
+  const totalPrice =
+    !isAddingToExisting && billingMode === "PER_COVER"
+      ? coverCount * selectedCoverRate
+      : lineItemTotal;
+  const allItems =
+    scopedCategories?.flatMap((c: WaiterMenuCategory) => c.menuItems ?? []) ??
+    [];
+  const activeItems: OrderableMenuItem[] = (
+    menuSearch.length >= 2
+      ? allItems.filter((i) =>
+          i.name.toLowerCase().includes(menuSearch.toLowerCase()),
+        )
+      : (scopedCategories?.find((c) => c.id === activeCategory)?.menuItems ??
+        [])
+  ).filter((i) => foodTypeFilter === "ALL" || i.foodType === foodTypeFilter);
 
   const isPending = addItemsMutation.isPending || createOrderMutation.isPending;
   const needsTable = !isAddingToExisting && orderType === "DINE_IN" && !tableId;
 
   return (
     <div className="flex flex-col h-screen bg-surface-secondary">
-      {/* Header */}
+      {}
       <div className="bg-surface border-b border-border px-4 py-3 flex items-center gap-3">
         <IconButton
           icon={X}
@@ -265,7 +575,7 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         )}
       </div>
 
-      {/* Order options — new orders only */}
+      {}
       {!isAddingToExisting && (
         <OrderOptionsPanel
           availableOrderTypes={availableOrderTypes}
@@ -292,23 +602,85 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
             setCustomerName(name);
             setCustomerSearch("");
           }}
+          customerGroups={customerGroups}
+          customerGroupId={customerGroupId}
+          onCustomerGroupChange={setCustomerGroupId}
+          billingMode={billingMode}
+          onBillingModeChange={(mode) => {
+            setBillingMode(mode);
+            if (mode === "LINE_ITEMS") setPerCoverPriceRuleId("");
+          }}
+          coverCount={coverCount}
+          onCoverCountChange={setCoverCount}
+          perCoverRules={perCoverRules}
+          perCoverPriceRuleId={perCoverPriceRuleId}
+          onPerCoverPriceRuleChange={setPerCoverPriceRuleId}
         />
       )}
 
-      {/* Search + category tabs */}
+      {}
       <div className="bg-surface border-b border-border">
+        {activeMenus.length > 1 && (
+          <div className="px-4 pt-3">
+            <label className="block text-xs font-medium text-text-secondary">
+              Menu
+              <select
+                className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary"
+                value={selectedMenuId}
+                onChange={(event) => {
+                  setSelectedMenuId(event.target.value);
+                  setActiveCategory(null);
+                }}
+              >
+                {activeMenus.map((menu) => (
+                  <option key={menu.id} value={menu.id}>
+                    {menu.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        )}
         <SearchBar value={menuSearch} onChange={setMenuSearch} />
         <CategoryTabs
           foodTypeFilter={foodTypeFilter}
           onFoodTypeChange={setFoodTypeFilter}
-          categories={categories}
+          categories={scopedCategories}
           activeCategory={activeCategory}
           onCategoryChange={setActiveCategory}
           menuSearch={menuSearch}
         />
       </div>
 
-      {/* Items */}
+      {!isAddingToExisting && activeCombos.length > 0 && (
+        <section className="bg-surface border-b border-border px-4 py-3">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-disabled">
+            Combos
+          </p>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {activeCombos.map((combo) => (
+              <button
+                key={combo.id}
+                type="button"
+                onClick={() => openCombo(combo)}
+                className="min-w-48 rounded-xl border border-border bg-surface-secondary p-3 text-left"
+              >
+                <span className="block text-sm font-semibold text-text-primary">
+                  {combo.name}
+                </span>
+                <span className="mt-1 block text-xs text-text-secondary">
+                  {combo.pricePolicy === "FIXED"
+                    ? `₹${Number(combo.fixedPrice ?? 0).toFixed(2)}`
+                    : `${Number(combo.percentOff ?? 0)}% off components`}{" "}
+                  · customize
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {}
       <MenuGrid
         items={activeItems}
         cart={cart}
@@ -318,7 +690,7 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         onQtyChange={updateQty}
       />
 
-      {/* Cart strip */}
+      {}
       {totalItems > 0 && (
         <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-border px-4 py-4">
           <button
@@ -334,31 +706,69 @@ export function MenuPage({ onBack, onOrderPlaced, existingOrderId }: Props) {
         </div>
       )}
 
-      {/* Customiser modal */}
+      {}
       {customising && (
         <ItemCustomiser
           item={customising.item}
+          courseMode={courseMode && !isAddingToExisting}
           onConfirm={addOrIncrementItem}
           onClose={() => setCustomising(null)}
         />
       )}
 
-      {/* Cart modal */}
+      {customisingCombo && (
+        <ComboCustomiser
+          combo={customisingCombo}
+          menuById={menuById}
+          selections={comboSelections}
+          onToggle={toggleComboOption}
+          onAdd={addSelectedCombo}
+          onClose={() => {
+            setCustomisingCombo(null);
+            setComboSelections([]);
+          }}
+        />
+      )}
+
+      {}
       {showCart && (
         <CartSummary
           cart={cart}
+          combos={comboCart}
+          menuById={menuById}
           isAddingToExisting={isAddingToExisting}
+          courseSequencingAvailable={courseSequencingAvailable}
+          courseMode={courseMode}
+          onCourseModeChange={setCourseModeEnabled}
+          roundCourseNumber={roundCourseNumber}
+          onRoundCourseNumberChange={setRoundCourseNumber}
+          onUpdateCourse={updateItemCourse}
+          onUpdateComboCourse={updateComboCourse}
           orderNotes={orderNotes}
           onOrderNotesChange={setOrderNotes}
+          couponCode={couponCode}
+          onCouponCodeChange={setCouponCode}
+          promotions={promotions.filter(
+            (promotion) => promotion.isActive && !promotion.couponCode,
+          )}
+          selectedPromotionIds={selectedPromotionIds}
+          onTogglePromotion={(id) =>
+            setSelectedPromotionIds((current) =>
+              current.includes(id)
+                ? current.filter((value) => value !== id)
+                : [...current, id],
+            )
+          }
           totalItems={totalItems}
           totalPrice={totalPrice}
           isPending={isPending}
           needsTable={needsTable}
           onUpdateQty={updateQty}
+          onUpdateComboQty={updateComboQty}
           onSubmit={handleSubmit}
           onClose={() => setShowCart(false)}
         />
       )}
     </div>
   );
-}
+};

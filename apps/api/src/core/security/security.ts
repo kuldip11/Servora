@@ -1,24 +1,24 @@
 import { Elysia } from "elysia";
-import { redis } from "../../lib/redis";
-import { env } from "../../config/env";
+import { redis } from "@/lib/redis";
+import { env } from "@/config/env";
+import { resolveClientIp } from "./client-ip";
 
 const RATE_LIMIT_PREFIX = "servora:rate-limit";
 
-function requestIp(headers: Record<string, string | undefined>): string {
-  return (
-    headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
-    headers["x-real-ip"] ||
-    "unknown"
-  );
-}
+const requestIp = (
+  headers: Record<string, string | undefined>,
+  directIp: string | undefined,
+): string => {
+  return resolveClientIp(headers, directIp, env.TRUST_PROXY_HOPS) ?? "unknown";
+};
 
-function isRateLimitExempt(pathname: string): boolean {
+const isRateLimitExempt = (pathname: string): boolean => {
   return (
     pathname.startsWith("/health") ||
     pathname.startsWith("/swagger") ||
     pathname.startsWith("/ws")
   );
-}
+};
 
 export const securityHeadersPlugin = () =>
   new Elysia({ name: "security-headers" }).onAfterHandle(
@@ -31,6 +31,8 @@ export const securityHeadersPlugin = () =>
         "camera=(), microphone=(), geolocation=(), payment=()";
       set.headers["cross-origin-opener-policy"] = "same-origin";
       set.headers["cross-origin-resource-policy"] = "same-site";
+      set.headers["content-security-policy"] =
+        "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'";
       if (env.NODE_ENV === "production") {
         set.headers["strict-transport-security"] =
           "max-age=31536000; includeSubDomains";
@@ -41,11 +43,15 @@ export const securityHeadersPlugin = () =>
 export const rateLimitPlugin = () =>
   new Elysia({ name: "global-rate-limit" }).onBeforeHandle(
     { as: "global" },
-    async ({ request, headers, set }) => {
+    async ({ request, headers, set, server }) => {
       const pathname = new URL(request.url).pathname;
       if (isRateLimitExempt(pathname)) return;
 
-      const ip = requestIp(headers as Record<string, string | undefined>);
+      const directIp = server?.requestIP(request)?.address;
+      const ip = requestIp(
+        headers as Record<string, string | undefined>,
+        directIp,
+      );
       const bucket = Math.floor(
         Date.now() / (env.RATE_LIMIT_WINDOW_SECONDS * 1000),
       );
@@ -70,10 +76,7 @@ export const rateLimitPlugin = () =>
             message: "Too many requests",
           };
         }
-      } catch {
-        // Availability wins over rate-limit enforcement if Redis is temporarily
-        // unavailable. /health/ready will still report the dependency failure.
-      }
+      } catch {}
 
       return undefined;
     },

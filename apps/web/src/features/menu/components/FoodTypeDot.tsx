@@ -9,14 +9,13 @@ const CONFIG: Record<
   EGG: { border: "border-amber-600", fill: "bg-amber-600", label: "Egg" },
 };
 
-// The familiar square-with-dot symbol used on Indian menus/packaging.
-export function FoodTypeDot({
+export const FoodTypeDot = ({
   type,
   size = "md",
 }: {
   type: FoodType;
   size?: "sm" | "md";
-}) {
+}) => {
   const cfg = CONFIG[type] ?? CONFIG.VEG;
   const box = size === "sm" ? "w-3 h-3" : "w-4 h-4";
   const dot = size === "sm" ? "w-1.5 h-1.5" : "w-2 h-2";
@@ -28,4 +27,4 @@ export function FoodTypeDot({
       <span className={`rounded-full ${cfg.fill} ${dot}`} />
     </span>
   );
-}
+};

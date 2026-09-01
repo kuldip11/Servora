@@ -1,10 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
-import { branchesService } from "../services/branches.service";
-import { branchKeys } from "../query-keys";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
+import { branchesService } from "@/features/branches/services/branches.service";
+import { branchKeys } from "@/features/branches/query-keys";
 
-export function useDeactivateBranch() {
+export const useDeactivateBranch = () => {
   return useMutation({
     mutationFn: (id: string) => branchesService.deactivate(id),
     onSuccess: () => {
@@ -13,4 +13,4 @@ export function useDeactivateBranch() {
     },
     onError: (err) => notifyError(err, "Failed to deactivate branch"),
   });
-}
+};

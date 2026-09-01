@@ -5,7 +5,7 @@ import {
   paymentNotFound,
   paymentNotRefundable,
   refundExceedsPaymentAmount,
-} from "../billing.errors";
+} from "@/modules/billing/billing.errors";
 
 describe("billing errors", () => {
   it("creates stable not-found errors with preserved reasons", () => {

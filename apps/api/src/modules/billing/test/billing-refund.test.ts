@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveRefundEligibility } from "../billing-refund";
+import { resolveRefundEligibility } from "@/modules/billing/billing-refund";
 
 describe("resolveRefundEligibility", () => {
   it("accepts successful refunds up to the payment amount", () => {

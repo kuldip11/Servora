@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { staffNotFound, branchRequiredForStaff } from "../staff.errors";
+import {
+  staffNotFound,
+  branchRequiredForStaff,
+} from "@/modules/staff/staff.errors";
 describe("staff errors", () => {
   it("creates a stable staff not-found error", () => {
     const e = staffNotFound("u1");

@@ -1,34 +1,133 @@
-/**
- * Menu recipes service — orchestrates `recipes.repository.ts` and applies
- * the business rules that used to live inline in the monolithic
- * `menu/repository.ts`: item/tenant ownership checks, cross-tenant
- * ingredient validation, and the "can this item currently be made"
- * inventory check.
- */
-import type { AuthContext } from "../../../core/auth";
-import type { InventoryUnit } from "@pos/types";
+import type { AuthContext } from "@/core/auth";
+import type { RecipeIngredientInput } from "@pos/types";
+import { ValidationError } from "@/core/errors";
 import { recipesRepository } from "./recipes.repository";
-import { requirePermission } from "../../../core/auth";
-import { assertMenuResourceBranch } from "../menu-authorization";
+import { requirePermission } from "@/core/auth";
+import { assertMenuResourceBranch } from "@/modules/menu/menu-authorization";
 import { itemNotFound, inventoryItemNotFound } from "./recipes.errors";
+import { menuChangeLog } from "@/modules/menu/change-log/menu-change-log";
+import { areInventoryUnitsCompatible } from "@/modules/inventory/inventory-units";
+import { inventoryService } from "@/modules/inventory/inventory.service";
 
-export interface RecipeIngredientInput {
-  inventoryItemId: string;
-  quantity: number;
-  unit: InventoryUnit;
-  isOptional?: boolean | undefined;
-}
+const validateRecipeRows = async (
+  tenantId: string,
+  itemId: string,
+  itemBranchId: string | null,
+  ingredients: RecipeIngredientInput[],
+) => {
+  const rawIds: string[] = [];
+  const subRecipeIds: string[] = [];
+  const uniqueRows = new Set<string>();
 
-export interface CanOrderResult {
-  canOrder: boolean;
-  missingIngredients: Array<{
-    inventoryItemId: string;
-    name: string;
-    required: number;
-    available: number;
-    unit: InventoryUnit;
-  }>;
-}
+  for (const ingredient of ingredients) {
+    const sourceCount =
+      Number(Boolean(ingredient.inventoryItemId)) +
+      Number(Boolean(ingredient.subRecipeId));
+    if (sourceCount !== 1) {
+      throw new ValidationError(
+        "Each recipe row must reference exactly one inventory item or sub-recipe",
+      );
+    }
+    if (ingredient.variantId && ingredient.modifierOptionId) {
+      throw new ValidationError(
+        "A recipe row can be scoped to a variant or a modifier option, not both",
+      );
+    }
+    if (
+      ingredient.yieldPercent != null &&
+      (ingredient.yieldPercent <= 0 || ingredient.yieldPercent > 100)
+    ) {
+      throw new ValidationError(
+        "Recipe yield percent must be greater than 0 and at most 100",
+      );
+    }
+    const sourceKey = ingredient.inventoryItemId
+      ? `inventory:${ingredient.inventoryItemId}`
+      : `sub-recipe:${ingredient.subRecipeId}`;
+    const scopeKey = ingredient.variantId
+      ? `variant:${ingredient.variantId}`
+      : ingredient.modifierOptionId
+        ? `modifier:${ingredient.modifierOptionId}`
+        : "base";
+    const uniquenessKey = `${scopeKey}|${sourceKey}`;
+    if (uniqueRows.has(uniquenessKey)) {
+      throw new ValidationError(
+        "Duplicate recipe source for the same scope is not allowed",
+      );
+    }
+    uniqueRows.add(uniquenessKey);
+
+    if (ingredient.inventoryItemId) rawIds.push(ingredient.inventoryItemId);
+    if (ingredient.subRecipeId) subRecipeIds.push(ingredient.subRecipeId);
+
+    if (ingredient.variantId) {
+      const variant = await recipesRepository.findVariantForItem(
+        itemId,
+        ingredient.variantId,
+      );
+      if (!variant)
+        throw new ValidationError(
+          "Recipe variant does not belong to this menu item",
+        );
+    }
+    if (ingredient.modifierOptionId) {
+      const option = await recipesRepository.findModifierOptionForItem(
+        itemId,
+        ingredient.modifierOptionId,
+      );
+      if (!option)
+        throw new ValidationError(
+          "Recipe modifier option is not attached to this menu item",
+        );
+    }
+  }
+
+  const [rawSources, subSources] = await Promise.all([
+    recipesRepository.findOwnedInventorySources(tenantId, rawIds),
+    recipesRepository.findOwnedSubRecipeSources(tenantId, subRecipeIds),
+  ]);
+  const rawById = new Map(rawSources.map((row) => [row.id, row] as const));
+  const subById = new Map(subSources.map((row) => [row.id, row] as const));
+
+  const missingRaw = rawIds.filter((id) => !rawById.has(id));
+  if (missingRaw.length) throw inventoryItemNotFound(missingRaw);
+  const missingSubs = subRecipeIds.filter((id) => !subById.has(id));
+  if (missingSubs.length)
+    throw new ValidationError(
+      `Sub-recipe not found: ${missingSubs.join(", ")}`,
+    );
+
+  for (const ingredient of ingredients) {
+    if (ingredient.inventoryItemId) {
+      const source = rawById.get(ingredient.inventoryItemId)!;
+      if (!areInventoryUnitsCompatible(ingredient.unit, source.unit)) {
+        throw new ValidationError(
+          `Recipe unit ${ingredient.unit} is incompatible with inventory unit ${source.unit}`,
+        );
+      }
+      if (itemBranchId && source.branchId !== itemBranchId) {
+        throw new ValidationError(
+          "Recipe inventory item belongs to a different branch",
+        );
+      }
+    } else if (ingredient.subRecipeId) {
+      const source = subById.get(ingredient.subRecipeId)!;
+      if (!itemBranchId) {
+        throw new ValidationError(
+          "Branch-scoped sub-recipes cannot be attached to a shared menu item",
+        );
+      }
+      if (source.branchId !== itemBranchId) {
+        throw new ValidationError("Sub-recipe belongs to a different branch");
+      }
+      if (!areInventoryUnitsCompatible(ingredient.unit, source.yieldUnit)) {
+        throw new ValidationError(
+          `Recipe unit ${ingredient.unit} is incompatible with sub-recipe yield unit ${source.yieldUnit}`,
+        );
+      }
+    }
+  }
+};
 
 export const recipesService = {
   async getItemRecipe(auth: AuthContext, itemId: string) {
@@ -39,9 +138,6 @@ export const recipesService = {
     return recipesRepository.getItemRecipe(itemId);
   },
 
-  // Replaces the item's full ingredient list — simpler for the
-  // recipe-builder UI than diffing add/remove, and avoids stale ingredient
-  // rows if the caller forgets to clean up.
   async setItemRecipe(
     auth: AuthContext,
     itemId: string,
@@ -52,92 +148,35 @@ export const recipesService = {
     requirePermission(auth, "menu:update");
     assertMenuResourceBranch(auth, item.branchId);
 
-    if (ingredients.length) {
-      const invIds = ingredients.map((i) => i.inventoryItemId);
-      const ownedSet = await recipesRepository.findOwnedInventoryItemIds(
+    const previousRecipe = await recipesRepository.getItemRecipe(itemId);
+    await validateRecipeRows(auth.tenantId, itemId, item.branchId, ingredients);
+
+    const recipe = await recipesRepository.replaceRecipe(
+      itemId,
+      ingredients.map((ingredient) => ({
+        ...ingredient,
+        inventoryItemId: ingredient.inventoryItemId ?? null,
+        subRecipeId: ingredient.subRecipeId ?? null,
+        variantId: ingredient.variantId ?? null,
+        modifierOptionId: ingredient.modifierOptionId ?? null,
+        yieldPercent: ingredient.yieldPercent ?? null,
+        isOptional: ingredient.isOptional ?? false,
+      })),
+    );
+    await menuChangeLog.record(auth, "RECIPE", itemId, "UPDATED", {
+      ingredients,
+    });
+    if (item.branchId) {
+      await inventoryService.syncRecipeConfigurationAvailability(
         auth.tenantId,
-        invIds,
+        item.branchId,
+        itemId,
+        previousRecipe.flatMap((row) => (row.variantId ? [row.variantId] : [])),
+        previousRecipe.flatMap((row) =>
+          row.modifierOptionId ? [row.modifierOptionId] : [],
+        ),
       );
-      const missing = invIds.filter((id) => !ownedSet.has(id));
-      if (missing.length) throw inventoryItemNotFound(missing);
     }
-
-    return recipesRepository.replaceRecipe(
-      itemId,
-      ingredients.map((i) => ({ ...i, isOptional: i.isOptional ?? false })),
-    );
-  },
-
-  async deleteRecipeIngredient(
-    auth: AuthContext,
-    itemId: string,
-    inventoryItemId: string,
-  ) {
-    const item = await recipesRepository.findItem(auth.tenantId, itemId);
-    if (!item) throw itemNotFound(itemId);
-    requirePermission(auth, "menu:update");
-    assertMenuResourceBranch(auth, item.branchId);
-    await recipesRepository.deleteRecipeIngredient(itemId, inventoryItemId);
-  },
-
-  async upsertRecipeIngredient(
-    auth: AuthContext,
-    itemId: string,
-    inventoryItemId: string,
-    quantity: number,
-    unit: InventoryUnit,
-    isOptional: boolean,
-  ) {
-    const item = await recipesRepository.findItem(auth.tenantId, itemId);
-    if (!item) throw itemNotFound(itemId);
-    requirePermission(auth, "menu:update");
-    assertMenuResourceBranch(auth, item.branchId);
-    const inv = await recipesRepository.findInventoryItem(
-      auth.tenantId,
-      inventoryItemId,
-    );
-    if (!inv) throw inventoryItemNotFound([inventoryItemId]);
-
-    return recipesRepository.upsertRecipeIngredient(
-      itemId,
-      inventoryItemId,
-      quantity,
-      unit,
-      isOptional,
-    );
-  },
-
-  // Checks whether ONE unit of this item can currently be made — i.e.
-  // every required (non-optional) ingredient has enough stock for its
-  // per-unit quantity. Items with recipe deduction turned off, or with no
-  // recipe at all, are always orderable from an inventory standpoint.
-  async checkCanOrder(
-    auth: AuthContext,
-    itemId: string,
-  ): Promise<CanOrderResult> {
-    const item = await recipesRepository.findItem(auth.tenantId, itemId);
-    if (!item) return { canOrder: true, missingIngredients: [] };
-    requirePermission(auth, "menu:read");
-    assertMenuResourceBranch(auth, item.branchId);
-    if (!item.enableRecipeDeduction)
-      return { canOrder: true, missingIngredients: [] };
-
-    const ingredients = await recipesRepository.getRequiredIngredients(itemId);
-
-    const missingIngredients = ingredients
-      .filter(
-        (ing) =>
-          parseFloat(ing.inventoryItem.currentStock) <
-          parseFloat(ing.quantityRequired),
-      )
-      .map((ing) => ({
-        inventoryItemId: ing.inventoryItemId,
-        name: ing.inventoryItem.name,
-        required: parseFloat(ing.quantityRequired),
-        available: parseFloat(ing.inventoryItem.currentStock),
-        unit: ing.unit,
-      }));
-
-    return { canOrder: missingIngredients.length === 0, missingIngredients };
+    return recipe;
   },
 };

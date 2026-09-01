@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import { requireAuthPlugin } from "../../core/auth";
+import { requireAuthPlugin } from "@/core/auth";
 import { branchController } from "./branch.controller";
 import {
   createBranchBody,
@@ -8,8 +8,7 @@ import {
 } from "./branch.validator";
 
 export const branchesRouter = new Elysia()
-  // Branch-locked staff → return only their own branch.
-  // Owner/manager → return all branches, or one specific branch from the server-issued active context.
+
   .use(requireAuthPlugin())
   .get("/api/branches/", ({ auth }) => branchController.list(auth))
   .get(

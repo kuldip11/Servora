@@ -1,10 +1,5 @@
-/**
- * Modifier-groups/tags/allergens controller — thin handlers only.
- * Auth/branch resolution comes from `requireAuthPlugin` (applied in
- * `modifier.route.ts`); business rules live in `modifier.service.ts`.
- */
-import type { AuthContext } from "../../../core/auth";
-import { successResponse, createdResponse } from "../../../core/response";
+import type { AuthContext } from "@/core/auth";
+import { successResponse, createdResponse } from "@/core/response";
 import {
   modifierService,
   type CreateModifierGroupInput,
@@ -13,8 +8,6 @@ import {
 } from "./modifier.service";
 
 export const modifierController = {
-  // ─── Modifier Groups ───────────────────────────────────────────────────────
-
   async listGroups(auth: AuthContext) {
     const groups = await modifierService.listGroups(auth);
     return successResponse(groups);
@@ -52,8 +45,6 @@ export const modifierController = {
     return successResponse(option);
   },
 
-  // ─── Tags ──────────────────────────────────────────────────────────────────
-
   async listTags(auth: AuthContext) {
     const tags = await modifierService.listTags(auth);
     return successResponse(tags);
@@ -68,8 +59,6 @@ export const modifierController = {
     await modifierService.deleteTag(auth, tagId);
     return successResponse(null);
   },
-
-  // ─── Allergens ──────────────────────────────────────────────────────────────
 
   async listAllergens(_auth: AuthContext) {
     const allergens = await modifierService.listAllergens();

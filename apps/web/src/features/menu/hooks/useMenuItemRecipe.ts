@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { menuItemRecipeQuery } from "../query-options";
+import { menuItemRecipeQuery } from "@/features/menu/query-options";
 
-export function useMenuItemRecipe(itemId: string) {
+export const useMenuItemRecipe = (itemId: string) => {
   return useQuery(menuItemRecipeQuery(itemId));
-}
+};

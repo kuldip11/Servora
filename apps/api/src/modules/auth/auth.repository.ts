@@ -1,9 +1,8 @@
-/**
- * Auth repository — data access only. Password hashing, token issuing,
- * and business rules live in `auth.service.ts`.
- */
+import type { RoleName } from "@pos/types";
+
 import { eq, and, isNull, gt, lt } from "drizzle-orm";
-import { db } from "../../db";
+import { db } from "@/db";
+import { ServiceUnavailableError } from "@/core/errors";
 import {
   users,
   roles,
@@ -13,7 +12,7 @@ import {
   rolePermissions,
   tenantMemberships,
   userSessions,
-} from "../../db/schema";
+} from "@/db/schema";
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
@@ -217,8 +216,8 @@ export const authRepository = {
         .select({ id: permissions.id })
         .from(permissions);
       if (!allPermissions.length) {
-        throw new Error(
-          "RBAC reference data is not installed: permissions are missing",
+        throw new ServiceUnavailableError(
+          "RBAC reference data is not available. Run the database migrations before using authentication.",
         );
       }
 
@@ -268,8 +267,8 @@ export const authRepository = {
         .select({ id: permissions.id })
         .from(permissions);
       if (!allPermissions.length) {
-        throw new Error(
-          "RBAC reference data is not installed: permissions are missing",
+        throw new ServiceUnavailableError(
+          "RBAC reference data is not available. Run the database migrations before using authentication.",
         );
       }
       await tx
@@ -285,10 +284,10 @@ export const authRepository = {
     });
   },
 
-  async findRoleByName(name: string) {
+  async findRoleByName(name: RoleName) {
     return db.query.roles.findFirst({
       where: and(
-        eq(roles.name, name as any),
+        eq(roles.name, name),
         isNull(roles.tenantId),
         eq(roles.isSystem, true),
       ),

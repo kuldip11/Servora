@@ -3,17 +3,17 @@ import { staffService } from "./services/staff.service";
 import { rolesService } from "./services/roles.service";
 import { staffKeys, roleKeys } from "./query-keys";
 
-export function staffListQuery() {
+export const staffListQuery = () => {
   return queryOptions({
     queryKey: staffKeys.list(),
     queryFn: staffService.list,
   });
-}
+};
 
-export function rolesListQuery() {
+export const rolesListQuery = () => {
   return queryOptions({
     queryKey: roleKeys.list(),
     queryFn: rolesService.list,
     staleTime: 1000 * 60 * 10,
   });
-}
+};

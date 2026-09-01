@@ -1,10 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
-import { staffService, type StaffFormInput } from "../services/staff.service";
-import { staffKeys } from "../query-keys";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
+import {
+  staffService,
+  type StaffFormInput,
+} from "@/features/staff/services/staff.service";
+import { staffKeys } from "@/features/staff/query-keys";
 
-export function useAddStaff() {
+export const useAddStaff = () => {
   return useMutation({
     mutationFn: (input: StaffFormInput) => staffService.add(input),
     onSuccess: () => {
@@ -13,4 +16,4 @@ export function useAddStaff() {
     },
     onError: (err) => notifyError(err, "Failed to add staff"),
   });
-}
+};

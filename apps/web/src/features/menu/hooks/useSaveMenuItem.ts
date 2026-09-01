@@ -1,14 +1,14 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
 import {
   menuItemsService,
   type MenuItemFormPayload,
-} from "../services/menu-items.service";
-import { menuKeys } from "../query-keys";
+} from "@/features/menu/services/menu-items.service";
+import { menuKeys } from "@/features/menu/query-keys";
 import type { MenuItem } from "@pos/types";
 
-export function useSaveMenuItem() {
+export const useSaveMenuItem = () => {
   return useMutation({
     mutationFn: ({
       item,
@@ -23,4 +23,4 @@ export function useSaveMenuItem() {
     },
     onError: (err) => notifyError(err, "Failed to save item"),
   });
-}
+};

@@ -18,7 +18,7 @@ import {
   useRealtime,
   useRealtimeEvent,
   useConnectionStatus,
-} from "../realtime";
+} from "@/shared/lib/realtime";
 
 describe("realtime", () => {
   it("creates and forwards realtime hooks", () => {

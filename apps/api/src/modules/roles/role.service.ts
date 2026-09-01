@@ -1,24 +1,25 @@
-import type { AuthContext } from "../../core/auth";
-import { requirePermission } from "../../core/auth";
+import type { AuthContext } from "@/core/auth";
+import { requirePermission } from "@/core/auth";
 import {
   ConflictError,
   ForbiddenError,
   NotFoundError,
   ValidationError,
-} from "../../core/errors";
-import { writeAudit } from "../../core/audit";
+} from "@/core/errors";
+import { writeAudit } from "@/core/audit";
 import { roleRepository } from "./role.repository";
+import { isReservedSystemRoleName } from "@/modules/permissions/constants/system-role-permissions";
 
-function normalizeName(name: string) {
+const normalizeName = (name: string) => {
   return name.trim().replace(/\s+/g, " ");
-}
+};
 
-function requireRoleAdministration(auth: AuthContext, permission: string) {
+const requireRoleAdministration = (auth: AuthContext, permission: string) => {
   requirePermission(auth, permission);
-  if (!auth.tenantWide && !auth.roles.includes("OWNER")) {
+  if (!auth.tenantWide) {
     throw new ForbiddenError("Tenant-wide access is required to manage roles");
   }
-}
+};
 
 export const roleService = {
   async list(auth: AuthContext) {
@@ -33,6 +34,9 @@ export const roleService = {
     requireRoleAdministration(auth, "roles:create");
     const name = normalizeName(input.name);
     if (!name) throw new ValidationError("Role name is required");
+    if (isReservedSystemRoleName(name)) {
+      throw new ConflictError("System role names are reserved");
+    }
     if (
       await roleRepository.findByNameAndScope(auth.tenantId, name, input.scope)
     ) {
@@ -66,6 +70,9 @@ export const roleService = {
       throw new ForbiddenError("System roles cannot be modified");
     if (input.name !== undefined) {
       const name = normalizeName(input.name);
+      if (isReservedSystemRoleName(name)) {
+        throw new ConflictError("System role names are reserved");
+      }
       const duplicate = await roleRepository.findByNameAndScope(
         auth.tenantId,
         name,

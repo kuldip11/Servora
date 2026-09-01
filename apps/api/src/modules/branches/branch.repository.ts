@@ -1,14 +1,9 @@
-/**
- * Branch repository — data access only. No business rules (see
- * `branch.service.ts` for capability/open-order/last-branch checks).
- */
 import { eq, and, notInArray, inArray, sql } from "drizzle-orm";
 import type { OrderType } from "@pos/types";
-import { db } from "../../db";
-import { branches, orders } from "../../db/schema";
-import { compact } from "../../lib/object-utils";
+import { db } from "@/db";
+import { branches, orders } from "@/db/schema";
+import { compact } from "@/lib/object-utils";
 
-/** The four order-intake toggles plus dine-in table support. */
 export type BranchCapabilities = {
   dineInEnabled: boolean;
   takeawayEnabled: boolean;
@@ -71,9 +66,6 @@ export const branchRepository = {
     onlineEnabled?: boolean | undefined;
     tablesEnabled?: boolean | undefined;
   }) {
-    // New branch = full-service by default (every capability true) unless
-    // the caller explicitly narrows it down — an owner sets up the outlet
-    // type first, then adjusts.
     const [branch] = await db
       .insert(branches)
       .values(
@@ -146,9 +138,6 @@ export const branchRepository = {
     return !!openOrder;
   },
 
-  // Used to block turning off a capability (e.g. dine-in) while there are
-  // still open orders of that type on the branch — same guard pattern as
-  // hasOpenOrders above, just scoped to one order type.
   async hasOpenOrdersOfType(
     tenantId: string,
     branchId: string,

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { getOrderStatusColor, getOrderStatusLabel } from "../order-status";
+import {
+  getOrderStatusColor,
+  getOrderStatusLabel,
+} from "@/shared/utils/order-status";
 
 describe("getOrderStatusColor", () => {
   it.each([

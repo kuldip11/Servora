@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import { requireAuthPlugin } from "../../../core/auth";
+import { requireAuthPlugin } from "@/core/auth";
 import { bulkOpsController } from "./bulk-ops.controller";
 import {
   bulkStatusBody,
@@ -10,9 +10,6 @@ import {
   bulkDeleteBody,
 } from "./bulk-ops.validator";
 
-// Mounted at a clean, collision-free sub-path (`/items/bulk/...`) under the
-// shared `/api/menu` prefix, alongside the legacy `menuRouter` and the other
-// menu sub-routers — same approach as `items`/`categories`.
 export const menuBulkOpsRouter = new Elysia({ prefix: "/api/menu/items/bulk" })
   .use(requireAuthPlugin())
   .post(

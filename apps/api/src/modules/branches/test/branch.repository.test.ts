@@ -30,7 +30,7 @@ const { query, db } = vi.hoisted(() => {
   return { query, db };
 });
 vi.mock("../../../db", () => ({ db }));
-import { branchRepository } from "../branch.repository";
+import { branchRepository } from "@/modules/branches/branch.repository";
 beforeEach(() => {
   vi.clearAllMocks();
 });

@@ -13,13 +13,13 @@ import {
   userStatusEnum,
   roleScopeEnum,
   membershipStatusEnum,
-} from "../auth.schema";
-function expectTable(table: any, name: string, columns: string[]) {
+} from "@/db/schema/auth.schema";
+const expectTable = (table: any, name: string, columns: string[]) => {
   const actual = Object.keys(table[Symbol.for("drizzle:Columns")]);
   expect(getTableConfig(table).name).toBe(name);
   expect(actual).toEqual(expect.arrayContaining(columns));
   expect(actual).toHaveLength(columns.length);
-}
+};
 describe("auth.schema.ts", () => {
   it("defines users", () =>
     expectTable(users, "users", [

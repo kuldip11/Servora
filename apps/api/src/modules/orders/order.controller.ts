@@ -1,18 +1,19 @@
-/**
- * Order controller — thin handlers only. Auth/branch resolution comes
- * from `requireAuthPlugin` (applied in `order.route.ts`); business logic
- * lives in `order.service.ts`.
- */
 import type { OrderStatus } from "@pos/types";
-import type { AuthContext } from "../../core/auth";
-import { successResponse, createdResponse } from "../../core/response";
+import type { AuthContext } from "@/core/auth";
+import { successResponse, createdResponse } from "@/core/response";
 import {
   orderService,
   type CreateOrderInput,
   type FireTicketInput,
 } from "./order.service";
+import { orderExplainService } from "@/modules/menu/explain/order-explain.service";
 
 export const orderController = {
+  async explain(auth: AuthContext, orderId: string) {
+    return successResponse(
+      await orderExplainService.explainOrder(auth, orderId),
+    );
+  },
   async list(
     auth: AuthContext,
     filters: { status?: string | undefined; type?: string | undefined },
@@ -41,12 +42,15 @@ export const orderController = {
     orderId: string,
     status: OrderStatus,
     reason: string | undefined,
+    cancellationReasonId?: string | undefined,
+    approvalToken?: string | undefined,
   ) {
     const order = await orderService.updateStatus(
       auth,
       orderId,
       status,
       reason,
+      cancellationReasonId,
     );
     return successResponse(order);
   },
@@ -54,5 +58,89 @@ export const orderController = {
   async fireTicket(auth: AuthContext, orderId: string, input: FireTicketInput) {
     const order = await orderService.fireTicket(auth, orderId, input);
     return successResponse(order);
+  },
+
+  async voidItem(
+    auth: AuthContext,
+    orderId: string,
+    orderItemId: string,
+    reason: string | undefined,
+    cancellationReasonId?: string | undefined,
+    approvalToken?: string | undefined,
+  ) {
+    return successResponse(
+      await orderService.voidItem(
+        auth,
+        orderId,
+        orderItemId,
+        reason,
+        cancellationReasonId,
+        approvalToken,
+      ),
+    );
+  },
+
+  async compItem(
+    auth: AuthContext,
+    orderId: string,
+    orderItemId: string,
+    reason: string | undefined,
+    cancellationReasonId?: string | undefined,
+    approvalToken?: string | undefined,
+  ) {
+    return successResponse(
+      await orderService.compItem(
+        auth,
+        orderId,
+        orderItemId,
+        reason,
+        cancellationReasonId,
+        approvalToken,
+      ),
+    );
+  },
+
+  async refireItem(
+    auth: AuthContext,
+    orderId: string,
+    orderItemId: string,
+    reason: string,
+    alsoCompOriginal?: boolean,
+  ) {
+    return successResponse(
+      await orderService.refireItem(
+        auth,
+        orderId,
+        orderItemId,
+        reason,
+        alsoCompOriginal ?? true,
+      ),
+    );
+  },
+
+  async refillItem(auth: AuthContext, orderId: string, orderItemId: string) {
+    return successResponse(
+      await orderService.refillItem(auth, orderId, orderItemId),
+    );
+  },
+
+  async transferTable(
+    auth: AuthContext,
+    orderId: string,
+    newTableId: string,
+    reason?: string,
+  ) {
+    return successResponse(
+      await orderService.transferTable(auth, orderId, newTableId, reason),
+    );
+  },
+  async mergeOrders(
+    auth: AuthContext,
+    sourceOrderId: string,
+    targetOrderId: string,
+  ) {
+    return successResponse(
+      await orderService.mergeOrders(auth, sourceOrderId, targetOrderId),
+    );
   },
 };

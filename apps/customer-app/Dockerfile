@@ -9,18 +9,10 @@ RUN bun install --frozen-lockfile
 
 ARG VITE_API_URL
 ARG VITE_WS_URL
-ARG VITE_WEB_APP_URL
-ARG VITE_KITCHEN_APP_URL
-ARG VITE_WAITER_APP_URL
-ARG VITE_CUSTOMER_APP_URL
 ARG VITE_RAZORPAY_KEY_ID
 
 ENV VITE_API_URL=$VITE_API_URL \
     VITE_WS_URL=$VITE_WS_URL \
-    VITE_WEB_APP_URL=$VITE_WEB_APP_URL \
-    VITE_KITCHEN_APP_URL=$VITE_KITCHEN_APP_URL \
-    VITE_WAITER_APP_URL=$VITE_WAITER_APP_URL \
-    VITE_CUSTOMER_APP_URL=$VITE_CUSTOMER_APP_URL \
     VITE_RAZORPAY_KEY_ID=$VITE_RAZORPAY_KEY_ID
 
 WORKDIR /app/apps/customer-app
@@ -29,6 +21,7 @@ RUN bun run build
 FROM nginx:alpine AS runner
 COPY --from=builder /app/apps/customer-app/dist /usr/share/nginx/html
 COPY apps/customer-app/nginx.conf /etc/nginx/conf.d/default.conf
+COPY deploy/nginx/security-headers.conf /etc/nginx/snippets/servora-security-headers.conf
 
 EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \

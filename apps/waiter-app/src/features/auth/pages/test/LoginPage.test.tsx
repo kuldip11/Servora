@@ -13,7 +13,7 @@ vi.mock("../../hooks/useLogin", () => ({
     resetToCredentials: vi.fn(),
   })),
 }));
-import { LoginPage } from "../LoginPage";
+import { LoginPage } from "@/features/auth/pages/LoginPage";
 describe("LoginPage", () => {
   it("renders credentials step", () =>
     expect(renderToStaticMarkup(<LoginPage onLogin={vi.fn()} />)).toContain(

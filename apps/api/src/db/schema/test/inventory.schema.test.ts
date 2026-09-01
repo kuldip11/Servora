@@ -4,15 +4,16 @@ import {
   inventoryItems,
   inventoryTransactions,
   orderInventoryDeductions,
+  wasteReasons,
   inventoryUnitEnum,
   inventoryTransactionTypeEnum,
-} from "../inventory.schema";
-function expectTable(table: any, name: string, columns: string[]) {
+} from "@/db/schema/inventory.schema";
+const expectTable = (table: any, name: string, columns: string[]) => {
   const actual = Object.keys(table[Symbol.for("drizzle:Columns")]);
   expect(getTableConfig(table).name).toBe(name);
   expect(actual).toEqual(expect.arrayContaining(columns));
   expect(actual).toHaveLength(columns.length);
-}
+};
 describe("inventory.schema.ts", () => {
   it("defines inventory_items", () =>
     expectTable(inventoryItems, "inventory_items", [
@@ -40,19 +41,32 @@ describe("inventory.schema.ts", () => {
       "balanceAfter",
       "notes",
       "performedBy",
+      "wasteReasonId",
+      "reversalOfDeductionId",
       "createdAt",
+    ]));
+  it("defines waste_reasons", () =>
+    expectTable(wasteReasons, "waste_reasons", [
+      "id",
+      "tenantId",
+      "label",
+      "isActive",
+      "createdAt",
+      "updatedAt",
     ]));
   it("defines order_inventory_deductions", () =>
     expectTable(orderInventoryDeductions, "order_inventory_deductions", [
       "id",
       "orderId",
       "kitchenTicketId",
+      "orderItemId",
       "menuItemId",
       "inventoryItemId",
       "quantityDeducted",
       "unit",
       "wasShort",
       "deductedAt",
+      "reversedAt",
     ]));
   it("keeps inventory enums stable", () => {
     expect(inventoryUnitEnum.enumValues).toEqual([

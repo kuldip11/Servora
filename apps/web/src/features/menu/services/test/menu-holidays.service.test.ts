@@ -7,7 +7,7 @@ const api = vi.hoisted(() => ({
 }));
 vi.mock("../../../../shared/lib/api-client", () => ({ apiClient: api }));
 
-import { menuHolidaysService } from "../menu-holidays.service";
+import { menuHolidaysService } from "@/features/menu/services/menu-holidays.service";
 
 describe("menuHolidaysService", () => {
   beforeEach(() => {

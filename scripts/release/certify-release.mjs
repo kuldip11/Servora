@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "../..");
 const dir = resolve(root, ".verification");
-const baselinePath = resolve(dir, "phase6-baseline.json");
+const baselinePath = resolve(dir, "release-baseline.json");
 const performancePath = resolve(dir, "performance-smoke.json");
 
 const missing = [baselinePath, performancePath].filter(
@@ -32,7 +32,7 @@ const certificate = {
   appVersion: process.env.APP_VERSION ?? null,
   checks,
   evidence: {
-    baseline: "phase6-baseline.json",
+    baseline: "release-baseline.json",
     performance: "performance-smoke.json",
   },
 };

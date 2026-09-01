@@ -5,7 +5,7 @@ import {
   updateTableBody,
   updateTableStatusBody,
   tableIdParams,
-} from "../table.validator";
+} from "@/modules/tables/table.validator";
 describe("table validators", () => {
   it("accepts valid create/update payloads and rejects boundaries", () => {
     expect(

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { apiClient } from "../../../../shared/lib/api-client";
-import { fetchTables } from "../tables";
+import { apiClient } from "@/shared/lib/api-client";
+import { fetchTables } from "@/features/menu/api/tables";
 
 vi.mock("../../../../shared/lib/api-client", () => ({
   apiClient: { get: vi.fn() },

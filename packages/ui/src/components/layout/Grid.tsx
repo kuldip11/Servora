@@ -9,7 +9,6 @@ const GAPS = {
   lg: "gap-lg",
 } as const;
 
-/** Column count per breakpoint. Any key you omit falls back to the previous breakpoint. */
 export interface GridColumns {
   base?: number;
   sm?: number;
@@ -67,28 +66,18 @@ const XL_COL_CLASSES: Record<number, string> = {
 
 export interface GridProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
-  /**
-   * Either a fixed column count, or a responsive map, e.g.
-   * `{ base: 1, sm: 2, lg: 3 }` — 1 column on mobile, 2 from `sm:` up,
-   * 3 from `lg:` up. @default 1
-   */
+
   columns?: number | GridColumns;
   gap?: keyof typeof GAPS;
 }
 
-/**
- * Fixes the exact bug flagged in the Phase 0 audit
- * (`KitchenBoard.tsx`'s fixed `grid-cols-3` with zero responsive
- * breakpoints) — always express columns as a responsive map here rather
- * than a bare Tailwind `grid-cols-N` class.
- */
-export function Grid({
+export const Grid = ({
   children,
   columns = 1,
   gap = "md",
   className,
   ...props
-}: GridProps) {
+}: GridProps) => {
   const cols: GridColumns =
     typeof columns === "number" ? { base: columns } : columns;
 
@@ -109,4 +98,4 @@ export function Grid({
       {children}
     </div>
   );
-}
+};

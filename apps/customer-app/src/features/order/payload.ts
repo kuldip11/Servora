@@ -1,8 +1,10 @@
-import type { CreateCustomerOrderInput } from "../order/api";
-import type { CartLine } from "../cart/pricing";
-import { normalizeSelectedOptions } from "../cart/configuration";
+import type { CreateCustomerOrderInput } from "@/features/order/api";
+import type { CartLine } from "@/features/cart/pricing";
+import { normalizeSelectedOptions } from "@/features/cart/configuration";
 
-export function createOrderPayload(cart: CartLine[]): CreateCustomerOrderInput {
+export const createOrderPayload = (
+  cart: CartLine[],
+): CreateCustomerOrderInput => {
   return {
     items: cart.map((line) => ({
       menuItemId: line.item.id,
@@ -14,4 +16,4 @@ export function createOrderPayload(cart: CartLine[]): CreateCustomerOrderInput {
       fulfillmentType: line.fulfillmentType,
     })),
   };
-}
+};

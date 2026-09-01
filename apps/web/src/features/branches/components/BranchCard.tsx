@@ -4,10 +4,6 @@ import {
   Trash2,
   MapPin,
   Phone,
-  UtensilsCrossed,
-  ShoppingBag,
-  Bike,
-  Globe,
   Table2,
   Clock3,
   CircleDollarSign,
@@ -15,14 +11,9 @@ import {
 import { Card, IconButton } from "@pos/ui";
 import type { Branch } from "@pos/types";
 
-const CAPABILITY_BADGES = [
-  { key: "dineInEnabled" as const, label: "Dine In", icon: UtensilsCrossed },
-  { key: "takeawayEnabled" as const, label: "Takeaway", icon: ShoppingBag },
-  { key: "deliveryEnabled" as const, label: "Delivery", icon: Bike },
-  { key: "onlineEnabled" as const, label: "Online", icon: Globe },
-];
+import { BRANCH_CAPABILITY_BADGES } from "@/features/branches/constants";
 
-export function BranchCard({
+export const BranchCard = ({
   branch,
   onEdit,
   onDeactivate,
@@ -30,7 +21,7 @@ export function BranchCard({
   branch: Branch;
   onEdit: (branch: Branch) => void;
   onDeactivate: (branch: Branch) => void;
-}) {
+}) => {
   return (
     <Card className="flex flex-col gap-3">
       <div className="flex items-start justify-between">
@@ -84,7 +75,7 @@ export function BranchCard({
         </span>
       </div>
       <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-divider">
-        {CAPABILITY_BADGES.map(({ key, label, icon: Icon }) => (
+        {BRANCH_CAPABILITY_BADGES.map(({ key, label, icon: Icon }) => (
           <span
             key={key}
             title={branch[key] ? label : `${label} disabled`}
@@ -104,4 +95,4 @@ export function BranchCard({
       </div>
     </Card>
   );
-}
+};

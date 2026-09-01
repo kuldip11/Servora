@@ -1,12 +1,14 @@
 import { X, Table2, UserCircle } from "lucide-react";
-import { ALL_ORDER_TYPES } from "../constants";
+import { ALL_ORDER_TYPES } from "@/features/menu/constants";
+import type { LoyaltyCustomer } from "@pos/types";
+import type { RestaurantTableDto } from "@pos/api-client";
 
 interface Props {
   availableOrderTypes: typeof ALL_ORDER_TYPES;
   orderType: "DINE_IN" | "TAKEAWAY" | "DELIVERY";
   onOrderTypeChange: (type: "DINE_IN" | "TAKEAWAY" | "DELIVERY") => void;
   tablesEnabled: boolean;
-  tables: any[] | undefined;
+  tables: RestaurantTableDto[] | undefined;
   tableId: string;
   onTableChange: (id: string) => void;
   customerId: string;
@@ -14,26 +16,25 @@ interface Props {
   onClearCustomer: () => void;
   customerSearch: string;
   onCustomerSearchChange: (value: string) => void;
-  customerResults: any[] | undefined;
+  customerResults: LoyaltyCustomer[] | undefined;
   onSelectCustomer: (id: string, name: string) => void;
+  customerGroups: Array<{ id: string; name: string }>;
+  customerGroupId: string;
+  onCustomerGroupChange: (id: string) => void;
+  billingMode: "LINE_ITEMS" | "PER_COVER";
+  onBillingModeChange: (mode: "LINE_ITEMS" | "PER_COVER") => void;
+  coverCount: number;
+  onCoverCountChange: (count: number) => void;
+  perCoverRules: Array<{
+    id: string;
+    coverTier?: "ADULT" | "CHILD" | null;
+    price: string | number | null;
+  }>;
+  perCoverPriceRuleId: string;
+  onPerCoverPriceRuleChange: (id: string) => void;
 }
 
-// Design-system Phase 11, Sprint WA-3 — retokenized only, on purpose.
-// This owns the 1 Waiter App instance of the audit's native-`<select>`
-// finding (`phase-0-ui-audit.md` §3: "7 instances in Admin, 1 in
-// Waiter App"). It's **not** migrated onto `SelectMenu` here — Phase
-// 4's own write-up flags that swap as a genuine interaction-model
-// change (Popover-backed `onChange(value)` vs. a native `<select>`'s
-// DOM-event API), needing a deliberate re-test per call site, not
-// something to fold silently into a token-migration pass; that's still
-// an open, unsigned-off decision covering all 13 call sites (12 in
-// Admin, this one), not decided unilaterally here. Same reasoning
-// applies to the customer-search dropdown below, which is functionally
-// what `Autocomplete` (Phase 4) was built for (async search + a
-// results list) — introducing that component here would be the same
-// kind of interaction-shape change, so it stays hand-rolled, just
-// retokenized.
-export function OrderOptionsPanel({
+export const OrderOptionsPanel = ({
   availableOrderTypes,
   orderType,
   onOrderTypeChange,
@@ -48,10 +49,20 @@ export function OrderOptionsPanel({
   onCustomerSearchChange,
   customerResults,
   onSelectCustomer,
-}: Props) {
+  customerGroups,
+  customerGroupId,
+  onCustomerGroupChange,
+  billingMode,
+  onBillingModeChange,
+  coverCount,
+  onCoverCountChange,
+  perCoverRules,
+  perCoverPriceRuleId,
+  onPerCoverPriceRuleChange,
+}: Props) => {
   return (
     <div className="bg-surface border-b border-border px-4 py-3 space-y-3">
-      {/* Type toggle */}
+      {}
       <div className="flex gap-2">
         {availableOrderTypes.map(({ value: t, label }) => (
           <button
@@ -74,7 +85,7 @@ export function OrderOptionsPanel({
         </p>
       )}
 
-      {/* Table */}
+      {}
       {orderType === "DINE_IN" &&
         tablesEnabled &&
         tables &&
@@ -89,8 +100,8 @@ export function OrderOptionsPanel({
             >
               <option value="">Select a table…</option>
               {tables
-                .filter((t: any) => t.status === "AVAILABLE")
-                .map((t: any) => (
+                .filter((t) => t.status === "AVAILABLE")
+                .map((t) => (
                   <option key={t.id} value={t.id}>
                     {t.name} · {t.capacity} seats
                   </option>
@@ -102,7 +113,7 @@ export function OrderOptionsPanel({
         tablesEnabled &&
         tables &&
         tables.length > 0 &&
-        !tables.some((t: any) => t.status === "AVAILABLE") && (
+        !tables.some((t) => t.status === "AVAILABLE") && (
           <p className="text-xs text-danger -mt-1">
             No tables are free right now — you'll need one to become available
             before placing this order.
@@ -117,7 +128,7 @@ export function OrderOptionsPanel({
           </p>
         )}
 
-      {/* Customer */}
+      {}
       <div className="flex items-center gap-2">
         <UserCircle className="w-4 h-4 text-text-disabled flex-shrink-0" />
         {customerId ? (
@@ -141,7 +152,7 @@ export function OrderOptionsPanel({
             />
             {customerResults && customerResults.length > 0 && (
               <div className="absolute top-full left-0 right-0 bg-surface border border-border rounded-xl shadow-md mt-1 z-20 max-h-36 overflow-y-auto">
-                {customerResults.map((c: any) => (
+                {customerResults.map((c) => (
                   <button
                     key={c.id}
                     onClick={() => onSelectCustomer(c.id, c.name)}
@@ -151,7 +162,8 @@ export function OrderOptionsPanel({
                       {c.name}
                     </p>
                     <p className="text-xs text-text-disabled">
-                      {c.phone} · {c.loyaltyPoints} pts
+                      {c.phone || c.email || "No contact"}
+                      {c.loyaltyTier?.name ? ` · ${c.loyaltyTier.name}` : ""}
                     </p>
                   </button>
                 ))}
@@ -160,6 +172,83 @@ export function OrderOptionsPanel({
           </div>
         )}
       </div>
+
+      {}
+      <div className="grid gap-2 md:grid-cols-2">
+        <label className="text-xs font-medium text-text-secondary">
+          Customer group pricing
+          <select
+            className="mt-1 w-full rounded-xl border border-border bg-surface-secondary px-3 py-2 text-sm text-text-primary"
+            value={customerGroupId}
+            onChange={(event) => onCustomerGroupChange(event.target.value)}
+          >
+            <option value="">No customer group</option>
+            {customerGroups.map((group) => (
+              <option key={group.id} value={group.id}>
+                {group.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-xs font-medium text-text-secondary">
+          Billing mode
+          <select
+            className="mt-1 w-full rounded-xl border border-border bg-surface-secondary px-3 py-2 text-sm text-text-primary"
+            value={billingMode}
+            onChange={(event) =>
+              onBillingModeChange(
+                event.target.value as "LINE_ITEMS" | "PER_COVER",
+              )
+            }
+          >
+            <option value="LINE_ITEMS">Line items</option>
+            <option value="PER_COVER" disabled={!perCoverRules.length}>
+              Per cover / buffet
+            </option>
+          </select>
+        </label>
+      </div>
+      {billingMode === "PER_COVER" && (
+        <div className="grid grid-cols-2 gap-2 rounded-xl border border-primary-border bg-primary-surface p-3">
+          <label className="text-xs font-medium text-text-secondary">
+            Covers
+            <input
+              type="number"
+              min={1}
+              step={1}
+              value={coverCount}
+              onChange={(event) =>
+                onCoverCountChange(Math.max(1, Number(event.target.value) || 1))
+              }
+              className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="text-xs font-medium text-text-secondary">
+            Per-cover rate
+            <select
+              value={perCoverPriceRuleId}
+              onChange={(event) =>
+                onPerCoverPriceRuleChange(event.target.value)
+              }
+              className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm"
+            >
+              <option value="">Select a rate…</option>
+              {perCoverRules.map((rule) => (
+                <option key={rule.id} value={rule.id}>
+                  {rule.coverTier
+                    ? `${rule.coverTier.charAt(0)}${rule.coverTier.slice(1).toLowerCase()} cover`
+                    : "Any cover"}{" "}
+                  · ₹{Number(rule.price ?? 0).toFixed(2)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <p className="col-span-2 text-xs text-text-secondary">
+            Items still fire to the kitchen and consume inventory; billing is
+            cover-based.
+          </p>
+        </div>
+      )}
     </div>
   );
-}
+};

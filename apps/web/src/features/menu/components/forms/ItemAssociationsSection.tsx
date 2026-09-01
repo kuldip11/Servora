@@ -1,5 +1,5 @@
 import type { ModifierGroup, MenuTag, MenuAllergen } from "@pos/types";
-export function ItemAssociationsSection({
+export const ItemAssociationsSection = ({
   groups,
   tags,
   allergens,
@@ -15,7 +15,7 @@ export function ItemAssociationsSection({
   selectedTagIds: string[];
   selectedAllergenIds: string[];
   toggle: (id: string, list: "groups" | "tags" | "allergens") => void;
-}) {
+}) => {
   return (
     <>
       <div role="group">
@@ -31,6 +31,7 @@ export function ItemAssociationsSection({
           <div className="flex flex-wrap gap-2">
             {groups.map((g) => (
               <button
+                type="button"
                 key={g.id}
                 onClick={() => toggle(g.id, "groups")}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${selectedGroupIds.includes(g.id) ? "border-primary bg-primary-surface text-primary" : "border-border text-text-secondary"}`}
@@ -53,6 +54,7 @@ export function ItemAssociationsSection({
           <div className="flex flex-wrap gap-2">
             {tags.map((t) => (
               <button
+                type="button"
                 key={t.id}
                 onClick={() => toggle(t.id, "tags")}
                 className="px-3 py-1.5 rounded-full text-xs font-medium transition-opacity"
@@ -75,6 +77,7 @@ export function ItemAssociationsSection({
         <div className="flex flex-wrap gap-2">
           {allergens?.map((a) => (
             <button
+              type="button"
               key={a.id}
               onClick={() => toggle(a.id, "allergens")}
               className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${selectedAllergenIds.includes(a.id) ? "border-red-400 bg-red-50 text-red-700" : "border-border text-text-secondary"}`}
@@ -86,4 +89,4 @@ export function ItemAssociationsSection({
       </div>
     </>
   );
-}
+};

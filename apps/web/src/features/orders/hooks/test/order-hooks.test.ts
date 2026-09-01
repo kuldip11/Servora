@@ -36,10 +36,10 @@ vi.mock("../../../tables/query-keys", () => ({
   tableKeys: { all: ["tables"] },
 }));
 
-import { useOrder } from "../useOrder";
-import { useOrders } from "../useOrders";
-import { useUpdateOrderStatus } from "../useUpdateOrderStatus";
-import { useUpdateTicketStatus } from "../useUpdateTicketStatus";
+import { useOrder } from "@/features/orders/hooks/useOrder";
+import { useOrders } from "@/features/orders/hooks/useOrders";
+import { useUpdateOrderStatus } from "@/features/orders/hooks/useUpdateOrderStatus";
+import { useUpdateTicketStatus } from "@/features/orders/hooks/useUpdateTicketStatus";
 
 describe("order hooks", () => {
   beforeEach(() => {

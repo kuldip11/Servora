@@ -1,5 +1,6 @@
+import type { RoleName } from "@pos/types";
 import { and, eq, isNull } from "drizzle-orm";
-import { db } from "../../db";
+import { db } from "@/db";
 import {
   branches,
   membershipRoles,
@@ -7,7 +8,8 @@ import {
   tenantMemberships,
   tenants,
   organizationMemberships,
-} from "../../db/schema";
+  menus,
+} from "@/db/schema";
 
 export const tenantRepository = {
   async findMembershipsByUserId(userId: string) {
@@ -42,11 +44,33 @@ export const tenantRepository = {
     createdBy: string;
     organizationId: string;
   }) {
-    const [tenant] = await db.insert(tenants).values(data).returning();
-    return tenant!;
+    return db.transaction(async (tx) => {
+      const [tenant] = await tx.insert(tenants).values(data).returning();
+      if (!tenant) throw new Error("Tenant creation failed");
+
+      await tx.insert(menus).values({
+        tenantId: tenant.id,
+        name: "Default Menu",
+        status: "PUBLISHED",
+        isDefault: true,
+      });
+
+      return tenant;
+    });
   },
 
-  async update(id: string, changes: { name?: string; isActive?: boolean }) {
+  async update(
+    id: string,
+    changes: {
+      name?: string;
+      isActive?: boolean;
+      serviceChargePercent?: string | null;
+      serviceChargeTaxable?: boolean;
+      roundingPolicy?: "NONE" | "NEAREST_1" | "NEAREST_5" | "NEAREST_10";
+      defaultTaxMode?: "INCLUSIVE" | "EXCLUSIVE";
+      courseSequencingEnabled?: boolean;
+    },
+  ) {
     const [tenant] = await db
       .update(tenants)
       .set({ ...changes, updatedAt: new Date() })
@@ -74,10 +98,10 @@ export const tenantRepository = {
     });
   },
 
-  async findRoleByName(name: string) {
+  async findRoleByName(name: RoleName) {
     return db.query.roles.findFirst({
       where: and(
-        eq(roles.name, name as any),
+        eq(roles.name, name),
         isNull(roles.tenantId),
         eq(roles.isSystem, true),
       ),

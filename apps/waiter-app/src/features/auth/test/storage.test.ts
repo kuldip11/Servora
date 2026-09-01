@@ -7,16 +7,15 @@ import {
   saveContext,
   saveProfile,
   saveTokens,
-} from "../storage";
+} from "@/features/auth/storage";
 
 beforeEach(() => localStorage.clear());
 
 describe("waiter auth storage", () => {
   it("saves and reads tokens and context", () => {
-    saveTokens("access", "refresh");
+    saveTokens("access");
     saveContext("tenant-1", "branch-1");
     expect(getToken()).toBe("access");
-    expect(localStorage.getItem("waiter_refresh")).toBe("refresh");
     expect(localStorage.getItem("waiter_tenant")).toBe("tenant-1");
     expect(localStorage.getItem("waiter_branch")).toBe("branch-1");
   });
@@ -31,14 +30,14 @@ describe("waiter auth storage", () => {
   it("stores profile display name and clears all waiter state", () => {
     saveProfile({ firstName: "Asha", lastName: "Singh" } as any);
     expect(getWaiterName()).toBe("Asha Singh");
-    saveTokens("a", "r");
+    saveTokens("a");
     logout();
     expect(localStorage.length).toBe(0);
     expect(getWaiterName()).toBe("Waiter");
   });
 
   it("clearTokens clears authentication and tenant context", () => {
-    saveTokens("a", "r");
+    saveTokens("a");
     saveContext("t", "b");
     clearTokens();
     expect(localStorage.length).toBe(0);

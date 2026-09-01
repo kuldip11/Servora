@@ -57,9 +57,9 @@ vi.mock("../../hooks/useCustomerSearch", () => ({
   useCustomerSearch: () => ({ data: [] }),
 }));
 
-import { MenuPage } from "../MenuPage";
+import { MenuPage } from "@/features/menu/pages/MenuPage";
 
-function renderPage(props: React.ComponentProps<typeof MenuPage>) {
+const renderPage = (props: React.ComponentProps<typeof MenuPage>) => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
@@ -72,7 +72,7 @@ function renderPage(props: React.ComponentProps<typeof MenuPage>) {
       <MenuPage {...props} />
     </QueryClientProvider>,
   );
-}
+};
 
 describe("MenuPage", () => {
   it("renders menu shell and available item", () => {

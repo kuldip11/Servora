@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { menuAllergensQuery } from "../query-options";
+import { menuAllergensQuery } from "@/features/menu/query-options";
 
-export function useMenuAllergens() {
+export const useMenuAllergens = () => {
   return useQuery(menuAllergensQuery());
-}
+};

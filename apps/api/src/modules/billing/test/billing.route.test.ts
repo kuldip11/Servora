@@ -45,7 +45,7 @@ const { getBill } = vi.hoisted(() => ({ getBill: vi.fn() }));
 vi.mock("../billing.controller", () => ({
   billingController: { createPayment, createRefund, getBill },
 }));
-import { billingRouter } from "../billing.route";
+import { billingRouter } from "@/modules/billing/billing.route";
 
 describe("billing routes", () => {
   it("registers the payment, refund, and bill endpoints", () => {

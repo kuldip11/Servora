@@ -1,13 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
 import {
   menuTemplatesService,
   type ApplyTemplateInput,
-} from "../services/menu-templates.service";
-import { menuKeys } from "../query-keys";
+} from "@/features/menu/services/menu-templates.service";
+import { menuKeys } from "@/features/menu/query-keys";
 
-export function useApplyTemplate() {
+export const useApplyTemplate = () => {
   return useMutation({
     mutationFn: ({
       templateId,
@@ -21,4 +21,4 @@ export function useApplyTemplate() {
     },
     onError: (err) => notifyError(err, "Failed to apply template"),
   });
-}
+};

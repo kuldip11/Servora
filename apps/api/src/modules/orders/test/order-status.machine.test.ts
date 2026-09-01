@@ -3,7 +3,7 @@ import {
   ORDER_STATUS_TRANSITIONS,
   assertValidOrderTransition,
   canTransitionOrder,
-} from "../order-status.machine";
+} from "@/modules/orders/order-status.machine";
 
 describe("order status machine", () => {
   it("allows exactly the documented forward/back transitions", () => {

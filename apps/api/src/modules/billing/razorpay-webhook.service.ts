@@ -1,33 +1,33 @@
 import { and, eq, sql } from "drizzle-orm";
 import { createHmac, timingSafeEqual } from "node:crypto";
-import type { Order } from "@pos/types";
-import { db } from "../../db";
-import {
-  paymentWebhookEvents,
-  payments,
-  kitchenTickets,
-} from "../../db/schema";
-import { inventoryService } from "../inventory/inventory.service";
-import { eventBus } from "../../lib/event-bus";
-import { orderRepository } from "../orders/order.repository";
-import { redis, REDIS_QUEUES } from "../../lib/redis";
+import type { KitchenTicket, Order } from "@pos/types";
+import { db } from "@/db";
+import { paymentWebhookEvents, payments, kitchenTickets } from "@/db/schema";
+import { inventoryService } from "@/modules/inventory/inventory.service";
+import { eventBus } from "@/lib/event-bus";
+import { orderRepository } from "@/modules/orders/order.repository";
+import { redis, REDIS_QUEUES } from "@/lib/redis";
+import { ServiceUnavailableError, ValidationError } from "@/core/errors";
 
-function verifyWebhookSignature(
+const verifyWebhookSignature = (
   rawBody: string,
   signature: string,
   secret: string,
-) {
+) => {
   const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
   const a = Buffer.from(expected);
   const b = Buffer.from(signature);
   return a.length === b.length && timingSafeEqual(a, b);
-}
+};
 
-function razorpayWebhookSecret() {
+const razorpayWebhookSecret = () => {
   const secret = process.env["RAZORPAY_WEBHOOK_SECRET"];
-  if (!secret) throw new Error("RAZORPAY_WEBHOOK_SECRET is not configured");
+  if (!secret)
+    throw new ServiceUnavailableError(
+      "Razorpay webhook secret is not configured",
+    );
   return secret;
-}
+};
 
 type RazorpayWebhookPayload = {
   event?: string;
@@ -52,15 +52,17 @@ export const razorpayWebhookService = {
     eventId: string | undefined,
   ) {
     if (!signature || !eventId)
-      throw new Error("Razorpay webhook signature and event id are required");
+      throw new ValidationError(
+        "Razorpay webhook signature and event id are required",
+      );
     if (!verifyWebhookSignature(rawBody, signature, razorpayWebhookSecret()))
-      throw new Error("Invalid Razorpay webhook signature");
+      throw new ValidationError("Invalid Razorpay webhook signature");
 
     let payload: RazorpayWebhookPayload;
     try {
       payload = JSON.parse(rawBody) as RazorpayWebhookPayload;
     } catch {
-      throw new Error("Invalid Razorpay webhook payload");
+      throw new ValidationError("Invalid Razorpay webhook payload");
     }
 
     const eventType = payload.event ?? "unknown";
@@ -94,10 +96,6 @@ export const razorpayWebhookService = {
 
     if (inserted === "PROCESSED") return { duplicate: true, queued: false };
 
-    // DB persistence is the durable source of truth. Redis only carries the
-    // event id to a worker; if Redis is temporarily unavailable Razorpay gets
-    // a non-2xx response and retries the webhook, while an already-persisted
-    // RECEIVED event can also be re-queued by the worker/recovery loop.
     await redis.lpush(REDIS_QUEUES.RAZORPAY_WEBHOOKS, eventId);
     return { duplicate: inserted === "RETRY", queued: true };
   },
@@ -150,7 +148,7 @@ export const razorpayWebhookService = {
                 eq(kitchenTickets.orderId, current.orderId),
                 eq(kitchenTickets.status, "PENDING_PAYMENT"),
               ),
-              columns: { id: true },
+              with: { course: true },
             });
             await tx
               .update(payments)
@@ -162,18 +160,23 @@ export const razorpayWebhookService = {
                 updatedAt: new Date(),
               })
               .where(eq(payments.id, payment.id));
-            if (pending.length) {
+            const firedIds: string[] = [];
+            for (const ticket of pending) {
+              const status =
+                ticket.course && ticket.course.courseNumber > 1
+                  ? "HELD"
+                  : "FIRED";
               await tx
                 .update(kitchenTickets)
-                .set({ status: "FIRED", updatedAt: new Date() })
-                .where(
-                  and(
-                    eq(kitchenTickets.orderId, current.orderId),
-                    eq(kitchenTickets.status, "PENDING_PAYMENT"),
-                  ),
-                );
+                .set({
+                  status,
+                  firedAt: status === "FIRED" ? new Date() : null,
+                  updatedAt: new Date(),
+                })
+                .where(eq(kitchenTickets.id, ticket.id));
+              if (status === "FIRED") firedIds.push(ticket.id);
             }
-            return pending.map((ticket) => ticket.id);
+            return firedIds;
           });
 
           if (releasedTicketIds.length) {
@@ -184,17 +187,36 @@ export const razorpayWebhookService = {
             if (order) {
               for (const ticketId of releasedTicketIds) {
                 const ticketItems = order.items.filter(
-                  (item: any) => item.kitchenTicketId === ticketId,
+                  (item) => item.kitchenTicketId === ticketId,
                 );
                 const result = await inventoryService.deductForOrderItems(
                   payment.order.tenantId,
                   payment.order.branchId,
                   payment.orderId,
                   ticketId,
-                  ticketItems.map((item) => ({
-                    menuItemId: item.menuItemId,
-                    quantity: item.quantity,
-                  })),
+                  ticketItems.flatMap((item) =>
+                    item.menuItemId == null
+                      ? []
+                      : [
+                          {
+                            orderItemId: item.id,
+                            menuItemId: item.menuItemId,
+                            variantId: item.variantId,
+                            quantity: item.quantity,
+                            selectedOptions: item.modifiers.flatMap(
+                              (modifier) =>
+                                modifier.modifierId == null
+                                  ? []
+                                  : [
+                                      {
+                                        optionId: modifier.modifierId,
+                                        quantity: modifier.quantity,
+                                      },
+                                    ],
+                            ),
+                          },
+                        ],
+                  ),
                   null,
                 );
                 if (result.short.length)
@@ -218,10 +240,13 @@ export const razorpayWebhookService = {
                   payment.order.branchId,
                 );
                 for (const ticket of updated.kitchenTickets.filter(
-                  (candidate: any) => releasedTicketIds.includes(candidate.id),
+                  (candidate) => releasedTicketIds.includes(candidate.id),
                 )) {
                   await eventBus.publish(
-                    { type: "kitchen.ticket.created", payload: ticket as any },
+                    {
+                      type: "kitchen.ticket.created",
+                      payload: ticket as unknown as KitchenTicket,
+                    },
                     payment.order.tenantId,
                     payment.order.branchId,
                   );

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Elysia } from "elysia";
-import { requestContextPlugin } from "../request-context";
+import { requestContextPlugin } from "@/core/context/request-context";
 
 describe("requestContextPlugin", () => {
   it("adds request id and response-time headers", async () => {
@@ -21,30 +21,18 @@ describe("requestContextPlugin", () => {
     expect(body.requestId).toBe(response.headers.get("x-request-id"));
   });
 
-  it("uses the first forwarded-for address as the client ip", async () => {
+  it("does not trust forwarded client-ip headers by default", async () => {
     const app = new Elysia()
       .use(requestContextPlugin())
       .get("/health", ({ requestContext }) => ({ ip: requestContext.ip }));
     const response = await app.handle(
       new Request("http://localhost/health", {
         headers: {
-          "x-forwarded-for": " 10.0.0.1, 10.0.0.2 ",
-          "x-real-ip": "10.0.0.3",
+          "x-forwarded-for": "203.0.113.1",
+          "x-real-ip": "203.0.113.2",
         },
       }),
     );
-    expect(await response.json()).toEqual({ ip: "10.0.0.1" });
-  });
-
-  it("falls back to x-real-ip when forwarded-for is absent", async () => {
-    const app = new Elysia()
-      .use(requestContextPlugin())
-      .get("/health", ({ requestContext }) => ({ ip: requestContext.ip }));
-    const response = await app.handle(
-      new Request("http://localhost/health", {
-        headers: { "x-real-ip": "10.0.0.3" },
-      }),
-    );
-    expect(await response.json()).toEqual({ ip: "10.0.0.3" });
+    expect(await response.json()).toEqual({});
   });
 });

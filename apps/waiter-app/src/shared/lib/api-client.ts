@@ -1,20 +1,17 @@
 import { createApiClient, type TokenStorageAdapter } from "@pos/api-client";
-import { STORAGE_KEYS } from "../constants/storage-keys";
+import { STORAGE_KEYS } from "@/shared/constants/storage-keys";
+import { clearTokens, getToken, saveTokens } from "@/features/auth/storage";
 
 const waiterStorageAdapter: TokenStorageAdapter = {
-  getAccessToken: () => localStorage.getItem(STORAGE_KEYS.token),
-  getRefreshToken: () => localStorage.getItem(STORAGE_KEYS.refresh),
+  getAccessToken: getToken,
   getTenantId: () => localStorage.getItem(STORAGE_KEYS.tenant),
   getBranchId: () => localStorage.getItem(STORAGE_KEYS.branch),
-  setTokens: (accessToken, refreshToken) => {
-    localStorage.setItem(STORAGE_KEYS.token, accessToken);
-    localStorage.setItem(STORAGE_KEYS.refresh, refreshToken);
-  },
-  clear: () =>
-    Object.values(STORAGE_KEYS).forEach((k) => localStorage.removeItem(k)),
+  setAccessToken: saveTokens,
+  clear: clearTokens,
 };
 
 export const apiClient = createApiClient({
+  app: "waiter",
   baseURL: import.meta.env["VITE_API_URL"] ?? "/api",
   timeout: 15_000,
   storage: waiterStorageAdapter,

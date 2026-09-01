@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 
 export const runtime = "edge";
 
-export async function GET(request: NextRequest) {
+export const GET = async (request: NextRequest) => {
   const title =
     request.nextUrl.searchParams.get("title") ||
     "Restaurant operations, connected.";
@@ -41,4 +41,4 @@ export async function GET(request: NextRequest) {
     </div>,
     { width: 1200, height: 630 },
   );
-}
+};

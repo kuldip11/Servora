@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import * as mod from "../recipes.errors";
+import * as mod from "@/modules/menu/recipes/recipes.errors";
 
 describe("recipes.errors error factories", () => {
   it("exports callable error factories with stable AppError-shaped results", () => {

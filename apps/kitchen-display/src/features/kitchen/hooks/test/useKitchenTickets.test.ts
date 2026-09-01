@@ -9,8 +9,8 @@ vi.mock("@tanstack/react-query", () => ({ useQuery: mocks.useQuery }));
 import {
   useKitchenTickets,
   KITCHEN_TICKETS_QUERY_KEY,
-} from "../useKitchenTickets";
-import { TICKETS_POLL_INTERVAL_MS } from "../../constants";
+} from "@/features/kitchen/hooks/useKitchenTickets";
+import { TICKETS_POLL_INTERVAL_MS } from "@/features/kitchen/constants";
 
 describe("useKitchenTickets", () => {
   it("configures ticket query", () => {

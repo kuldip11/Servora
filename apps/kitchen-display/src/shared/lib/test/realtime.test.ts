@@ -14,7 +14,7 @@ vi.mock("@pos/realtime", () => ({
   useRealtimeConnection: mocks.useRealtimeConnection,
 }));
 
-import { useConnectionStatus } from "../realtime";
+import { useConnectionStatus } from "@/shared/lib/realtime";
 
 describe("realtime", () => {
   it("creates and exposes connection hook", () => {

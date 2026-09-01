@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import * as mod from "../bulk-ops.service";
+import * as mod from "@/modules/menu/bulk-ops/bulk-ops.service";
 
 describe("bulk-ops service", () => {
   it("exposes the documented module boundary", () => {

@@ -4,7 +4,7 @@ import {
   createInventoryItemBody,
   updateStockBody,
   inventoryItemIdParams,
-} from "../inventory.validator";
+} from "@/modules/inventory/inventory.validator";
 describe("inventory validators", () => {
   it("accepts valid inventory items and rejects negative numeric fields", () => {
     expect(

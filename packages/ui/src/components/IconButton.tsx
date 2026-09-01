@@ -23,15 +23,11 @@ export interface IconButtonProps extends Omit<
   "children" | "aria-label"
 > {
   icon: ComponentType<{ className?: string }>;
-  /**
-   * Required, not optional — an icon-only button has no accessible name
-   * without it. `docs/frontend/COMPONENT_GUIDE.md`'s a11y section calls
-   * this out directly ("An icon-only button ... needs `aria-label`").
-   */
+
   "aria-label": string;
-  /** @default 'ghost' */
+
   variant?: ButtonVariant;
-  /** @default 'md' */
+
   size?: ButtonSize;
   loading?: boolean;
 }

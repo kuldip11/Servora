@@ -11,7 +11,6 @@ export type SystemRoleName =
   | "RECEPTIONIST"
   | "ACCOUNTANT";
 
-/** System role names plus tenant-defined custom role names. */
 export type RoleName = SystemRoleName | (string & {});
 
 export interface User {
@@ -40,10 +39,18 @@ export interface Permission {
   module: string;
 }
 
+export type RoundingPolicy = "NONE" | "NEAREST_1" | "NEAREST_5" | "NEAREST_10";
+export type TaxMode = "INCLUSIVE" | "EXCLUSIVE";
+
 export interface Tenant {
   id: string;
   name: string;
   plan: string;
+  serviceChargePercent?: string | null;
+  serviceChargeTaxable?: boolean;
+  roundingPolicy?: RoundingPolicy;
+  defaultTaxMode?: TaxMode;
+  courseSequencingEnabled?: boolean;
   createdAt: string;
 }
 
@@ -64,11 +71,6 @@ export interface Branch {
   tablesEnabled: boolean;
 }
 
-export interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-}
 export interface OrganizationSummary {
   id: string;
   name: string;
@@ -77,8 +79,7 @@ export interface OrganizationSummary {
 
 export interface AvailableMembership {
   membershipId: string;
-  /** True when the authenticated user has a GLOBAL OWNER role. */
-  isGlobalOwner?: boolean;
+
   tenant: Pick<Tenant, "id" | "name">;
   roles: Array<{
     id: string;

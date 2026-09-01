@@ -53,7 +53,7 @@ import {
   menuItemSchedulesQuery,
   menuItemRecipeQuery,
   menuItemBranchOverridesQuery,
-} from "../query-options";
+} from "@/features/menu/query-options";
 
 describe("menu query definitions", () => {
   it("binds categories, tags, modifiers, allergens, holidays, and templates", () => {

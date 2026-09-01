@@ -1,14 +1,14 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TextInput, PasswordInput, Button } from "@pos/ui";
-import { credentialsSchema, type CredentialsForm } from "../types";
-export function LoginForm({
+import { credentialsSchema, type CredentialsForm } from "@/features/auth/types";
+export const LoginForm = ({
   onSubmit,
   loading,
 }: {
   onSubmit: (creds: CredentialsForm) => void;
   loading: boolean;
-}) {
+}) => {
   const {
     register,
     handleSubmit,
@@ -37,4 +37,4 @@ export function LoginForm({
       </Button>
     </form>
   );
-}
+};

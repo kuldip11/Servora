@@ -4,7 +4,7 @@ import { cn } from "../utils/cn";
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string | undefined;
-  options: { value: string; label: string }[];
+  options: readonly { value: string; label: string }[];
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
@@ -26,12 +26,6 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           ref={ref}
           id={selectId}
           className={cn(
-            // Phase 16 token audit — was `text-gray-900 bg-white ...
-            // border-gray-200 ... border-red-300 ... focus:ring-violet-500`.
-            // Matches `SelectMenu`'s already-tokenized trigger
-            // (`selection/shared.tsx`'s `triggerBaseClasses`) so both of
-            // this package's selects repaint together under dark/
-            // high-contrast instead of only the newer one working.
             "block w-full px-3 py-2.5 text-sm text-text-primary bg-surface border rounded-md",
             "focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-fast ease-standard",
             error

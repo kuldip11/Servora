@@ -1,10 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
-import { menuItemsService } from "../services/menu-items.service";
-import { menuKeys } from "../query-keys";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
+import { menuItemsService } from "@/features/menu/services/menu-items.service";
+import { menuKeys } from "@/features/menu/query-keys";
 
-export function useBulkDeleteItems() {
+export const useBulkDeleteItems = () => {
   return useMutation({
     mutationFn: (itemIds: string[]) => menuItemsService.bulkDelete(itemIds),
     onSuccess: (data) => {
@@ -17,4 +17,4 @@ export function useBulkDeleteItems() {
     },
     onError: () => notifyError(undefined, "Failed to delete items"),
   });
-}
+};

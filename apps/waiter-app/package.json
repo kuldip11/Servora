@@ -30,8 +30,7 @@
     "@pos/api-client": "workspace:*",
     "@pos/realtime": "workspace:*",
     "@pos/validation": "workspace:*",
-    "@tanstack/react-router": "^1.40.0",
-    "@pos/config": "workspace:*"
+    "@tanstack/react-router": "^1.40.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

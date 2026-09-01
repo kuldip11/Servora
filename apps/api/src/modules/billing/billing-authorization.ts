@@ -1,22 +1,21 @@
-import type { AuthContext } from "../../core/auth";
-import { ForbiddenError } from "../../core/errors";
+import type { AuthContext } from "@/core/auth";
+import { ForbiddenError } from "@/core/errors";
 
-export function requireBillingPermission(
+export const requireBillingPermission = (
   auth: AuthContext,
   permission: string,
-): void {
+): void => {
   if (!auth.permissions.includes(permission)) {
     throw new ForbiddenError("Insufficient permissions", {
       required: permission,
     });
   }
-}
+};
 
-/** Billing records belong to an order, and therefore inherit the order's branch scope. */
-export function assertBillingResourceAccess(
+export const assertBillingResourceAccess = (
   auth: AuthContext,
   resourceBranchId: string,
-): void {
+): void => {
   if (auth.tenantWide) {
     if (auth.branchId && auth.branchId !== resourceBranchId) {
       throw new ForbiddenError("Billing branch access denied");
@@ -27,4 +26,4 @@ export function assertBillingResourceAccess(
   if (!auth.branchId || auth.branchId !== resourceBranchId) {
     throw new ForbiddenError("Billing branch access denied");
   }
-}
+};

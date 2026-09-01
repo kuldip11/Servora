@@ -1,10 +1,10 @@
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import { CategoryTabs } from "../CategoryTabs";
-import { MenuItemCard } from "../MenuItemCard";
-import { MenuGrid } from "../MenuGrid";
-import { OrderOptionsPanel } from "../OrderOptionsPanel";
+import { CategoryTabs } from "@/features/menu/components/CategoryTabs";
+import { MenuItemCard } from "@/features/menu/components/MenuItemCard";
+import { MenuGrid } from "@/features/menu/components/MenuGrid";
+import { OrderOptionsPanel } from "@/features/menu/components/OrderOptionsPanel";
 
 const item: any = {
   id: "m1",
@@ -23,7 +23,17 @@ describe("menu presentational components", () => {
         <CategoryTabs
           foodTypeFilter="ALL"
           onFoodTypeChange={vi.fn()}
-          categories={[{ id: "c1", name: "Starters" }]}
+          categories={[
+            {
+              id: "c1",
+              name: "Starters",
+              tenantId: "t1",
+              branchId: null,
+              description: null,
+              isActive: true,
+              sortOrder: 0,
+            },
+          ]}
           activeCategory="c1"
           onCategoryChange={vi.fn()}
           menuSearch=""
@@ -35,7 +45,17 @@ describe("menu presentational components", () => {
         <CategoryTabs
           foodTypeFilter="VEG"
           onFoodTypeChange={vi.fn()}
-          categories={[{ id: "c1", name: "Starters" }]}
+          categories={[
+            {
+              id: "c1",
+              name: "Starters",
+              tenantId: "t1",
+              branchId: null,
+              description: null,
+              isActive: true,
+              sortOrder: 0,
+            },
+          ]}
           activeCategory={null}
           onCategoryChange={vi.fn()}
           menuSearch="burger"
@@ -110,6 +130,16 @@ describe("menu presentational components", () => {
         onCustomerSearchChange={vi.fn()}
         customerResults={[]}
         onSelectCustomer={vi.fn()}
+        customerGroups={[]}
+        customerGroupId=""
+        onCustomerGroupChange={vi.fn()}
+        billingMode="LINE_ITEMS"
+        onBillingModeChange={vi.fn()}
+        coverCount={1}
+        onCoverCountChange={vi.fn()}
+        perCoverRules={[]}
+        perCoverPriceRuleId=""
+        onPerCoverPriceRuleChange={vi.fn()}
       />,
     );
     expect(html).toContain("Dine In");

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 const extract = vi.hoisted(() => vi.fn());
 vi.mock("@pos/api-client", () => ({ extractApiError: extract }));
-import { getErrorMessage } from "../errors";
+import { getErrorMessage } from "@/shared/lib/errors";
 describe("getErrorMessage", () => {
   it("returns extracted API messages", () => {
     extract.mockReturnValue("Invalid order");

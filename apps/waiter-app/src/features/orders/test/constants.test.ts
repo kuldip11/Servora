@@ -5,7 +5,7 @@ import {
   ORDER_DETAIL_POLL_INTERVAL_MS,
   STATUS_CONFIG,
   TICKET_STATUS_LABEL,
-} from "../constants";
+} from "@/features/orders/constants";
 
 describe("orders constants", () => {
   it("builds stable query keys and polling intervals", () => {
@@ -19,6 +19,7 @@ describe("orders constants", () => {
     expect(STATUS_CONFIG.OPEN.label).toBe("Open");
     expect(STATUS_CONFIG.CANCELLED.label).toBe("Cancelled");
     expect(TICKET_STATUS_LABEL).toEqual({
+      HELD: "Held",
       FIRED: "Waiting",
       PREPARING: "Cooking",
       READY: "Ready",

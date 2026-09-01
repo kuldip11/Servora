@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createTableRelationsHelpers } from "drizzle-orm";
-import * as schema from "../index";
+import * as schema from "@/db/schema/index";
 import {
   tenantsRelations,
   usersRelations,
@@ -27,6 +27,9 @@ import {
   refreshTokensRelations,
   restaurantTablesRelations,
   inventoryItemsRelations,
+  subRecipesRelations,
+  subRecipeIngredientsRelations,
+  wasteReasonsRelations,
   recipesRelations,
   orderInventoryDeductionsRelations,
   inventoryTransactionsRelations,
@@ -38,7 +41,7 @@ import {
   menuItemBranchOverridesRelations,
   menuTemplatesRelations,
   menuTemplateItemsRelations,
-} from "../relations";
+} from "@/db/schema/relations";
 
 const relationDefinitions = {
   tenantsRelations,
@@ -66,6 +69,9 @@ const relationDefinitions = {
   refreshTokensRelations,
   restaurantTablesRelations,
   inventoryItemsRelations,
+  subRecipesRelations,
+  subRecipeIngredientsRelations,
+  wasteReasonsRelations,
   recipesRelations,
   orderInventoryDeductionsRelations,
   inventoryTransactionsRelations,
@@ -81,7 +87,7 @@ const relationDefinitions = {
 
 describe("relations schema", () => {
   it("defines a relation object for every configured table", () => {
-    expect(Object.keys(relationDefinitions)).toHaveLength(36);
+    expect(Object.keys(relationDefinitions)).toHaveLength(39);
     for (const relation of Object.values(relationDefinitions)) {
       expect(relation.table).toBeDefined();
       expect(typeof relation.config).toBe("function");

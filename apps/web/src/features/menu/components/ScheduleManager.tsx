@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { Plus, X, Clock } from "lucide-react";
-import { STATUS_OPTIONS } from "./StatusBadge";
-import { useMenuItemSchedules } from "../hooks/useMenuItemSchedules";
-import { useAddSchedule } from "../hooks/useAddSchedule";
-import { useDeleteSchedule } from "../hooks/useDeleteSchedule";
+import { MENU_ITEM_STATUS_OPTIONS } from "@/features/menu/constants";
+import { useMenuItemSchedules } from "@/features/menu/hooks/useMenuItemSchedules";
+import { useAddSchedule } from "@/features/menu/hooks/useAddSchedule";
+import { useDeleteSchedule } from "@/features/menu/hooks/useDeleteSchedule";
 import type {
   MenuItemSchedule,
   MenuItemScheduleType,
   MenuItemStatus,
 } from "@pos/types";
 
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+import { WEEK_DAYS } from "@/features/menu/constants";
 
 const SCHEDULE_TYPE_OPTIONS: { value: MenuItemScheduleType; label: string }[] =
   [
@@ -42,12 +42,12 @@ const EMPTY_DRAFT: Draft = {
   statusDuringPeriod: "ACTIVE",
 };
 
-function describe(s: MenuItemSchedule): string {
+const describe = (s: MenuItemSchedule): string => {
   switch (s.scheduleType) {
     case "DAILY":
       return `Every day, ${s.startTime?.slice(0, 5)}–${s.endTime?.slice(0, 5)}`;
     case "WEEKLY":
-      return `${DAYS[s.dayOfWeek ?? 0]}, ${s.startTime?.slice(0, 5)}–${s.endTime?.slice(0, 5)}`;
+      return `${WEEK_DAYS[s.dayOfWeek ?? 0]}, ${s.startTime?.slice(0, 5)}–${s.endTime?.slice(0, 5)}`;
     case "SPECIFIC_DATE":
       return s.endDate && s.endDate !== s.startDate
         ? `${s.startDate} – ${s.endDate}`
@@ -57,9 +57,9 @@ function describe(s: MenuItemSchedule): string {
     default:
       return "";
   }
-}
+};
 
-export function ScheduleManager({ itemId }: { itemId: string }) {
+export const ScheduleManager = ({ itemId }: { itemId: string }) => {
   const [draft, setDraft] = useState<Draft | null>(null);
 
   const { data: schedules, isLoading } = useMenuItemSchedules(itemId);
@@ -119,12 +119,14 @@ export function ScheduleManager({ itemId }: { itemId: string }) {
                 <span className="text-text-disabled">→</span>
                 <span className="font-medium">
                   {
-                    STATUS_OPTIONS.find((o) => o.value === s.statusDuringPeriod)
-                      ?.label
+                    MENU_ITEM_STATUS_OPTIONS.find(
+                      (o) => o.value === s.statusDuringPeriod,
+                    )?.label
                   }
                 </span>
               </div>
               <button
+                type="button"
                 onClick={() => deleteMutation.mutate(s.id)}
                 aria-label={`Remove schedule: ${describe(s)}`}
                 className="text-text-disabled hover:text-danger"
@@ -169,7 +171,7 @@ export function ScheduleManager({ itemId }: { itemId: string }) {
                   }
                   className="px-2 py-1.5 text-sm border border-border rounded-md"
                 >
-                  {DAYS.map((d, i) => (
+                  {WEEK_DAYS.map((d, i) => (
                     <option key={i} value={i}>
                       {d}
                     </option>
@@ -248,7 +250,7 @@ export function ScheduleManager({ itemId }: { itemId: string }) {
               }
               className="px-2 py-1 text-xs border border-border rounded-md"
             >
-              {STATUS_OPTIONS.map((o) => (
+              {MENU_ITEM_STATUS_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
                 </option>
@@ -258,12 +260,14 @@ export function ScheduleManager({ itemId }: { itemId: string }) {
 
           <div className="flex gap-2 justify-end pt-1">
             <button
+              type="button"
               onClick={() => setDraft(null)}
               className="text-xs text-text-secondary hover:text-text-primary px-2 py-1"
             >
               Cancel
             </button>
             <button
+              type="button"
               onClick={handleCreate}
               disabled={!canSave || createMutation.isPending}
               className="text-xs font-medium text-primary-foreground bg-primary hover:bg-primary-hover disabled:opacity-40 px-3 py-1 rounded-md"
@@ -274,6 +278,7 @@ export function ScheduleManager({ itemId }: { itemId: string }) {
         </div>
       ) : (
         <button
+          type="button"
           onClick={() => setDraft(EMPTY_DRAFT)}
           className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary-hover"
         >
@@ -282,4 +287,4 @@ export function ScheduleManager({ itemId }: { itemId: string }) {
       )}
     </div>
   );
-}
+};

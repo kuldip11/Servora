@@ -1,21 +1,24 @@
 import { useEffect, useRef, useState } from "react";
-import type { CustomerOrder } from "../../api";
+import type { CustomerOrder } from "@/api";
 
-const MAX_RECONNECT_DELAY = 30_000;
-const INITIAL_RECONNECT_DELAY = 1_000;
+import {
+  CUSTOMER_ORDER_INITIAL_RECONNECT_DELAY_MS,
+  CUSTOMER_ORDER_MAX_RECONNECT_DELAY_MS,
+} from "./constants";
 
-export function useCustomerOrderRealtime(
+export const useCustomerOrderRealtime = (
   sessionToken: string | undefined,
   orderId: string | undefined,
   onOrder: (order: CustomerOrder) => void,
-) {
+  onMenuAvailability?: (() => void) | undefined,
+) => {
   const [live, setLive] = useState(false);
   const reconnectTimer = useRef<number | undefined>(undefined);
   const pingTimer = useRef<number | undefined>(undefined);
   const reconnectAttempt = useRef(0);
 
   useEffect(() => {
-    if (!sessionToken || sessionToken === "fixture" || !orderId) {
+    if (!sessionToken) {
       setLive(false);
       return;
     }
@@ -42,8 +45,9 @@ export function useCustomerOrderRealtime(
     const scheduleReconnect = () => {
       if (stopped || reconnectTimer.current !== undefined) return;
       const delay = Math.min(
-        INITIAL_RECONNECT_DELAY * 2 ** reconnectAttempt.current,
-        MAX_RECONNECT_DELAY,
+        CUSTOMER_ORDER_INITIAL_RECONNECT_DELAY_MS *
+          2 ** reconnectAttempt.current,
+        CUSTOMER_ORDER_MAX_RECONNECT_DELAY_MS,
       );
       reconnectAttempt.current += 1;
       reconnectTimer.current = window.setTimeout(() => {
@@ -55,16 +59,12 @@ export function useCustomerOrderRealtime(
     const connect = () => {
       if (stopped) return;
       clearTimers();
-      socket = new WebSocket(
-        `${wsBase}/customer/events?session=${encodeURIComponent(sessionToken)}`,
-      );
+      socket = new WebSocket(`${wsBase}/customer/events`);
 
       socket.onopen = () => {
-        reconnectAttempt.current = 0;
-        setLive(true);
-        pingTimer.current = window.setInterval(() => {
-          if (socket?.readyState === WebSocket.OPEN) socket.send("ping");
-        }, 25_000);
+        socket?.send(
+          JSON.stringify({ type: "auth", session: sessionToken }),
+        );
       };
 
       socket.onmessage = (event) => {
@@ -73,15 +73,25 @@ export function useCustomerOrderRealtime(
             type?: string;
             payload?: CustomerOrder & { id?: string };
           };
-          if (
+          if (message.type === "connected") {
+            reconnectAttempt.current = 0;
+            setLive(true);
+            if (pingTimer.current !== undefined) {
+              window.clearInterval(pingTimer.current);
+            }
+            pingTimer.current = window.setInterval(() => {
+              if (socket?.readyState === WebSocket.OPEN) socket.send("ping");
+            }, 25_000);
+          } else if (
             message.type === "order.updated" &&
+            orderId &&
             message.payload?.id === orderId
           ) {
             onOrder(message.payload);
+          } else if (message.type === "menu.availability.updated") {
+            onMenuAvailability?.();
           }
-        } catch {
-          // Ignore malformed events. The next valid event or fallback poll remains authoritative.
-        }
+        } catch {}
       };
 
       socket.onerror = () => {
@@ -106,7 +116,7 @@ export function useCustomerOrderRealtime(
       socket?.close();
       setLive(false);
     };
-  }, [sessionToken, orderId, onOrder]);
+  }, [sessionToken, orderId, onOrder, onMenuAvailability]);
 
   return live;
-}
+};

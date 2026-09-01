@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 const api = vi.hoisted(() => ({ get: vi.fn() }));
 vi.mock("../../../../shared/lib/api-client", () => ({ apiClient: api }));
-import { analyticsService } from "../analytics.service";
+import { analyticsService } from "@/features/analytics/services/analytics.service";
 
 describe("analyticsService", () => {
   it("returns dashboard data", async () => {

@@ -1,11 +1,11 @@
 {
-  "id": "599d7878-57ec-43ae-8adc-94d14816bb54",
-  "prevId": "342d7878-5b80-4823-abb0-d7b3c11e786d",
+  "id": "013cb3b0-7e9a-5d3b-834c-d537f1aa6d48",
+  "prevId": "3f50a615-4664-5ff5-8d73-c465acdfc63b",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.tenants": {
-      "name": "tenants",
+    "public.users": {
+      "name": "users",
       "schema": "",
       "columns": {
         "id": {
@@ -15,131 +15,55 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "name": {
-          "name": "name",
-          "type": "varchar(200)",
+        "first_name": {
+          "name": "first_name",
+          "type": "varchar(100)",
           "primaryKey": false,
           "notNull": true
         },
-        "created_by": {
-          "name": "created_by",
-          "type": "uuid",
+        "last_name": {
+          "name": "last_name",
+          "type": "varchar(100)",
           "primaryKey": false,
           "notNull": true
         },
-        "plan": {
-          "name": "plan",
-          "type": "varchar(50)",
+        "email": {
+          "name": "email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "password_hash": {
+          "name": "password_hash",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "user_status",
           "primaryKey": false,
           "notNull": true,
-          "default": "'starter'"
+          "default": "'ACTIVE'"
         },
-        "is_active": {
-          "name": "is_active",
-          "type": "boolean",
+        "failed_login_attempts": {
+          "name": "failed_login_attempts",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "default": "true"
+          "default": "0"
         },
-        "created_at": {
-          "name": "created_at",
+        "locked_until": {
+          "name": "locked_until",
           "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.branches": {
-      "name": "branches",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "tenant_id": {
-          "name": "tenant_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(200)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "address": {
-          "name": "address",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "phone": {
-          "name": "phone",
-          "type": "varchar(20)",
           "primaryKey": false,
           "notNull": false
         },
-        "is_active": {
-          "name": "is_active",
-          "type": "boolean",
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "default": "true"
-        },
-        "dine_in_enabled": {
-          "name": "dine_in_enabled",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "true"
-        },
-        "takeaway_enabled": {
-          "name": "takeaway_enabled",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "true"
-        },
-        "delivery_enabled": {
-          "name": "delivery_enabled",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "true"
-        },
-        "online_enabled": {
-          "name": "online_enabled",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "true"
-        },
-        "tables_enabled": {
-          "name": "tables_enabled",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "true"
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -157,11 +81,27 @@
         }
       },
       "indexes": {
-        "branches_tenant_idx": {
-          "name": "branches_tenant_idx",
+        "users_email_lower_unique": {
+          "name": "users_email_lower_unique",
           "columns": [
             {
-              "expression": "tenant_id",
+              "expression": "lower(\"email\")",
+              "isExpression": true,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {},
+          "where": "\"deleted_at\" IS NULL"
+        },
+        "users_locked_until_idx": {
+          "name": "users_locked_until_idx",
+          "columns": [
+            {
+              "expression": "locked_until",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -171,70 +111,76 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
-        },
-        "branches_tenant_name_uniq": {
-          "name": "branches_tenant_name_uniq",
-          "columns": [
-            {
-              "expression": "tenant_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "name",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "branches_id_tenant_unique_fk_target": {
-          "name": "branches_id_tenant_unique_fk_target",
-          "columns": [
-            {
-              "expression": "id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "tenant_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
         }
       },
-      "foreignKeys": {
-        "branches_tenant_id_tenants_id_fk": {
-          "name": "branches_tenant_id_tenants_id_fk",
-          "tableFrom": "branches",
-          "tableTo": "tenants",
-          "columnsFrom": ["tenant_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action",
-          "schemaTo": "public"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.permissions": {
+      "name": "permissions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "key": {
+          "name": "key",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "module": {
+          "name": "module",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "permissions_key_unique": {
+          "name": "permissions_key_unique",
+          "nullsNotDistinct": false,
+          "columns": ["key"]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
     }
   },
   "enums": {
+    "public.user_status": {
+      "name": "user_status",
+      "schema": "public",
+      "values": ["ACTIVE", "INACTIVE", "SUSPENDED"]
+    },
+    "public.tax_mode": {
+      "name": "tax_mode",
+      "schema": "public",
+      "values": ["INCLUSIVE", "EXCLUSIVE"]
+    },
+    "public.rounding_policy": {
+      "name": "rounding_policy",
+      "schema": "public",
+      "values": ["NONE", "NEAREST_1", "NEAREST_5", "NEAREST_10"]
+    },
     "public.role_scope": {
       "name": "role_scope",
       "schema": "public",
@@ -245,20 +191,30 @@
       "schema": "public",
       "values": ["ACTIVE", "INACTIVE", "SUSPENDED"]
     },
-    "public.user_status": {
-      "name": "user_status",
-      "schema": "public",
-      "values": ["ACTIVE", "INACTIVE", "SUSPENDED"]
-    },
     "public.table_status": {
       "name": "table_status",
       "schema": "public",
       "values": ["AVAILABLE", "OCCUPIED", "CLEANING", "RESERVED"]
     },
+    "public.customer_session_mode": {
+      "name": "customer_session_mode",
+      "schema": "public",
+      "values": ["DINE_IN", "TAKEAWAY"]
+    },
+    "public.menu_item_status": {
+      "name": "menu_item_status",
+      "schema": "public",
+      "values": ["ACTIVE", "OUT_OF_STOCK", "HIDDEN", "SEASONAL", "DISCONTINUED"]
+    },
     "public.food_type": {
       "name": "food_type",
       "schema": "public",
       "values": ["VEG", "NON_VEG", "EGG"]
+    },
+    "public.menu_item_display_mode": {
+      "name": "menu_item_display_mode",
+      "schema": "public",
+      "values": ["STANDARD", "GUIDED_BUILDER"]
     },
     "public.spice_level": {
       "name": "spice_level",
@@ -270,15 +226,117 @@
       "schema": "public",
       "values": ["SINGLE", "MULTIPLE"]
     },
-    "public.menu_item_status": {
-      "name": "menu_item_status",
+    "public.modifier_group_type": {
+      "name": "modifier_group_type",
       "schema": "public",
-      "values": ["ACTIVE", "OUT_OF_STOCK", "HIDDEN", "SEASONAL", "DISCONTINUED"]
+      "values": ["ADDON", "SUBSTITUTION"]
+    },
+    "public.combo_price_policy": {
+      "name": "combo_price_policy",
+      "schema": "public",
+      "values": ["FIXED", "PERCENT_OFF_SUM"]
+    },
+    "public.zone_pricing_rule": {
+      "name": "zone_pricing_rule",
+      "schema": "public",
+      "values": ["AVERAGE", "HIGHER", "SUM_HALF"]
+    },
+    "public.pricing_mode": {
+      "name": "pricing_mode",
+      "schema": "public",
+      "values": ["FIXED", "WEIGHT_BASED", "OPEN"]
+    },
+    "public.weight_unit": {
+      "name": "weight_unit",
+      "schema": "public",
+      "values": ["G", "KG", "LB", "OZ"]
+    },
+    "public.menu_status": {
+      "name": "menu_status",
+      "schema": "public",
+      "values": ["DRAFT", "PUBLISHED"]
+    },
+    "public.menu_change_entity_type": {
+      "name": "menu_change_entity_type",
+      "schema": "public",
+      "values": [
+        "MENU_ITEM",
+        "VARIANT",
+        "MODIFIER_GROUP",
+        "MODIFIER_OPTION",
+        "CATEGORY",
+        "MENU",
+        "MENU_MEMBERSHIP",
+        "PRICE_RULE",
+        "PROMOTION",
+        "RECIPE",
+        "SUB_RECIPE",
+        "TEMPLATE",
+        "AVAILABILITY",
+        "TAG"
+      ]
+    },
+    "public.menu_change_type": {
+      "name": "menu_change_type",
+      "schema": "public",
+      "values": ["CREATED", "UPDATED", "PUBLISHED", "ARCHIVED", "DELETED"]
     },
     "public.menu_item_schedule_type": {
       "name": "menu_item_schedule_type",
       "schema": "public",
       "values": ["DAILY", "WEEKLY", "SPECIFIC_DATE", "HOLIDAY"]
+    },
+    "public.order_source": {
+      "name": "order_source",
+      "schema": "public",
+      "values": ["STAFF", "CUSTOMER_QR"]
+    },
+    "public.order_type": {
+      "name": "order_type",
+      "schema": "public",
+      "values": ["DINE_IN", "TAKEAWAY", "DELIVERY", "ONLINE"]
+    },
+    "public.cover_tier": {
+      "name": "cover_tier",
+      "schema": "public",
+      "values": ["ADULT", "CHILD"]
+    },
+    "public.order_status": {
+      "name": "order_status",
+      "schema": "public",
+      "values": ["OPEN", "BILL_REQUESTED", "PAID", "CLOSED", "CANCELLED"]
+    },
+    "public.billing_mode": {
+      "name": "billing_mode",
+      "schema": "public",
+      "values": ["LINE_ITEMS", "PER_COVER"]
+    },
+    "public.kitchen_ticket_status": {
+      "name": "kitchen_ticket_status",
+      "schema": "public",
+      "values": [
+        "PENDING_PAYMENT",
+        "HELD",
+        "FIRED",
+        "PREPARING",
+        "READY",
+        "SERVED"
+      ]
+    },
+    "public.order_item_fulfillment_type": {
+      "name": "order_item_fulfillment_type",
+      "schema": "public",
+      "values": ["DINE_IN", "TAKEAWAY"]
+    },
+    "public.order_item_status": {
+      "name": "order_item_status",
+      "schema": "public",
+      "values": ["ACTIVE", "VOIDED", "COMPED", "REFIRED"]
+    },
+    "public.refire_type": {
+      "name": "refire_type",
+      "schema": "public",
+      "values": ["REFIRE", "REFILL"]
     },
     "public.inventory_unit": {
       "name": "inventory_unit",
@@ -290,20 +348,20 @@
       "schema": "public",
       "values": ["IN", "OUT", "ADJUSTMENT", "WASTE"]
     },
-    "public.order_status": {
-      "name": "order_status",
+    "public.promotion_rule_type": {
+      "name": "promotion_rule_type",
       "schema": "public",
-      "values": ["OPEN", "BILL_REQUESTED", "PAID", "CLOSED", "CANCELLED"]
+      "values": ["PERCENTAGE", "FIXED_AMOUNT", "BOGO"]
     },
-    "public.order_type": {
-      "name": "order_type",
+    "public.promotion_scope": {
+      "name": "promotion_scope",
       "schema": "public",
-      "values": ["DINE_IN", "TAKEAWAY", "DELIVERY", "ONLINE"]
+      "values": ["ORDER", "CATEGORY", "ITEM"]
     },
-    "public.kitchen_ticket_status": {
-      "name": "kitchen_ticket_status",
+    "public.void_comp_action": {
+      "name": "void_comp_action",
       "schema": "public",
-      "values": ["FIRED", "PREPARING", "READY", "SERVED"]
+      "values": ["VOID", "COMP"]
     },
     "public.payment_method": {
       "name": "payment_method",
@@ -314,6 +372,16 @@
       "name": "payment_status",
       "schema": "public",
       "values": ["PENDING", "SUCCESS", "FAILED", "REFUNDED"]
+    },
+    "public.customer_request_type": {
+      "name": "customer_request_type",
+      "schema": "public",
+      "values": ["CALL_WAITER", "WATER", "CUTLERY", "BILL", "ASSISTANCE"]
+    },
+    "public.customer_request_status": {
+      "name": "customer_request_status",
+      "schema": "public",
+      "values": ["OPEN", "ACKNOWLEDGED", "RESOLVED", "CANCELLED"]
     }
   },
   "schemas": {},

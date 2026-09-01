@@ -3,10 +3,10 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { ThemeProvider, useTheme } from "../ThemeProvider";
 
-function Consumer() {
+const Consumer = () => {
   const { theme, setTheme } = useTheme();
   return <button onClick={() => setTheme("dark")}>{theme}</button>;
-}
+};
 
 describe("ThemeProvider", () => {
   it("provides the default theme and persists changes", async () => {

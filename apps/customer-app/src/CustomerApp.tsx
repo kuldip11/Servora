@@ -1,354 +1,64 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  ChevronRight,
-  ReceiptText,
-  Search,
-  ShoppingBag,
-  Sparkles,
-  Utensils,
-} from "lucide-react";
-import {
-  Button,
-  Card,
-  EmptyState,
-  IconButton,
-  SearchInput,
-  Skeleton,
-  ThemeSwitcher,
-} from "@pos/ui";
-import {
-  createCustomerOrder,
-  createCustomerRequest,
-  createCustomerSession,
-  getCustomerMenu,
-  getCustomerOrder,
-  verifyTakeawayPayment,
-  initiateTakeawayPayment,
-  type CustomerMenu,
-  type CustomerMenuItem,
-  type CustomerOrder,
-  type CustomerRequestType,
-} from "./api";
-import {
-  menu as fixtureMenu,
-  restaurant as fixtureRestaurant,
-  categories as fixtureCategories,
-  type CustomerMenuItem as FixtureItem,
-} from "./dev/fixtures/data";
+import { useCallback, useMemo, useState } from "react";
+import { Skeleton } from "@pos/ui";
 import { CartView } from "./features/cart/CartView";
-import {
-  getCartLineKey,
-  getCartSummary,
-  type CartLine,
-  type SelectedOption,
-} from "./features/cart/pricing";
-import {
-  canAddItemConfiguration,
-  normalizeSelectedOptions,
-} from "./features/cart/configuration";
-import { createOrderPayload } from "./features/order/payload";
+import { useCustomerCart } from "./features/cart/useCustomerCart";
+import { ComboCustomization } from "./features/menu/ComboCustomization";
+import { CustomerMenuView } from "./features/menu/CustomerMenuView";
 import { ItemCustomization } from "./features/menu/ItemCustomization";
-import { MenuCard } from "./features/menu/MenuCard";
 import { OrderStatus } from "./features/ordering/OrderStatus";
-import { useCustomerOrderRealtime } from "./features/ordering/useCustomerOrderRealtime";
+import { useCustomerCheckout } from "./features/order/useCustomerCheckout";
 import { StatusScreen } from "./features/session/StatusScreen";
-import { formatMoney } from "./shared/utils/money";
-import {
-  clearPersistedCart,
-  clearPersistedOrderId,
-  clearPersistedSession,
-  getCustomerStorageScope,
-  loadPersistedOrderId,
-  loadPersistedSession,
-  restoreCart,
-  savePersistedCart,
-  savePersistedOrderId,
-  savePersistedSession,
-} from "./features/cart/persistence";
+import { useCustomerSession } from "./features/session/useCustomerSession";
 
 export type View = "menu" | "cart" | "order";
 
-function fixtureToCustomerItem(item: FixtureItem): CustomerMenuItem {
-  return {
-    id: item.id,
-    categoryId: item.category,
-    name: item.name,
-    description: item.description,
-    basePrice: String(item.price),
-    taxRate: "5",
-    imageUrl: item.image,
-    foodType: item.foodType,
-    spiceLevel: item.spice ?? null,
-    prepTimeMinutes: 20,
-    variants: [],
-    modifierGroupLinks: item.options
-      ? [
-          {
-            sortOrder: 0,
-            group: {
-              id: "fixture",
-              name: "Customize",
-              selectionType: "SINGLE",
-              minSelections: 0,
-              maxSelections: 1,
-              options: item.options.map((option) => ({
-                id: option.id,
-                name: option.name,
-                additionalPrice: String(option.price),
-                isAvailable: true,
-                maxQuantity: 1,
-              })),
-            },
-          },
-        ]
-      : [],
-    tagLinks: item.popular ? [{ tag: { name: "popular" } }] : [],
-    images: [],
-  };
-}
-
-export function CustomerApp() {
-  const params = new URLSearchParams(window.location.search);
-  const qrToken = params.get("qr");
-  const demoMode = params.get("demo") === "true";
-  const [session, setSession] = useState<{
-    token: string;
-    mode: "DINE_IN" | "TAKEAWAY";
-    table: string | null;
-    area: string;
-    restaurant: string;
-    estimatedTime: string;
-  } | null>(null);
-  const [menu, setMenu] = useState<CustomerMenuItem[]>([]);
-  const [categories, setCategories] = useState<
-    Array<{ id: string; name: string }>
-  >([]);
+export const CustomerApp = () => {
+  const {
+    session,
+    menu,
+    combos,
+    categories,
+    cart,
+    setCart,
+    placedOrder,
+    setPlacedOrder,
+    loading,
+    setLoading,
+    error,
+    setError,
+    requestBusy,
+    requestMessage,
+    storageScope,
+    live,
+    requestHelp,
+    retryBootstrap,
+  } = useCustomerSession();
   const [view, setView] = useState<View>("menu");
   const [category, setCategory] = useState("Popular");
   const [search, setSearch] = useState("");
-  const [cart, setCart] = useState<CartLine[]>([]);
-  const [selected, setSelected] = useState<CustomerMenuItem | null>(null);
-  const [selectedVariantId, setSelectedVariantId] = useState<
-    string | undefined
-  >();
-  const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
-  const [selectedFulfillmentType, setSelectedFulfillmentType] = useState<
-    "DINE_IN" | "TAKEAWAY"
-  >("DINE_IN");
-  const [placedOrder, setPlacedOrder] = useState<CustomerOrder | null>(null);
-  const [loading, setLoading] = useState(Boolean(qrToken));
-  const [error, setError] = useState<string | null>(null);
-  const [requestBusy, setRequestBusy] = useState(false);
-  const [requestMessage, setRequestMessage] = useState<string | null>(null);
-  const [bootstrapAttempt, setBootstrapAttempt] = useState(0);
-  const storageScope = useMemo(
-    () => getCustomerStorageScope(qrToken, demoMode),
-    [qrToken, demoMode],
-  );
-  const [cartHydrated, setCartHydrated] = useState(false);
 
-  useEffect(() => {
-    if (demoMode && !qrToken) {
-      setSession({
-        token: "fixture",
-        mode: "DINE_IN",
-        table: fixtureRestaurant.table,
-        area: fixtureRestaurant.area,
-        restaurant: fixtureRestaurant.name,
-        estimatedTime: fixtureRestaurant.estimatedTime,
-      });
-      setMenu(fixtureMenu.map(fixtureToCustomerItem));
-      setCategories(fixtureCategories.map((name) => ({ id: name, name })));
-      setLoading(false);
-      setCartHydrated(true);
-      if (storageScope) {
-        savePersistedSession(storageScope, {
-          token: "fixture",
-          mode: "DINE_IN",
-          table: fixtureRestaurant.table,
-          area: fixtureRestaurant.area,
-          restaurant: fixtureRestaurant.name,
-          estimatedTime: fixtureRestaurant.estimatedTime,
-          expiresAt: new Date(Date.now() + 12 * 60 * 60_000).toISOString(),
-        });
-        const restored = restoreCart(
-          storageScope,
-          fixtureMenu.map(fixtureToCustomerItem),
-          "DINE_IN",
-        );
-        setCart(restored.cart);
-      }
-      return;
-    }
-    if (!qrToken) {
-      setLoading(false);
-      setError(
-        "Open this page from a restaurant table QR code to start an ordering session.",
-      );
-      return;
-    }
+  const clearError = useCallback(() => setError(null), [setError]);
+  const cartState = useCustomerCart({
+    menu,
+    cart,
+    setCart,
+    sessionMode: session?.mode ?? "DINE_IN",
+    clearError,
+  });
 
-    const token = qrToken;
-    let cancelled = false;
-    async function bootstrap() {
-      try {
-        setLoading(true);
-        setCartHydrated(false);
-        setError(null);
-        const persisted = storageScope
-          ? loadPersistedSession(storageScope)
-          : null;
-        let sessionToken = persisted?.token;
-        let created: Awaited<ReturnType<typeof createCustomerSession>> | null =
-          null;
-        let menuResponse;
-
-        if (sessionToken) {
-          try {
-            menuResponse = await getCustomerMenu(sessionToken);
-          } catch {
-            if (storageScope) clearPersistedSession(storageScope);
-            sessionToken = undefined;
-          }
-        }
-        if (!menuResponse) {
-          created = await createCustomerSession(token);
-          sessionToken = created.sessionToken;
-          menuResponse = await getCustomerMenu(sessionToken);
-        }
-        if (cancelled || !sessionToken) return;
-
-        const resolvedSession = {
-          token: sessionToken,
-          mode: menuResponse.mode,
-          table: menuResponse.table?.name ?? null,
-          area:
-            menuResponse.table?.section ??
-            (menuResponse.mode === "TAKEAWAY" ? "Takeaway" : "Dining"),
-          restaurant: menuResponse.restaurant.name,
-          estimatedTime: "15–25 min",
-          expiresAt:
-            created?.expiresAt ??
-            persisted?.expiresAt ??
-            new Date(Date.now() + 12 * 60 * 60_000).toISOString(),
-        };
-        setSession(resolvedSession);
-        setMenu(menuResponse.items);
-        setCategories([
-          { id: "popular", name: "Popular" },
-          ...menuResponse.categories.map((c) => ({ id: c.id, name: c.name })),
-        ]);
-
-        if (storageScope) {
-          savePersistedSession(storageScope, resolvedSession);
-          const persistedOrderId = loadPersistedOrderId(storageScope);
-          if (persistedOrderId) {
-            try {
-              const existingOrder = await getCustomerOrder(
-                sessionToken,
-                persistedOrderId,
-              );
-              if (!cancelled) setPlacedOrder(existingOrder);
-            } catch {
-              clearPersistedOrderId(storageScope);
-            }
-          }
-          const restored = restoreCart(
-            storageScope,
-            menuResponse.items,
-            menuResponse.mode,
-          );
-          if (!cancelled) {
-            setCart(restored.cart);
-            setCartHydrated(true);
-            if (restored.droppedCount > 0)
-              setError(
-                "Some saved cart items are no longer available and were removed.",
-              );
-          }
-        } else {
-          setCartHydrated(true);
-        }
-      } catch (err) {
-        if (!cancelled)
-          setError(
-            err instanceof Error
-              ? err.message
-              : "Unable to load this ordering session",
-          );
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    void bootstrap();
-    return () => {
-      cancelled = true;
-    };
-  }, [demoMode, qrToken, bootstrapAttempt]);
-
-  useEffect(() => {
-    if (!storageScope || !cartHydrated) return;
-    savePersistedCart(storageScope, cart);
-  }, [storageScope, cart, cartHydrated]);
-
-  useEffect(() => {
-    if (!storageScope || !placedOrder) return;
-    savePersistedOrderId(storageScope, placedOrder.id);
-  }, [storageScope, placedOrder]);
-
-  const handleRealtimeOrder = useCallback((order: CustomerOrder) => {
-    setPlacedOrder(order);
-  }, []);
-  const live = useCustomerOrderRealtime(
-    session?.token,
-    placedOrder?.id,
-    handleRealtimeOrder,
-  );
-
-  useEffect(() => {
-    if (!placedOrder || !session || session.token === "fixture" || live) return;
-    let cancelled = false;
-    const interval = window.setInterval(async () => {
-      try {
-        const refreshed = await getCustomerOrder(session.token, placedOrder.id);
-        if (!cancelled) handleRealtimeOrder(refreshed);
-      } catch {
-        // Keep the last known order state. Realtime reconnect/polling will retry.
-      }
-    }, 15000);
-    return () => {
-      cancelled = true;
-      window.clearInterval(interval);
-    };
-  }, [placedOrder?.id, session, live, handleRealtimeOrder]);
-
-  const requestHelp = useCallback(
-    async (type: CustomerRequestType) => {
-      if (!session || session.token === "fixture") {
-        setRequestMessage(
-          "Help requests are available when you enter from a table QR.",
-        );
-        return;
-      }
-      try {
-        setRequestBusy(true);
-        setRequestMessage(null);
-        await createCustomerRequest(session.token, type, placedOrder?.id);
-        setRequestMessage(
-          type === "BILL"
-            ? "Your waiter has been asked to bring the bill."
-            : "Request sent. Someone will be with you shortly.",
-        );
-      } catch (err) {
-        setRequestMessage(
-          err instanceof Error ? err.message : "Could not send request",
-        );
-      } finally {
-        setRequestBusy(false);
-      }
-    },
-    [placedOrder?.id, session],
-  );
+  const checkout = useCustomerCheckout({
+    session,
+    cart,
+    comboCart: cartState.comboCart,
+    storageScope,
+    loading,
+    setLoading,
+    setError,
+    placedOrder,
+    setPlacedOrder,
+    clearCart: cartState.clearCart,
+    onPlaced: () => setView("order"),
+  });
 
   const visibleItems = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -372,288 +82,10 @@ export function CustomerApp() {
     });
   }, [menu, categories, category, search]);
 
-  const { subtotal, tax, total, itemCount } = useMemo(() => {
-    const summary = getCartSummary(cart);
-    return summary;
-  }, [cart]);
-
-  const openItem = useCallback((item: CustomerMenuItem) => {
-    setSelected(item);
-    setSelectedVariantId(
-      item.variants.length === 1 ? item.variants[0]?.id : undefined,
-    );
-    setSelectedOptions([]);
-    setSelectedFulfillmentType(
-      session?.mode === "TAKEAWAY" ? "TAKEAWAY" : "DINE_IN",
-    );
-    setError(null);
-  }, []);
-
-  const closeItem = useCallback(() => {
-    setSelected(null);
-    setSelectedVariantId(undefined);
-    setSelectedOptions([]);
-    setSelectedFulfillmentType("DINE_IN");
-  }, []);
-
-  const toggleOption = useCallback(
-    (optionId: string, groupId: string) => {
-      const group = selected?.modifierGroupLinks.find(
-        ({ group: value }) => value.id === groupId,
-      )?.group;
-      if (!group) return;
-      setSelectedOptions((current) => {
-        const existing = current.find(
-          (selection) => selection.optionId === optionId,
-        );
-        if (existing)
-          return current.filter((selection) => selection.optionId !== optionId);
-        if (group.selectionType === "SINGLE") {
-          return [
-            ...current.filter(
-              (selection) =>
-                !group.options.some(
-                  (option) => option.id === selection.optionId,
-                ),
-            ),
-            { optionId, quantity: 1 },
-          ];
-        }
-        const selectedCount = current.filter((selection) =>
-          group.options.some((option) => option.id === selection.optionId),
-        ).length;
-        if (group.maxSelections != null && selectedCount >= group.maxSelections)
-          return current;
-        return [...current, { optionId, quantity: 1 }];
-      });
-    },
-    [selected],
-  );
-
-  const changeOptionQuantity = useCallback(
-    (optionId: string, delta: number) => {
-      setSelectedOptions((current) =>
-        current.flatMap((selection) => {
-          if (selection.optionId !== optionId) return [selection];
-          const option = selected?.modifierGroupLinks
-            .flatMap(({ group }) => group.options)
-            .find((value) => value.id === optionId);
-          const next = selection.quantity + delta;
-          if (next <= 0) return [];
-          if (option && next > option.maxQuantity) return [selection];
-          return [{ ...selection, quantity: next }];
-        }),
-      );
-    },
-    [selected],
-  );
-
-  const canAddSelectedItem = useMemo(
-    () =>
-      selected
-        ? canAddItemConfiguration(selected, selectedVariantId, selectedOptions)
-        : false,
-    [selected, selectedVariantId, selectedOptions],
-  );
-
-  const addItem = useCallback(
-    (item: CustomerMenuItem) => {
-      if (!canAddSelectedItem) return;
-      const newLine: CartLine = {
-        item,
-        quantity: 1,
-        ...(selectedVariantId ? { variantId: selectedVariantId } : {}),
-        selectedOptions: normalizeSelectedOptions(selectedOptions),
-        fulfillmentType:
-          session?.mode === "TAKEAWAY" ? "TAKEAWAY" : selectedFulfillmentType,
-      };
-      const key = getCartLineKey(newLine);
-      setCart((current) => {
-        const index = current.findIndex((line) => getCartLineKey(line) === key);
-        if (index === -1) return [...current, newLine];
-        return current.map((line, i) =>
-          i === index ? { ...line, quantity: line.quantity + 1 } : line,
-        );
-      });
-      closeItem();
-    },
-    [canAddSelectedItem, selectedOptions, selectedVariantId, closeItem],
-  );
-
-  const changeQuantity = useCallback((index: number, delta: number) => {
-    setCart((current) =>
-      current.flatMap((line, i) =>
-        i !== index
-          ? [line]
-          : line.quantity + delta > 0
-            ? [{ ...line, quantity: line.quantity + delta }]
-            : [],
-      ),
-    );
-  }, []);
-
   const handleMenu = useCallback(() => setView("menu"), []);
   const handleCart = useCallback(() => setView("cart"), []);
-  const changeFulfillment = useCallback(
-    (index: number, value: "DINE_IN" | "TAKEAWAY") => {
-      setCart((current) =>
-        current.map((line, i) =>
-          i === index ? { ...line, fulfillmentType: value } : line,
-        ),
-      );
-    },
-    [],
-  );
 
-  const sessionToken = session?.token;
-
-  const startTakeawayPayment = useCallback(
-    async (order: CustomerOrder) => {
-      const key = import.meta.env.VITE_RAZORPAY_KEY_ID;
-      if (!key) throw new Error("Online takeaway payment is not configured");
-      const pending = order.payments.find(
-        (payment) =>
-          payment.method === "RAZORPAY" && payment.status === "PENDING",
-      );
-      const payment = pending?.reference
-        ? pending
-        : await initiateTakeawayPayment(session!.token, order.id);
-      if (!payment.reference)
-        throw new Error("Unable to initialize takeaway payment");
-      const scriptId = "razorpay-checkout";
-      if (!document.getElementById(scriptId)) {
-        await new Promise<void>((resolve, reject) => {
-          const script = document.createElement("script");
-          script.id = scriptId;
-          script.src = "https://checkout.razorpay.com/v1/checkout.js";
-          script.onload = () => resolve();
-          script.onerror = () =>
-            reject(new Error("Unable to load payment checkout"));
-          document.head.appendChild(script);
-        });
-      }
-      const Razorpay = (
-        window as unknown as {
-          Razorpay?: new (options: Record<string, unknown>) => {
-            open: () => void;
-          };
-        }
-      ).Razorpay;
-      if (!Razorpay) throw new Error("Payment checkout is unavailable");
-      await new Promise<void>((resolve, reject) => {
-        const checkout = new Razorpay({
-          key,
-          amount: Number(payment.amount) * 100,
-          currency: "INR",
-          name: session?.restaurant ?? "Restaurant",
-          description: `Takeaway order ${order.id.slice(0, 8)}`,
-          order_id: payment.reference,
-          handler: async (response: {
-            razorpay_order_id: string;
-            razorpay_payment_id: string;
-            razorpay_signature: string;
-          }) => {
-            try {
-              const verified = await verifyTakeawayPayment(session!.token, {
-                orderId: order.id,
-                razorpayOrderId: response.razorpay_order_id,
-                razorpayPaymentId: response.razorpay_payment_id,
-                razorpaySignature: response.razorpay_signature,
-              });
-              setPlacedOrder(verified);
-              resolve();
-            } catch (error) {
-              reject(error);
-            }
-          },
-          modal: {
-            ondismiss: () => reject(new Error("Payment was cancelled")),
-          },
-          theme: { color: "#111827" },
-        });
-        checkout.open();
-      });
-    },
-    [session],
-  );
-
-  const retryTakeawayPayment = useCallback(async () => {
-    if (!placedOrder || session?.mode !== "TAKEAWAY" || loading) return;
-    try {
-      setLoading(true);
-      setError(null);
-      await startTakeawayPayment(placedOrder);
-      if (storageScope) clearPersistedCart(storageScope);
-      setCart([]);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Payment was not completed",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [placedOrder, session?.mode, loading, startTakeawayPayment, storageScope]);
-
-  const placeOrder = useCallback(async () => {
-    if (!session || cart.length === 0 || loading) return;
-    try {
-      setLoading(true);
-      setError(null);
-      if (session.token === "fixture") {
-        setPlacedOrder({
-          id: `fixture-${Date.now()}`,
-          status: "OPEN",
-          subtotal: subtotal.toFixed(2),
-          taxAmount: tax.toFixed(2),
-          totalAmount: total.toFixed(2),
-          items: [],
-          createdAt: new Date().toISOString(),
-          kitchenTickets: [
-            { id: "fixture-ticket", ticketNumber: 1, status: "PREPARING" },
-          ],
-          payments: [],
-        });
-        if (storageScope) {
-          savePersistedOrderId(storageScope, `fixture-${Date.now()}`);
-          clearPersistedCart(storageScope);
-        }
-        setCart([]);
-        setView("order");
-        return;
-      }
-
-      // The customer session owns one dine-in tab. The API creates the first
-      // order and appends later submissions as new kitchen rounds on that
-      // same order. Dine-in ordering does not start payment here; the bill is
-      // settled once the customer is finished.
-      const order = await createCustomerOrder(
-        session.token,
-        createOrderPayload(cart),
-      );
-      setPlacedOrder(order);
-      if (storageScope) savePersistedOrderId(storageScope, order.id);
-
-      if (session.mode === "TAKEAWAY") {
-        // Keep the cart until payment is verified. A cancelled/failed checkout
-        // must be retryable without creating another takeaway order.
-        await startTakeawayPayment(order);
-      }
-
-      if (storageScope) clearPersistedCart(storageScope);
-      setCart([]);
-      setView("order");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to place order");
-    } finally {
-      setLoading(false);
-    }
-  }, [cart, loading, session, subtotal, tax, total, startTakeawayPayment]);
-
-  const handleAddSelectedItem = useCallback(() => {
-    if (selected) addItem(selected);
-  }, [addItem, selected]);
-
-  if (loading && !session)
+  if (loading && !session) {
     return (
       <main
         className="min-h-screen bg-background p-5"
@@ -690,21 +122,21 @@ export function CustomerApp() {
         </div>
       </main>
     );
-  if (error && !session)
+  }
+
+  if (error && !session) {
     return (
       <StatusScreen
         title="This ordering link is unavailable"
         message={error}
         actionLabel="Try again"
-        onAction={() => {
-          setError(null);
-          setBootstrapAttempt((value) => value + 1);
-        }}
+        onAction={retryBootstrap}
       />
     );
+  }
   if (!session) return null;
 
-  if (view === "order" && placedOrder)
+  if (view === "order" && placedOrder) {
     return (
       <OrderStatus
         order={placedOrder}
@@ -716,203 +148,84 @@ export function CustomerApp() {
         onRequest={requestHelp}
         requestBusy={requestBusy}
         requestMessage={requestMessage}
-        onPay={retryTakeawayPayment}
+        onPay={checkout.retryTakeawayPayment}
         payBusy={loading}
       />
     );
+  }
 
   return (
-    <div className="min-h-screen bg-background text-text-primary selection:bg-primary-surface">
-      <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur-xl">
-        <div className="mx-auto max-w-2xl px-4 pb-3 pt-4 sm:px-6">
-          <div className="flex items-center justify-between gap-4">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.14em] text-text-secondary">
-                <span>{session.area}</span>
-                {session.mode === "DINE_IN" && (
-                  <>
-                    <span>•</span>
-                    <span>Table {session.table}</span>
-                  </>
-                )}
-              </div>
-              <h1 className="mt-1 truncate text-xl font-semibold tracking-tight">
-                {session.restaurant}
-              </h1>
-              <p className="text-sm text-text-secondary">
-                {session.mode === "DINE_IN"
-                  ? "Order directly from your table"
-                  : "Order ahead for takeaway"}
-              </p>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <ThemeSwitcher label="Theme" id="customer-theme" />
-              {placedOrder && (
-                <IconButton
-                  aria-label="View order status"
-                  icon={ReceiptText}
-                  variant="secondary"
-                  size="lg"
-                  onClick={() => setView("order")}
-                />
-              )}
-              <div className="relative">
-                <IconButton
-                  aria-label="Open cart"
-                  icon={ShoppingBag}
-                  variant="primary"
-                  size="lg"
-                  onClick={handleCart}
-                />
-                {itemCount > 0 && (
-                  <span
-                    aria-label={`${itemCount} items in cart`}
-                    className="pointer-events-none absolute right-3 top-3 flex h-5 min-w-5 translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-surface px-1 text-[11px] font-bold text-text-primary ring-2 ring-background"
-                  >
-                    {itemCount}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="mt-4">
-            <SearchInput
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              onClear={() => setSearch("")}
-              placeholder="Search the menu"
-              aria-label="Search the menu"
-            />
-          </div>
-          <nav
-            aria-label="Menu categories"
-            className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6"
-          >
-            {categories.map((option) => (
-              <Button
-                key={option.id}
-                variant={category === option.name ? "primary" : "secondary"}
-                size="sm"
-                onClick={() => setCategory(option.name)}
-                className="shrink-0 rounded-full"
-              >
-                {option.name}
-              </Button>
-            ))}
-          </nav>
-        </div>
-      </header>
+    <>
+      <CustomerMenuView
+        session={session}
+        placedOrder={Boolean(placedOrder)}
+        itemCount={cartState.summary.itemCount}
+        total={cartState.summary.total}
+        search={search}
+        setSearch={setSearch}
+        categories={categories}
+        category={category}
+        setCategory={setCategory}
+        combos={combos}
+        visibleItems={visibleItems}
+        error={error}
+        setError={setError}
+        onViewOrder={() => setView("order")}
+        onCart={handleCart}
+        onOpenCombo={cartState.openCombo}
+        onOpenItem={cartState.openItem}
+      />
 
-      <main className="mx-auto max-w-2xl scroll-pb-32 px-4 pb-36 pt-5 sm:px-6 sm:pb-32">
-        {category === "Popular" && !search && (
-          <Card className="mb-5 border-primary bg-primary p-5 text-primary-foreground shadow-md">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.14em] opacity-75">
-                  <Sparkles className="h-3.5 w-3.5" /> Recommended
-                </div>
-                <h2 className="mt-2 text-2xl font-semibold">
-                  Good choice for the table.
-                </h2>
-                <p className="mt-1 text-sm leading-6 opacity-80">
-                  Order directly from your table. Your order goes straight to
-                  the kitchen.
-                </p>
-              </div>
-              <Utensils className="mt-1 h-6 w-6 opacity-75" />
-            </div>
-          </Card>
-        )}
-        <div className="mb-4 flex items-end justify-between">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.14em] text-text-secondary">
-              Menu
-            </p>
-            <h2 className="mt-1 text-2xl font-semibold tracking-tight">
-              {category}
-            </h2>
-          </div>
-          <span className="text-sm text-text-secondary">
-            {visibleItems.length} items
-          </span>
-        </div>
-        <div className="space-y-3">
-          {visibleItems.map((item) => (
-            <MenuCard key={item.id} item={item} onSelect={openItem} />
-          ))}
-          {visibleItems.length === 0 && (
-            <EmptyState
-              icon={Search}
-              title="No dishes found"
-              description="Try another category or search term."
-              size="sm"
-            />
-          )}
-        </div>
-      </main>
-
-      {error && (
-        <div
-          role="alert"
-          className="fixed inset-x-4 bottom-20 z-50 mx-auto max-w-2xl rounded-lg border border-danger bg-danger-surface p-4 text-sm font-medium text-danger shadow-md"
-        >
-          <div className="flex items-start justify-between gap-4">
-            <span>{error}</span>
-            <Button variant="ghost" size="sm" onClick={() => setError(null)}>
-              Dismiss
-            </Button>
-          </div>
-        </div>
-      )}
-      {itemCount > 0 && view === "menu" && (
-        <div className="[padding-bottom:max(1rem,env(safe-area-inset-bottom))] fixed inset-x-0 bottom-0 z-30 px-4 pt-3 sm:px-6">
-          <Button
-            onClick={handleCart}
-            size="lg"
-            className="mx-auto flex h-14 w-full max-w-2xl items-center justify-between px-5"
-          >
-            <span className="flex items-center gap-2 text-sm">
-              <ShoppingBag className="h-4 w-4" /> {itemCount}{" "}
-              {itemCount === 1 ? "item" : "items"}
-            </span>
-            <span className="flex items-center gap-2 text-sm">
-              View order · {formatMoney(total)}{" "}
-              <ChevronRight className="h-4 w-4" />
-            </span>
-          </Button>
-        </div>
-      )}
-
-      {selected && (
-        <ItemCustomization
-          allowMixedFulfillment={session?.mode === "DINE_IN"}
-          fulfillmentType={selectedFulfillmentType}
-          onFulfillmentTypeChange={setSelectedFulfillmentType}
-          item={selected}
-          selectedOptions={selectedOptions}
-          {...(selectedVariantId ? { variantId: selectedVariantId } : {})}
-          onVariantChange={setSelectedVariantId}
-          onToggle={toggleOption}
-          onOptionQuantity={changeOptionQuantity}
-          onClose={closeItem}
-          onAdd={handleAddSelectedItem}
+      {cartState.selectedCombo && (
+        <ComboCustomization
+          combo={cartState.selectedCombo}
+          menuById={cartState.menuById}
+          selections={cartState.comboSelections}
+          onToggle={cartState.toggleComboOption}
+          onClose={cartState.closeCombo}
+          onAdd={cartState.addSelectedCombo}
         />
       )}
+
+      {cartState.selectedItem && (
+        <ItemCustomization
+          allowMixedFulfillment={session.mode === "DINE_IN"}
+          fulfillmentType={cartState.selectedFulfillmentType}
+          onFulfillmentTypeChange={cartState.setSelectedFulfillmentType}
+          item={cartState.selectedItem}
+          selectedOptions={cartState.selectedOptions}
+          {...(cartState.selectedVariantId
+            ? { variantId: cartState.selectedVariantId }
+            : {})}
+          onVariantChange={cartState.setSelectedVariantId}
+          onToggle={cartState.toggleOption}
+          onOptionQuantity={cartState.changeOptionQuantity}
+          onClose={cartState.closeItem}
+          onAdd={cartState.addSelectedItem}
+        />
+      )}
+
       {view === "cart" && (
         <CartView
           cart={cart}
-          subtotal={subtotal}
-          tax={tax}
-          total={total}
+          combos={cartState.comboCart}
+          subtotal={cartState.summary.subtotal}
+          tax={cartState.summary.tax}
+          total={cartState.summary.total}
           table={session.table ?? "Takeaway"}
           mode={session.mode}
           onBack={handleMenu}
-          onChange={changeQuantity}
-          onFulfillmentChange={changeFulfillment}
-          onPlace={placeOrder}
+          onChange={cartState.changeQuantity}
+          onComboChange={cartState.changeComboQuantity}
+          onFulfillmentChange={cartState.changeFulfillment}
+          onPlace={checkout.placeOrder}
+          couponCode={checkout.couponCode}
+          onCouponCodeChange={checkout.setCouponCode}
+          loyaltyPhone={checkout.loyaltyPhone}
+          onLoyaltyPhoneChange={checkout.setLoyaltyPhone}
           loading={loading}
         />
       )}
-    </div>
+    </>
   );
-}
+};

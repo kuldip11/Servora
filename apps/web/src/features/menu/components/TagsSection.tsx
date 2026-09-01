@@ -3,20 +3,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { createMenuTagSchema, type CreateMenuTagInput } from "@pos/validation";
 import { Plus, X } from "lucide-react";
 import { Button, Input } from "@pos/ui";
-import { useMenuTags } from "../hooks/useMenuTags";
-import { useAddMenuTag } from "../hooks/useAddMenuTag";
-import { useDeleteMenuTag } from "../hooks/useDeleteMenuTag";
+import { useMenuTags } from "@/features/menu/hooks/useMenuTags";
+import { useAddMenuTag } from "@/features/menu/hooks/useAddMenuTag";
+import { useDeleteMenuTag } from "@/features/menu/hooks/useDeleteMenuTag";
 
-const COLORS = [
-  "#8b5cf6",
-  "#f59e0b",
-  "#10b981",
-  "#ef4444",
-  "#3b82f6",
-  "#ec4899",
-];
+import { TAG_COLORS } from "@/features/menu/constants";
 
-export function TagsSection() {
+export const TagsSection = () => {
   const {
     register,
     handleSubmit,
@@ -26,7 +19,7 @@ export function TagsSection() {
     formState: { errors },
   } = useForm<CreateMenuTagInput>({
     resolver: zodResolver(createMenuTagSchema),
-    defaultValues: { name: "", color: COLORS[0] ?? "#8b5cf6" },
+    defaultValues: { name: "", color: TAG_COLORS[0] ?? "#8b5cf6" },
   });
   const color = watch("color");
 
@@ -52,7 +45,7 @@ export function TagsSection() {
             style={{ backgroundColor: tag.color ?? "#8b5cf6" }}
           >
             {tag.name}
-            <button
+            <button type="button"
               onClick={() => {
                 if (confirm(`Delete tag "${tag.name}"?`))
                   deleteMutation.mutate(tag.id);
@@ -86,7 +79,7 @@ export function TagsSection() {
           {...register("name")}
         />
         <div className="flex gap-1 pb-2.5">
-          {COLORS.map((c) => (
+          {TAG_COLORS.map((c) => (
             <button
               type="button"
               key={c}
@@ -103,4 +96,4 @@ export function TagsSection() {
       </form>
     </div>
   );
-}
+};

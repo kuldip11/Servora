@@ -16,10 +16,9 @@ vi.mock("@pos/api-client", () => ({ createApiClient, extractApiError }));
 
 const authState = vi.hoisted(() => ({
   accessToken: "access-1" as string | null,
-  refreshToken: "refresh-1" as string | null,
   franchiseId: "tenant-1" as string | null,
   branchId: "branch-1" as string | null,
-  setTokens: vi.fn(),
+  setAccessToken: vi.fn(),
   logout: vi.fn(),
 }));
 
@@ -34,8 +33,8 @@ vi.mock("../../../store/auth", () => ({
 
 vi.mock("../query-client", () => ({ queryClient: { clear: vi.fn() } }));
 
-import { apiClient } from "../api-client";
-import { queryClient } from "../query-client";
+import { apiClient } from "@/shared/lib/api-client";
+import { queryClient } from "@/shared/lib/query-client";
 
 const config = () => capturedConfig.current as any;
 
@@ -43,7 +42,6 @@ describe("web api client adapter", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     authState.accessToken = "access-1";
-    authState.refreshToken = "refresh-1";
     authState.franchiseId = "tenant-1";
     authState.branchId = "branch-1";
   });
@@ -55,17 +53,13 @@ describe("web api client adapter", () => {
     );
 
     expect(config().storage.getAccessToken()).toBe("access-1");
-    expect(config().storage.getRefreshToken()).toBe("refresh-1");
     expect(config().storage.getTenantId()).toBe("tenant-1");
     expect(config().storage.getBranchId()).toBe("branch-1");
   });
 
   it("writes tokens and clears the web session on refresh failure", () => {
-    config().storage.setTokens("next-access", "next-refresh");
-    expect(authState.setTokens).toHaveBeenCalledWith(
-      "next-access",
-      "next-refresh",
-    );
+    config().storage.setAccessToken("next-access");
+    expect(authState.setAccessToken).toHaveBeenCalledWith("next-access");
 
     config().storage.clear();
     expect(authState.logout).toHaveBeenCalledTimes(1);

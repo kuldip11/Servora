@@ -1,4 +1,4 @@
-import { request } from "../../shared/api/client";
+import { request } from "@/shared/api/client";
 
 export type CustomerSession = {
   sessionToken: string;
@@ -8,9 +8,9 @@ export type CustomerSession = {
   table: { id: string; name: string; section: string | null } | null;
 };
 
-export function createCustomerSession(qrToken: string) {
+export const createCustomerSession = (qrToken: string) => {
   return request<CustomerSession>("/api/customer/sessions", {
     method: "POST",
     body: JSON.stringify({ qrToken }),
   });
-}
+};

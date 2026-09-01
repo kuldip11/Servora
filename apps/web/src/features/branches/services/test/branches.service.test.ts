@@ -6,7 +6,7 @@ const api = vi.hoisted(() => ({
   delete: vi.fn(),
 }));
 vi.mock("../../../../shared/lib/api-client", () => ({ apiClient: api }));
-import { branchesService } from "../branches.service";
+import { branchesService } from "@/features/branches/services/branches.service";
 const input = {
   name: "Main",
   code: "MAIN-01",

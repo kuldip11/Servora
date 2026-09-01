@@ -9,7 +9,7 @@ vi.mock("../../../../shared/lib/api-client", () => ({
   apiClient: { get: mocks.get, post: mocks.post },
 }));
 
-import { fetchMemberships, login } from "../login";
+import { fetchMemberships, login } from "@/features/auth/api/login";
 
 describe("auth api", () => {
   beforeEach(() => {

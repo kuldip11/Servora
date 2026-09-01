@@ -8,24 +8,20 @@ export interface PageHeaderProps extends Omit<
 > {
   title: ReactNode;
   description?: ReactNode;
-  /** Buttons etc., right-aligned next to the title on wide screens, below it on narrow ones. */
+
   actions?: ReactNode;
-  /** e.g. a `Breadcrumbs` component (Phase 6), rendered above the title. */
+
   eyebrow?: ReactNode;
 }
 
-/**
- * Standardizes the title-block markup every page in Admin currently
- * hand-rolls (`<h1 className="text-2xl font-bold text-gray-900">...`).
- */
-export function PageHeader({
+export const PageHeader = ({
   title,
   description,
   actions,
   eyebrow,
   className,
   ...props
-}: PageHeaderProps) {
+}: PageHeaderProps) => {
   return (
     <div className={cn(className)} {...props}>
       {eyebrow && <div className="mb-2">{eyebrow}</div>}
@@ -46,4 +42,4 @@ export function PageHeader({
       </Stack>
     </div>
   );
-}
+};

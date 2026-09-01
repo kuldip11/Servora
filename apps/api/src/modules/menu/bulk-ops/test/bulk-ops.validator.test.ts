@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Value } from "@sinclair/typebox/value";
-import * as mod from "../bulk-ops.validator";
+import * as mod from "@/modules/menu/bulk-ops/bulk-ops.validator";
 
 describe("bulk-ops.validator validators", () => {
   it("exports TypeBox schemas that reject an empty payload", () => {

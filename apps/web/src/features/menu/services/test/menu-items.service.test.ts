@@ -4,19 +4,21 @@ const api = vi.hoisted(() => ({
   get: vi.fn(),
   post: vi.fn(),
   patch: vi.fn(),
+  put: vi.fn(),
   delete: vi.fn(),
 }));
 vi.mock("../../../../shared/lib/api-client", () => ({ apiClient: api }));
 
-import { menuItemsService } from "../menu-items.service";
+import { menuItemsService } from "@/features/menu/services/menu-items.service";
+import type { CreateMenuItemInput } from "@pos/api-client";
 
-const payload = {
+const payload: CreateMenuItemInput = {
   categoryId: "cat-1",
   name: "Paneer",
   basePrice: 250,
   taxRate: 5,
   foodType: "VEG",
-  status: "ACTIVE" as never,
+  status: "ACTIVE",
   availabilityReason: null,
   enableRecipeDeduction: false,
   variants: [],
@@ -65,22 +67,30 @@ describe("menuItemsService", () => {
     expect(api.post).toHaveBeenCalledWith("/menu/items", payload);
 
     await menuItemsService.saveItem({ id: "item-1" } as never, payload);
-    expect(api.patch).toHaveBeenCalledWith("/menu/items/item-1", payload);
+    const { categoryId: _categoryId, ...expectedUpdate } = payload;
+    expect(api.patch).toHaveBeenCalledWith("/menu/items/item-1", expectedUpdate);
   });
 
   it("covers availability, deletion, duplication, and publish state", async () => {
     api.post.mockResolvedValue({ data: { data: { id: "item-2" } } });
 
-    await menuItemsService.setAvailability("item-1", true);
+    await menuItemsService.setManualAvailabilityOverride(
+      "item-1",
+      "OUT_OF_STOCK",
+      "Chef 86",
+    );
+    await menuItemsService.clearManualAvailabilityOverride("item-1");
     await menuItemsService.deleteItem("item-1");
     await menuItemsService.duplicateItem("item-1");
     await menuItemsService.setPublished("item-1", true);
     await menuItemsService.setPublished("item-1", false);
 
-    expect(api.patch).toHaveBeenNthCalledWith(
-      1,
-      "/menu/items/item-1/availability",
-      { isAvailable: true },
+    expect(api.put).toHaveBeenCalledWith("/menu/items/item-1/manual-override", {
+      status: "OUT_OF_STOCK",
+      reason: "Chef 86",
+    });
+    expect(api.delete).toHaveBeenCalledWith(
+      "/menu/items/item-1/manual-override",
     );
     expect(api.delete).toHaveBeenCalledWith("/menu/items/item-1");
     expect(api.post).toHaveBeenCalledWith("/menu/items/item-1/duplicate");

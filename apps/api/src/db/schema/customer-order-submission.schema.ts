@@ -9,10 +9,6 @@ import {
 import { customerSessions } from "./customer-session.schema";
 import { orders } from "./order.schema";
 
-/**
- * Client retry/idempotency ledger. A customer device can safely retry the
- * same submission key without creating another active tab/round.
- */
 export const customerOrderSubmissions = pgTable(
   "customer_order_submissions",
   {

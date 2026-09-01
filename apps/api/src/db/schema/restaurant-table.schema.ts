@@ -8,6 +8,7 @@ import {
   pgEnum,
   index,
   uniqueIndex,
+  foreignKey,
 } from "drizzle-orm/pg-core";
 import { tenants } from "./tenant.schema";
 import { branches } from "./branch.schema";
@@ -18,8 +19,6 @@ export const tableStatusEnum = pgEnum("table_status", [
   "CLEANING",
   "RESERVED",
 ]);
-
-// ─── Tables ───────────────────────────────────────────────────────────────────
 
 export const restaurantTables = pgTable(
   "restaurant_tables",
@@ -48,5 +47,10 @@ export const restaurantTables = pgTable(
     publicQrTokenUniq: uniqueIndex("tables_public_qr_token_uniq").on(
       t.publicQrToken,
     ),
+    branchTenantFk: foreignKey({
+      name: "restaurant_tables_branch_tenant_fk",
+      columns: [t.branchId, t.tenantId],
+      foreignColumns: [branches.id, branches.tenantId],
+    }).onDelete("cascade"),
   }),
 );

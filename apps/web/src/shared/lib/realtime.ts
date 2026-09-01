@@ -5,7 +5,7 @@ import {
   useRealtimeEvent as useRealtimeEventBase,
   useRealtimeConnection as useRealtimeConnectionBase,
 } from "@pos/realtime";
-import { useAuthStore } from "../../store/auth";
+import { useAuthStore } from "@/store/auth";
 import type { RealtimeEvent } from "@pos/types";
 
 const wsUrl =
@@ -18,14 +18,14 @@ const client = createRealtimeClient<RealtimeEvent>({
   getBranchId: () => useAuthStore.getState().branchId,
 });
 
-function useRealtimeContextSync() {
+const useRealtimeContextSync = () => {
   const franchiseId = useAuthStore((state) => state.franchiseId);
   const branchId = useAuthStore((state) => state.branchId);
 
   useEffect(() => {
     if (useAuthStore.getState().accessToken) client.reconnect();
   }, [franchiseId, branchId]);
-}
+};
 
 export function useRealtime(handler: (event: RealtimeEvent) => void) {
   useRealtimeContextSync();

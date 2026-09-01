@@ -1,14 +1,10 @@
-import { formatTicketAge, isUrgent } from "../utils/ticket";
+import { formatTicketAge, isUrgent } from "@/features/kitchen/utils/ticket";
 
 interface Props {
-  firedAt: string;
+  firedAt: string | null;
 }
 
-// `text-red-400` kept literal for the urgent state — same legibility
-// reasoning as `constants.ts`'s badge colors: dark `--danger` is the
-// `-500` token tuned for backgrounds/borders, one shade darker than
-// this hand-picked `-400` for small body text on near-black.
-export function Timer({ firedAt }: Props) {
+export const Timer = ({ firedAt }: Props) => {
   const urgent = isUrgent(firedAt);
   const age = formatTicketAge(firedAt);
 
@@ -19,4 +15,4 @@ export function Timer({ firedAt }: Props) {
       {age}
     </p>
   );
-}
+};

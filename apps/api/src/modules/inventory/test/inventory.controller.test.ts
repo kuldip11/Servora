@@ -16,7 +16,7 @@ vi.mock("../inventory.service", () => ({
     recentTransactions,
   },
 }));
-import { inventoryController } from "../inventory.controller";
+import { inventoryController } from "@/modules/inventory/inventory.controller";
 const auth = {
   userId: "u1",
   tenantId: "t1",

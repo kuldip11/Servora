@@ -1,4 +1,12 @@
-import { apiClient } from "../../../shared/lib/api-client";
+import {
+  createStaffApi,
+  type StaffRowDto,
+  type UpdateStaffInput,
+} from "@pos/api-client";
+import { apiClient } from "@/shared/lib/api-client";
+
+const staffApi = createStaffApi(apiClient);
+export type StaffRow = StaffRowDto;
 
 export interface StaffFormInput {
   firstName: string;
@@ -10,13 +18,9 @@ export interface StaffFormInput {
 }
 
 export const staffService = {
-  async list(): Promise<any[]> {
-    const res = await apiClient.get("/staff");
-    return res.data.data;
-  },
-
+  list: staffApi.listStaff,
   async add(input: StaffFormInput): Promise<void> {
-    await apiClient.post("/staff", {
+    await staffApi.addStaff({
       firstName: input.firstName,
       lastName: input.lastName,
       email: input.email,
@@ -25,24 +29,9 @@ export const staffService = {
       branchIds: input.branchId ? [input.branchId] : [],
     });
   },
-
-  async remove(id: string): Promise<void> {
-    await apiClient.delete(`/staff/${id}`);
-  },
-
-  async updateStatus(id: string, status: string): Promise<void> {
-    await apiClient.patch(`/staff/${id}`, { status });
-  },
-
-  async update(
-    id: string,
-    input: {
-      firstName?: string;
-      lastName?: string;
-      roleId?: string;
-      branchIds?: string[];
-    },
-  ): Promise<void> {
-    await apiClient.patch(`/staff/${id}`, input);
+  remove: staffApi.removeStaff,
+  updateStatus: staffApi.updateStaffStatus,
+  update(id: string, input: UpdateStaffInput): Promise<void> {
+    return staffApi.updateStaff(id, input);
   },
 };

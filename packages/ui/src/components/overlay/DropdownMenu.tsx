@@ -17,32 +17,13 @@ export interface DropdownMenuProps {
   className?: string | undefined;
 }
 
-/**
- * Declarative action menu — `items` mirrors `SplitButton`'s existing
- * `actions: SplitButtonAction[]` shape (label/onSelect/icon/danger/
- * disabled) rather than introducing a second, incompatible menu API,
- * plus a `type: 'separator'` entry for grouping. Built on
- * `@radix-ui/react-dropdown-menu` per this phase's Radix-everywhere
- * approach (`overlay/shared.tsx`).
- *
- * **`SplitButton`'s dropdown should be re-pointed at this**, per the
- * carry-over note in `docs/design-system/README.md`'s Phase 3 section
- * ("once `DropdownMenu` exists... re-pointed at it instead of keeping
- * two dropdown implementations"). Not done in this pass — `SplitButton`
- * pairs a primary-action button with an attached chevron in one
- * visual unit, which doesn't map onto this component's single-trigger
- * shape without redesigning `SplitButton`'s own props too. Flagging
- * it here rather than doing a rushed partial merge; see `overlay/
- * README.md` note in the Phase 5 section of the main README for the
- * concrete follow-up.
- */
-export function DropdownMenu({
+export const DropdownMenu = ({
   trigger,
   items,
   align = "start",
   disabled,
   className,
-}: DropdownMenuProps) {
+}: DropdownMenuProps) => {
   return (
     <RadixDropdownMenu.Root>
       <RadixDropdownMenu.Trigger asChild disabled={disabled}>
@@ -77,4 +58,4 @@ export function DropdownMenu({
       </RadixDropdownMenu.Portal>
     </RadixDropdownMenu.Root>
   );
-}
+};

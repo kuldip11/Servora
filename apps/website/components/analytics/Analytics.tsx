@@ -7,7 +7,7 @@ import { track } from "@/lib/analytics";
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 const KEY = "servora_cookie_consent";
 
-export function Analytics() {
+export const Analytics = () => {
   const [consent, setConsent] = useState<string | null>(null);
 
   useEffect(() => {
@@ -44,4 +44,4 @@ export function Analytics() {
       </Script>
     </>
   );
-}
+};

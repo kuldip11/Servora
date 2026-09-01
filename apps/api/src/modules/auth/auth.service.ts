@@ -1,18 +1,12 @@
-/**
- * Auth service — signup/login/refresh business logic and token issuing.
- * Data access lives in `auth.repository.ts`.
- */
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { authRepository } from "./auth.repository";
-import { listUserMemberships } from "../../lib/authorization/membership-context";
-import { db } from "../../db";
-import {
-  ConflictError,
-  ForbiddenError,
-  ServiceUnavailableError,
-} from "../../core/errors";
-import { signAccessToken } from "../../lib/jwt";
+import { listUserMemberships } from "@/core/auth/membership-context";
+import { resolveAuthorization, resolveMembership } from "@/core/auth/authorization";
+import { db } from "@/db";
+import { ConflictError, ForbiddenError } from "@/core/errors";
+import { signAccessToken } from "@/lib/jwt";
+import { hasAppRoleAccess, hasMembershipAppAccess, type AuthApp } from "./auth-app";
 import type { SignupInput, LoginInput } from "@pos/validation";
 import {
   invalidCredentials,
@@ -22,15 +16,49 @@ import {
   accountTemporarilyLocked,
 } from "./auth.errors";
 
-function hashToken(token: string): string {
+const hashToken = (token: string): string => {
   return crypto.createHash("sha256").update(token).digest("hex");
-}
+};
+
+const membershipHasAppAccess = async (
+  userId: string,
+  tenantId: string,
+  app: AuthApp,
+): Promise<boolean> => {
+  const membership = await resolveMembership(db, userId, tenantId);
+  if (!membership) return false;
+  const decision = await resolveAuthorization(db, { userId, tenantId });
+  if (!decision.allowed) return false;
+  return hasMembershipAppAccess(
+    app,
+    membership.roles.map((item) => ({
+      name: item.role?.name ?? item.roleId,
+      isSystem: item.role?.isSystem ?? false,
+    })),
+    decision.permissionKeys,
+  );
+};
+
+const assertUserAppAccess = async (
+  user: NonNullable<Awaited<ReturnType<typeof authRepository.findUserById>>>,
+  app: AuthApp,
+): Promise<void> => {
+  const globalRoleNames = user.globalUserRoles.map((item) => item.role.name);
+  if (hasAppRoleAccess(app, globalRoleNames)) return;
+
+  const memberships = await listUserMemberships(db, user.id);
+  const access = await Promise.all(
+    memberships.map((membership) =>
+      membershipHasAppAccess(user.id, membership.tenant.id, app),
+    ),
+  );
+  if (!access.some(Boolean)) {
+    throw new ForbiddenError("Account does not have access to this application");
+  }
+};
 
 export const authService = {
   async signup(input: SignupInput) {
-    // Signup creates only the authentication identity. Tenant ownership is
-    // established later through the tenant/membership flow; tenantName is
-    // accepted temporarily for older clients but is deliberately ignored.
     const normalizedEmail = input.email.trim().toLowerCase();
     const existing =
       await authRepository.findStandaloneUserByEmail(normalizedEmail);
@@ -40,29 +68,12 @@ export const authService = {
 
     const passwordHash = await bcrypt.hash(input.password, 12);
 
-    // Create the identity and bootstrap its GLOBAL OWNER role in one database
-    // transaction. If RBAC is missing, no half-created account is left behind.
-    let user: Awaited<
-      ReturnType<typeof authRepository.createUserWithGlobalOwnerRole>
-    >["user"];
-    try {
-      ({ user } = await authRepository.createUserWithGlobalOwnerRole({
-        firstName: input.firstName,
-        lastName: input.lastName,
-        email: normalizedEmail,
-        passwordHash,
-      }));
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message.includes("RBAC reference data is not installed")
-      ) {
-        throw new ServiceUnavailableError(
-          "RBAC reference data is not available. Run the database migrations before signing up.",
-        );
-      }
-      throw error;
-    }
+    const { user } = await authRepository.createUserWithGlobalOwnerRole({
+      firstName: input.firstName,
+      lastName: input.lastName,
+      email: normalizedEmail,
+      passwordHash,
+    });
 
     const fullUser = await authRepository.findUserById(user.id);
     if (!fullUser) throw new Error("User creation failed");
@@ -76,17 +87,17 @@ export const authService = {
         lastName: fullUser.lastName,
         email: fullUser.email,
         status: fullUser.status,
-        roles: fullUser.globalUserRoles.map((ur: any) => ({
+        roles: fullUser.globalUserRoles.map((ur) => ({
           id: ur.roleId,
           name: ur.role.name,
           description: ur.role.description ?? "",
-          permissions: ur.role.rolePermissions.map((rp: any) => rp.permission),
+          permissions: ur.role.rolePermissions.map((rp) => rp.permission),
         })),
       },
     };
   },
 
-  async login(input: LoginInput) {
+  async login(input: LoginInput, app: AuthApp = "web") {
     const users = await authRepository.findUsersByEmail(input.email);
     if (users.length !== 1) throw invalidCredentials();
 
@@ -117,8 +128,9 @@ export const authService = {
       throw invalidCredentials();
     }
 
+    await assertUserAppAccess(user, app);
     await authRepository.resetLoginFailures(user.id);
-    return authService._issueTokens(user);
+    return authService._issueTokens(user, app);
   },
 
   async logout(tokenValue: string) {
@@ -129,10 +141,10 @@ export const authService = {
     return { loggedOut: true };
   },
 
-  async refresh(tokenValue: string) {
+  async refresh(tokenValue: string, app: AuthApp = "web") {
+    if (!tokenValue.startsWith(`${app}.`)) throw invalidRefreshToken();
     const tokenHash = hashToken(tokenValue);
-    // Consume first, atomically. This closes the TOCTOU window where two
-    // simultaneous refresh requests could both observe an unrevoked token.
+
     const stored = await authRepository.consumeRefreshToken(tokenHash);
     if (!stored) throw invalidRefreshToken();
 
@@ -145,10 +157,8 @@ export const authService = {
     if (!session || session.revokedAt || session.expiresAt <= new Date())
       throw invalidRefreshToken();
 
-    // Refresh restores authentication identity only. The active franchise and
-    // branch are intentionally not persisted in refresh tokens; the client
-    // sends them as request context and the server re-authorizes them.
-    return authService._issueTokens(user, stored.sessionId);
+    await assertUserAppAccess(user, app);
+    return authService._issueTokens(user, app, stored.sessionId);
   },
 
   async sessions(userId: string) {
@@ -178,8 +188,14 @@ export const authService = {
     return { user, membership };
   },
 
-  async memberships(userId: string) {
-    return listUserMemberships(db, userId);
+  async memberships(userId: string, app: AuthApp = "web") {
+    const memberships = await listUserMemberships(db, userId);
+    const allowed = await Promise.all(
+      memberships.map((membership) =>
+        membershipHasAppAccess(userId, membership.tenant.id, app),
+      ),
+    );
+    return memberships.filter((_, index) => allowed[index]);
   },
 
   async updateProfile(
@@ -198,24 +214,28 @@ export const authService = {
 
   async _issueTokens(
     user: Awaited<ReturnType<typeof authRepository.findUserById>>,
+    app: AuthApp = "web",
     existingSessionId?: string,
   ) {
     if (!user) throw new Error("User not found");
 
-    const globalRoles = user.globalUserRoles.map((ur: any) => ({
+    const globalRoles = user.globalUserRoles.map((ur) => ({
       id: ur.roleId,
       name: ur.role.name,
       description: ur.role.description ?? "",
-      permissions: ur.role.rolePermissions.map((rp: any) => rp.permission),
+      permissions: ur.role.rolePermissions.map((rp) => rp.permission),
     }));
 
-    const accessToken = signAccessToken({
-      id: user.id,
-      email: user.email,
-      roles: globalRoles,
-    });
+    const accessToken = signAccessToken(
+      {
+        id: user.id,
+        email: user.email,
+        roles: globalRoles,
+      },
+      app,
+    );
 
-    const refreshTokenValue = crypto.randomBytes(64).toString("hex");
+    const refreshTokenValue = `${app}.${crypto.randomBytes(64).toString("hex")}`;
     const tokenHash = hashToken(refreshTokenValue);
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     let sessionId = existingSessionId;

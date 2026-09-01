@@ -1,26 +1,21 @@
-import type { AuthContext } from "../../core/auth";
-import { ForbiddenError } from "../../core/errors";
+import type { AuthContext } from "@/core/auth";
+import { ForbiddenError } from "@/core/errors";
 
-export function requireOrdersPermission(
+export const requireOrdersPermission = (
   auth: AuthContext,
   permission: string,
-): void {
+): void => {
   if (!auth.permissions.includes(permission)) {
     throw new ForbiddenError("Insufficient permissions", {
       required: permission,
     });
   }
-}
+};
 
-/**
- * Orders are branch-owned resources. Tenant-wide memberships may access any
- * branch in their active tenant, while a selected branch narrows even a
- * tenant-wide membership to that branch for request-scoped operations.
- */
-export function assertOrderResourceAccess(
+export const assertOrderResourceAccess = (
   auth: AuthContext,
   orderBranchId: string,
-): void {
+): void => {
   if (auth.tenantWide) {
     if (auth.branchId && auth.branchId !== orderBranchId) {
       throw new ForbiddenError("Order branch access denied");
@@ -31,10 +26,10 @@ export function assertOrderResourceAccess(
   if (!auth.branchId || auth.branchId !== orderBranchId) {
     throw new ForbiddenError("Order branch access denied");
   }
-}
+};
 
-export function assertOrderListScope(auth: AuthContext): void {
+export const assertOrderListScope = (auth: AuthContext): void => {
   if (!auth.tenantWide && !auth.branchId) {
     throw new ForbiddenError("Order branch access denied");
   }
-}
+};

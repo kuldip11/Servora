@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import { requireAuthPlugin } from "../../../core/auth";
+import { requireAuthPlugin } from "@/core/auth";
 import { itemController } from "./item.controller";
 import {
   createItemBody,
@@ -22,10 +22,7 @@ export const menuItemsRouter = new Elysia({ prefix: "/api/menu/items" })
     },
     { body: createItemBody },
   )
-  // Static segment ("/status/:status") is matched before the "/:id"
-  // wildcard by Elysia's router regardless of declaration order (they
-  // have different segment counts), but declaring it first keeps the
-  // route list readable top-to-bottom the way a client would hit them.
+
   .get(
     "/status/:status",
     ({ auth, params, query }) =>
@@ -55,8 +52,7 @@ export const menuItemsRouter = new Elysia({ prefix: "/api/menu/items" })
     },
     { params: itemIdParams, body: duplicateItemBody },
   )
-  // Manager/owner-only — a waiter or cashier flipping an item live/draft
-  // via a direct API call would bypass the whole point of the workflow.
+
   .patch(
     "/:id/publish",
     ({ auth, params }) => itemController.publish(auth, params.id),

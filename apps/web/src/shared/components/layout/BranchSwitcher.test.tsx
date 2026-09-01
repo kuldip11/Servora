@@ -1,9 +1,11 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-const setContext = vi.fn();
-const useAuthStore = vi.fn();
-const useBranches = vi.fn();
+const { setContext, useAuthStore, useBranches } = vi.hoisted(() => ({
+  setContext: vi.fn(),
+  useAuthStore: vi.fn(),
+  useBranches: vi.fn(),
+}));
 vi.mock("../../../store/auth", () => ({ useAuthStore: () => useAuthStore() }));
 vi.mock("../../../features/branches/hooks/useBranches", () => ({
   useBranches: () => useBranches(),
@@ -24,6 +26,9 @@ beforeEach(() => {
     memberships: [membership],
     membershipId: "m1",
     branchId: null,
+    user: {
+      roles: [{ permissions: [{ key: "branch:read" }] }],
+    },
     setContext,
   });
   useBranches.mockReturnValue({

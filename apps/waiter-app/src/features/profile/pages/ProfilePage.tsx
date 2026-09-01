@@ -6,17 +6,7 @@ interface Props {
   onBack: () => void;
 }
 
-/**
- * Phase 16 — Waiter App had no existing settings/profile screen to hang
- * the shared `ThemeSwitcher` on (unlike Admin's `SettingsPage`), so this
- * is a small, single-purpose addition rather than a new settings
- * architecture: one screen, one `Card`, reachable from one extra
- * `IconButton` next to the existing logout button in `WaiterApp` — no
- * new nav item, no change to the bottom nav's two tabs. Follows the
- * same header/back-button shape `MenuPage`/`OrderDetailPage` already
- * use for non-tab screens in this app.
- */
-export function ProfilePage({ waiterName, onBack }: Props) {
+export const ProfilePage = ({ waiterName, onBack }: Props) => {
   return (
     <div className="flex flex-col h-full bg-background">
       <header className="flex items-center gap-3 px-4 py-3 bg-surface border-b border-border">
@@ -44,4 +34,4 @@ export function ProfilePage({ waiterName, onBack }: Props) {
       </div>
     </div>
   );
-}
+};

@@ -6,7 +6,7 @@ const api = vi.hoisted(() => ({
   delete: vi.fn(),
 }));
 vi.mock("../../../../shared/lib/api-client", () => ({ apiClient: api }));
-import { tablesService } from "../tables.service";
+import { tablesService } from "@/features/tables/services/tables.service";
 const input = { name: "T1", capacity: 4, branchId: "b1" } as any;
 
 describe("tablesService", () => {

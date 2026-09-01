@@ -6,7 +6,7 @@ const { getQueueForCurrentBranch, updateStatus } = vi.hoisted(() => ({
 vi.mock("../ticket.service", () => ({
   ticketService: { getQueueForCurrentBranch, updateStatus },
 }));
-import { ticketController } from "../ticket.controller";
+import { ticketController } from "@/modules/kitchen-tickets/ticket.controller";
 const auth = { userId: "u1", tenantId: "t1", branchId: "b1" } as any;
 const logger = { info: vi.fn() } as any;
 

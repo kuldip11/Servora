@@ -1,10 +1,10 @@
-import { createdResponse, successResponse } from "../../core/response";
-import { ValidationError } from "../../core/errors";
+import { createdResponse, successResponse } from "@/core/response";
+import { ValidationError } from "@/core/errors";
 import {
   customerService,
   type CreateCustomerOrderInput,
-  type CustomerCheckoutInput,
 } from "./customer.service";
+import type { CustomerCheckoutInput } from "./customer-payment.service";
 
 export const customerController = {
   async createSession(qrToken: string) {

@@ -1,31 +1,11 @@
-import { apiClient } from "../../../shared/lib/api-client";
-import type { ModifierGroup } from "@pos/types";
+import { createMenuApi, type ModifierGroupPayload } from "@pos/api-client";
+import { apiClient } from "@/shared/lib/api-client";
 
-export interface ModifierGroupPayload {
-  name: string;
-  selectionType: "SINGLE" | "MULTIPLE";
-  minSelections: number;
-  maxSelections?: number;
-  options: { name: string; additionalPrice: number; maxQuantity: number }[];
-}
+const menuApi = createMenuApi(apiClient);
+export type { ModifierGroupPayload };
 
 export const modifierGroupsService = {
-  async list(): Promise<ModifierGroup[]> {
-    const res = await apiClient.get("/menu/modifier-groups");
-    return res.data.data;
-  },
-
-  async save(
-    existingId: string | null,
-    payload: ModifierGroupPayload,
-  ): Promise<ModifierGroup> {
-    const res = existingId
-      ? await apiClient.patch(`/menu/modifier-groups/${existingId}`, payload)
-      : await apiClient.post("/menu/modifier-groups", payload);
-    return res.data.data;
-  },
-
-  async remove(id: string): Promise<void> {
-    await apiClient.delete(`/menu/modifier-groups/${id}`);
-  },
+  list: menuApi.listModifierGroups,
+  save: menuApi.saveModifierGroup,
+  remove: menuApi.removeModifierGroup,
 };

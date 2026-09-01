@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 const api = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), patch: vi.fn() }));
 vi.mock("../../../../shared/lib/api-client", () => ({ apiClient: api }));
-import { ordersService, toCartItemPayload } from "../orders.service";
+import {
+  ordersService,
+  toCartItemPayload,
+} from "@/features/orders/services/orders.service";
 
 const item = {
   menuItemId: "m1",
@@ -50,7 +53,7 @@ describe("ordersService", () => {
   it("lists without filters", async () => {
     api.get.mockResolvedValue({ data: { data: [] } });
     await ordersService.list({});
-    expect(api.get).toHaveBeenCalledWith("/orders", { params: {} });
+    expect(api.get).toHaveBeenCalledWith("/orders");
   });
   it("handles detail, create, add-items, status, and ticket status", async () => {
     api.get.mockResolvedValue({ data: { data: { id: "o1" } } });

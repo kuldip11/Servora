@@ -1,8 +1,8 @@
-import type { AuthContext } from "../../core/auth";
+import type { AuthContext } from "@/core/auth";
 import {
   createdResponse,
   successResponse,
-} from "../../core/response/response-helpers";
+} from "@/core/response/response-helpers";
 import { tenantService } from "./tenant.service";
 
 export const tenantController = {
@@ -18,7 +18,14 @@ export const tenantController = {
   async update(
     auth: AuthContext,
     tenantId: string,
-    changes: { name?: string },
+    changes: {
+      name?: string;
+      serviceChargePercent?: number | null;
+      serviceChargeTaxable?: boolean;
+      roundingPolicy?: "NONE" | "NEAREST_1" | "NEAREST_5" | "NEAREST_10";
+      defaultTaxMode?: "INCLUSIVE" | "EXCLUSIVE";
+      courseSequencingEnabled?: boolean;
+    },
   ) {
     return successResponse(await tenantService.update(auth, tenantId, changes));
   },

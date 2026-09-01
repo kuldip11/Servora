@@ -1,5 +1,5 @@
-import type { AuthContext } from "../../core/auth";
-import { successResponse } from "../../core/response";
+import type { AuthContext } from "@/core/auth";
+import { successResponse } from "@/core/response";
 import { permissionService } from "./permission.service";
 
 export const permissionController = {

@@ -2,7 +2,7 @@ import {
   NotFoundError,
   UnauthorizedError,
   ValidationError,
-} from "../../core/errors";
+} from "@/core/errors";
 
 export const invalidCustomerSession = () =>
   new UnauthorizedError("Customer session is invalid or expired");

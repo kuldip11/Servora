@@ -27,9 +27,9 @@ const JUSTIFY = {
 
 export interface StackProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
-  /** @default 'column' */
+
   direction?: "row" | "column";
-  /** Spacing token between children. @default 'md' */
+
   gap?: keyof typeof GAPS;
   align?: keyof typeof ALIGN;
   justify?: keyof typeof JUSTIFY;
@@ -37,11 +37,7 @@ export interface StackProps extends HTMLAttributes<HTMLDivElement> {
   as?: ElementType;
 }
 
-/**
- * Flex container for one-dimensional layout. Use this instead of ad hoc
- * `flex flex-col gap-4` / `flex items-center gap-2` markup.
- */
-export function Stack({
+export const Stack = ({
   children,
   direction = "column",
   gap = "md",
@@ -51,7 +47,7 @@ export function Stack({
   as: Tag = "div",
   className,
   ...props
-}: StackProps) {
+}: StackProps) => {
   return (
     <Tag
       className={cn(
@@ -68,4 +64,4 @@ export function Stack({
       {children}
     </Tag>
   );
-}
+};

@@ -7,12 +7,7 @@ interface Props {
   order: Order;
 }
 
-// Design-system Phase 11, Sprint WA-4: `Card`, `padding="none"` since
-// both sections manage their own `px-4 py-3`, same pattern
-// `TicketGroup` uses above. Per-status pill already goes through the
-// shared `StatusBadge` — unchanged by this sprint, it was already
-// wired that way.
-export function OrderTimeline({ order }: Props) {
+export const OrderTimeline = ({ order }: Props) => {
   if (!order.statusHistory || order.statusHistory.length === 0) return null;
 
   return (
@@ -36,4 +31,4 @@ export function OrderTimeline({ order }: Props) {
       </div>
     </Card>
   );
-}
+};

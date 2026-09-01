@@ -6,12 +6,6 @@ export type ButtonVariant =
   "primary" | "secondary" | "outline" | "ghost" | "link" | "danger" | "success";
 export type ButtonSize = "sm" | "md" | "lg";
 
-/**
- * Color classes per variant. Exported (not just used internally) so
- * `IconButton` and `SplitButton` share the exact same variant palette
- * instead of redefining it — one source of truth for "what does
- * 'danger' look like as a button".
- */
 export const BUTTON_VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary:
     "bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-hover focus:ring-primary",
@@ -34,7 +28,6 @@ export const BUTTON_SIZE_CLASSES: Record<ButtonSize, string> = {
   lg: "px-6 py-3 text-base",
 };
 
-/** Icon dimensions matching each button size, for IconButton/spinner sizing. */
 export const BUTTON_ICON_SIZE_CLASSES: Record<ButtonSize, string> = {
   sm: "w-3.5 h-3.5",
   md: "w-4 h-4",
@@ -42,25 +35,13 @@ export const BUTTON_ICON_SIZE_CLASSES: Record<ButtonSize, string> = {
 };
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  /** @default 'primary' */
   variant?: ButtonVariant;
-  /** @default 'md' */
+
   size?: ButtonSize;
   loading?: boolean;
   children: ReactNode;
 }
 
-/**
- * Upgraded for Phase 3 (docs/design-system/00-PLAN.md): now consumes
- * `--primary`/`--danger`/`--success`/`--surface`/`--border` tokens
- * instead of hardcoded `violet-*`/`red-*`/`gray-*` classes, and grows
- * from 4 variants to the plan's full family (`outline`, `link`,
- * `success` added; `primary`/`secondary`/`ghost`/`danger` unchanged in
- * meaning). Upgraded in place, not replaced — same reasoning `TextInput`
- * documents for `Input`: `Button` is already used everywhere, and every
- * existing `variant` value keeps its old visual result in the light
- * theme, so no call site needs to change.
- */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {

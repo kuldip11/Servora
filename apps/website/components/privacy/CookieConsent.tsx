@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 
 const KEY = "servora_cookie_consent";
-export function CookieConsent() {
+export const CookieConsent = () => {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const open = () => setVisible(true);
@@ -44,4 +44,4 @@ export function CookieConsent() {
       </div>
     </aside>
   );
-}
+};

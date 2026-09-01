@@ -1,13 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
 import {
   branchesService,
   type BranchFormInput,
-} from "../services/branches.service";
-import { branchKeys } from "../query-keys";
+} from "@/features/branches/services/branches.service";
+import { branchKeys } from "@/features/branches/query-keys";
 
-export function useCreateBranch() {
+export const useCreateBranch = () => {
   return useMutation({
     mutationFn: (input: BranchFormInput) => branchesService.create(input),
     onSuccess: () => {
@@ -16,4 +16,4 @@ export function useCreateBranch() {
     },
     onError: (err) => notifyError(err, "Failed to create branch"),
   });
-}
+};

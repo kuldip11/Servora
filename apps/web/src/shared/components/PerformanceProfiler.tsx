@@ -22,15 +22,14 @@ const onRender: ProfilerOnRenderCallback = (
   });
 };
 
-/** Development-only commit profiling. Keep memo/useMemo decisions tied to measured slow commits. */
-export function PerformanceProfiler({
+export const PerformanceProfiler = ({
   id,
   children,
-}: PerformanceProfilerProps) {
+}: PerformanceProfilerProps) => {
   if (!import.meta.env.DEV) return <>{children}</>;
   return (
     <Profiler id={id} onRender={onRender}>
       {children}
     </Profiler>
   );
-}
+};

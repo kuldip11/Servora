@@ -3,14 +3,13 @@ import {
   extractApiError,
   type TokenStorageAdapter,
 } from "@pos/api-client";
-import { useAuthStore } from "../../store/auth";
+import { useAuthStore } from "@/store/auth";
 import { queryClient } from "./query-client";
 
 const webStorageAdapter: TokenStorageAdapter = {
   getAccessToken: () => useAuthStore.getState().accessToken,
-  getRefreshToken: () => useAuthStore.getState().refreshToken,
-  setTokens: (accessToken, refreshToken) =>
-    useAuthStore.getState().setTokens(accessToken, refreshToken),
+  setAccessToken: (accessToken) =>
+    useAuthStore.getState().setAccessToken(accessToken),
   clear: () => {
     useAuthStore.getState().logout();
     queryClient.clear();
@@ -20,6 +19,7 @@ const webStorageAdapter: TokenStorageAdapter = {
 };
 
 export const apiClient = createApiClient({
+  app: "web",
   baseURL: import.meta.env["VITE_API_URL"] ?? "/api",
   timeout: 30_000,
   storage: webStorageAdapter,

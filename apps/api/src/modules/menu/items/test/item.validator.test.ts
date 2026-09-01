@@ -9,7 +9,7 @@ import {
   itemIdParams,
   itemStatusParams,
   itemStatusQuery,
-} from "../item.validator";
+} from "@/modules/menu/items/item.validator";
 
 describe("item.validator validators", () => {
   it("requires category, name, and base price for item creation", () => {
@@ -22,6 +22,23 @@ describe("item.validator validators", () => {
       }),
     ).toBe(true);
     expect(Value.Check(updateItemBody, {})).toBe(true);
+    expect(
+      Value.Check(createItemBody, {
+        categoryId: "c1",
+        name: "Tea",
+        basePrice: 10,
+        taxMode: null,
+        effectiveFrom: null,
+        availabilityReason: null,
+      }),
+    ).toBe(true);
+    expect(
+      Value.Check(updateItemBody, {
+        description: null,
+        effectiveFrom: null,
+        variants: [{ id: "v1", name: "Half", price: 90 }],
+      }),
+    ).toBe(true);
   });
   it("validates status, availability, and id params", () => {
     expect(Value.Check(duplicateItemBody, {})).toBe(true);

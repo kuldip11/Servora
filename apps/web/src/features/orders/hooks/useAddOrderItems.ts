@@ -1,13 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
 import {
   ordersService,
   type AddOrderItemsInput,
-} from "../services/orders.service";
-import { orderKeys } from "../query-keys";
+} from "@/features/orders/services/orders.service";
+import { orderKeys } from "@/features/orders/query-keys";
 
-export function useAddOrderItems(orderId: string) {
+export const useAddOrderItems = (orderId: string) => {
   return useMutation({
     mutationFn: (input: AddOrderItemsInput) =>
       ordersService.addItems(orderId, input),
@@ -18,4 +18,4 @@ export function useAddOrderItems(orderId: string) {
     },
     onError: (err) => notifyError(err, "Failed to add items"),
   });
-}
+};

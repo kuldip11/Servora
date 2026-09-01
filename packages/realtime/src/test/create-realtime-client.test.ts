@@ -13,6 +13,7 @@ class FakeWebSocket {
   onmessage: ((event: { data: string }) => void) | null = null;
   onclose: (() => void) | null = null;
   onerror: (() => void) | null = null;
+  send = vi.fn();
   close = vi.fn(() => {
     this.readyState = FakeWebSocket.CLOSED;
     this.onclose?.();
@@ -57,10 +58,20 @@ describe("createRealtimeClient", () => {
     const unsubscribeSecond = client.subscribe(second);
     expect(FakeWebSocket.instances).toHaveLength(1);
     expect(FakeWebSocket.instances[0]!.url).toBe(
-      "wss://realtime.example.com/socket?token=token-1&tenantId=tenant-1&branchId=branch-1",
+      "wss://realtime.example.com/socket",
     );
 
     FakeWebSocket.instances[0]!.open();
+    expect(FakeWebSocket.instances[0]!.send).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: "auth",
+        token: "token-1",
+        tenantId: "tenant-1",
+        branchId: "branch-1",
+      }),
+    );
+    expect(client.isConnected()).toBe(false);
+    FakeWebSocket.instances[0]!.message({ type: "connected" });
     expect(client.isConnected()).toBe(true);
     FakeWebSocket.instances[0]!.message({ type: "order.created", id: "42" });
     expect(first).toHaveBeenCalledWith({ type: "order.created", id: "42" });
@@ -93,7 +104,9 @@ describe("createRealtimeClient", () => {
     client.subscribe(() => {});
     const ws = FakeWebSocket.instances[0]!;
     ws.open();
+    ws.message({ type: "connected" });
     ws.open();
+    ws.message({ type: "connected" });
     ws.close();
     expect(listener.mock.calls).toEqual([[true], [false]]);
     unsubscribe();
@@ -112,14 +125,22 @@ describe("createRealtimeClient", () => {
     client.subscribe(() => {});
     const first = FakeWebSocket.instances[0]!;
     first.open();
+    first.message({ type: "connected" });
     first.close();
     token = "new-token";
     vi.advanceTimersByTime(99);
     expect(FakeWebSocket.instances).toHaveLength(1);
     vi.advanceTimersByTime(1);
     expect(FakeWebSocket.instances).toHaveLength(2);
-    expect(FakeWebSocket.instances[1]!.url).toBe(
-      "wss://example.com?token=new-token",
+    expect(FakeWebSocket.instances[1]!.url).toBe("wss://example.com");
+    FakeWebSocket.instances[1]!.open();
+    expect(FakeWebSocket.instances[1]!.send).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: "auth",
+        token: "new-token",
+        tenantId: null,
+        branchId: null,
+      }),
     );
   });
 

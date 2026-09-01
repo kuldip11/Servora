@@ -18,18 +18,17 @@ describe("jwt helpers", () => {
     const payload = jwt.verifyAccessToken(token);
     expect(payload).toMatchObject({
       sub: "u1",
+      app: "web",
       email: "u@example.com",
       roles: ["OWNER"],
       permissions: ["tenant:read"],
     });
-    expect(payload.tenantId).toBeUndefined();
+    expect(
+      (payload as unknown as Record<string, unknown>).tenantId,
+    ).toBeUndefined();
   });
-  it("signs and verifies refresh tokens", () => {
-    const token = jwt.signRefreshToken("u1");
-    expect(jwt.verifyRefreshToken(token)).toMatchObject({ sub: "u1" });
-  });
-  it("rejects malformed access and refresh tokens", () => {
+
+  it("rejects malformed access tokens", () => {
     expect(() => jwt.verifyAccessToken("bad")).toThrow();
-    expect(() => jwt.verifyRefreshToken("bad")).toThrow();
   });
 });

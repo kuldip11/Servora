@@ -6,6 +6,5 @@ export type CredentialsForm = z.infer<typeof credentialsSchema>;
 export type { Branch, AvailableMembership };
 export interface LoginResult {
   accessToken: string;
-  refreshToken: string;
   user: User;
 }

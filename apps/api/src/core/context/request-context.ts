@@ -1,13 +1,7 @@
-/**
- * Request context plugin.
- *
- * Adds a `requestId` (and start time, for a response-time header) to every
- * request. Purely additive: it derives a new `context` property and sets
- * two response headers (`x-request-id`, `x-response-time`) — it does not
- * change any existing route's status code or response body.
- */
 import { Elysia } from "elysia";
 import { randomUUID } from "crypto";
+import { env } from "@/config/env";
+import { resolveClientIp } from "@/core/security/client-ip";
 
 export interface RequestContext {
   requestId: string;
@@ -18,17 +12,14 @@ export interface RequestContext {
 
 export const requestContextPlugin = () =>
   new Elysia({ name: "request-context" })
-    .derive({ as: "global" }, ({ headers, request }) => {
-      const forwardedFor = headers["x-forwarded-for"];
+    .derive({ as: "global" }, ({ headers, request, server }) => {
+      const directIp = server?.requestIP(request)?.address;
       return {
         requestContext: {
           requestId: randomUUID(),
           startTime: Date.now(),
           userAgent: headers["user-agent"],
-          ip:
-            forwardedFor?.split(",")[0]?.trim() ??
-            headers["x-real-ip"] ??
-            undefined,
+          ip: resolveClientIp(headers, directIp, env.TRUST_PROXY_HOPS),
         } as RequestContext,
       };
     })

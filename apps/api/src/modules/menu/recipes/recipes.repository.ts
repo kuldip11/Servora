@@ -1,12 +1,33 @@
-/**
- * Menu recipes repository — data access for the "recipes" (menu item ↔
- * inventory) sub-domain only. Extracted from the monolithic
- * `modules/menu/repository.ts` verbatim — see docs/NEXT_STEPS.md.
- */
 import { eq, and, inArray } from "drizzle-orm";
-import { db } from "../../../db";
-import { menuItems, recipes, inventoryItems } from "../../../db/schema";
+import { db } from "@/db";
+import {
+  menuItems,
+  recipes,
+  inventoryItems,
+  menuItemVariants,
+  modifierOptions,
+  menuItemModifierGroups,
+  subRecipes,
+} from "@/db/schema";
 import type { InventoryUnit } from "@pos/types";
+
+export interface RecipeWriteRow {
+  inventoryItemId?: string | null;
+  subRecipeId?: string | null;
+  variantId?: string | null;
+  modifierOptionId?: string | null;
+  quantity: number;
+  unit: InventoryUnit;
+  yieldPercent?: number | null;
+  isOptional?: boolean;
+}
+
+const recipeRelations = {
+  inventoryItem: true,
+  subRecipe: true,
+  variant: true,
+  modifierOption: true,
+} as const;
 
 export const recipesRepository = {
   async findItem(tenantId: string, itemId: string) {
@@ -19,108 +40,89 @@ export const recipesRepository = {
   async getItemRecipe(itemId: string) {
     return db.query.recipes.findMany({
       where: eq(recipes.menuItemId, itemId),
-      with: { inventoryItem: true },
+      with: recipeRelations,
     });
   },
 
-  // Ingredients must belong to the same tenant — otherwise a stray id
-  // would silently create a cross-tenant reference. Returns the subset of
-  // `inventoryItemIds` that really are owned by this tenant.
-  async findOwnedInventoryItemIds(
+  async findOwnedInventorySources(
     tenantId: string,
     inventoryItemIds: string[],
-  ): Promise<Set<string>> {
-    if (!inventoryItemIds.length) return new Set();
-    const owned = await db.query.inventoryItems.findMany({
+  ) {
+    if (!inventoryItemIds.length) return [];
+    return db.query.inventoryItems.findMany({
       where: and(
         eq(inventoryItems.tenantId, tenantId),
         inArray(inventoryItems.id, inventoryItemIds),
       ),
+      columns: { id: true, branchId: true, unit: true },
+    });
+  },
+
+  async findOwnedSubRecipeSources(tenantId: string, ids: string[]) {
+    if (!ids.length) return [];
+    return db.query.subRecipes.findMany({
+      where: and(
+        eq(subRecipes.tenantId, tenantId),
+        inArray(subRecipes.id, ids),
+      ),
+      columns: { id: true, branchId: true, yieldUnit: true },
+    });
+  },
+
+  async findVariantForItem(itemId: string, variantId: string) {
+    return db.query.menuItemVariants.findFirst({
+      where: and(
+        eq(menuItemVariants.id, variantId),
+        eq(menuItemVariants.menuItemId, itemId),
+      ),
       columns: { id: true },
     });
-    return new Set(owned.map((i) => i.id));
   },
 
-  async findInventoryItem(tenantId: string, inventoryItemId: string) {
-    return db.query.inventoryItems.findFirst({
-      where: and(
-        eq(inventoryItems.id, inventoryItemId),
-        eq(inventoryItems.tenantId, tenantId),
-      ),
-    });
+  async findModifierOptionForItem(itemId: string, optionId: string) {
+    const [row] = await db
+      .select({ id: modifierOptions.id })
+      .from(modifierOptions)
+      .innerJoin(
+        menuItemModifierGroups,
+        eq(
+          menuItemModifierGroups.modifierGroupId,
+          modifierOptions.modifierGroupId,
+        ),
+      )
+      .where(
+        and(
+          eq(menuItemModifierGroups.menuItemId, itemId),
+          eq(modifierOptions.id, optionId),
+        ),
+      )
+      .limit(1);
+    return row ?? null;
   },
 
-  // Replaces the item's full ingredient list in one call — simpler for the
-  // recipe-builder UI than diffing add/remove, and avoids ending up with
-  // stale ingredient rows if the caller forgets to clean up.
-  async replaceRecipe(
-    itemId: string,
-    ingredients: Array<{
-      inventoryItemId: string;
-      quantity: number;
-      unit: InventoryUnit;
-      isOptional?: boolean;
-    }>,
-  ) {
+  async replaceRecipe(itemId: string, ingredients: RecipeWriteRow[]) {
     return db.transaction(async (tx) => {
       await tx.delete(recipes).where(eq(recipes.menuItemId, itemId));
       if (ingredients.length) {
         await tx.insert(recipes).values(
           ingredients.map((ing) => ({
             menuItemId: itemId,
-            inventoryItemId: ing.inventoryItemId,
+            inventoryItemId: ing.inventoryItemId ?? null,
+            subRecipeId: ing.subRecipeId ?? null,
+            variantId: ing.variantId ?? null,
+            modifierOptionId: ing.modifierOptionId ?? null,
             quantityRequired: String(ing.quantity),
             unit: ing.unit,
+            yieldPercent:
+              ing.yieldPercent == null ? null : String(ing.yieldPercent),
             isOptional: ing.isOptional ?? false,
           })),
         );
       }
       return tx.query.recipes.findMany({
         where: eq(recipes.menuItemId, itemId),
-        with: { inventoryItem: true },
+        with: recipeRelations,
       });
-    });
-  },
-
-  async deleteRecipeIngredient(itemId: string, inventoryItemId: string) {
-    await db
-      .delete(recipes)
-      .where(
-        and(
-          eq(recipes.menuItemId, itemId),
-          eq(recipes.inventoryItemId, inventoryItemId),
-        ),
-      );
-  },
-
-  async upsertRecipeIngredient(
-    itemId: string,
-    inventoryItemId: string,
-    quantity: number,
-    unit: InventoryUnit,
-    isOptional: boolean,
-  ) {
-    const [row] = await db
-      .insert(recipes)
-      .values({
-        menuItemId: itemId,
-        inventoryItemId,
-        quantityRequired: String(quantity),
-        unit,
-        isOptional,
-      })
-      .onConflictDoUpdate({
-        target: [recipes.menuItemId, recipes.inventoryItemId],
-        set: { quantityRequired: String(quantity), unit, isOptional },
-      })
-      .returning();
-    return row;
-  },
-
-  async getRequiredIngredients(itemId: string) {
-    return db.query.recipes.findMany({
-      where: and(eq(recipes.menuItemId, itemId), eq(recipes.isOptional, false)),
-      with: { inventoryItem: true },
     });
   },
 };

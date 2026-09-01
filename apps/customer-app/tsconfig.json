@@ -8,9 +8,11 @@
     "jsx": "react-jsx",
     "noEmit": true,
     "paths": {
+      "@/*": ["./src/*"],
       "@pos/types": ["../../packages/types/src/index.ts"],
       "@pos/ui": ["../../packages/ui/src/index.tsx"]
-    }
+    },
+    "baseUrl": "."
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]

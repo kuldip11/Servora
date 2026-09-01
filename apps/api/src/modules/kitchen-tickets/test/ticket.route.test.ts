@@ -41,7 +41,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("../ticket.controller", () => ({
   ticketController: { getQueue: vi.fn(), updateStatus: vi.fn() },
 }));
-import { kitchenTicketsRouter } from "../ticket.route";
+import { kitchenTicketsRouter } from "@/modules/kitchen-tickets/ticket.route";
 
 describe("kitchen ticket routes", () => {
   it("registers queue and status endpoints", () => {

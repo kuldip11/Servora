@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { menuTemplatesQuery } from "../query-options";
+import { menuTemplatesQuery } from "@/features/menu/query-options";
 
-export function useMenuTemplates() {
+export const useMenuTemplates = () => {
   return useQuery(menuTemplatesQuery());
-}
+};

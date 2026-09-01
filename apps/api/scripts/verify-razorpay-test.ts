@@ -1,17 +1,3 @@
-/**
- * Safe Razorpay Test Mode connectivity/verification harness.
- *
- * Required:
- *   RAZORPAY_KEY_ID=rzp_test_...
- *   RAZORPAY_KEY_SECRET=...
- *
- * Optional:
- *   RAZORPAY_TEST_PAYMENT_ID=pay_...
- *
- * The default check is read-only and verifies that the configured credentials
- * can access Razorpay Test Mode. Supplying a payment id additionally verifies
- * that the payment is captured, INR, and reports its amount/order id.
- */
 const keyId = process.env["RAZORPAY_KEY_ID"];
 const keySecret = process.env["RAZORPAY_KEY_SECRET"];
 if (!keyId || !keySecret)

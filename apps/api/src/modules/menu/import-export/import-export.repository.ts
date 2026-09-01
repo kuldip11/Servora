@@ -1,17 +1,13 @@
-/**
- * Menu import/export repository — data access for the "import-export"
- * sub-domain only. Extracted from the monolithic `menu/export.service.ts`
- * and `menu/import.service.ts` — same queries, unchanged — see
- * docs/NEXT_STEPS.md.
- */
 import { eq, and, isNull, or } from "drizzle-orm";
-import { db } from "../../../db";
+import { db } from "@/db";
 import {
   menuItems,
   menuCategories,
   modifierGroups,
   recipes,
-} from "../../../db/schema";
+  menus,
+  menuMemberships,
+} from "@/db/schema";
 import type { MenuItemStatus, FoodType, SpiceLevel } from "@pos/types";
 
 export interface CommitRowData {
@@ -30,8 +26,6 @@ export interface CommitRowData {
 }
 
 export const importExportRepository = {
-  // ─── Export reads ──────────────────────────────────────────────────────
-
   async findItemsForExport(tenantId: string, branchId?: string | undefined) {
     return db.query.menuItems.findMany({
       where: and(
@@ -59,9 +53,6 @@ export const importExportRepository = {
     });
   },
 
-  // recipes has no tenantId column of its own — scoped through its parent
-  // menu item, same as everywhere else recipes are read (see
-  // recipes.repository.ts#getItemRecipe).
   async findRecipesForExport(tenantId: string, branchId?: string) {
     const rows = await db.query.recipes.findMany({
       with: {
@@ -69,6 +60,7 @@ export const importExportRepository = {
           columns: { id: true, name: true, tenantId: true, branchId: true },
         },
         inventoryItem: { columns: { id: true, name: true } },
+        subRecipe: { columns: { id: true, name: true } },
       },
     });
     return rows.filter(
@@ -95,8 +87,6 @@ export const importExportRepository = {
     });
   },
 
-  // ─── Import reads ──────────────────────────────────────────────────────
-
   async findCategoriesForImport(tenantId: string, branchId?: string) {
     return db.query.menuCategories.findMany({
       where: and(
@@ -122,17 +112,26 @@ export const importExportRepository = {
     });
   },
 
-  // ─── Import writes ─────────────────────────────────────────────────────
-
-  // Writes every valid row in one transaction — a failure partway through
-  // rolls back the whole batch rather than leaving a half-imported menu.
   async commitRows(
     tenantId: string,
     branchId: string | undefined,
     rows: Array<{ action: "insert" | "update"; data: CommitRowData }>,
-  ): Promise<{ inserted: number; updated: number }> {
+  ): Promise<{
+    inserted: number;
+    updated: number;
+    touched: Array<{
+      id: string;
+      action: "insert" | "update";
+      data: CommitRowData;
+    }>;
+  }> {
     let inserted = 0;
     let updated = 0;
+    const touched: Array<{
+      id: string;
+      action: "insert" | "update";
+      data: CommitRowData;
+    }> = [];
 
     await db.transaction(async (tx) => {
       for (const r of rows) {
@@ -149,7 +148,6 @@ export const importExportRepository = {
               spiceLevel: r.data.spiceLevel,
               sku: r.data.sku,
               status: r.data.status,
-              isAvailable: r.data.status === "ACTIVE",
               hsnCode: r.data.hsnCode,
               prepTimeMinutes: r.data.prepTimeMinutes,
             })
@@ -161,30 +159,49 @@ export const importExportRepository = {
               ),
             );
           updated++;
+          touched.push({ id: r.data.id, action: "update", data: r.data });
         } else {
-          await tx.insert(menuItems).values({
-            tenantId,
-            branchId: branchId ?? null,
-            categoryId: r.data.categoryId,
-            name: r.data.name,
-            description: r.data.description,
-            basePrice: r.data.basePrice,
-            taxRate: r.data.taxRate,
-            foodType: r.data.foodType,
-            spiceLevel: r.data.spiceLevel,
-            sku: r.data.sku,
-            status: r.data.status,
-            isAvailable: r.data.status === "ACTIVE",
-            hsnCode: r.data.hsnCode,
-            prepTimeMinutes: r.data.prepTimeMinutes,
-            sortOrder: 0,
-            enableRecipeDeduction: true,
-          });
+          const [created] = await tx
+            .insert(menuItems)
+            .values({
+              tenantId,
+              branchId: branchId ?? null,
+              categoryId: r.data.categoryId,
+              name: r.data.name,
+              description: r.data.description,
+              basePrice: r.data.basePrice,
+              taxRate: r.data.taxRate,
+              foodType: r.data.foodType,
+              spiceLevel: r.data.spiceLevel,
+              sku: r.data.sku,
+              status: r.data.status,
+              hsnCode: r.data.hsnCode,
+              prepTimeMinutes: r.data.prepTimeMinutes,
+              sortOrder: 0,
+              enableRecipeDeduction: true,
+            })
+            .returning({ id: menuItems.id });
+          if (created) {
+            const defaultMenu = await tx.query.menus.findFirst({
+              where: and(
+                eq(menus.tenantId, tenantId),
+                eq(menus.isDefault, true),
+              ),
+              columns: { id: true },
+            });
+            if (defaultMenu)
+              await tx.insert(menuMemberships).values({
+                menuId: defaultMenu.id,
+                menuItemId: created.id,
+                categoryId: r.data.categoryId,
+              });
+            touched.push({ id: created.id, action: "insert", data: r.data });
+          }
           inserted++;
         }
       }
     });
 
-    return { inserted, updated };
+    return { inserted, updated, touched };
   },
 };

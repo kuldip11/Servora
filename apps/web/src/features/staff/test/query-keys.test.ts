@@ -4,7 +4,7 @@ vi.mock("../../../store/auth", () => ({
   useAuthStore: { getState: () => ({ franchiseId: "fr-1", branchId: "br-1" }) },
 }));
 
-import { roleKeys, staffKeys } from "../query-keys";
+import { roleKeys, staffKeys } from "@/features/staff/query-keys";
 
 describe("staff and role keys", () => {
   it("scopes both resources to the active franchise", () => {

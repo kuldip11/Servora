@@ -1,21 +1,28 @@
-import { request } from "../../shared/api/client";
+import { request } from "@/shared/api/client";
 
 export type CustomerOrder = {
   id: string;
   status: string;
   subtotal: string;
   taxAmount: string;
+  discountAmount: string;
+  serviceChargeAmount: string;
+  roundingAdjustment: string;
   totalAmount: string;
   createdAt: string;
   items: Array<{
     id: string;
-    menuItemId: string;
+    menuItemId: string | null;
     menuItemName: string;
+    comboId?: string | null;
+    comboGroupId?: string | null;
     variantId: string | null;
     variantName: string | null;
     quantity: number;
     unitPrice: string | number;
     subtotal: string | number;
+    taxRate?: string | number;
+    taxMode?: "INCLUSIVE" | "EXCLUSIVE";
     chefNotes: string | null;
     fulfillmentType: "DINE_IN" | "TAKEAWAY";
     modifiers: Array<{
@@ -41,21 +48,32 @@ export type CustomerOrder = {
 };
 
 export type CreateCustomerOrderInput = {
-  items: Array<{
+  items?: Array<{
     menuItemId: string;
     variantId?: string;
     quantity: number;
     chefNotes?: string;
     fulfillmentType?: "DINE_IN" | "TAKEAWAY";
-    selectedOptions?: Array<{ optionId: string; quantity?: number }>;
+    selectedOptions?: Array<{
+      optionId: string;
+      quantity?: number;
+      zoneLabel?: "LEFT" | "RIGHT" | "WHOLE";
+    }>;
+  }>;
+  combos?: Array<{
+    comboId: string;
+    quantity?: number;
+    selections: Array<{ slotId: string; optionIds: string[] }>;
   }>;
   notes?: string;
+  couponCode?: string;
+  loyaltyPhone?: string;
 };
 
-export function createCustomerOrder(
+export const createCustomerOrder = (
   sessionToken: string,
   input: CreateCustomerOrderInput,
-) {
+) => {
   const requestId = crypto.randomUUID();
   return request<CustomerOrder>(
     "/api/customer/orders",
@@ -66,15 +84,15 @@ export function createCustomerOrder(
     },
     sessionToken,
   );
-}
+};
 
-export function getCustomerOrder(sessionToken: string, orderId: string) {
+export const getCustomerOrder = (sessionToken: string, orderId: string) => {
   return request<CustomerOrder>(
     `/api/customer/orders/${orderId}`,
     undefined,
     sessionToken,
   );
-}
+};
 
 export type CustomerCheckout = {
   payment: {
@@ -89,7 +107,10 @@ export type CustomerCheckout = {
   method: "CASH";
 };
 
-export function checkoutCustomerOrder(sessionToken: string, orderId: string) {
+export const checkoutCustomerOrder = (
+  sessionToken: string,
+  orderId: string,
+) => {
   return request<CustomerCheckout>(
     `/api/customer/orders/${orderId}/checkout`,
     {
@@ -98,7 +119,7 @@ export function checkoutCustomerOrder(sessionToken: string, orderId: string) {
     },
     sessionToken,
   );
-}
+};
 
 export type TakeawayPaymentVerification = {
   orderId: string;
@@ -107,10 +128,10 @@ export type TakeawayPaymentVerification = {
   razorpaySignature: string;
 };
 
-export function verifyTakeawayPayment(
+export const verifyTakeawayPayment = (
   sessionToken: string,
   input: TakeawayPaymentVerification,
-) {
+) => {
   return request<CustomerOrder>(
     `/api/customer/orders/${input.orderId}/payment/verify`,
     {
@@ -123,9 +144,12 @@ export function verifyTakeawayPayment(
     },
     sessionToken,
   );
-}
+};
 
-export function initiateTakeawayPayment(sessionToken: string, orderId: string) {
+export const initiateTakeawayPayment = (
+  sessionToken: string,
+  orderId: string,
+) => {
   return request<{
     id: string;
     amount: string;
@@ -136,4 +160,4 @@ export function initiateTakeawayPayment(sessionToken: string, orderId: string) {
     { method: "POST" },
     sessionToken,
   );
-}
+};

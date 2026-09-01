@@ -1,6 +1,6 @@
 import type { MenuCategory, MenuItem, FoodType } from "@pos/types";
 import { Select } from "@pos/ui";
-import { formatCurrency } from "../../../../shared/utils/format";
+import { formatCurrency } from "@/shared/utils/format";
 
 export const FOOD_TYPE_FILTERS: { value: FoodType | "ALL"; label: string }[] = [
   { value: "ALL", label: "All" },
@@ -8,7 +8,7 @@ export const FOOD_TYPE_FILTERS: { value: FoodType | "ALL"; label: string }[] = [
   { value: "NON_VEG", label: "Non-Veg" },
   { value: "EGG", label: "Egg" },
 ];
-function priceLabel(item: MenuItem) {
+const priceLabel = (item: MenuItem) => {
   const prices = (item.variants ?? []).map((v) => Number(v.price));
   if (!prices.length) return formatCurrency(Number(item.basePrice));
   const min = Math.min(...prices),
@@ -16,8 +16,8 @@ function priceLabel(item: MenuItem) {
   return min === max
     ? formatCurrency(min)
     : `${formatCurrency(min)} – ${formatCurrency(max)}`;
-}
-export function MenuPicker({
+};
+export const MenuPicker = ({
   orderType,
   tableId,
   tablesEnabled,
@@ -29,6 +29,7 @@ export function MenuPicker({
   onTableChange,
   onFilterChange,
   onItemClick,
+  emptyMessage,
 }: {
   orderType: string;
   tableId: string;
@@ -37,11 +38,12 @@ export function MenuPicker({
   categories?: MenuCategory[] | undefined;
   filter: FoodType | "ALL";
   onOrderTypeChange: (v: string) => void;
-  availableOrderTypes: { value: string; label: string }[];
+  availableOrderTypes: readonly { value: string; label: string }[];
   onTableChange: (v: string) => void;
   onFilterChange: (v: FoodType | "ALL") => void;
   onItemClick: (item: MenuItem) => void;
-}) {
+  emptyMessage?: string | undefined;
+}) => {
   const visible = categories?.map((c) => ({
     ...c,
     menuItems: (c.menuItems ?? []).filter(
@@ -99,7 +101,7 @@ export function MenuPicker({
       <div className="space-y-4 max-h-80 overflow-y-auto pr-1">
         {!categories?.flatMap((c) => c.menuItems ?? []).length && (
           <p className="text-sm text-text-disabled text-center py-6">
-            No menu items yet.
+            {emptyMessage ?? "No menu items available for this order."}
           </p>
         )}
         {visible?.map((cat) =>
@@ -136,4 +138,4 @@ export function MenuPicker({
       </div>
     </div>
   );
-}
+};

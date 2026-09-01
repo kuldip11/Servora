@@ -1,10 +1,13 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Order } from "@pos/types";
-import { useRealtimeEvent } from "../../../shared/lib/realtime";
-import { fetchOrder } from "../api/orders";
-import { orderKeys, ORDER_DETAIL_POLL_INTERVAL_MS } from "../constants";
+import { useRealtimeEvent } from "@/shared/lib/realtime";
+import { fetchOrder } from "@/features/orders/api/orders";
+import {
+  orderKeys,
+  ORDER_DETAIL_POLL_INTERVAL_MS,
+} from "@/features/orders/constants";
 
-export function useOrder(orderId: string | null) {
+export const useOrder = (orderId: string | null) => {
   const qc = useQueryClient();
 
   useRealtimeEvent("order.updated", (event) => {
@@ -35,4 +38,4 @@ export function useOrder(orderId: string | null) {
     enabled: !!orderId,
     refetchInterval: ORDER_DETAIL_POLL_INTERVAL_MS,
   });
-}
+};

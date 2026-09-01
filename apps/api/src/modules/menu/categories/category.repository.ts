@@ -1,15 +1,12 @@
-/**
- * Menu category repository — data access for the "categories" sub-domain
- * only. Extracted from the monolithic `modules/menu/repository.ts` (still
- * used by modifier groups, tags, allergens, recipes, scheduling, branch
- * overrides, bulk ops, and import/export/templates — none of those have
- * been split out yet, see docs/NEXT_STEPS.md).
- */
 import { eq, and, isNull, or } from "drizzle-orm";
-import { db } from "../../../db";
-import { menuCategories, menuItems } from "../../../db/schema";
-import { ITEM_DETAIL_RELATIONS } from "../items/item.repository";
-import { compact } from "../../../lib/object-utils";
+import { db } from "@/db";
+import { menuCategories, menuItems } from "@/db/schema";
+import { ITEM_DETAIL_RELATIONS } from "@/modules/menu/items/item.repository";
+import { compact } from "@/lib/object-utils";
+import {
+  withEffectiveMenuItemAvailability,
+  withEffectiveModifierAvailability,
+} from "@/modules/menu/availability/availability-view";
 
 export const categoryRepository = {
   async findById(tenantId: string, categoryId: string) {
@@ -27,13 +24,11 @@ export const categoryRepository = {
     branchId: string | null | undefined,
     includeUnpublished: boolean,
   ) {
-    return db.query.menuCategories.findMany({
+    const categories = await db.query.menuCategories.findMany({
       where: and(
         eq(menuCategories.tenantId, tenantId),
         eq(menuCategories.isActive, true),
-        // Show categories scoped to this branch, plus tenant-wide shared
-        // ones (branchId is null). No branch selected (aggregate view) ->
-        // show everything.
+
         branchId
           ? or(
               eq(menuCategories.branchId, branchId),
@@ -51,11 +46,24 @@ export const categoryRepository = {
               ? or(eq(menuItems.branchId, branchId), isNull(menuItems.branchId))
               : undefined,
           ),
-          orderBy: (t: any, { asc }: any) => [asc(t.sortOrder)],
+          orderBy: (t, { asc }) => [asc(t.sortOrder)],
           with: ITEM_DETAIL_RELATIONS,
         },
       },
     });
+    return categories.map((category) => ({
+      ...category,
+      menuItems: category.menuItems.map((item) => ({
+        ...withEffectiveMenuItemAvailability(item),
+        modifierGroupLinks: item.modifierGroupLinks.map((link) => ({
+          ...link,
+          group: {
+            ...link.group,
+            options: link.group.options.map(withEffectiveModifierAvailability),
+          },
+        })),
+      })),
+    }));
   },
 
   async create(data: {

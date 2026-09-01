@@ -3,8 +3,13 @@ import { cors } from "@elysiajs/cors";
 import { swagger } from "@elysiajs/swagger";
 
 import { requestContextPlugin } from "./core/context";
+import type { RequestContext } from "./core/context/request-context";
 import { securityHeadersPlugin, rateLimitPlugin } from "./core/security";
-import { requestLoggingPlugin } from "./core/observability";
+import {
+  metrics,
+  metricsRouter,
+  requestLoggingPlugin,
+} from "./core/observability";
 import { AppError } from "./core/errors";
 import { rootLogger } from "./core/logger";
 
@@ -14,6 +19,7 @@ import { tenantsRouter } from "./modules/tenants/tenant.route";
 import { organizationsRouter } from "./modules/organizations/organization.route";
 import { tablesRouter } from "./modules/tables/table.route";
 import { ordersRouter } from "./modules/orders/order.route";
+import { cancellationReasonsRouter } from "./modules/orders/cancellation-reasons/cancellation-reason.route";
 import { kitchenTicketsRouter } from "./modules/kitchen-tickets/ticket.route";
 import { menuAuthorizationPlugin } from "./modules/menu/menu-authorization-plugin";
 import { menuItemsRouter } from "./modules/menu/items/item.route";
@@ -22,6 +28,7 @@ import { menuAvailabilityRouter } from "./modules/menu/availability/availability
 import { menuModifiersRouter } from "./modules/menu/modifiers/modifier.route";
 import { menuBulkOpsRouter } from "./modules/menu/bulk-ops/bulk-ops.route";
 import { menuRecipesRouter } from "./modules/menu/recipes/recipes.route";
+import { subRecipesRouter } from "./modules/menu/sub-recipes/sub-recipe.route";
 import { menuImportExportRouter } from "./modules/menu/import-export/import-export.route";
 import { menuTemplatesRouter } from "./modules/menu/templates/templates.route";
 import { inventoryRouter } from "./modules/inventory/inventory.route";
@@ -29,6 +36,16 @@ import { billingRouter } from "./modules/billing/billing.route";
 import { staffRouter } from "./modules/staff/staff.route";
 import { rolesRouter } from "./modules/roles/role.route";
 import { permissionsRouter } from "./modules/permissions/permission.route";
+import { priceRulesRouter } from "./modules/menu/pricing/price-rule.route";
+import { promotionsRouter } from "./modules/menu/promotions/promotion.route";
+import { loyaltyRouter } from "./modules/loyalty/loyalty.route";
+import { approvalsRouter } from "./modules/approvals/approval.route";
+import { customerGroupsRouter } from "./modules/customer-groups/customer-group.route";
+import { menusRouter } from "./modules/menu/menus/menu.route";
+import { combosRouter } from "./modules/menu/combos/combo.route";
+import { menuMembershipsRouter } from "./modules/menu/memberships/membership.route";
+import { menuChangeLogRouter } from "./modules/menu/change-log/menu-change-log.route";
+import { kitchenStationsRouter } from "./modules/kitchen-tickets/stations/station.route";
 import { analyticsRouter } from "./modules/analytics/analytics.route";
 import { auditRouter } from "./modules/audit/audit.route";
 import {
@@ -46,17 +63,7 @@ import { redis, closeRedisConnections } from "./lib/redis";
 
 const corsOrigins = env.CORS_ORIGIN.split(",");
 
-// The route-mounting chain below is long (20+ `.use()` calls across every
-// module router). Elysia's context type accumulates through each `.use()`,
-// and TypeScript's checker hits its recursion limit trying to compute the
-// fully-merged type by the time `app.listen(...)` is evaluated (TS2589,
-// "Type instantiation is excessively deep and possibly infinite"). None of
-// the mounted routers depend on `app`'s own accumulated type — they're
-// already fully-typed standalone Elysia instances — so it's safe to widen
-// the working type to `any` at each checkpoint below purely to keep the
-// compiler's bookkeeping bounded; this has no effect on runtime behavior,
-// which is unchanged.
-type AnyElysia = Elysia<any, any, any, any, any, any, any>;
+type WidenedElysia = Elysia;
 
 let app = new Elysia()
   .use(
@@ -69,6 +76,7 @@ let app = new Elysia()
         "X-Tenant-ID",
         "X-Tenant-Slug",
         "X-Branch-Id",
+        "X-Servora-App",
       ],
       methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
     }),
@@ -97,7 +105,8 @@ let app = new Elysia()
   .use(securityHeadersPlugin())
   .use(rateLimitPlugin())
   .use(requestLoggingPlugin())
-  // Health check
+  .use(metricsRouter)
+
   .get("/health", () => ({
     status: "ok",
     timestamp: new Date().toISOString(),
@@ -109,13 +118,22 @@ let app = new Elysia()
   }))
   .get("/health/ready", async ({ set }) => {
     const checks = { database: false, redis: false };
+    const dbStarted = performance.now();
     try {
       await db.execute(sql`select 1`);
       checks.database = true;
-    } catch {}
+    } catch {
+    } finally {
+      metrics.observeDuration(
+        "servora_db_query_duration_ms",
+        performance.now() - dbStarted,
+        { operation: "readiness" },
+      );
+    }
     try {
       checks.redis = (await redis.ping()) === "PONG";
     } catch {}
+    metrics.setGauge("servora_redis_available", checks.redis ? 1 : 0);
 
     if (!checks.database || !checks.redis) {
       set.status = 503;
@@ -126,9 +144,8 @@ let app = new Elysia()
       };
     }
     return { status: "ready", checks, timestamp: new Date().toISOString() };
-  }) as AnyElysia;
+  }) as unknown as WidenedElysia;
 
-// Routers
 app = app
   .use(authRouter)
   .use(authMeRouter)
@@ -137,43 +154,65 @@ app = app
   .use(organizationsRouter)
   .use(tablesRouter)
   .use(ordersRouter)
-  .use(kitchenTicketsRouter)
+  .use(cancellationReasonsRouter)
+  .use(kitchenTicketsRouter) as unknown as WidenedElysia;
+
+app = app
   .use(menuAuthorizationPlugin())
   .use(menuItemsRouter)
+  .use(menusRouter)
+  .use(combosRouter)
+  .use(menuMembershipsRouter)
+  .use(menuChangeLogRouter)
+  .use(kitchenStationsRouter)
   .use(menuCategoriesRouter)
   .use(menuAvailabilityRouter)
   .use(menuModifiersRouter)
   .use(menuBulkOpsRouter)
   .use(menuRecipesRouter)
+  .use(subRecipesRouter)
   .use(menuImportExportRouter)
-  .use(menuTemplatesRouter)
+  .use(menuTemplatesRouter) as unknown as WidenedElysia;
+
+app = app
+  .use(promotionsRouter)
+  .use(loyaltyRouter)
+  .use(approvalsRouter)
+  .use(customerGroupsRouter)
+  .use(priceRulesRouter)
   .use(inventoryRouter)
   .use(billingRouter)
   .use(staffRouter)
   .use(rolesRouter)
   .use(permissionsRouter)
-  .use(analyticsRouter)
+  .use(analyticsRouter) as unknown as WidenedElysia;
+
+app = app
   .use(auditRouter)
   .use(customerRouter)
   .use(customerRequestRouter)
   .use(razorpayWebhookRouter)
   .use(realtimeRouter)
-  .use(customerRealtimeRouter) as AnyElysia;
+  .use(customerRealtimeRouter) as unknown as WidenedElysia;
 
-// Global error handler
-app = app.onError(({ code, error, set, requestContext }) => {
-  // New, typed errors (AppError and subclasses) — the pattern new modules
-  // are being migrated to. Checked first; everything below is unchanged
-  // legacy behavior for modules that haven't migrated yet.
-  if (AppError.isAppError(error)) {
-    rootLogger.warn(`API Error: ${error.code}`, {
+app = app.onError((context) => {
+  const { code, error, set } = context;
+  const requestContext =
+    "requestContext" in context
+      ? (context as unknown as { requestContext?: RequestContext })
+          .requestContext
+      : undefined;
+
+  const appError = AppError.unwrap(error);
+  if (appError) {
+    rootLogger.warn(`API Error: ${appError.code}`, {
       requestId: requestContext?.requestId,
-      statusCode: error.statusCode,
-      message: error.message,
-      details: error.details,
+      statusCode: appError.statusCode,
+      message: appError.message,
+      details: appError.details,
     });
-    set.status = error.statusCode;
-    return error.toJSON();
+    set.status = appError.statusCode;
+    return appError.toJSON();
   }
 
   rootLogger.error(
@@ -199,11 +238,6 @@ app = app.onError(({ code, error, set, requestContext }) => {
     return { success: false, code: "NOT_FOUND", message: "Route not found" };
   }
 
-  // PostgreSQL uniqueness violations are expected domain conflicts, not
-  // internal server errors. This is especially important for tenant-scoped
-  // natural keys such as (tenant_id, branch_name): the database remains the
-  // final authority for concurrent requests, so the API must translate a
-  // 23505 into a stable 409 response.
   if (
     typeof error === "object" &&
     error !== null &&
@@ -224,7 +258,7 @@ app = app.onError(({ code, error, set, requestContext }) => {
     code: "INTERNAL_ERROR",
     message: "Internal server error",
   };
-});
+}) as unknown as WidenedElysia;
 
 const port = env.PORT;
 
@@ -237,7 +271,7 @@ app.listen(port, () => {
 
 let shuttingDown = false;
 
-async function shutdown(signal: string) {
+const shutdown = async (signal: string) => {
   if (shuttingDown) return;
   shuttingDown = true;
   rootLogger.info("shutdown.started", { signal });
@@ -254,7 +288,7 @@ async function shutdown(signal: string) {
     closeDatabaseConnections(),
   ]);
   rootLogger.info("shutdown.complete", { signal });
-}
+};
 
 process.once("SIGINT", () => void shutdown("SIGINT"));
 process.once("SIGTERM", () => void shutdown("SIGTERM"));

@@ -6,15 +6,24 @@ import {
   timestamp,
   pgEnum,
   index,
+  integer,
+  check,
+  uniqueIndex,
+  foreignKey,
+  type AnyPgColumn,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { tenants } from "./tenant.schema";
 import { branches } from "./branch.schema";
 import { users } from "./auth.schema";
 import { restaurantTables } from "./restaurant-table.schema";
 import { customerSessions } from "./customer-session.schema";
+import { customerGroups } from "./customer-group.schema";
+import { priceRules } from "./pricing.schema";
+import { orderSourceEnum, orderTypeEnum } from "./order-enums.schema";
 
-// A tab's lifecycle — billing state only. Kitchen prep state now lives on
-// kitchen_tickets (see below), not here.
+export { orderSourceEnum, orderTypeEnum } from "./order-enums.schema";
+
 export const orderStatusEnum = pgEnum("order_status", [
   "OPEN",
   "BILL_REQUESTED",
@@ -23,16 +32,10 @@ export const orderStatusEnum = pgEnum("order_status", [
   "CANCELLED",
 ]);
 
-export const orderSourceEnum = pgEnum("order_source", ["STAFF", "CUSTOMER_QR"]);
-
-export const orderTypeEnum = pgEnum("order_type", [
-  "DINE_IN",
-  "TAKEAWAY",
-  "DELIVERY",
-  "ONLINE",
+export const billingModeEnum = pgEnum("billing_mode", [
+  "LINE_ITEMS",
+  "PER_COVER",
 ]);
-
-// ─── Orders ───────────────────────────────────────────────────────────────────
 
 export const orders = pgTable(
   "orders",
@@ -46,6 +49,14 @@ export const orders = pgTable(
       .references(() => branches.id, { onDelete: "cascade" }),
     tableId: uuid("table_id").references(() => restaurantTables.id),
     customerId: uuid("customer_id"),
+    customerGroupId: uuid("customer_group_id").references(
+      () => customerGroups.id,
+      { onDelete: "set null" },
+    ),
+    mergedIntoOrderId: uuid("merged_into_order_id").references(
+      (): AnyPgColumn => orders.id,
+      { onDelete: "set null" },
+    ),
     createdBy: uuid("created_by").references(() => users.id),
     source: orderSourceEnum("source").notNull().default("STAFF"),
     customerSessionId: uuid("customer_session_id").references(
@@ -53,6 +64,15 @@ export const orders = pgTable(
     ),
     status: orderStatusEnum("status").notNull().default("OPEN"),
     type: orderTypeEnum("type").notNull(),
+    billingMode: billingModeEnum("billing_mode")
+      .notNull()
+      .default("LINE_ITEMS"),
+    coverCount: integer("cover_count"),
+    perCoverPriceRuleId: uuid("per_cover_price_rule_id").references(
+      () => priceRules.id,
+      { onDelete: "set null" },
+    ),
+    perCoverRate: numeric("per_cover_rate", { precision: 10, scale: 2 }),
     subtotal: numeric("subtotal", { precision: 10, scale: 2 })
       .notNull()
       .default("0"),
@@ -62,10 +82,24 @@ export const orders = pgTable(
     discountAmount: numeric("discount_amount", { precision: 10, scale: 2 })
       .notNull()
       .default("0"),
+    serviceChargeAmount: numeric("service_charge_amount", {
+      precision: 10,
+      scale: 2,
+    })
+      .notNull()
+      .default("0"),
+    roundingAdjustment: numeric("rounding_adjustment", {
+      precision: 10,
+      scale: 2,
+    })
+      .notNull()
+      .default("0"),
     totalAmount: numeric("total_amount", { precision: 10, scale: 2 })
       .notNull()
       .default("0"),
     notes: text("notes"),
+
+    resolutionAsOf: timestamp("resolution_as_of"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
@@ -76,5 +110,33 @@ export const orders = pgTable(
     ),
     statusIdx: index("orders_status_idx").on(t.status),
     createdAtIdx: index("orders_created_at_idx").on(t.createdAt),
+    mergedIntoIdx: index("orders_merged_into_idx").on(t.mergedIntoOrderId),
+    customerSessionIdx: index("orders_customer_session_idx").on(
+      t.customerSessionId,
+    ),
+    customerSessionActiveUnique: uniqueIndex(
+      "orders_customer_session_active_unique",
+    )
+      .on(t.customerSessionId)
+      .where(
+        sql`${t.customerSessionId} IS NOT NULL AND ${t.status} NOT IN ('PAID', 'CLOSED', 'CANCELLED')`,
+      ),
+    customerGroupIdx: index("orders_customer_group_idx").on(t.customerGroupId),
+    billingModeIdx: index("orders_billing_mode_idx").on(
+      t.tenantId,
+      t.billingMode,
+    ),
+    resolutionAsOfIdx: index("orders_resolution_as_of_idx").on(
+      t.resolutionAsOf,
+    ),
+    perCoverFieldsValid: check(
+      "orders_per_cover_fields_valid",
+      sql`(${t.billingMode} = 'LINE_ITEMS' AND ${t.coverCount} IS NULL AND ${t.perCoverRate} IS NULL) OR (${t.billingMode} = 'PER_COVER' AND ${t.coverCount} > 0 AND ${t.perCoverPriceRuleId} IS NOT NULL AND ${t.perCoverRate} IS NOT NULL)`,
+    ),
+    branchTenantFk: foreignKey({
+      name: "orders_branch_tenant_fk",
+      columns: [t.branchId, t.tenantId],
+      foreignColumns: [branches.id, branches.tenantId],
+    }).onDelete("cascade"),
   }),
 );

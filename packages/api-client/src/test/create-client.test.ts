@@ -24,31 +24,35 @@ type Interceptor<T> = {
   use: (fulfilled: (value: T) => any, rejected?: (error: any) => any) => void;
 };
 
-function makeClientHarness() {
+const makeClientHarness = () => {
   const request: Interceptor<any> = { use: vi.fn() };
   const response: Interceptor<any> = { use: vi.fn() };
   const api = vi.fn();
-  mocks.instance = Object.assign(api, { interceptors: { request, response } });
+  mocks.instance = Object.assign(api, {
+    interceptors: { request, response },
+    post: mocks.post,
+  });
   return { request, response, api };
-}
+};
 
-function storage(
+const storage = (
   overrides: Partial<TokenStorageAdapter> = {},
-): TokenStorageAdapter {
+): TokenStorageAdapter => {
   return {
     getAccessToken: () => null,
-    getRefreshToken: () => null,
-    setTokens: vi.fn(),
+    setAccessToken: vi.fn(),
     clear: vi.fn(),
     ...overrides,
   };
-}
+};
 
-function installedInterceptors(harness: ReturnType<typeof makeClientHarness>) {
+const installedInterceptors = (
+  harness: ReturnType<typeof makeClientHarness>,
+) => {
   const requestHandler = (harness.request.use as any).mock.calls[0][0];
   const responseRejected = (harness.response.use as any).mock.calls[0][1];
   return { requestHandler, responseRejected };
-}
+};
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -70,10 +74,24 @@ describe("createApiClient request interceptor", () => {
       onRefreshFailure: vi.fn(),
     });
 
-    expect(axios.create).toHaveBeenCalledWith({
+    expect(axios.create).toHaveBeenCalledTimes(2);
+    expect(axios.create).toHaveBeenNthCalledWith(1, {
       baseURL: "https://api.example.com",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-Servora-App": "web",
+      },
       timeout: 5000,
+      withCredentials: true,
+    });
+    expect(axios.create).toHaveBeenNthCalledWith(2, {
+      baseURL: "https://api.example.com",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Servora-App": "web",
+      },
+      timeout: 5000,
+      withCredentials: true,
     });
 
     const config = { headers: {} as Record<string, string> };
@@ -107,6 +125,27 @@ describe("createApiClient request interceptor", () => {
 });
 
 describe("createApiClient response interceptor", () => {
+  it("binds requests and refreshes to the configured Servora application", () => {
+    createApiClient({
+      app: "kitchen",
+      baseURL: "https://api.example.com",
+      timeout: 5000,
+      storage: storage(),
+      onRefreshFailure: vi.fn(),
+    });
+
+    expect(axios.create).toHaveBeenNthCalledWith(1,
+      expect.objectContaining({
+        headers: expect.objectContaining({ "X-Servora-App": "kitchen" }),
+      }),
+    );
+    expect(axios.create).toHaveBeenNthCalledWith(2,
+      expect.objectContaining({
+        headers: expect.objectContaining({ "X-Servora-App": "kitchen" }),
+      }),
+    );
+  });
+
   it("rejects non-401 errors without attempting refresh", async () => {
     const harness = makeClientHarness();
     const failure = vi.fn();
@@ -149,36 +188,16 @@ describe("createApiClient response interceptor", () => {
     expect(mocks.post).not.toHaveBeenCalled();
   });
 
-  it("logs out immediately when no refresh token is available", async () => {
-    const harness = makeClientHarness();
-    const failure = vi.fn();
-    createApiClient({
-      baseURL: "/api",
-      timeout: 1000,
-      storage: storage(),
-      onRefreshFailure: failure,
-    });
-    const error = {
-      response: { status: 401 },
-      config: { url: "/orders", headers: {} },
-    };
-    await expect(
-      installedInterceptors(harness).responseRejected(error),
-    ).rejects.toBe(error);
-    expect(failure).toHaveBeenCalledOnce();
-    expect(mocks.post).not.toHaveBeenCalled();
-  });
-
   it("refreshes tokens, updates storage, retries the request, and returns the retry result", async () => {
     const harness = makeClientHarness();
-    const setTokens = vi.fn();
-    const s = storage({ getRefreshToken: () => "refresh", setTokens });
+    const setAccessToken = vi.fn();
+    const s = storage({ setAccessToken });
     const failure = vi.fn();
     const retried = { data: { ok: true } };
     harness.api.mockResolvedValue(retried);
     mocks.post.mockResolvedValue({
       data: {
-        data: { accessToken: "new-access", refreshToken: "new-refresh" },
+        data: { accessToken: "new-access" },
       },
     });
     createApiClient({
@@ -193,22 +212,54 @@ describe("createApiClient response interceptor", () => {
       response: { status: 401 },
       config: original,
     });
-    expect(mocks.post).toHaveBeenCalledWith("/api/auth/refresh", {
-      refreshToken: "refresh",
-    });
-    expect(setTokens).toHaveBeenCalledWith("new-access", "new-refresh");
+    expect(mocks.post).toHaveBeenCalledWith("/auth/refresh");
+    expect(setAccessToken).toHaveBeenCalledWith("new-access");
     expect(original.headers.Authorization).toBe("Bearer new-access");
     expect(harness.api).toHaveBeenCalledWith(original);
     expect(result).toBe(retried);
     expect(failure).not.toHaveBeenCalled();
   });
 
+  it("uses the configured absolute API origin for the isolated refresh client", async () => {
+    const harness = makeClientHarness();
+    const s = storage();
+    mocks.post.mockResolvedValue({
+      data: {
+        data: { accessToken: "new-access" },
+      },
+    });
+    harness.api.mockResolvedValue({ data: { ok: true } });
+
+    createApiClient({
+      baseURL: "https://api.example.com/api",
+      timeout: 4321,
+      storage: s,
+      onRefreshFailure: vi.fn(),
+    });
+
+    await installedInterceptors(harness).responseRejected({
+      response: { status: 401 },
+      config: { url: "/orders", headers: {} },
+    });
+
+    expect(axios.create).toHaveBeenNthCalledWith(2, {
+      baseURL: "https://api.example.com/api",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Servora-App": "web",
+      },
+      timeout: 4321,
+      withCredentials: true,
+    });
+    expect(mocks.post).toHaveBeenCalledWith("/auth/refresh");
+  });
+
   it("queues concurrent 401 requests behind one refresh call", async () => {
     const harness = makeClientHarness();
-    const s = storage({ getRefreshToken: () => "refresh" });
+    const s = storage();
     const refresh = Promise.resolve({
       data: {
-        data: { accessToken: "new-access", refreshToken: "new-refresh" },
+        data: { accessToken: "new-access" },
       },
     });
     mocks.post.mockReturnValue(refresh);
@@ -236,7 +287,7 @@ describe("createApiClient response interceptor", () => {
   it("rejects the refresh error and fails queued requests when refresh fails", async () => {
     const harness = makeClientHarness();
     const failure = vi.fn();
-    const s = storage({ getRefreshToken: () => "refresh" });
+    const s = storage();
     const refreshError = new Error("refresh failed");
     mocks.post.mockRejectedValue(refreshError);
     createApiClient({

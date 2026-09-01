@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchCategories } from "../api/menu";
+import { fetchCategories } from "@/features/menu/api/menu";
 
-export function useMenuCategories() {
+export const useMenuCategories = () => {
   return useQuery({
     queryKey: ["menu-categories"],
     queryFn: fetchCategories,
   });
-}
+};

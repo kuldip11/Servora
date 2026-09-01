@@ -1,14 +1,14 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
 import {
   ordersService,
   type CreateOrderInput,
-} from "../services/orders.service";
-import { orderKeys } from "../query-keys";
-import { tableKeys } from "../../tables/query-keys";
+} from "@/features/orders/services/orders.service";
+import { orderKeys } from "@/features/orders/query-keys";
+import { tableKeys } from "@/features/tables/query-keys";
 
-export function useCreateOrder() {
+export const useCreateOrder = () => {
   return useMutation({
     mutationFn: (input: CreateOrderInput) => ordersService.create(input),
     onSuccess: () => {
@@ -18,4 +18,4 @@ export function useCreateOrder() {
     },
     onError: (err) => notifyError(err, "Failed to create order"),
   });
-}
+};

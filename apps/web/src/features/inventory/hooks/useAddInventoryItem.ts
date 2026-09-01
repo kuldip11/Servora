@@ -1,13 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
 import {
   inventoryService,
   type InventoryItemFormInput,
-} from "../services/inventory.service";
-import { inventoryKeys } from "../query-keys";
+} from "@/features/inventory/services/inventory.service";
+import { inventoryKeys } from "@/features/inventory/query-keys";
 
-export function useAddInventoryItem() {
+export const useAddInventoryItem = () => {
   return useMutation({
     mutationFn: (input: InventoryItemFormInput) => inventoryService.add(input),
     onSuccess: () => {
@@ -16,4 +16,4 @@ export function useAddInventoryItem() {
     },
     onError: (err) => notifyError(err, "Failed to add item"),
   });
-}
+};

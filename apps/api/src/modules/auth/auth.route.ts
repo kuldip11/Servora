@@ -1,37 +1,57 @@
 import { Elysia } from "elysia";
-import { requireAuthPlugin } from "../../core/auth";
+import { requireAuthPlugin } from "@/core/auth";
 import { authController } from "./auth.controller";
+import { authService } from "./auth.service";
+import { successResponse } from "@/core/response";
+import { invalidRefreshToken } from "./auth.errors";
+import {
+  clearRefreshCookie,
+  readRefreshCookie,
+  serializeRefreshCookie,
+} from "./auth-cookie";
+import { AUTH_APP_HEADER, parseAuthApp } from "./auth-app";
+import { assertTrustedAuthOrigin } from "./auth-origin";
 import {
   signupBody,
   loginBody,
-  refreshBody,
   profileBody,
   sessionIdParams,
 } from "./auth.validator";
 
-// Public endpoints — no bearer token to check yet, so this instance
-// deliberately does not mount `requireAuthPlugin()`.
 export const authRouter = new Elysia()
   .post("/api/auth/signup", ({ body }) => authController.signup(body), {
     body: signupBody,
   })
-  .post("/api/auth/login", ({ body }) => authController.login(body), {
-    body: loginBody,
-  })
   .post(
-    "/api/auth/refresh",
-    ({ body }) => authController.refresh(body.refreshToken),
-    { body: refreshBody },
+    "/api/auth/login",
+    async ({ body, headers, set }) => {
+      assertTrustedAuthOrigin(headers.origin);
+      const app = parseAuthApp(headers[AUTH_APP_HEADER]);
+      const { refreshToken, ...result } = await authService.login(body, app);
+      set.headers["set-cookie"] = serializeRefreshCookie(refreshToken, app);
+      return successResponse(result);
+    },
+    { body: loginBody },
   )
-  .post(
-    "/api/auth/logout",
-    ({ body }) => authController.logout(body.refreshToken),
-    { body: refreshBody },
-  );
+  .post("/api/auth/refresh", async ({ headers, set }) => {
+    assertTrustedAuthOrigin(headers.origin);
+    const app = parseAuthApp(headers[AUTH_APP_HEADER]);
+    const refreshToken = readRefreshCookie(headers.cookie, app);
+    if (!refreshToken) throw invalidRefreshToken();
+    const { refreshToken: nextRefreshToken, ...result } =
+      await authService.refresh(refreshToken, app);
+    set.headers["set-cookie"] = serializeRefreshCookie(nextRefreshToken, app);
+    return successResponse(result);
+  })
+  .post("/api/auth/logout", async ({ headers, set }) => {
+    assertTrustedAuthOrigin(headers.origin);
+    const app = parseAuthApp(headers[AUTH_APP_HEADER]);
+    const refreshToken = readRefreshCookie(headers.cookie, app);
+    if (refreshToken) await authService.logout(refreshToken);
+    set.headers["set-cookie"] = clearRefreshCookie(app);
+    return successResponse({ loggedOut: true });
+  });
 
-// `/api/auth/me` needs a resolved `auth` context, so it's a separate
-// instance mounted alongside `authRouter` (same split as
-// `staffRouter`/`rolesRouter` in `staff.route.ts`).
 export const authMeRouter = new Elysia()
   .use(requireAuthPlugin())
   .get("/api/auth/me", ({ auth }) => authController.me(auth))

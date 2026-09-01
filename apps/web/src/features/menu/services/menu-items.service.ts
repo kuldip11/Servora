@@ -1,74 +1,71 @@
-import { apiClient } from "../../../shared/lib/api-client";
+import {
+  createMenuApi,
+  type CreateMenuItemInput,
+  type UpdateMenuItemInput,
+} from "@pos/api-client";
+import { apiClient } from "@/shared/lib/api-client";
 import type { MenuItem, MenuCategory, MenuItemStatus } from "@pos/types";
 
-export interface MenuItemFormPayload {
-  categoryId: string;
-  name: string;
-  description?: string;
-  basePrice: number;
-  taxRate: number;
-  foodType: string;
-  spiceLevel?: string;
-  sku?: string;
-  prepTimeMinutes?: number;
-  hsnCode?: string;
-  status: MenuItemStatus;
-  availabilityReason: string | null;
-  enableRecipeDeduction: boolean;
-  variants: { name: string; price: number }[];
-  modifierGroupIds: string[];
-  tagIds: string[];
-  allergenIds: string[];
-  imageUrls: string[];
-}
+export type MenuItemFormPayload = CreateMenuItemInput;
+
+const menuApi = createMenuApi(apiClient);
 
 export const menuItemsService = {
   async listCategories(): Promise<MenuCategory[]> {
-    const res = await apiClient.get("/menu/categories");
-    return res.data.data;
+    return menuApi.listCategories();
   },
 
   async addCategory(name: string): Promise<MenuCategory> {
-    const res = await apiClient.post("/menu/categories", { name });
-    return res.data.data;
+    return menuApi.createCategory(name);
   },
 
   async renameCategory(id: string, name: string): Promise<MenuCategory> {
-    const res = await apiClient.patch(`/menu/categories/${id}`, { name });
-    return res.data.data;
+    return menuApi.renameCategory(id, name);
   },
 
   async deleteCategory(id: string): Promise<void> {
-    await apiClient.delete(`/menu/categories/${id}`);
+    await menuApi.deleteCategory(id);
   },
 
   async saveItem(
     item: MenuItem | null,
     payload: MenuItemFormPayload,
   ): Promise<MenuItem> {
-    const res = item
-      ? await apiClient.patch(`/menu/items/${item.id}`, payload)
-      : await apiClient.post("/menu/items", payload);
-    return res.data.data;
+    if (!item) return menuApi.createItem(payload);
+    const { categoryId: _categoryId, ...updatePayload } = payload;
+    return menuApi.updateItem(item.id, updatePayload satisfies UpdateMenuItemInput);
   },
 
-  async setAvailability(id: string, isAvailable: boolean): Promise<void> {
-    await apiClient.patch(`/menu/items/${id}/availability`, { isAvailable });
+  async setManualStockCount(
+    id: string,
+    count: number | null,
+    variantId?: string,
+  ): Promise<void> {
+    await menuApi.setManualStockCount(id, count, variantId);
+  },
+
+  async setManualAvailabilityOverride(
+    id: string,
+    status: MenuItemStatus,
+    reason: string,
+  ): Promise<void> {
+    await menuApi.setManualAvailabilityOverride(id, status, reason);
+  },
+
+  async clearManualAvailabilityOverride(id: string): Promise<void> {
+    await menuApi.clearManualAvailabilityOverride(id);
   },
 
   async deleteItem(id: string): Promise<void> {
-    await apiClient.delete(`/menu/items/${id}`);
+    await menuApi.deleteItem(id);
   },
 
   async duplicateItem(id: string): Promise<MenuItem> {
-    const res = await apiClient.post(`/menu/items/${id}/duplicate`);
-    return res.data.data;
+    return menuApi.duplicateItem(id);
   },
 
   async setPublished(id: string, publish: boolean): Promise<void> {
-    await apiClient.patch(
-      `/menu/items/${id}/${publish ? "publish" : "unpublish"}`,
-    );
+    await menuApi.setPublished(id, publish);
   },
 
   async bulkSetStatus(
@@ -76,23 +73,14 @@ export const menuItemsService = {
     status: MenuItemStatus,
     reason?: string,
   ): Promise<{ updated: number }> {
-    const res = await apiClient.post("/menu/items/bulk/status", {
-      itemIds,
-      status,
-      reason,
-    });
-    return res.data.data;
+    return menuApi.bulkSetStatus(itemIds, status, reason);
   },
 
   async bulkMoveCategory(
     itemIds: string[],
     categoryId: string,
   ): Promise<{ updated: number }> {
-    const res = await apiClient.post("/menu/items/bulk/category", {
-      itemIds,
-      categoryId,
-    });
-    return res.data.data;
+    return menuApi.bulkMoveCategory(itemIds, categoryId);
   },
 
   async bulkUpdateTags(
@@ -100,12 +88,7 @@ export const menuItemsService = {
     tagIds: string[],
     mode: "add" | "remove" | "replace",
   ): Promise<{ updated: number }> {
-    const res = await apiClient.post("/menu/items/bulk/tags", {
-      itemIds,
-      tagIds,
-      mode,
-    });
-    return res.data.data;
+    return menuApi.bulkUpdateTags(itemIds, tagIds, mode);
   },
 
   async bulkAdjustPrice(
@@ -113,18 +96,12 @@ export const menuItemsService = {
     priceChange: number,
     mode: "set" | "increase" | "decrease",
   ): Promise<{ updated: number }> {
-    const res = await apiClient.post("/menu/items/bulk/price", {
-      itemIds,
-      priceChange,
-      mode,
-    });
-    return res.data.data;
+    return menuApi.bulkAdjustPrice(itemIds, priceChange, mode);
   },
 
   async bulkDelete(
     itemIds: string[],
   ): Promise<{ deleted: number; protected: number }> {
-    const res = await apiClient.post("/menu/items/bulk/delete", { itemIds });
-    return res.data.data;
+    return menuApi.bulkDelete(itemIds);
   },
 };

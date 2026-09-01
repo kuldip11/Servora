@@ -32,14 +32,14 @@ type Values = {
   branchIds: string[];
 };
 
-export function EditStaffForm({
+export const EditStaffForm = ({
   member,
   roles,
   branches,
   loading = false,
   onCancel,
   onSubmit,
-}: Props) {
+}: Props) => {
   const { register, handleSubmit, watch, setValue } = useForm<Values>({
     defaultValues: {
       firstName: member.firstName ?? "",
@@ -117,4 +117,4 @@ export function EditStaffForm({
       </div>
     </form>
   );
-}
+};

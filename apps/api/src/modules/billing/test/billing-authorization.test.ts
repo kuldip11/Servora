@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   assertBillingResourceAccess,
   requireBillingPermission,
-} from "../billing-authorization";
-import type { AuthContext } from "../../../core/auth";
+} from "@/modules/billing/billing-authorization";
+import type { AuthContext } from "@/core/auth";
 
 const auth = (overrides: Partial<AuthContext> = {}): AuthContext => ({
   userId: "u1",

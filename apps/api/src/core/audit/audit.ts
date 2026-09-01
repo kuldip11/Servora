@@ -1,5 +1,5 @@
-import { db } from "../../db";
-import { auditLogs } from "../../db/schema";
+import { db } from "@/db";
+import { auditLogs } from "@/db/schema";
 
 export type AuditAction =
   | "TENANT_CREATED"
@@ -19,7 +19,36 @@ export type AuditAction =
   | "ROLE_ARCHIVED"
   | "ROLE_PERMISSIONS_UPDATED"
   | "PAYMENT_CREATED"
-  | "REFUND_CREATED";
+  | "BILL_SPLIT"
+  | "REFUND_CREATED"
+  | "MENU_AVAILABILITY_OVERRIDE_SET"
+  | "MENU_AVAILABILITY_OVERRIDE_CLEARED"
+  | "MENU_AVAILABILITY_COMPUTED_CHANGED"
+  | "KITCHEN_COURSE_MANUALLY_FIRED"
+  | "KITCHEN_COURSE_AUTO_FIRED"
+  | "ORDER_ITEM_REFIRED"
+  | "ORDER_ITEM_REFILL"
+  | "ORGANIZATION_MENU_CREATED"
+  | "ORGANIZATION_MENU_UPDATED"
+  | "ORGANIZATION_MENU_DELETED"
+  | "MENU_STOCK_COUNT_ADJUSTED"
+  | "ORDER_ITEM_SEAT_SHARES_UPDATED"
+  | "CUSTOMER_GROUP_CREATED"
+  | "CUSTOMER_GROUP_UPDATED"
+  | "CUSTOMER_GROUP_DELETED"
+  | "LOYALTY_TIER_CREATED"
+  | "LOYALTY_TIER_UPDATED"
+  | "LOYALTY_TIER_DELETED"
+  | "CUSTOMER_CREATED"
+  | "CUSTOMER_LOYALTY_UPDATED"
+  | "VOID_COMP_THRESHOLD_UPDATED"
+  | "MANAGER_APPROVAL_GRANTED"
+  | "ORGANIZATION_LOYALTY_TIER_CREATED"
+  | "ORGANIZATION_LOYALTY_TIER_UPDATED"
+  | "ORGANIZATION_LOYALTY_TIER_DELETED"
+  | "COMBO_CREATED"
+  | "COMBO_UPDATED"
+  | "COMBO_DELETED";
 
 export interface AuditInput {
   tenantId: string;
@@ -33,8 +62,7 @@ export interface AuditInput {
   ipAddress?: string | null | undefined;
 }
 
-/** Append-only tenant-scoped security/operations audit writer. */
-export async function writeAudit(input: AuditInput) {
+export const writeAudit = async (input: AuditInput) => {
   const metadataBranchId =
     typeof input.metadata?.branchId === "string"
       ? input.metadata.branchId
@@ -54,4 +82,4 @@ export async function writeAudit(input: AuditInput) {
     })
     .returning();
   return entry!;
-}
+};

@@ -1,4 +1,4 @@
-export function ProductPreview({ label }: { label: string }) {
+export const ProductPreview = ({ label }: { label: string }) => {
   return (
     <div className="relative overflow-hidden rounded-3xl border border-[var(--border)] bg-[#111827] p-3 shadow-2xl">
       <div className="rounded-2xl bg-white p-4 sm:p-5">
@@ -69,4 +69,4 @@ export function ProductPreview({ label }: { label: string }) {
       </div>
     </div>
   );
-}
+};

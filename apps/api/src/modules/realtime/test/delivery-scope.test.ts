@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { shouldDeliverRealtimeEvent } from "../delivery-scope";
+import { shouldDeliverRealtimeEvent } from "@/modules/realtime/delivery-scope";
 
 describe("realtime delivery scope", () => {
   it("allows tenant-wide sockets to receive tenant events regardless of branch", () => {

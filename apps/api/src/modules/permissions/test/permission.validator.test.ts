@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Value } from "@sinclair/typebox/value";
-import { setRolePermissionsBody } from "../permission.validator";
+import { setRolePermissionsBody } from "@/modules/permissions/permission.validator";
 
 describe("permission validator", () => {
   it("accepts unique UUID permission ids", () => {

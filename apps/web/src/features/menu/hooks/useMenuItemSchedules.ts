@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { menuItemSchedulesQuery } from "../query-options";
+import { menuItemSchedulesQuery } from "@/features/menu/query-options";
 
-export function useMenuItemSchedules(itemId: string) {
+export const useMenuItemSchedules = (itemId: string) => {
   return useQuery(menuItemSchedulesQuery(itemId));
-}
+};

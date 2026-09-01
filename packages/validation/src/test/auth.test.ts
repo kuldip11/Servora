@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loginSchema, refreshTokenSchema, signupSchema } from "../auth";
+import { loginSchema, signupSchema } from "../auth";
 
 const validSignup = {
   firstName: "Ada",
@@ -9,14 +9,8 @@ const validSignup = {
 };
 
 describe("signupSchema", () => {
-  it("accepts valid signup data without the deprecated tenant field", () => {
+  it("accepts valid standalone signup data", () => {
     expect(signupSchema.parse(validSignup)).toEqual(validSignup);
-  });
-  it("accepts the optional tenantName compatibility field", () => {
-    expect(
-      signupSchema.parse({ ...validSignup, tenantName: "Main Restaurant" })
-        .tenantName,
-    ).toBe("Main Restaurant");
   });
   it.each([
     ["firstName", ""],
@@ -54,16 +48,5 @@ describe("loginSchema", () => {
     expect(
       loginSchema.safeParse({ email: "ada@example.com", password: "" }).success,
     ).toBe(false);
-  });
-});
-
-describe("refreshTokenSchema", () => {
-  it("requires a non-empty refresh token", () => {
-    expect(
-      refreshTokenSchema.safeParse({ refreshToken: "token" }).success,
-    ).toBe(true);
-    expect(refreshTokenSchema.safeParse({ refreshToken: "" }).success).toBe(
-      false,
-    );
   });
 });

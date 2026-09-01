@@ -1,18 +1,4 @@
-/**
- * Typed application error hierarchy.
- *
- * Replaces ad-hoc `throw new Error('SOME_CODE')` calls scattered across
- * repositories/services with errors that carry a stable machine-readable
- * `code`, the correct HTTP `statusCode`, and optional `details`.
- *
- * IMPORTANT (compatibility): the global error handler in `src/index.ts`
- * checks `AppError.isAppError(error)` *before* falling back to the legacy
- * catch-all, so existing `throw new Error(...)` call sites keep behaving
- * exactly as before until they're migrated module-by-module.
- */
-
 export enum ErrorCode {
-  // Authentication / authorization
   UNAUTHORIZED = "UNAUTHORIZED",
   RATE_LIMITED = "RATE_LIMITED",
   FORBIDDEN = "FORBIDDEN",
@@ -20,18 +6,15 @@ export enum ErrorCode {
   TOKEN_EXPIRED = "TOKEN_EXPIRED",
   CUSTOMER_SESSION_REQUIRED = "CUSTOMER_SESSION_REQUIRED",
 
-  // Validation
   VALIDATION_FAILED = "VALIDATION_FAILED",
   INVALID_INPUT = "INVALID_INPUT",
 
-  // Domain
   NOT_FOUND = "NOT_FOUND",
   CONFLICT = "CONFLICT",
   INVALID_STATE = "INVALID_STATE",
   DOMAIN_RULE_VIOLATION = "DOMAIN_RULE_VIOLATION",
   MISSING_BRANCH = "MISSING_BRANCH",
 
-  // System
   INTERNAL_ERROR = "INTERNAL_ERROR",
   SERVICE_UNAVAILABLE = "SERVICE_UNAVAILABLE",
 }
@@ -58,20 +41,8 @@ export class AppError extends Error {
     this.details = context.details;
     this.cause = context.cause;
     this.timestamp = new Date().toISOString();
-    // NOTE: do NOT call Object.setPrototypeOf(this, AppError.prototype) here.
-    // With a modern target (ES2022) `class ... extends Error` already wires
-    // up the prototype chain correctly. Forcing it back to AppError.prototype
-    // in this base constructor would run for every subclass too (since their
-    // constructors call `super(...)`), which downgrades every subclass
-    // instance's prototype to AppError.prototype and breaks
-    // `instanceof ValidationError` / `NotFoundError` / etc. for all callers.
   }
 
-  /**
-   * Response shape kept intentionally close to the existing
-   * `{ success, code, message }` shape used throughout the API today,
-   * with an added `details`/`timestamp` for richer debugging.
-   */
   toJSON() {
     return {
       success: false as const,
@@ -84,6 +55,17 @@ export class AppError extends Error {
 
   static isAppError(error: unknown): error is AppError {
     return error instanceof AppError;
+  }
+
+  static unwrap(error: unknown): AppError | undefined {
+    const seen = new Set<unknown>();
+    let current = error;
+    while (current && typeof current === "object" && !seen.has(current)) {
+      if (current instanceof AppError) return current;
+      seen.add(current);
+      current = "cause" in current ? (current as { cause?: unknown }).cause : undefined;
+    }
+    return undefined;
   }
 }
 
@@ -159,14 +141,6 @@ export class DomainRuleError extends AppError {
   }
 }
 
-/**
- * A branch-scoped route was called without a resolved branch (e.g. an
- * OWNER/MANAGER viewing the tenant-wide "all branches" aggregate, on an
- * endpoint that needs one specific branch). Kept as its own class — rather
- * than folding into ValidationError/ForbiddenError — so the response
- * preserves the original `{ code: 'MISSING_BRANCH' }` / 400 contract that
- * existing frontend clients already check for.
- */
 export class MissingBranchError extends AppError {
   constructor(
     message = "Please select a specific branch.",

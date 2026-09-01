@@ -1,4 +1,7 @@
-import { apiClient } from "../../../shared/lib/api-client";
+import { createAuditApi } from "@pos/api-client";
+import { apiClient } from "@/shared/lib/api-client";
+
+const auditApi = createAuditApi(apiClient);
 
 export interface AuditEntry {
   id: string;
@@ -11,12 +14,28 @@ export interface AuditEntry {
   userName: string | null;
 }
 
+export interface MenuHistoryEntry {
+  id: string;
+  entityType: string;
+  entityId: string;
+  changeType: string;
+  diff: Record<string, unknown>;
+  changedBy: string | null;
+  changedAt: string;
+}
+
 export const auditService = {
   async list(limit = 50): Promise<AuditEntry[]> {
-    const response = await apiClient.get<{
-      success: boolean;
-      data: AuditEntry[];
-    }>("/audit", { params: { limit } });
-    return response.data.data;
+    return auditApi.list<AuditEntry[]>({ limit });
+  },
+  async menuHistory(
+    filters: {
+      entityType?: string;
+      changeType?: string;
+      entityId?: string;
+      limit?: number;
+    } = {},
+  ): Promise<MenuHistoryEntry[]> {
+    return auditApi.menuHistory<MenuHistoryEntry[]>(filters);
   },
 };

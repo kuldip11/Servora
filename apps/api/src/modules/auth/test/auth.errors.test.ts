@@ -4,7 +4,7 @@ import {
   userInactive,
   invalidRefreshToken,
   authUserNotFound,
-} from "../auth.errors";
+} from "@/modules/auth/auth.errors";
 describe("auth errors", () => {
   it("maps invalid credentials and inactive users to the same unauthorized response", () => {
     expect(invalidCredentials().toJSON()).toMatchObject({

@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import { requireAuthPlugin } from "../../../core/auth";
+import { requireAuthPlugin } from "@/core/auth";
 import { importExportController } from "./import-export.controller";
 import {
   exportItemsQuery,
@@ -8,18 +8,13 @@ import {
 } from "./import-export.validator";
 import type { ExportFormat } from "./import-export.service";
 
-function toFormat(raw: string | undefined): ExportFormat {
+const toFormat = (raw: string | undefined): ExportFormat => {
   return raw === "xlsx" ? "xlsx" : "csv";
-}
+};
 
-// Mounted at the shared `/api/menu` base prefix (export/import don't share
-// a clean sub-path the way `bulk-ops` did) — alongside the legacy
-// `menuRouter` and the other menu sub-routers. No path collisions
-// (verified — the legacy router no longer has these routes after this
-// migration; see docs/NEXT_STEPS.md).
 export const menuImportExportRouter = new Elysia({ prefix: "/api/menu" })
   .use(requireAuthPlugin())
-  // ─── Export ────────────────────────────────────────────────────────────
+
   .get(
     "/export/items",
     ({ auth, query }) =>
@@ -48,10 +43,7 @@ export const menuImportExportRouter = new Elysia({ prefix: "/api/menu" })
       importExportController.exportModifiers(auth, toFormat(query.format)),
     { query: exportQuery },
   )
-  // ─── Import ────────────────────────────────────────────────────────────
-  // Two-step (validate -> commit): /validate writes nothing; only /commit
-  // does, and it re-validates first so nothing can slip an invalid row
-  // through between the two calls.
+
   .get(
     "/import/items/template",
     ({ query }) =>

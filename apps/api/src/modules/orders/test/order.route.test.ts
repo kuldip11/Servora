@@ -48,7 +48,7 @@ vi.mock("../order.controller", () => ({
     fireTicket: vi.fn(),
   },
 }));
-import { ordersRouter } from "../order.route";
+import { ordersRouter } from "@/modules/orders/order.route";
 
 describe("orders routes", () => {
   it("registers all documented order endpoints", () => {

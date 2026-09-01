@@ -30,6 +30,22 @@ export const updateStockBody = t.Object({
   quantity: t.Number(),
   transactionType: t.Union(TRANSACTION_TYPE_VALUES),
   notes: t.Optional(t.String()),
+  wasteReasonId: t.Optional(t.String()),
+});
+
+export const logWasteBody = t.Object({
+  quantity: t.Number({ exclusiveMinimum: 0 }),
+  wasteReasonId: t.String({ minLength: 1 }),
+  notes: t.Optional(t.String()),
+});
+
+export const createWasteReasonBody = t.Object({
+  label: t.String({ minLength: 1, maxLength: 150 }),
+});
+
+export const updateWasteReasonBody = t.Object({
+  label: t.Optional(t.String({ minLength: 1, maxLength: 150 })),
+  isActive: t.Optional(t.Boolean()),
 });
 
 export const inventoryItemIdParams = t.Object({

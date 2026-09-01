@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { queryClient } from "../query-client";
+import { queryClient } from "@/shared/lib/query-client";
 describe("query client", () =>
   it("uses kitchen defaults", () => {
     const d = queryClient.getDefaultOptions();

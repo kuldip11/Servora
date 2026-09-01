@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { BookOpen, CalendarClock } from "lucide-react";
 import { Button, Card, Grid, SearchInput, Spinner } from "@pos/ui";
-import { useMenuCategories } from "../hooks/useMenuCategories";
+import { useMenuCategories } from "@/features/menu/hooks/useMenuCategories";
 import { ItemFormModal } from "./ItemFormModal";
+import { SubRecipeManager } from "./SubRecipeManager";
 import type { MenuItem } from "@pos/types";
 
 interface Props {
   mode: "recipes" | "availability";
 }
 
-export function MenuSpecializedSection({ mode }: Props) {
+export const MenuSpecializedSection = ({ mode }: Props) => {
   const { data: categories, isLoading } = useMenuCategories();
   const [search, setSearch] = useState("");
   const [itemForm, setItemForm] = useState<{
@@ -36,6 +37,7 @@ export function MenuSpecializedSection({ mode }: Props) {
             : "Open an item to manage schedules and branch-specific availability overrides."}
         </p>
       </div>
+      {mode === "recipes" ? <SubRecipeManager /> : null}
       <SearchInput
         aria-label={`Search items for ${mode}`}
         placeholder="Search items..."
@@ -96,4 +98,4 @@ export function MenuSpecializedSection({ mode }: Props) {
       )}
     </div>
   );
-}
+};

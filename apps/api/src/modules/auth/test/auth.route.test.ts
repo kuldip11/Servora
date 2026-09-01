@@ -37,18 +37,20 @@ vi.mock("elysia", async (importOriginal) => {
   return { ...actual, Elysia: FakeElysia };
 });
 import { describe, expect, it, vi } from "vitest";
-const { signup, login, refresh, me, memberships } = vi.hoisted(() => ({
+const { signup, login, refresh, logout, me, memberships } = vi.hoisted(() => ({
   signup: vi.fn(),
   login: vi.fn(),
   refresh: vi.fn(),
+  logout: vi.fn(),
   me: vi.fn(),
   memberships: vi.fn(),
 }));
 vi.mock("../auth.controller", () => ({
-  authController: { signup, login, refresh, me, memberships },
+  authController: { signup, me, memberships },
 }));
 vi.mock("../../../core/auth", () => ({ requireAuthPlugin: () => ({}) }));
-import { authRouter, authMeRouter } from "../auth.route";
+vi.mock("../auth.service", () => ({ authService: { login, refresh, logout } }));
+import { authRouter, authMeRouter } from "@/modules/auth/auth.route";
 describe("auth routes", () => {
   it("registers public signup/login/refresh routes", () => {
     expect((authRouter as any).routes).toEqual(

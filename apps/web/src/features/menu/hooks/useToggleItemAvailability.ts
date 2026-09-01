@@ -1,15 +1,29 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError } from "../../../shared/lib/notify";
-import { menuItemsService } from "../services/menu-items.service";
-import { menuKeys } from "../query-keys";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError } from "@/shared/lib/notify";
+import { menuItemsService } from "@/features/menu/services/menu-items.service";
+import { menuKeys } from "@/features/menu/query-keys";
 
-export function useToggleItemAvailability() {
+export const useToggleItemAvailability = () => {
   return useMutation({
-    mutationFn: ({ id, isAvailable }: { id: string; isAvailable: boolean }) =>
-      menuItemsService.setAvailability(id, isAvailable),
+    mutationFn: ({
+      id,
+      isAvailable,
+      reason,
+    }: {
+      id: string;
+      isAvailable: boolean;
+      reason?: string;
+    }) =>
+      isAvailable
+        ? menuItemsService.clearManualAvailabilityOverride(id)
+        : menuItemsService.setManualAvailabilityOverride(
+            id,
+            "OUT_OF_STOCK",
+            reason ?? "Manual availability override",
+          ),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: menuKeys.categories() }),
     onError: () => notifyError(undefined, "Failed to update availability"),
   });
-}
+};

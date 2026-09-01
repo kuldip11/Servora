@@ -9,13 +9,13 @@ type Props = {
   onAction?: () => void;
 };
 
-export function StatusScreen({
+export const StatusScreen = ({
   title,
   message,
   loading = false,
   actionLabel,
   onAction,
-}: Props) {
+}: Props) => {
   return (
     <main
       className="flex min-h-screen items-center justify-center bg-background p-5 text-center"
@@ -41,4 +41,4 @@ export function StatusScreen({
       </div>
     </main>
   );
-}
+};

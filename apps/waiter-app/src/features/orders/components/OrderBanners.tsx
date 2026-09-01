@@ -6,19 +6,7 @@ interface Props {
   readyTickets: KitchenTicket[];
 }
 
-// Design-system Phase 11, Sprint WA-4: both banners retokenized onto
-// the same status-surface pattern `InventoryPage`'s low-stock alert
-// (Sprint AD-2) and `OrderDetailPage`'s (Admin) warning banner
-// (Sprint AD-8) already established (`bg-*-surface`/`border-*/20`/
-// `text-*`). **Flagged, not silent:** the bill-requested banner was
-// literal `orange-*` before, a distinct hue from `--warning`'s amber —
-// mapped onto `warning` anyway because that's the exact tone this same
-// `BILL_REQUESTED` status already carries in `StatusBadge.tsx`'s own
-// `STATUS_TONE` map (self-consistent within this feature, not an
-// arbitrary pick), so a small hue shift (orange → amber) is the real,
-// worth-a-look visual delta here, same discipline every prior sprint's
-// unmatched-token deltas got flagged with.
-export function OrderBanners({ order, readyTickets }: Props) {
+export const OrderBanners = ({ order, readyTickets }: Props) => {
   return (
     <>
       {readyTickets.length > 0 && (
@@ -50,4 +38,4 @@ export function OrderBanners({ order, readyTickets }: Props) {
       )}
     </>
   );
-}
+};

@@ -6,8 +6,8 @@ vi.mock("@pos/ui", () => ({
   PasswordInput: (p: any) => <input {...p} />,
   toast: vi.fn(),
 }));
-import { MembershipSelector } from "../MembershipSelector";
-import { BranchSelector } from "../BranchSelector";
+import { MembershipSelector } from "@/features/auth/components/MembershipSelector";
+import { BranchSelector } from "@/features/auth/components/BranchSelector";
 describe("auth selectors", () => {
   it("renders memberships", () => {
     const m: any = {

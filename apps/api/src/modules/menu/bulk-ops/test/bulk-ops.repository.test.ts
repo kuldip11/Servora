@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import * as mod from "../bulk-ops.repository";
+import * as mod from "@/modules/menu/bulk-ops/bulk-ops.repository";
 
 describe("bulk-ops repository", () => {
   it("exposes the documented module boundary", () => {

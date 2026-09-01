@@ -5,12 +5,11 @@ import {
   text,
   timestamp,
   index,
+  foreignKey,
 } from "drizzle-orm/pg-core";
 import { tenants } from "./tenant.schema";
 import { branches } from "./branch.schema";
 import { users } from "./auth.schema";
-
-// ─── Analytics ────────────────────────────────────────────────────────────────
 
 export const auditLogs = pgTable(
   "audit_logs",
@@ -48,5 +47,10 @@ export const auditLogs = pgTable(
       t.createdAt,
     ),
     createdAtIdx: index("audit_logs_created_at_idx").on(t.createdAt),
+    branchTenantFk: foreignKey({
+      name: "audit_logs_branch_tenant_fk",
+      columns: [t.branchId, t.tenantId],
+      foreignColumns: [branches.id, branches.tenantId],
+    }),
   }),
 );

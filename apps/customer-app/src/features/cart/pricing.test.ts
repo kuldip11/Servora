@@ -7,7 +7,7 @@ import {
   getCartTotal,
   getLineSubtotal,
 } from "./pricing";
-import type { CustomerMenuItem } from "../../api";
+import type { CustomerMenuItem } from "@/api";
 import type { CartLine } from "./pricing";
 
 const item: CustomerMenuItem = {

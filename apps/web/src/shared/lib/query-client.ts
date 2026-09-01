@@ -1,8 +1,6 @@
 import { QueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 
-// Centralized TanStack Query defaults. Feature-level query keys live in
-// each feature's `query-keys.ts`.
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

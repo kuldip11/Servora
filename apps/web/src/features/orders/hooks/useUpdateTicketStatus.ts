@@ -1,10 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
-import { ordersService } from "../services/orders.service";
-import { orderKeys } from "../query-keys";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
+import { ordersService } from "@/features/orders/services/orders.service";
+import { orderKeys } from "@/features/orders/query-keys";
 
-export function useUpdateTicketStatus(orderId: string) {
+export const useUpdateTicketStatus = (orderId: string) => {
   return useMutation({
     mutationFn: ({ ticketId, status }: { ticketId: string; status: string }) =>
       ordersService.updateTicketStatus(ticketId, status),
@@ -14,4 +14,4 @@ export function useUpdateTicketStatus(orderId: string) {
     },
     onError: (err) => notifyError(err, "Failed to update ticket"),
   });
-}
+};

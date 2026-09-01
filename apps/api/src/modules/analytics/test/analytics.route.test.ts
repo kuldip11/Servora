@@ -44,7 +44,7 @@ const { getDashboard } = vi.hoisted(() => ({
 vi.mock("../analytics.controller", () => ({
   analyticsController: { getDashboard },
 }));
-import { analyticsRouter } from "../analytics.route";
+import { analyticsRouter } from "@/modules/analytics/analytics.route";
 
 describe("analytics routes", () => {
   it("registers the protected dashboard endpoint", () => {

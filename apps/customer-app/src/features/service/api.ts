@@ -1,4 +1,4 @@
-import { request } from "../../shared/api/client";
+import { request } from "@/shared/api/client";
 
 export type CustomerRequestType =
   "CALL_WAITER" | "WATER" | "CUTLERY" | "BILL" | "ASSISTANCE";
@@ -11,11 +11,11 @@ export type CustomerRequest = {
   updatedAt: string;
 };
 
-export function createCustomerRequest(
+export const createCustomerRequest = (
   sessionToken: string,
   type: CustomerRequestType,
   orderId?: string,
-) {
+) => {
   return request<CustomerRequest>(
     "/api/customer/requests",
     {
@@ -24,4 +24,4 @@ export function createCustomerRequest(
     },
     sessionToken,
   );
-}
+};

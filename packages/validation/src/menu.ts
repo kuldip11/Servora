@@ -18,8 +18,7 @@ export const createMenuItemSchema = z.object({
     .array(
       z.object({
         name: z.string().min(1),
-        // Absolute price for the item when this variant is selected —
-        // replaces basePrice rather than adding to it.
+
         price: z.number().min(0),
       }),
     )
@@ -36,7 +35,7 @@ export const createMenuItemSchema = z.object({
 });
 
 export type CreateMenuItemInput = z.infer<typeof createMenuItemSchema>;
-/** Form-level schema for the web Menu Item dialog. String fields match HTML inputs. */
+
 export const menuItemFormSchema = z.object({
   name: z
     .string()
@@ -81,6 +80,7 @@ export const menuItemFormSchema = z.object({
   enableRecipeDeduction: z.boolean(),
   variants: z.array(
     z.object({
+      id: z.string().uuid().optional(),
       name: z
         .string()
         .trim()
@@ -101,3 +101,56 @@ export const menuItemFormSchema = z.object({
 });
 
 export type MenuItemFormValues = z.infer<typeof menuItemFormSchema>;
+
+export const advancedMenuItemPricingSchema = z
+  .object({
+    pricingMode: z.enum(["FIXED", "WEIGHT_BASED", "OPEN"]),
+    weightUnit: z.enum(["G", "KG", "LB", "OZ"]).nullable().optional(),
+    openPriceMin: z.number().min(0).nullable().optional(),
+    openPriceMax: z.number().min(0).nullable().optional(),
+    supportsZones: z.boolean(),
+    zonePricingRule: z.enum(["AVERAGE", "HIGHER", "SUM_HALF"]),
+    manualStockCount: z.number().int().min(0).nullable().optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.pricingMode === "WEIGHT_BASED" && !value.weightUnit) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["weightUnit"],
+        message: "Weight-based items require a weight unit",
+      });
+    }
+    if (value.pricingMode !== "WEIGHT_BASED" && value.weightUnit != null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["weightUnit"],
+        message: "weightUnit is only valid for weight-based items",
+      });
+    }
+    if (
+      value.pricingMode !== "OPEN" &&
+      (value.openPriceMin != null || value.openPriceMax != null)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["openPriceMin"],
+        message: "Open-price limits are only valid for open-priced items",
+      });
+    }
+    if (
+      value.openPriceMin != null &&
+      value.openPriceMax != null &&
+      value.openPriceMin > value.openPriceMax
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["openPriceMax"],
+        message:
+          "Open-price maximum must be greater than or equal to the minimum",
+      });
+    }
+  });
+
+export type AdvancedMenuItemPricingInput = z.infer<
+  typeof advancedMenuItemPricingSchema
+>;

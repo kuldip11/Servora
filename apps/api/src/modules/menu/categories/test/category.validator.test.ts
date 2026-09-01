@@ -4,7 +4,7 @@ import {
   createCategoryBody,
   updateCategoryBody,
   categoryIdParams,
-} from "../category.validator";
+} from "@/modules/menu/categories/category.validator";
 
 describe("category.validator validators", () => {
   it("requires a category name for creation", () => {

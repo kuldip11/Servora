@@ -6,10 +6,6 @@ afterEach(() => {
   cleanup();
 });
 
-// jsdom doesn't implement these, and `SelectMenu` (what `ThemeSwitcher`
-// is built on) sits on `@radix-ui/react-popover`, which uses both —
-// without these, opening the popover in a jsdom test throws rather
-// than rendering the listbox.
 if (typeof window !== "undefined") {
   if (!("ResizeObserver" in window)) {
     class ResizeObserverStub {
@@ -17,7 +13,7 @@ if (typeof window !== "undefined") {
       unobserve() {}
       disconnect() {}
     }
-    // @ts-expect-error — test-environment polyfill, not a real ResizeObserver
+    // @ts-expect-error
     window.ResizeObserver = ResizeObserverStub;
   }
   if (!Element.prototype.hasPointerCapture) {

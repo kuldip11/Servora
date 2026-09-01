@@ -23,32 +23,18 @@ export interface TextInputProps extends Omit<
   hint?: string | undefined;
   error?: string | undefined;
   required?: boolean | undefined;
-  /** Leading text/element, e.g. a currency symbol. Ignored if `icon` is set. */
+
   prefix?: ReactNode | undefined;
-  /** Trailing text/element, e.g. a unit. Hidden while `loading`. */
+
   suffix?: ReactNode | undefined;
-  /** Leading icon (takes priority over `prefix` if both are given). */
+
   icon?: ComponentType<{ className?: string }> | undefined;
-  /** Shows a trailing spinner and disables the field. */
+
   loading?: boolean | undefined;
-  /** Shows a `n/maxLength` counter under the field. Requires `maxLength`. */
+
   showCharCount?: boolean | undefined;
 }
 
-/**
- * Base single-line text field. Upgraded in place for Phase 3
- * (docs/design-system/00-PLAN.md) — now consumes `--surface`/`--border`/
- * `--primary`/`--danger` tokens instead of hardcoded `gray-*`/`violet-*`/
- * `red-*` classes, and gains prefix/suffix/icon/loading/char-count
- * support. Every existing prop (`label`/`error`/`hint`) keeps its exact
- * old meaning, so none of the 66 existing `<Input .../>` call sites
- * across `apps/web` need to change.
- *
- * Exported as both `TextInput` (the Phase 3 plan's canonical name) and
- * `Input` (back-compat alias — same component, same reference) rather
- * than renaming every call site, same precedent as Button being
- * "upgraded, not replaced" in Phase 3's plan.
- */
 export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
   (
     {
@@ -145,6 +131,5 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
 );
 TextInput.displayName = "TextInput";
 
-/** Back-compat alias — see the TextInput doc comment above. */
 export const Input = TextInput;
 export type InputProps = TextInputProps;

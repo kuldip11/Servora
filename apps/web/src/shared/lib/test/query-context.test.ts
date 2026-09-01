@@ -6,7 +6,7 @@ import {
   activeFranchiseId,
   branchQueryContextKey,
   franchiseQueryContextKey,
-} from "../query-context";
+} from "@/shared/lib/query-context";
 describe("query context", () => {
   it("builds cache identities from auth state", () => {
     getState.mockReturnValue({ franchiseId: "fr1", branchId: "br1" });

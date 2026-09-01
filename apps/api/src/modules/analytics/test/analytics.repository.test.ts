@@ -4,7 +4,7 @@ const { select, query } = vi.hoisted(() => ({
   query: { inventoryItems: { findMany: vi.fn() } },
 }));
 vi.mock("../../../db", () => ({ db: { select, query } }));
-import { analyticsRepository } from "../analytics.repository";
+import { analyticsRepository } from "@/modules/analytics/analytics.repository";
 
 const chain = (rows: any[]) => {
   const where = vi.fn().mockResolvedValue(rows);

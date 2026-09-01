@@ -13,7 +13,7 @@ export interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElemen
   hint?: string | undefined;
   error?: string | undefined;
   required?: boolean | undefined;
-  /** Shows a `n/maxLength` counter under the field. Requires `maxLength`. */
+
   showCharCount?: boolean | undefined;
 }
 

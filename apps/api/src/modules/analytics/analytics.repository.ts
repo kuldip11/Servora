@@ -1,15 +1,20 @@
-/**
- * Analytics repository — data access only. Read-only aggregates for the
- * dashboard; no writes, no cross-module side effects.
- */
-import { eq, and, gte, count, sum, notInArray, desc, sql } from "drizzle-orm";
-import { db } from "../../db";
-import { orders, inventoryItems, orderItems } from "../../db/schema";
+import {
+  eq,
+  and,
+  or,
+  isNull,
+  gte,
+  lte,
+  count,
+  sum,
+  notInArray,
+  desc,
+  sql,
+} from "drizzle-orm";
+import { db } from "@/db";
+import { orders, inventoryItems, orderItems, menuItems } from "@/db/schema";
 
-// Tabs that are still "in flight" — not yet paid, closed, or cancelled.
-// Kept as a named constant rather than inline so the definition of
-// "active" lives in exactly one place.
-const ACTIVE_ORDER_EXCLUDED_STATUSES = ["PAID", "CLOSED", "CANCELLED"] as const;
+import { ACTIVE_ORDER_EXCLUDED_STATUSES } from "./constants";
 
 export const analyticsRepository = {
   async countPaidOrdersSince(
@@ -151,6 +156,54 @@ export const analyticsRepository = {
       hour: Number(row.hour),
       revenue: parseFloat(row.revenue ?? "0"),
     }));
+  },
+
+  async findCostReportItems(
+    tenantId: string,
+    branchId: string,
+    categoryId?: string,
+  ) {
+    return db.query.menuItems.findMany({
+      where: and(
+        eq(menuItems.tenantId, tenantId),
+        isNull(menuItems.deletedAt),
+        eq(menuItems.isPublished, true),
+        or(
+          isNull(menuItems.effectiveFrom),
+          lte(menuItems.effectiveFrom, new Date()),
+        ),
+        or(eq(menuItems.branchId, branchId), isNull(menuItems.branchId)),
+        categoryId ? eq(menuItems.categoryId, categoryId) : undefined,
+      ),
+      columns: { id: true, name: true, categoryId: true, branchId: true },
+      with: {
+        category: { columns: { id: true, name: true } },
+        variants: { columns: { id: true, name: true } },
+      },
+      orderBy: menuItems.name,
+    });
+  },
+
+  async salesVolumeByItem(tenantId: string, branchId: string, since: Date) {
+    const rows = await db
+      .select({
+        menuItemId: orderItems.menuItemId,
+        variantId: orderItems.variantId,
+        volume: sql<number>`coalesce(sum(${orderItems.quantity}), 0)`,
+      })
+      .from(orderItems)
+      .innerJoin(orders, eq(orders.id, orderItems.orderId))
+      .where(
+        and(
+          eq(orders.tenantId, tenantId),
+          eq(orders.branchId, branchId),
+          gte(orders.createdAt, since),
+          notInArray(orders.status, ["CANCELLED"]),
+          sql`${orderItems.itemStatus} NOT IN ('VOIDED', 'COMPED')`,
+        ),
+      )
+      .groupBy(orderItems.menuItemId, orderItems.variantId);
+    return rows.map((row) => ({ ...row, volume: Number(row.volume) }));
   },
 
   async findActiveInventoryItems(tenantId: string, branchId: string | null) {

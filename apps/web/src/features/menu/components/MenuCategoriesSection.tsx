@@ -9,17 +9,17 @@ import {
   Modal,
   Spinner,
 } from "@pos/ui";
-import { useMenuCategories } from "../hooks/useMenuCategories";
-import { useAddCategory } from "../hooks/useAddCategory";
-import { useRenameCategory } from "../hooks/useRenameCategory";
-import { useDeleteCategory } from "../hooks/useDeleteCategory";
+import { useMenuCategories } from "@/features/menu/hooks/useMenuCategories";
+import { useAddCategory } from "@/features/menu/hooks/useAddCategory";
+import { useRenameCategory } from "@/features/menu/hooks/useRenameCategory";
+import { useDeleteCategory } from "@/features/menu/hooks/useDeleteCategory";
 import type { MenuCategory } from "@pos/types";
 
 interface Props {
   onSaveTemplate: (category: { id: string; name: string }) => void;
 }
 
-export function MenuCategoriesSection({ onSaveTemplate }: Props) {
+export const MenuCategoriesSection = ({ onSaveTemplate }: Props) => {
   const { data: categories, isLoading } = useMenuCategories();
   const addMutation = useAddCategory();
   const renameMutation = useRenameCategory();
@@ -166,4 +166,4 @@ export function MenuCategoriesSection({ onSaveTemplate }: Props) {
       </Modal>
     </div>
   );
-}
+};

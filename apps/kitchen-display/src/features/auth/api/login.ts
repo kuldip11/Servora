@@ -1,19 +1,24 @@
-import { apiClient } from "../../../shared/lib/api-client";
-import type { AvailableMembership, User } from "@pos/types";
-export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-  user: User;
-}
-export async function login(
+import { createAuthApi, type AuthResponse } from "@pos/api-client";
+import { apiClient } from "@/shared/lib/api-client";
+import { saveTokens } from "@/features/auth/storage";
+
+const authApi = createAuthApi(apiClient);
+import type { AvailableMembership } from "@pos/types";
+export const login = async (
   email: string,
   password: string,
-): Promise<AuthResponse> {
-  const res = await apiClient.post("/auth/login", { email, password });
-  return res.data.data;
-}
-export async function fetchMemberships(): Promise<AvailableMembership[]> {
-  const res = await apiClient.get("/auth/memberships");
-  return res.data.data;
-}
+): Promise<AuthResponse> => {
+  return authApi.login({ email, password });
+};
+export const fetchMemberships = async (): Promise<AvailableMembership[]> => {
+  return authApi.memberships();
+};
+
+export const refreshSession = authApi.refresh;
+export const restoreSession = async (): Promise<boolean> => {
+  const refreshed = await authApi.refresh();
+  saveTokens(refreshed.accessToken);
+  await authApi.me();
+  return true;
+};
+export const logoutSession = authApi.logout;

@@ -5,6 +5,7 @@ export interface SelectedModifier {
   name: string;
   price: number;
   quantity: number;
+  zoneLabel?: string;
 }
 
 export interface CartItem {
@@ -16,6 +17,10 @@ export interface CartItem {
   modifiers: SelectedModifier[];
   quantity: number;
   chefNotes: string;
-  course: 1 | 2 | 3;
+  seatLabel?: string;
+  course?: number;
+  weightQuantity?: number;
+  weightUnit?: "G" | "KG" | "LB" | "OZ" | null;
+  manualPrice?: number;
   unitPrice: number;
 }

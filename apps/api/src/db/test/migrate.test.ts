@@ -9,12 +9,12 @@ afterEach(() => {
   vi.doUnmock("drizzle-orm/postgres-js/migrator");
 });
 
-async function loadMigrate(options: {
+const loadMigrate = async (options: {
   hasMigrationsFolder: boolean;
   hasAppSchema?: boolean;
   hasMigrationHistory?: boolean;
   historyCount?: number;
-}) {
+}) => {
   const migrationClient = Object.assign(
     vi.fn(async (strings: TemplateStringsArray) => {
       const sql = Array.from(strings).join(" ");
@@ -46,7 +46,7 @@ async function loadMigrate(options: {
   await new Promise((resolve) => setTimeout(resolve, 0));
 
   return { migrationClient, migrate, drizzle };
-}
+};
 
 describe("db migrate entrypoint", () => {
   it("exits with an error when no migrations folder exists", async () => {

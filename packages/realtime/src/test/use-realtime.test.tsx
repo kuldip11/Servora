@@ -9,7 +9,7 @@ import type { RealtimeClient } from "../create-realtime-client";
 
 type Event = { type: "order.created" | "ping"; id?: string };
 
-function fakeClient(initialConnected = false) {
+const fakeClient = (initialConnected = false) => {
   let connected = initialConnected;
   const handlers = new Set<(event: Event) => void>();
   const listeners = new Set<(value: boolean) => void>();
@@ -33,7 +33,7 @@ function fakeClient(initialConnected = false) {
     emit: (event: Event) => void;
     setConnected: (value: boolean) => void;
   };
-}
+};
 
 describe("useRealtime", () => {
   it("subscribes for the client lifetime and uses the latest handler without resubscribing", () => {

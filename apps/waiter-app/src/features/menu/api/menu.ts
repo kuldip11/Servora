@@ -1,6 +1,7 @@
-import { apiClient } from "../../../shared/lib/api-client";
+import { createMenuApi } from "@pos/api-client";
+import type { OrderableMenuCategory } from "@pos/types";
+import { apiClient } from "@/shared/lib/api-client";
 
-export async function fetchCategories(): Promise<any[]> {
-  const res = await apiClient.get("/menu/categories");
-  return res.data.data;
-}
+const menuApi = createMenuApi(apiClient);
+export type WaiterMenuCategory = OrderableMenuCategory;
+export const fetchCategories = menuApi.listOrderableCategories;

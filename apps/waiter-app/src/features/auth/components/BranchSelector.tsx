@@ -8,7 +8,7 @@ interface Props {
   onSelect: (branchId: string) => void;
   onBack: () => void;
 }
-export function BranchSelector({ branches, onSelect, onBack }: Props) {
+export const BranchSelector = ({ branches, onSelect, onBack }: Props) => {
   const [selected, setSelected] = useState("");
   function confirm() {
     if (!selected) {
@@ -55,4 +55,4 @@ export function BranchSelector({ branches, onSelect, onBack }: Props) {
       </button>
     </div>
   );
-}
+};

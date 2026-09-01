@@ -1,13 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
 import {
   menuHolidaysService,
   type HolidayFormInput,
-} from "../services/menu-holidays.service";
-import { menuKeys } from "../query-keys";
+} from "@/features/menu/services/menu-holidays.service";
+import { menuKeys } from "@/features/menu/query-keys";
 
-export function useAddHoliday() {
+export const useAddHoliday = () => {
   return useMutation({
     mutationFn: (input: HolidayFormInput) => menuHolidaysService.add(input),
     onSuccess: () => {
@@ -16,4 +16,4 @@ export function useAddHoliday() {
     },
     onError: (err) => notifyError(err, "Failed to add holiday"),
   });
-}
+};

@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { ForbiddenError, MissingBranchError } from "../../errors";
+import { ForbiddenError, MissingBranchError } from "@/core/errors";
 import {
   requireBranch,
   requirePermission,
   requireRoles,
-} from "../auth-context";
+} from "@/core/auth/auth-context";
 
 describe("auth context guards", () => {
   const base = {
@@ -21,13 +21,13 @@ describe("auth context guards", () => {
       ForbiddenError,
     );
   });
-  it("allows owner to bypass individual permissions", () => {
+  it("requires explicit permissions even when a global OWNER role is present", () => {
     expect(() =>
       requirePermission(
         { ...base, roles: ["OWNER"], permissions: [] } as any,
         "orders:write",
       ),
-    ).not.toThrow();
+    ).toThrow(ForbiddenError);
     expect(() => requirePermission(base as any, "orders:write")).toThrow(
       ForbiddenError,
     );

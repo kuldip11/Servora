@@ -72,7 +72,7 @@ const { query, db } = vi.hoisted(() => {
   return { query, db };
 });
 vi.mock("../../../db", () => ({ db }));
-import { inventoryRepository } from "../inventory.repository";
+import { inventoryRepository } from "@/modules/inventory/inventory.repository";
 beforeEach(() => {
   vi.clearAllMocks();
 });
@@ -94,9 +94,6 @@ describe("inventory repository", () => {
     await expect(inventoryRepository.findByIds("t1", [])).resolves.toEqual([]);
     await expect(
       inventoryRepository.findRequiredRecipeLines("t1", "b1", []),
-    ).resolves.toEqual([]);
-    await expect(
-      inventoryRepository.findAffectedMenuItemIds([], "b1"),
     ).resolves.toEqual([]);
     expect(db.select).not.toHaveBeenCalled();
   });

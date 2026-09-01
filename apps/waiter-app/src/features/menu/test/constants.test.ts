@@ -4,7 +4,7 @@ import {
   COURSE_LABELS,
   FOOD_TYPE_DOT_CLASSES,
   FOOD_TYPE_FILTERS,
-} from "../constants";
+} from "@/features/menu/constants";
 
 describe("menu constants", () => {
   it("defines course labels and order capabilities", () => {

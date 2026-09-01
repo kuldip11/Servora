@@ -1,11 +1,3 @@
-/**
- * Consistent response envelope helpers.
- *
- * These match the `{ success: true, data }` shape already returned by most
- * routes today, so adopting them in a controller is a non-breaking,
- * mechanical change (no client-visible difference).
- */
-
 export interface SuccessResponse<T> {
   success: true;
   data: T;

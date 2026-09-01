@@ -13,7 +13,7 @@ vi.mock("../redis", () => ({
   },
 }));
 
-import { eventBus } from "../event-bus";
+import { eventBus } from "@/lib/event-bus";
 
 describe("eventBus", () => {
   beforeEach(() => publish.mockClear());
@@ -21,6 +21,7 @@ describe("eventBus", () => {
     ["order.created", "orders"],
     ["kitchen.ready", "kitchen"],
     ["inventory.low", "inventory"],
+    ["menu.availability.updated", "inventory"],
     ["table.updated", "table"],
     ["unknown.event", "orders"],
   ])("routes %s to %s", async (type, channel) => {
@@ -34,5 +35,33 @@ describe("eventBus", () => {
       tenantId: "tenant-1",
       branchId: "branch-1",
     });
+  });
+  it("delivers a published event to local domain subscribers with actor context", async () => {
+    const handler = vi.fn();
+    const unsubscribe = eventBus.subscribe(
+      "menu.availability.updated",
+      handler,
+    );
+    const event = {
+      type: "menu.availability.updated" as const,
+      payload: {
+        source: "INVENTORY" as const,
+        entityType: "ITEM" as const,
+        entityId: "m1",
+        menuItemId: "m1",
+        computedStatus: "ACTIVE" as const,
+      },
+    };
+    await eventBus.publish(event, "tenant-1", "branch-1", {
+      userId: "u1",
+      requestId: "r1",
+    });
+    expect(handler).toHaveBeenCalledWith({
+      event,
+      tenantId: "tenant-1",
+      branchId: "branch-1",
+      context: { userId: "u1", requestId: "r1" },
+    });
+    unsubscribe();
   });
 });

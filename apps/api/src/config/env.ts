@@ -13,12 +13,12 @@ const schema = z.object({
     .default("http://localhost:5173,http://localhost:5176"),
   RATE_LIMIT_MAX: z.coerce.number().int().positive().default(600),
   RATE_LIMIT_WINDOW_SECONDS: z.coerce.number().int().positive().default(60),
+  TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(10).default(0),
   DATABASE_URL: urlLike,
-  REDIS_URL: urlLike.optional(),
+  REDIS_URL: urlLike,
   JWT_SECRET: z.string().min(16),
   JWT_EXPIRES_IN: z.string().default("15m"),
-  REFRESH_TOKEN_SECRET: z.string().min(16),
-  REFRESH_TOKEN_EXPIRES_IN: z.string().default("7d"),
+  METRICS_TOKEN: z.string().min(16).default("development-metrics-token"),
   RAZORPAY_KEY_ID: z.string().optional(),
   RAZORPAY_KEY_SECRET: z.string().optional(),
   RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
@@ -26,7 +26,7 @@ const schema = z.object({
 
 export type ApiEnv = z.infer<typeof schema>;
 
-export function loadApiEnv(source: NodeJS.ProcessEnv = process.env): ApiEnv {
+export const loadApiEnv = (source: NodeJS.ProcessEnv = process.env): ApiEnv => {
   const parsed = schema.safeParse(source);
   if (!parsed.success) {
     const details = parsed.error.issues
@@ -36,12 +36,9 @@ export function loadApiEnv(source: NodeJS.ProcessEnv = process.env): ApiEnv {
   }
   const value = parsed.data;
   if (value.NODE_ENV === "production") {
-    if (
-      value.JWT_SECRET.length < 32 ||
-      value.REFRESH_TOKEN_SECRET.length < 32
-    ) {
+    if (value.JWT_SECRET.length < 32 || value.METRICS_TOKEN.length < 32) {
       throw new Error(
-        "Invalid API environment: production JWT secrets must be at least 32 characters",
+        "Invalid API environment: production JWT/metrics secrets must be at least 32 characters",
       );
     }
     const origins = value.CORS_ORIGIN.split(",")
@@ -65,6 +62,6 @@ export function loadApiEnv(source: NodeJS.ProcessEnv = process.env): ApiEnv {
     }
   }
   return value;
-}
+};
 
 export const env = loadApiEnv();

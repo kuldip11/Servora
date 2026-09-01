@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import * as errors from "../order.errors";
+import * as errors from "@/modules/orders/order.errors";
 
 describe("order errors", () => {
   it("creates stable not-found and missing-branch errors", () => {

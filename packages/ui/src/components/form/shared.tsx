@@ -1,19 +1,7 @@
 import { type ReactNode, useId } from "react";
 import { cn } from "../../utils/cn";
 
-/**
- * Shared building blocks for every Phase 3 form input
- * (docs/design-system/00-PLAN.md). Each input owns its own root markup
- * (they render very differently — segmented OTP boxes vs. a single
- * `<input>` vs. a `<textarea>`) but they all share the same label +
- * hint/error + char-count chrome and the same aria-describedby wiring.
- * Pulling that into one place means fixing an a11y bug here fixes it
- * for all seven inputs at once — same reasoning as `Modal` being the
- * single highest-leverage a11y fix per docs/frontend/COMPONENT_GUIDE.md.
- */
-
-/** Stable field id (respects an explicit `id` prop) + the hint/error ids derived from it. */
-export function useFieldIds(idProp?: string) {
+export const useFieldIds = (idProp?: string) => {
   const autoId = useId();
   const fieldId = idProp ?? autoId;
   return {
@@ -21,21 +9,20 @@ export function useFieldIds(idProp?: string) {
     hintId: `${fieldId}-hint`,
     errorId: `${fieldId}-error`,
   };
-}
+};
 
-/** `aria-describedby` should point at the error when present, else the hint, else nothing. */
-export function describedBy(
+export const describedBy = (
   hintId: string,
   errorId: string,
   hint?: string | undefined,
   error?: string | undefined,
-) {
+) => {
   if (error) return errorId;
   if (hint) return hintId;
   return undefined;
-}
+};
 
-export function FieldLabel({
+export const FieldLabel = ({
   htmlFor,
   required,
   children,
@@ -43,7 +30,7 @@ export function FieldLabel({
   htmlFor: string;
   required?: boolean | undefined;
   children?: ReactNode | undefined;
-}) {
+}) => {
   if (!children) return null;
   return (
     <label htmlFor={htmlFor} className="text-sm font-medium text-text-primary">
@@ -55,9 +42,9 @@ export function FieldLabel({
       )}
     </label>
   );
-}
+};
 
-export function FieldFooter({
+export const FieldFooter = ({
   hint,
   error,
   hintId,
@@ -71,7 +58,7 @@ export function FieldFooter({
   errorId: string;
   charCount?: number | undefined;
   maxLength?: number | undefined;
-}) {
+}) => {
   const hasMessage = !!error || !!hint;
   const hasCount = charCount !== undefined;
   if (!hasMessage && !hasCount) return null;
@@ -105,10 +92,9 @@ export function FieldFooter({
       )}
     </div>
   );
-}
+};
 
-/** Base chrome shared by every single-line/multi-line text-entry field. */
-export function fieldBaseClasses(hasError: boolean) {
+export const fieldBaseClasses = (hasError: boolean) => {
   return cn(
     "block w-full text-sm text-text-primary bg-surface border rounded-md",
     "placeholder:text-text-disabled transition-colors duration-fast ease-standard",
@@ -118,4 +104,4 @@ export function fieldBaseClasses(hasError: boolean) {
       ? "border-danger focus:ring-danger"
       : "border-border focus:ring-primary",
   );
-}
+};

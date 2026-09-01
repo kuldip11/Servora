@@ -1,7 +1,8 @@
 import { Elysia } from "elysia";
 import { razorpayWebhookService } from "./razorpay-webhook.service";
-import { AppError, ErrorCode } from "../../core/errors";
-import { successResponse } from "../../core/response";
+import { AppError, ServiceUnavailableError } from "@/core/errors";
+import { successResponse } from "@/core/response";
+import { metrics } from "@/core/observability/metrics";
 
 export const razorpayWebhookRouter = new Elysia({
   prefix: "/api/webhooks",
@@ -18,21 +19,12 @@ export const razorpayWebhookRouter = new Elysia({
     set.status = 200;
     return successResponse(result);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Invalid webhook";
-    const statusCode =
-      message.includes("required") ||
-      message.includes("Invalid Razorpay webhook")
-        ? 400
-        : 503;
-    throw new AppError(
-      {
-        code:
-          statusCode === 400
-            ? ErrorCode.VALIDATION_FAILED
-            : ErrorCode.SERVICE_UNAVAILABLE,
-        message,
-      },
-      statusCode,
+    metrics.increment("servora_payment_webhook_failures_total", {
+      stage: "ingress",
+    });
+    if (AppError.isAppError(error)) throw error;
+    throw new ServiceUnavailableError(
+      "Razorpay webhook processing is temporarily unavailable",
     );
   }
 });

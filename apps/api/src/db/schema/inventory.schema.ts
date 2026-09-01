@@ -8,13 +8,17 @@ import {
   timestamp,
   pgEnum,
   index,
+  uniqueIndex,
+  foreignKey,
+  type AnyPgColumn,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { tenants } from "./tenant.schema";
 import { branches } from "./branch.schema";
 import { users } from "./auth.schema";
 import { menuItems } from "./menu.schema";
 import { orders } from "./order.schema";
-import { kitchenTickets } from "./kitchen.schema";
+import { kitchenTickets, orderItems } from "./kitchen.schema";
 
 export const inventoryUnitEnum = pgEnum("inventory_unit", [
   "KG",
@@ -29,8 +33,6 @@ export const inventoryTransactionTypeEnum = pgEnum(
   "inventory_transaction_type",
   ["IN", "OUT", "ADJUSTMENT", "WASTE"],
 );
-
-// ─── Inventory ────────────────────────────────────────────────────────────────
 
 export const inventoryItems = pgTable(
   "inventory_items",
@@ -66,6 +68,36 @@ export const inventoryItems = pgTable(
       t.tenantId,
       t.branchId,
     ),
+    branchTenantFk: foreignKey({
+      name: "inventory_items_branch_tenant_fk",
+      columns: [t.branchId, t.tenantId],
+      foreignColumns: [branches.id, branches.tenantId],
+    }).onDelete("cascade"),
+  }),
+);
+
+export const wasteReasons = pgTable(
+  "waste_reasons",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    label: varchar("label", { length: 200 }).notNull(),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => ({
+    tenantIdx: index("waste_reasons_tenant_idx").on(t.tenantId),
+    tenantActiveIdx: index("waste_reasons_tenant_active_idx").on(
+      t.tenantId,
+      t.isActive,
+    ),
+    tenantLabelUnique: uniqueIndex("waste_reasons_tenant_label_unique").on(
+      t.tenantId,
+      t.label,
+    ),
   }),
 );
 
@@ -88,16 +120,26 @@ export const inventoryTransactions = pgTable(
     }).notNull(),
     notes: text("notes"),
     performedBy: uuid("performed_by").references(() => users.id),
+    wasteReasonId: uuid("waste_reason_id").references(() => wasteReasons.id, {
+      onDelete: "set null",
+    }),
+    reversalOfDeductionId: uuid("reversal_of_deduction_id").references(
+      (): AnyPgColumn => orderInventoryDeductions.id,
+      { onDelete: "set null" },
+    ),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => ({
     itemIdx: index("inventory_transactions_item_idx").on(t.inventoryItemId),
+    wasteReasonIdx: index("inventory_transactions_waste_reason_idx").on(
+      t.wasteReasonId,
+    ),
+    reversalUnique: uniqueIndex("inventory_transactions_reversal_unique").on(
+      t.reversalOfDeductionId,
+    ),
   }),
 );
 
-// Per-order-item audit trail of what inventory a fired ticket actually
-// consumed — lets "why did stock X drop" be traced back to specific orders,
-// and survives the recipe itself changing later.
 export const orderInventoryDeductions = pgTable(
   "order_inventory_deductions",
   {
@@ -109,6 +151,9 @@ export const orderInventoryDeductions = pgTable(
       () => kitchenTickets.id,
       { onDelete: "cascade" },
     ),
+    orderItemId: uuid("order_item_id").references(() => orderItems.id, {
+      onDelete: "cascade",
+    }),
     menuItemId: uuid("menu_item_id")
       .notNull()
       .references(() => menuItems.id, { onDelete: "cascade" }),
@@ -120,11 +165,10 @@ export const orderInventoryDeductions = pgTable(
       scale: 3,
     }).notNull(),
     unit: inventoryUnitEnum("unit").notNull(),
-    // True if the order asked for more than was in stock — the deduction
-    // still floors at 0 rather than going negative, and this flag is how
-    // that shortfall shows up in the item's inventory-impact view.
+
     wasShort: boolean("was_short").notNull().default(false),
     deductedAt: timestamp("deducted_at").notNull().defaultNow(),
+    reversedAt: timestamp("reversed_at"),
   },
   (t) => ({
     orderIdx: index("order_inventory_deductions_order_idx").on(t.orderId),
@@ -134,5 +178,10 @@ export const orderInventoryDeductions = pgTable(
     ticketIdx: index("order_inventory_deductions_ticket_idx").on(
       t.kitchenTicketId,
     ),
+    ticketRecipeUnique: uniqueIndex(
+      "order_inventory_deductions_ticket_recipe_unique",
+    )
+      .on(t.kitchenTicketId, t.menuItemId, t.inventoryItemId)
+      .where(sql`${t.kitchenTicketId} IS NOT NULL`),
   }),
 );

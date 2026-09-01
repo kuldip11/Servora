@@ -1,1 +1,0 @@
-ALTER TYPE "kitchen_ticket_status" ADD VALUE IF NOT EXISTS 'PENDING_PAYMENT';

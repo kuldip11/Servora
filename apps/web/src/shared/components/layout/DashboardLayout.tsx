@@ -19,23 +19,30 @@ import {
   Bell,
   Building2,
   Menu as MenuIcon,
+  Sparkles,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useAuthStore } from "../../../store/auth";
-import { queryClient } from "../../lib/query-client";
-import { cn } from "../../utils";
+import { useAuthStore } from "@/store/auth";
+import { queryClient } from "@/shared/lib/query-client";
+import { cn } from "@/shared/utils";
 import { Dialog, SkipLink, toast } from "@pos/ui";
 import { BranchSwitcher } from "./BranchSwitcher";
 import { TenantSwitcher } from "./TenantSwitcher";
-import { useBranches } from "../../../features/branches/hooks/useBranches";
-import { usePermissions } from "../../auth/permissions";
+import { usePermissions } from "@/shared/auth/permissions";
 import { RealtimeNotifications } from "./RealtimeNotifications";
+import { authService } from "@/features/auth/services/auth.service";
 
 const navItems = [
   {
     to: "/dashboard",
     label: "Dashboard",
     icon: LayoutDashboard,
+    permission: "analytics:read",
+  },
+  {
+    to: "/menu-engineering",
+    label: "Menu Engineering",
+    icon: Sparkles,
     permission: "analytics:read",
   },
   {
@@ -48,6 +55,12 @@ const navItems = [
     to: "/menu",
     label: "Menu",
     icon: UtensilsCrossed,
+    permission: "menu:read",
+  },
+  {
+    to: "/availability",
+    label: "Availability",
+    icon: Bell,
     permission: "menu:read",
   },
   {
@@ -85,8 +98,8 @@ const navItems = [
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 
-export function DashboardLayout() {
-  const { user, branchId, logout } = useAuthStore();
+export const DashboardLayout = () => {
+  const { user, branchId, memberships, membershipId, logout } = useAuthStore();
   const { has } = usePermissions();
   const router = useRouter();
   const pathname = useRouterState({
@@ -108,23 +121,25 @@ export function DashboardLayout() {
     requestAnimationFrame(() => mobileNavTriggerRef.current?.focus());
   }
 
-  // Only look up capability when a specific branch is selected — in "All
-  // Branches" aggregate view, hiding Tables wouldn't make sense since other
-  // branches might still use them.
-  const { data: branchesInScope } = useBranches({
-    enabled: !!branchId && branchId !== "all",
-  });
-
+  const activeMembership = memberships.find(
+    (membership) => membership.membershipId === membershipId,
+  );
   const currentBranch =
-    branchesInScope?.length === 1 ? branchesInScope[0] : undefined;
+    branchId && branchId !== "all"
+      ? activeMembership?.branches.find((branch) => branch.id === branchId)
+      : undefined;
   const tablesHidden =
     branchId !== "all" && currentBranch ? !currentBranch.tablesEnabled : false;
 
-  function handleLogout() {
-    logout();
-    queryClient.clear();
-    toast({ title: "Logged out successfully", tone: "success" });
-    router.navigate({ to: "/login" });
+  async function handleLogout() {
+    try {
+      await authService.logout();
+    } finally {
+      logout();
+      queryClient.clear();
+      toast({ title: "Logged out successfully", tone: "success" });
+      router.navigate({ to: "/login" });
+    }
   }
 
   return (
@@ -132,9 +147,9 @@ export function DashboardLayout() {
       <SkipLink />
       <RealtimeNotifications />
 
-      {/* Sidebar */}
+      {}
       <aside className="hidden md:flex w-64 flex-shrink-0 bg-surface border-r border-divider flex-col shadow-sm">
-        {/* Logo */}
+        {}
         <div className="px-6 py-5 border-b border-divider">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
@@ -152,7 +167,7 @@ export function DashboardLayout() {
           </div>
         </div>
 
-        {/* Nav */}
+        {}
         <nav
           aria-label="Main"
           className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto"
@@ -180,7 +195,7 @@ export function DashboardLayout() {
             })}
         </nav>
 
-        {/* User footer */}
+        {}
         <div className="p-3 border-t border-divider">
           <div className="flex items-center gap-3 px-3 py-2 rounded-md mb-1">
             <div className="w-8 h-8 bg-primary-surface rounded-full flex items-center justify-center">
@@ -202,7 +217,7 @@ export function DashboardLayout() {
             </div>
           </div>
           <button
-            onClick={handleLogout}
+            onClick={() => void handleLogout()}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-text-secondary hover:bg-danger-surface hover:text-danger transition-colors"
           >
             <LogOut aria-hidden="true" className="w-4 h-4" />
@@ -246,9 +261,9 @@ export function DashboardLayout() {
         </Dialog>
       )}
 
-      {/* Main content */}
+      {}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top bar */}
+        {}
         <header className="h-20 bg-surface border-b border-divider flex items-center justify-between gap-4 px-3 md:px-6 flex-shrink-0 min-w-0 shadow-sm">
           <div className="flex items-center gap-2 min-w-0">
             <button
@@ -278,7 +293,7 @@ export function DashboardLayout() {
           </div>
         </header>
 
-        {/* Page content */}
+        {}
         <main
           id="main-content"
           tabIndex={-1}
@@ -289,4 +304,4 @@ export function DashboardLayout() {
       </div>
     </div>
   );
-}
+};

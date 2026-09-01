@@ -1,10 +1,5 @@
-/**
- * Staff controller — thin handlers only. Auth/branch resolution comes
- * from `requireAuthPlugin` (applied in `staff.route.ts`); business rules
- * live in `staff.service.ts`.
- */
-import type { AuthContext } from "../../core/auth";
-import { successResponse, createdResponse } from "../../core/response";
+import type { AuthContext } from "@/core/auth";
+import { successResponse, createdResponse } from "@/core/response";
 import {
   staffService,
   type CreateStaffInput,

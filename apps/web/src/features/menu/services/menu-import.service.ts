@@ -1,4 +1,7 @@
-import { apiClient } from "../../../shared/lib/api-client";
+import { createMenuApi } from "@pos/api-client";
+import { apiClient } from "@/shared/lib/api-client";
+
+const menuApi = createMenuApi(apiClient);
 
 export interface RowError {
   row: number;
@@ -30,7 +33,7 @@ export interface CommitImportResponse {
   updated: number;
 }
 
-function triggerDownload(blob: Blob, filename: string) {
+const triggerDownload = (blob: Blob, filename: string) => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -39,32 +42,23 @@ function triggerDownload(blob: Blob, filename: string) {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
-}
+};
 
 export const menuImportService = {
   async downloadTemplate(format: "csv" | "xlsx"): Promise<void> {
-    const res = await apiClient.get("/menu/import/items/template", {
-      params: { format },
-      responseType: "blob",
-    });
-    triggerDownload(res.data as Blob, `menu-items-template.${format}`);
+    const blob = await menuApi.downloadImportTemplate(format);
+    triggerDownload(blob, `menu-items-template.${format}`);
   },
 
   async validate(file: File): Promise<ValidateImportResponse> {
     const form = new FormData();
     form.append("file", file);
-    const res = await apiClient.post("/menu/import/items/validate", form, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    return res.data.data;
+    return menuApi.validateImport<ValidateImportResponse>(form);
   },
 
   async commit(file: File): Promise<CommitImportResponse> {
     const form = new FormData();
     form.append("file", file);
-    const res = await apiClient.post("/menu/import/items/commit", form, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    return res.data.data;
+    return menuApi.commitImport<CommitImportResponse>(form);
   },
 };

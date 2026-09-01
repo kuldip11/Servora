@@ -21,8 +21,8 @@ vi.mock("../../api/tickets", () => ({
   updateTicketStatus: mocks.updateTicketStatus,
 }));
 
-import { useUpdateTicketStatus } from "../useUpdateTicketStatus";
-import { KITCHEN_TICKETS_QUERY_KEY } from "../useKitchenTickets";
+import { useUpdateTicketStatus } from "@/features/kitchen/hooks/useUpdateTicketStatus";
+import { KITCHEN_TICKETS_QUERY_KEY } from "@/features/kitchen/hooks/useKitchenTickets";
 
 describe("useUpdateTicketStatus", () => {
   it("configures mutation callbacks", async () => {

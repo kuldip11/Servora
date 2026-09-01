@@ -4,9 +4,11 @@ import {
   formatTicketAge,
   groupTicketsByStatus,
   isUrgent,
-} from "../ticket";
-import { URGENT_THRESHOLD_MS } from "../../constants";
-import { ticket } from "../../test/fixtures";
+  filterTicketForStation,
+  voidUrgency,
+} from "@/features/kitchen/utils/ticket";
+import { URGENT_THRESHOLD_MS } from "@/features/kitchen/constants";
+import { ticket } from "@/features/kitchen/test/fixtures";
 describe("ticket utils", () => {
   it("calculates age and urgency", () => {
     const now = Date.now();
@@ -26,5 +28,32 @@ describe("ticket utils", () => {
       ),
     ).toHaveLength(1);
     expect(groupTicketsByStatus(undefined, "READY")).toEqual([]);
+  });
+  it("projects station lines while retaining unassigned fallback lines", () => {
+    const multi = {
+      ...ticket,
+      items: [
+        { ...ticket.items[0]!, id: "grill", stationId: "grill" },
+        { ...ticket.items[0]!, id: "bar", stationId: "bar" },
+        { ...ticket.items[0]!, id: "fallback", stationId: null },
+      ],
+    };
+    expect(
+      filterTicketForStation(multi, "grill")?.items.map((item) => item.id),
+    ).toEqual(["grill", "fallback"]);
+    expect(
+      filterTicketForStation(multi, "dessert")?.items.map((item) => item.id),
+    ).toEqual(["fallback"]);
+    expect(filterTicketForStation(multi)).toEqual(multi);
+  });
+
+  it("classifies in-progress voids as urgent", () => {
+    const voided = {
+      ...ticket,
+      status: "PREPARING" as const,
+      items: [{ ...ticket.items[0]!, itemStatus: "VOIDED" as const }],
+    };
+    expect(voidUrgency(voided)).toBe("danger");
+    expect(voidUrgency({ ...voided, status: "FIRED" })).toBe("warning");
   });
 });

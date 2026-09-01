@@ -33,7 +33,7 @@ import {
   useRealtime,
   useRealtimeConnection,
   useRealtimeEvent,
-} from "../realtime";
+} from "@/shared/lib/realtime";
 
 function renderHook<T>(hook: () => T) {
   const container = document.createElement("div");

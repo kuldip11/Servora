@@ -69,7 +69,7 @@ const { findMany, findFirst, query, transaction, db } = vi.hoisted(() => {
   return { findMany, findFirst, query, transaction, db };
 });
 vi.mock("../../../db", () => ({ db }));
-import { staffRepository } from "../staff.repository";
+import { staffRepository } from "@/modules/staff/staff.repository";
 beforeEach(() => {
   vi.clearAllMocks();
 });

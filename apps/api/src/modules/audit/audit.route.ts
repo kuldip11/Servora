@@ -1,9 +1,9 @@
 import { Elysia, t } from "elysia";
 import { and, desc, eq, lt, sql } from "drizzle-orm";
-import { requireAuthPlugin, requirePermission } from "../../core/auth";
-import { db } from "../../db";
-import { auditLogs, users } from "../../db/schema";
-import { successResponse } from "../../core/response";
+import { requireAuthPlugin, requirePermission } from "@/core/auth";
+import { db } from "@/db";
+import { auditLogs, users } from "@/db/schema";
+import { successResponse } from "@/core/response";
 
 export const auditRouter = new Elysia({ prefix: "/api/audit" })
   .use(requireAuthPlugin())

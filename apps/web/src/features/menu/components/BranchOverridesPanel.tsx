@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { RotateCcw } from "lucide-react";
-import { STATUS_OPTIONS } from "./StatusBadge";
-import { useBranches } from "../../branches/hooks/useBranches";
-import { useMenuItemBranchOverrides } from "../hooks/useMenuItemBranchOverrides";
-import { useSaveBranchOverride } from "../hooks/useSaveBranchOverride";
-import { useResetBranchOverride } from "../hooks/useResetBranchOverride";
+import { MENU_ITEM_STATUS_OPTIONS } from "@/features/menu/constants";
+import { useBranches } from "@/features/branches/hooks/useBranches";
+import { useMenuItemBranchOverrides } from "@/features/menu/hooks/useMenuItemBranchOverrides";
+import { useSaveBranchOverride } from "@/features/menu/hooks/useSaveBranchOverride";
+import { useResetBranchOverride } from "@/features/menu/hooks/useResetBranchOverride";
 import type { MenuItemBranchOverride, MenuItemStatus } from "@pos/types";
 
 interface Props {
@@ -14,10 +14,8 @@ interface Props {
   basePrepTimeMinutes: number | null;
 }
 
-// One row's local edit state — undefined fields mean "not overridden, use
-// the base item's value", matching how the API stores/reads null.
 interface RowDraft {
-  price: string; // '' = no override
+  price: string;
   taxRate: string;
   prepTimeMinutes: string;
   status: MenuItemStatus | "";
@@ -25,7 +23,7 @@ interface RowDraft {
   availabilityReason: string;
 }
 
-function toDraft(o: MenuItemBranchOverride | undefined): RowDraft {
+const toDraft = (o: MenuItemBranchOverride | undefined): RowDraft => {
   return {
     price: o?.price != null ? String(o.price) : "",
     taxRate: o?.taxRate != null ? String(o.taxRate) : "",
@@ -35,16 +33,14 @@ function toDraft(o: MenuItemBranchOverride | undefined): RowDraft {
     isHidden: o?.isHidden ?? false,
     availabilityReason: o?.availabilityReason ?? "",
   };
-}
+};
 
-export function BranchOverridesPanel({
+export const BranchOverridesPanel = ({
   itemId,
   basePrice,
   baseTaxRate,
   basePrepTimeMinutes,
-}: Props) {
-  // Same unscoped ('all') branch list the switcher and Staff page use —
-  // shares cache with them instead of a duplicate ad-hoc query.
+}: Props) => {
   const { data: branches } = useBranches();
   const { data: overrides, isLoading } = useMenuItemBranchOverrides(itemId);
 
@@ -100,12 +96,13 @@ export function BranchOverridesPanel({
                       <span>
                         {override?.isHidden
                           ? "Hidden"
-                          : STATUS_OPTIONS.find(
+                          : MENU_ITEM_STATUS_OPTIONS.find(
                               (o) => o.value === (override?.status ?? "ACTIVE"),
                             )?.label}
                       </span>
                       {override && (
                         <button
+                          type="button"
                           onClick={() => resetMutation.mutate(b.id)}
                           className="text-text-disabled hover:text-danger"
                           title="Reset to default"
@@ -114,6 +111,7 @@ export function BranchOverridesPanel({
                         </button>
                       )}
                       <button
+                        type="button"
                         onClick={() => {
                           setDraft(toDraft(override));
                           setEditingBranchId(b.id);
@@ -180,7 +178,7 @@ export function BranchOverridesPanel({
                       className="px-2 py-1.5 text-sm border border-border rounded-md"
                     >
                       <option value="">Default status</option>
-                      {STATUS_OPTIONS.map((o) => (
+                      {MENU_ITEM_STATUS_OPTIONS.map((o) => (
                         <option key={o.value} value={o.value}>
                           {o.label}
                         </option>
@@ -214,12 +212,14 @@ export function BranchOverridesPanel({
                   />
                   <div className="flex gap-2 justify-end">
                     <button
+                      type="button"
                       onClick={() => setEditingBranchId(null)}
                       className="text-xs text-text-secondary hover:text-text-primary px-2 py-1"
                     >
                       Cancel
                     </button>
                     <button
+                      type="button"
                       onClick={() =>
                         saveMutation.mutate(
                           { branchId: b.id, input: draft },
@@ -240,4 +240,4 @@ export function BranchOverridesPanel({
       </div>
     </div>
   );
-}
+};

@@ -1,7 +1,5 @@
 const configuredApiUrl = import.meta.env.VITE_API_URL?.trim();
 
-// In local development, keep requests same-origin so Vite proxies /api to the API.
-// This prevents the browser from turning the dev setup into a cross-origin request.
 const API_URL = import.meta.env.DEV
   ? ""
   : (configuredApiUrl ?? "").replace(/\/$/, "");

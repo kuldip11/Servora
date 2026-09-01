@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import * as mod from "../recipes.controller";
+import * as mod from "@/modules/menu/recipes/recipes.controller";
 
 describe("recipes controller", () => {
   it("exposes the documented module boundary", () => {

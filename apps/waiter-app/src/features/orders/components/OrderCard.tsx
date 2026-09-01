@@ -7,35 +7,15 @@ import {
   shortOrderId,
   formatCurrency,
   isOrderReady,
-} from "../utils/orderHelpers";
+} from "@/features/orders/utils/orderHelpers";
 
 interface Props {
   order: Order;
   onSelect: (id: string) => void;
-  /** 'compact' — Home's single-line card. 'detailed' — Orders list card with item preview. */
+
   variant?: "compact" | "detailed";
 }
 
-// Phase 11: rebuilt on `Card` (Phase 2) instead of the hand-rolled
-// `bg-white rounded-2xl ... border shadow-sm` shell — `00-PLAN.md`
-// names this file directly ("HomePage/OrderCard are good visual
-// references, just need to move onto shared primitives"). `Card`'s
-// own `rounded-lg` (16px) is overridden back to `rounded-2xl` (24px,
-// `--radius-xl`) via `className` (`cn`'s `tailwind-merge` resolves the
-// conflict in the later class's favor, same technique `TablesPage`'s
-// per-status border override used in Sprint AD-6) — `Card` has no
-// `radius` prop, and this app's cards have always been a step rounder
-// than Admin's, a real mobile-vs-desktop visual choice worth keeping,
-// not a gap to paper over by forcing 16px everywhere.
-// Phase 14 (perf pass, follow-up): wrapped in `React.memo`. Flagged in
-// the prior pass as lower priority than `KitchenBoard`'s fix (no
-// 20-second poll + shared per-row mutation flag driving this list the
-// way Kitchen Display's board was), but a real, if smaller, win: both
-// call sites (`OrdersPage`, `HomePage`) pass `onSelectOrder` straight
-// through unwrapped rather than a fresh inline arrow per render, so
-// this card's props are already stable across an unrelated parent
-// re-render — `memo` here isn't fighting an inline-callback problem
-// the way `MenuItemCard`'s did.
 export const OrderCard = memo(function OrderCard({
   order,
   onSelect,

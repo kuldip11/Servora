@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ForbiddenError } from "@/core/errors";
 
 const { resolveMembership } = vi.hoisted(() => ({
   resolveMembership: vi.fn(),
@@ -19,13 +20,16 @@ vi.mock("../../../lib/redis", () => ({
     TABLE_EVENTS: "tables",
   },
 }));
-vi.mock("../../../lib/authorization/authorization", () => ({
+vi.mock("../../../core/auth/authorization", () => ({
   resolveMembership,
   resolveAuthorization,
 }));
 vi.mock("../../../lib/jwt", () => ({ verifyAccessToken: vi.fn() }));
 
-import { resolveRealtimeContext } from "../gateway";
+import {
+  forwardTenantRealtimeMessage,
+  resolveRealtimeContext,
+} from "@/modules/realtime/gateway";
 
 const payload = { sub: "u1" } as any;
 
@@ -43,13 +47,13 @@ beforeEach(() => {
 
 describe("realtime gateway context", () => {
   it("requires an explicit tenant and an active membership", async () => {
-    await expect(resolveRealtimeContext(payload, "")).rejects.toThrow(
-      "ACTIVE_FRANCHISE_REQUIRED",
+    await expect(resolveRealtimeContext(payload, "")).rejects.toBeInstanceOf(
+      ForbiddenError,
     );
 
     resolveMembership.mockResolvedValue(undefined);
-    await expect(resolveRealtimeContext(payload, "t1")).rejects.toThrow(
-      "ACTIVE_FRANCHISE_REQUIRED",
+    await expect(resolveRealtimeContext(payload, "t1")).rejects.toBeInstanceOf(
+      ForbiddenError,
     );
     expect(resolveMembership).toHaveBeenCalledWith({}, "u1", "t1");
   });
@@ -61,9 +65,9 @@ describe("realtime gateway context", () => {
       branchIds: ["b1"],
       tenantWide: false,
     });
-    await expect(resolveRealtimeContext(payload, "t1", "b1")).rejects.toThrow(
-      "REALTIME_PERMISSION_REQUIRED",
-    );
+    await expect(
+      resolveRealtimeContext(payload, "t1", "b1"),
+    ).rejects.toBeInstanceOf(ForbiddenError);
 
     resolveAuthorization.mockResolvedValue({
       allowed: true,
@@ -85,9 +89,9 @@ describe("realtime gateway context", () => {
       branchIds: ["b1"],
       tenantWide: false,
     });
-    await expect(resolveRealtimeContext(payload, "t1", "b2")).rejects.toThrow(
-      "REALTIME_BRANCH_ACCESS_REQUIRED",
-    );
+    await expect(
+      resolveRealtimeContext(payload, "t1", "b2"),
+    ).rejects.toBeInstanceOf(ForbiddenError);
 
     resolveAuthorization.mockResolvedValue({
       allowed: true,
@@ -103,5 +107,22 @@ describe("realtime gateway context", () => {
     await expect(resolveRealtimeContext(payload, "t1", "all")).resolves.toEqual(
       { tenantId: "t1", membershipId: "m1", branchId: null },
     );
+  });
+
+  it("forwards a branch-scoped void event through the same tenant realtime transport as kitchen events", () => {
+    const b1 = { __branchId: "b1", send: vi.fn() };
+    const b2 = { __branchId: "b2", send: vi.fn() };
+    const all = { __branchId: null, send: vi.fn() };
+    const registry = new Map([["t1", new Set([b1, b2, all])]]);
+    const message = JSON.stringify({
+      type: "order.item.voided",
+      tenantId: "t1",
+      branchId: "b1",
+      payload: { id: "kt1" },
+    });
+    forwardTenantRealtimeMessage(message, registry);
+    expect(b1.send).toHaveBeenCalledWith(message);
+    expect(all.send).toHaveBeenCalledWith(message);
+    expect(b2.send).not.toHaveBeenCalled();
   });
 });

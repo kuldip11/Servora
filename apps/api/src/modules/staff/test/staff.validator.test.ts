@@ -4,7 +4,7 @@ import {
   createStaffBody,
   updateStaffBody,
   staffIdParams,
-} from "../staff.validator";
+} from "@/modules/staff/staff.validator";
 describe("staff validators", () => {
   it("accepts valid create payloads and rejects invalid required fields", () => {
     expect(

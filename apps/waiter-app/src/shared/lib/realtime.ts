@@ -5,12 +5,9 @@ import {
   useRealtimeConnection,
 } from "@pos/realtime";
 import type { RealtimeEvent } from "@pos/types";
-import { STORAGE_KEYS } from "../constants/storage-keys";
+import { STORAGE_KEYS } from "@/shared/constants/storage-keys";
+import { getToken } from "@/features/auth/storage";
 
-// This app has never had a WebSocket before — see FE-4 in
-// docs/frontend/NEXT_STEPS.md for why this is a deliberate, accepted
-// behavior change rather than a like-for-like extraction. Protocol
-// detection mirrors kitchen-display's (correct) original inline version.
 const proto = window.location.protocol === "https:" ? "wss" : "ws";
 const wsUrl =
   import.meta.env["VITE_WS_URL"] ??
@@ -18,7 +15,7 @@ const wsUrl =
 
 const client = createRealtimeClient<RealtimeEvent>({
   url: wsUrl,
-  getAccessToken: () => localStorage.getItem(STORAGE_KEYS.token),
+  getAccessToken: getToken,
   getTenantId: () => localStorage.getItem(STORAGE_KEYS.tenant),
   getBranchId: () => localStorage.getItem(STORAGE_KEYS.branch),
 });
@@ -34,6 +31,6 @@ export function useRealtimeEvent<T extends RealtimeEvent["type"]>(
   useRealtimeEventBase(client, type, handler);
 }
 
-export function useConnectionStatus(): boolean {
+export const useConnectionStatus = (): boolean => {
   return useRealtimeConnection(client);
-}
+};

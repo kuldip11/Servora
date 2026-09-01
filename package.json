@@ -20,11 +20,7 @@
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "test:a11y": "cd apps/web && bun run test:a11y",
-    "a11y:lighthouse": "bash scripts/accessibility/lighthouse.sh",
-    "audit:rbac": "bash scripts/audit/rbac-static.sh",
-    "audit:rbac:baseline": "bash scripts/audit/rbac-baseline.sh",
-    "audit:rbac:e2e": "bash scripts/audit/rbac-e2e.sh",
-    "audit:rbac:certify": "bash scripts/audit/rbac-certification.sh",
+    "audit:rbac": "bash scripts/audit/rbac-static.sh && node scripts/audit/verify-permissions.mjs",
     "test:coverage": "bun run test:coverage:validation && bun run test:coverage:api-client && bun run test:coverage:realtime && bun run test:coverage:api && bun run test:coverage:ui && bun run test:coverage:web && bun run test:coverage:waiter && bun run test:coverage:kitchen && bun run test:coverage:customer",
     "test:coverage:api": "cd apps/api && bun run test:coverage",
     "test:coverage:ui": "cd packages/ui && bun run test:coverage",
@@ -61,7 +57,8 @@
     "release:certify": "node scripts/release/certify-release.mjs",
     "db:backup": "sh scripts/release/backup-postgres.sh",
     "db:restore": "sh scripts/release/restore-postgres.sh",
-    "validate:production-env": "node scripts/release/validate-production-env.mjs"
+    "validate:production-env": "node scripts/release/validate-production-env.mjs",
+    "smoke:production": "node scripts/release/production-smoke.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",

@@ -4,7 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 vi.mock("../../../orders/hooks/useOrders", () => ({
   useOrders: vi.fn(() => ({ data: [] })),
 }));
-import { HomePage } from "../HomePage";
+import { HomePage } from "@/features/home/pages/HomePage";
 describe("HomePage", () => {
   it("renders empty state", () => {
     const html = renderToStaticMarkup(

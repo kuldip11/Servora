@@ -9,7 +9,7 @@ vi.mock("../../hooks/useOrders", () => ({
     isFetching: false,
   })),
 }));
-import { OrdersPage } from "../OrdersPage";
+import { OrdersPage } from "@/features/orders/pages/OrdersPage";
 describe("OrdersPage", () => {
   it("renders empty active state", () => {
     const html = renderToStaticMarkup(<OrdersPage onSelectOrder={vi.fn()} />);

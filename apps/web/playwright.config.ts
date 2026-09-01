@@ -1,13 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
 
-/**
- * Accessibility/runtime verification config.
- *
- * The accessibility suite contains both unauthenticated component-preview
- * fixtures and authenticated product-route fixtures. The authenticated suite
- * seeds auth state and mocks API responses so axe can inspect real application
- * screens without requiring a live backend or seeded database.
- */
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: true,
@@ -19,12 +11,19 @@ export default defineConfig({
     baseURL: "http://127.0.0.1:5173",
     trace: "on-first-retry",
     ...devices["Desktop Chrome"],
+    ...(process.env.PLAYWRIGHT_CHROMIUM_PATH
+      ? {
+          launchOptions: {
+            executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH,
+          },
+        }
+      : {}),
   },
   webServer: [
     {
       command: "bun run dev --host 127.0.0.1",
       cwd: ".",
-      url: "http://127.0.0.1:5173/dev/form-preview",
+      url: "http://127.0.0.1:5173/login",
       env: { VITE_API_URL: "/api" },
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,

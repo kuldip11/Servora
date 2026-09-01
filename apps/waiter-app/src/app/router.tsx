@@ -4,30 +4,57 @@ import {
   createRouter,
 } from "@tanstack/react-router";
 import { Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { Home, ClipboardList, Plus, LogOut, Settings } from "lucide-react";
 import { IconButton } from "@pos/ui";
-import { LoginPage, getToken, getWaiterName, logout } from "../features/auth";
-import { HomePage } from "../features/home/pages/HomePage";
-import { OrdersPage } from "../features/orders/pages/OrdersPage";
-import { MenuPage } from "../features/menu";
-import { OrderDetailPage } from "../features/orders/pages/OrderDetailPage";
-import { ProfilePage } from "../features/profile/pages/ProfilePage";
-import { useWaiterAttention } from "../features/orders/hooks/useWaiterAttention";
-import { useConnectionStatus } from "../shared/lib/realtime";
+import {
+  LoginPage,
+  getToken,
+  getWaiterName,
+  logout,
+  logoutSession,
+  restoreSession,
+} from "@/features/auth";
+import { HomePage } from "@/features/home/pages/HomePage";
+import { OrdersPage } from "@/features/orders/pages/OrdersPage";
+import { MenuPage } from "@/features/menu";
+import { OrderDetailPage } from "@/features/orders/pages/OrderDetailPage";
+import { ProfilePage } from "@/features/profile/pages/ProfilePage";
+import { useWaiterAttention } from "@/features/orders/hooks/useWaiterAttention";
+import { useConnectionStatus } from "@/shared/lib/realtime";
 
-function AuthBoundary() {
-  const [loggedIn, setLoggedIn] = useState(() => !!getToken());
+const AuthBoundary = () => {
+  const [loggedIn, setLoggedIn] = useState<boolean | null>(() =>
+    getToken() ? true : null,
+  );
+
+  useEffect(() => {
+    if (loggedIn !== null) return;
+    restoreSession()
+      .then(() => setLoggedIn(true))
+      .catch(() => {
+        logout();
+        setLoggedIn(false);
+      });
+  }, [loggedIn]);
+
+  if (loggedIn === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-text-secondary">
+        Restoring session…
+      </div>
+    );
+  }
 
   if (!loggedIn) {
     return <LoginPage onLogin={() => setLoggedIn(true)} />;
   }
 
   return <Outlet />;
-}
+};
 
-function AppLayout({ children }: { children?: ReactNode }) {
+const AppLayout = ({ children }: { children?: ReactNode }) => {
   const navigate = useNavigate();
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
@@ -37,10 +64,14 @@ function AppLayout({ children }: { children?: ReactNode }) {
   const connected = useConnectionStatus();
   useWaiterAttention();
 
-  function handleLogout() {
-    logout();
-    navigate({ to: "/" });
-    window.location.reload();
+  async function handleLogout() {
+    try {
+      await logoutSession();
+    } finally {
+      logout();
+      navigate({ to: "/" });
+      window.location.reload();
+    }
   }
 
   return (
@@ -61,7 +92,7 @@ function AppLayout({ children }: { children?: ReactNode }) {
         <IconButton
           icon={LogOut}
           aria-label="Log out"
-          onClick={handleLogout}
+          onClick={() => void handleLogout()}
           className="w-9 h-9 rounded-full bg-surface/80 backdrop-blur shadow-sm text-text-secondary hover:bg-surface-secondary/80"
         />
       </div>
@@ -103,7 +134,7 @@ function AppLayout({ children }: { children?: ReactNode }) {
       </nav>
     </div>
   );
-}
+};
 
 const rootRoute = createRootRoute({
   component: AuthBoundary,

@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 const store = vi.hoisted(() => vi.fn());
 vi.mock("../../../store/auth", () => ({ useAuthStore: store }));
-import { getUserPermissions, userHasPermission } from "../permissions";
+import {
+  getUserPermissions,
+  userHasPermission,
+} from "@/shared/auth/permissions";
 describe("permissions", () => {
   it("collects unique permission keys across roles", () => {
     const user = {

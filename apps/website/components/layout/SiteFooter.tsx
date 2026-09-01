@@ -4,7 +4,7 @@ import Link from "next/link";
 import { track } from "@/lib/analytics";
 import { servoraApps } from "@/lib/servora-apps";
 
-export function SiteFooter() {
+export const SiteFooter = () => {
   return (
     <footer className="border-t border-border bg-surface">
       <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
@@ -118,4 +118,4 @@ export function SiteFooter() {
       </div>
     </footer>
   );
-}
+};

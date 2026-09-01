@@ -1,6 +1,6 @@
 import { and, eq, inArray } from "drizzle-orm";
-import { db } from "../../db";
-import { permissions, rolePermissions, roles } from "../../db/schema";
+import { db } from "@/db";
+import { permissions, rolePermissions, roles } from "@/db/schema";
 
 export const permissionRepository = {
   list() {

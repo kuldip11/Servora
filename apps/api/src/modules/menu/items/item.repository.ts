@@ -1,21 +1,6 @@
-/**
- * Menu item repository — data access for the "items" sub-domain only.
- * Extracted from the monolithic `modules/menu/repository.ts` (still used
- * by categories, modifier groups, tags, allergens, recipes, scheduling,
- * branch overrides, bulk ops, import/export, and templates — none of
- * those have been split out yet, see docs/NEXT_STEPS.md).
- *
- * `findByIds` and `getEffectiveItem` deliberately stayed in the legacy
- * `menu/repository.ts` rather than moving here: they're order-time
- * pricing/availability reads used cross-module by
- * `orders/order.service.ts`, and conceptually belong with a future
- * "availability" sub-domain more than with item CRUD. Moving them now
- * would touch a working, already-migrated integration point for no
- * behavioral benefit.
- */
-import { eq, and, isNull, or, inArray } from "drizzle-orm";
+import { eq, and, isNull, or, inArray, asc } from "drizzle-orm";
 import type { FoodType, MenuItemStatus, SpiceLevel } from "@pos/types";
-import { db } from "../../../db";
+import { db } from "@/db";
 import {
   menuItems,
   menuItemVariants,
@@ -23,28 +8,35 @@ import {
   menuItemTags,
   menuItemAllergens,
   menuItemImages,
+  modifierOptions,
   menuCategories,
   menuItemSchedules,
   recipes,
-} from "../../../db/schema";
+  menus,
+  menuMemberships,
+  comboSlotOptions,
+  orderItems,
+} from "@/db/schema";
+import {
+  withEffectiveMenuItemAvailability,
+  withEffectiveModifierAvailability,
+} from "@/modules/menu/availability/availability-view";
 
-// Full relation tree for a menu item — used wherever the frontend needs to
-// render/edit everything about an item (order-time resolution just needs
-// the pricing bits, see orders/order-pricing.ts / order.service.ts, which
-// call availabilityRepository.findByIds separately).
-//
-// Exported (not just used internally) because `categories/category.repository.ts`
-// needs the exact same shape for its nested `menuItems` join — better to
-// share one definition than maintain a third copy alongside this one and
-// the original still in the legacy `menu/repository.ts`.
+type MenuItemDetailRelations = NonNullable<
+  NonNullable<Parameters<typeof db.query.menuItems.findFirst>[0]>["with"]
+>;
+
 export const ITEM_DETAIL_RELATIONS = {
   variants: true,
-  images: { orderBy: (t: any, { asc }: any) => [asc(t.sortOrder)] },
+  images: { orderBy: [asc(menuItemImages.sortOrder)] },
   modifierGroupLinks: {
     with: {
       group: {
         with: {
-          options: { orderBy: (t: any, { asc }: any) => [asc(t.sortOrder)] },
+          options: {
+            orderBy: [asc(modifierOptions.sortOrder)],
+            with: { variantPrices: true },
+          },
         },
       },
     },
@@ -52,7 +44,41 @@ export const ITEM_DETAIL_RELATIONS = {
   tagLinks: { with: { tag: true } },
   allergenLinks: { with: { allergen: true } },
   recipeLinks: { with: { inventoryItem: true } },
-} as const;
+  menuMemberships: { with: { menu: true, category: true } },
+} satisfies MenuItemDetailRelations;
+
+function withItemReadModel<
+  T extends {
+    status: MenuItemStatus | string;
+    manualOverrideStatus?: MenuItemStatus | string | null;
+    manualStockCount?: number | null;
+    modifierGroupLinks?: Array<{
+      group: {
+        options: Array<{
+          computedAvailability: boolean;
+          manualOverrideAvailability?: boolean | null;
+        }>;
+      };
+    }>;
+  },
+>(item: T) {
+  return {
+    ...withEffectiveMenuItemAvailability(item),
+    ...(item.modifierGroupLinks
+      ? {
+          modifierGroupLinks: item.modifierGroupLinks.map((link) => ({
+            ...link,
+            group: {
+              ...link.group,
+              options: link.group.options.map(
+                withEffectiveModifierAvailability,
+              ),
+            },
+          })),
+        }
+      : {}),
+  };
+}
 
 export const itemRepository = {
   async findCategory(tenantId: string, categoryId: string) {
@@ -65,11 +91,37 @@ export const itemRepository = {
     });
   },
 
+  async findIdsByCategory(tenantId: string, categoryId: string) {
+    const rows = await db.query.menuItems.findMany({
+      where: and(
+        eq(menuItems.tenantId, tenantId),
+        eq(menuItems.categoryId, categoryId),
+        isNull(menuItems.deletedAt),
+      ),
+      columns: { id: true },
+    });
+    return rows.map((row) => row.id);
+  },
+
+  async findIdsByMenu(tenantId: string, menuId: string) {
+    const menu = await db.query.menus.findFirst({
+      where: and(eq(menus.id, menuId), eq(menus.tenantId, tenantId)),
+      columns: { id: true },
+    });
+    if (!menu) return null;
+    const rows = await db.query.menuMemberships.findMany({
+      where: eq(menuMemberships.menuId, menuId),
+      columns: { menuItemId: true },
+    });
+    return rows.map((row) => row.menuItemId);
+  },
+
   async findById(tenantId: string, itemId: string) {
-    return db.query.menuItems.findFirst({
+    const item = await db.query.menuItems.findFirst({
       where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)),
       with: ITEM_DETAIL_RELATIONS,
     });
+    return item ? withItemReadModel(item) : undefined;
   },
 
   async create(data: {
@@ -77,18 +129,29 @@ export const itemRepository = {
     branchId?: string | undefined;
     categoryId: string;
     name: string;
-    description?: string | undefined;
+    description?: string | null | undefined;
     basePrice: string;
+    pricingMode?: "FIXED" | "WEIGHT_BASED" | "OPEN" | undefined;
+    weightUnit?: "G" | "KG" | "LB" | "OZ" | undefined;
+    openPriceMin?: string | undefined;
+    openPriceMax?: string | undefined;
+    supportsZones?: boolean | undefined;
+    zonePricingRule?: "AVERAGE" | "HIGHER" | "SUM_HALF" | undefined;
+    manualStockCount?: number | undefined;
     taxRate?: string | undefined;
+    taxMode?: "INCLUSIVE" | "EXCLUSIVE" | null | undefined;
     foodType?: FoodType | undefined;
-    spiceLevel?: SpiceLevel | undefined;
-    sku?: string | undefined;
-    prepTimeMinutes?: number | undefined;
+    spiceLevel?: SpiceLevel | null | undefined;
+    sku?: string | null | undefined;
+    prepTimeMinutes?: number | null | undefined;
     sortOrder?: number | undefined;
-    hsnCode?: string | undefined;
+    hsnCode?: string | null | undefined;
     status?: MenuItemStatus | undefined;
+    availabilityReason?: string | null | undefined;
     enableRecipeDeduction?: boolean | undefined;
     isPublished?: boolean | undefined;
+    displayMode?: "STANDARD" | "GUIDED_BUILDER" | undefined;
+    effectiveFrom?: Date | undefined;
     variants?: Array<{ name: string; price: string }> | undefined;
     modifierGroupIds?: string[] | undefined;
     tagIds?: string[] | undefined;
@@ -105,7 +168,17 @@ export const itemRepository = {
           name: data.name,
           description: data.description ?? null,
           basePrice: data.basePrice,
+          pricingMode: data.pricingMode ?? "FIXED",
+          weightUnit: data.weightUnit ?? null,
+          openPriceMin: data.openPriceMin ?? null,
+          openPriceMax: data.openPriceMax ?? null,
+          supportsZones: data.supportsZones ?? false,
+          zonePricingRule: data.zonePricingRule ?? "HIGHER",
+          manualStockCount: data.manualStockCount ?? null,
+          manualStockCountUpdatedAt:
+            data.manualStockCount === undefined ? null : new Date(),
           taxRate: data.taxRate ?? "0",
+          taxMode: data.taxMode ?? null,
           foodType: data.foodType ?? "VEG",
           spiceLevel: data.spiceLevel ?? null,
           sku: data.sku ?? null,
@@ -113,9 +186,11 @@ export const itemRepository = {
           sortOrder: data.sortOrder ?? 0,
           hsnCode: data.hsnCode ?? null,
           status: data.status ?? "ACTIVE",
-          isAvailable: (data.status ?? "ACTIVE") === "ACTIVE",
+          availabilityReason: data.availabilityReason ?? null,
           enableRecipeDeduction: data.enableRecipeDeduction ?? true,
           isPublished: data.isPublished ?? true,
+          displayMode: data.displayMode ?? "STANDARD",
+          effectiveFrom: data.effectiveFrom ?? null,
           publishedAt: (data.isPublished ?? true) ? new Date() : null,
         })
         .returning();
@@ -124,6 +199,22 @@ export const itemRepository = {
         await tx
           .insert(menuItemVariants)
           .values(data.variants.map((v) => ({ menuItemId: item!.id, ...v })));
+      }
+
+      const defaultMenu = await tx.query.menus.findFirst({
+        where: and(
+          eq(menus.tenantId, data.tenantId),
+          eq(menus.isDefault, true),
+        ),
+        columns: { id: true },
+      });
+      if (defaultMenu) {
+        await tx.insert(menuMemberships).values({
+          menuId: defaultMenu.id,
+          menuItemId: item!.id,
+          categoryId: data.categoryId,
+          sortOrder: data.sortOrder ?? 0,
+        });
       }
 
       if (data.modifierGroupIds?.length) {
@@ -163,10 +254,11 @@ export const itemRepository = {
         );
       }
 
-      return tx.query.menuItems.findFirst({
+      const created = await tx.query.menuItems.findFirst({
         where: eq(menuItems.id, item!.id),
         with: ITEM_DETAIL_RELATIONS,
       });
+      return created ? withItemReadModel(created) : undefined;
     });
   },
 
@@ -175,10 +267,18 @@ export const itemRepository = {
     itemId: string,
     data: {
       name?: string | undefined;
-      description?: string | undefined;
+      description?: string | null | undefined;
       basePrice?: string | undefined;
+      pricingMode?: "FIXED" | "WEIGHT_BASED" | "OPEN" | undefined;
+      weightUnit?: "G" | "KG" | "LB" | "OZ" | null | undefined;
+      openPriceMin?: string | null | undefined;
+      openPriceMax?: string | null | undefined;
+      supportsZones?: boolean | undefined;
+      zonePricingRule?: "AVERAGE" | "HIGHER" | "SUM_HALF" | undefined;
+      manualStockCount?: number | null | undefined;
+      manualStockCountUpdatedAt?: Date | undefined;
       taxRate?: string | undefined;
-      isAvailable?: boolean | undefined;
+      taxMode?: "INCLUSIVE" | "EXCLUSIVE" | null | undefined;
       foodType?: FoodType | undefined;
       spiceLevel?: SpiceLevel | null | undefined;
       sku?: string | null | undefined;
@@ -188,15 +288,11 @@ export const itemRepository = {
       status?: MenuItemStatus | undefined;
       availabilityReason?: string | null | undefined;
       enableRecipeDeduction?: boolean | undefined;
+      displayMode?: "STANDARD" | "GUIDED_BUILDER" | undefined;
+      effectiveFrom?: Date | null | undefined;
     },
   ) {
-    // `isAvailable` is a derived flag the waiter-app ordering views read
-    // directly — keep it in sync with `status` whenever status changes,
-    // unless the caller also explicitly sent isAvailable (rare/legacy path).
     const patch: Record<string, unknown> = { ...data, updatedAt: new Date() };
-    if (data.status !== undefined && data.isAvailable === undefined) {
-      patch["isAvailable"] = data.status === "ACTIVE";
-    }
     if (data.status !== undefined) {
       patch["statusChangedAt"] = new Date();
     }
@@ -205,18 +301,121 @@ export const itemRepository = {
       .set(patch)
       .where(and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)))
       .returning();
-    return updated;
+    return updated ? withEffectiveMenuItemAvailability(updated) : undefined;
   },
 
-  // Copies the item plus variants/tags/allergens/modifier-group links
-  // (always — cheap and near-always wanted), and optionally
-  // recipes/schedules (opt-in, since those represent decisions specific
-  // to the original item). Never copies sales, inventory deductions, or
-  // order history — a duplicate is a brand-new item with no history.
-  //
-  // Returns `undefined` (rather than throwing) when the source item
-  // doesn't exist, so the service layer decides how to surface that —
-  // same convention as every other migrated module's repository.
+  async validateVariantSync(
+    tenantId: string,
+    itemId: string,
+    variants: Array<{ id?: string; name: string; price: string }>,
+  ) {
+    const item = await db.query.menuItems.findFirst({
+      where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)),
+      columns: { id: true },
+    });
+    if (!item) return { ok: false as const, reason: "ITEM_NOT_FOUND" as const };
+
+    const existing = await db.query.menuItemVariants.findMany({
+      where: eq(menuItemVariants.menuItemId, itemId),
+      columns: { id: true },
+    });
+    const existingIds = new Set(existing.map((variant) => variant.id));
+    const submittedExistingIds = variants
+      .map((variant) => variant.id)
+      .filter((id): id is string => !!id);
+    if (submittedExistingIds.some((id) => !existingIds.has(id))) {
+      return { ok: false as const, reason: "FOREIGN_VARIANT" as const };
+    }
+
+    const retainedIds = new Set(submittedExistingIds);
+    const removedIds = existing
+      .map((variant) => variant.id)
+      .filter((id) => !retainedIds.has(id));
+    if (!removedIds.length) return { ok: true as const };
+
+    const [comboReference, orderReference] = await Promise.all([
+      db.query.comboSlotOptions.findFirst({
+        where: inArray(comboSlotOptions.variantId, removedIds),
+        columns: { id: true, variantId: true },
+      }),
+      db.query.orderItems.findFirst({
+        where: inArray(orderItems.variantId, removedIds),
+        columns: { id: true, variantId: true },
+      }),
+    ]);
+    const blockedVariantId = comboReference?.variantId ?? orderReference?.variantId;
+    if (blockedVariantId) {
+      return {
+        ok: false as const,
+        reason: "VARIANT_IN_USE" as const,
+        variantId: blockedVariantId,
+      };
+    }
+
+    return { ok: true as const };
+  },
+
+  async setVariants(
+    tenantId: string,
+    itemId: string,
+    variants: Array<{ id?: string; name: string; price: string }>,
+  ) {
+    return db.transaction(async (tx) => {
+      const item = await tx.query.menuItems.findFirst({
+        where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)),
+        columns: { id: true },
+      });
+      if (!item) return false;
+
+      const existing = await tx.query.menuItemVariants.findMany({
+        where: eq(menuItemVariants.menuItemId, itemId),
+        columns: { id: true },
+      });
+      const existingIds = new Set(existing.map((variant) => variant.id));
+      const submittedExistingIds = variants
+        .map((variant) => variant.id)
+        .filter((id): id is string => !!id);
+      if (submittedExistingIds.some((id) => !existingIds.has(id))) return false;
+
+      const retainedIds = new Set<string>();
+      for (const variant of variants) {
+        if (variant.id) {
+          retainedIds.add(variant.id);
+          await tx
+            .update(menuItemVariants)
+            .set({ name: variant.name, price: variant.price })
+            .where(
+              and(
+                eq(menuItemVariants.id, variant.id),
+                eq(menuItemVariants.menuItemId, itemId),
+              ),
+            );
+        } else {
+          await tx.insert(menuItemVariants).values({
+            menuItemId: itemId,
+            name: variant.name,
+            price: variant.price,
+          });
+        }
+      }
+
+      const removedIds = existing
+        .map((variant) => variant.id)
+        .filter((id) => !retainedIds.has(id));
+      if (removedIds.length) {
+        await tx
+          .delete(menuItemVariants)
+          .where(
+            and(
+              eq(menuItemVariants.menuItemId, itemId),
+              inArray(menuItemVariants.id, removedIds),
+            ),
+          );
+      }
+      return true;
+    });
+  },
+
   async duplicate(
     tenantId: string,
     itemId: string,
@@ -257,15 +456,23 @@ export const itemRepository = {
           name: options.name?.trim() || `${source.name} (Copy)`,
           description: source.description,
           basePrice: source.basePrice,
+          pricingMode: source.pricingMode,
+          weightUnit: source.weightUnit,
+          openPriceMin: source.openPriceMin,
+          openPriceMax: source.openPriceMax,
+          supportsZones: source.supportsZones,
+          zonePricingRule: source.zonePricingRule,
+          manualStockCount: source.manualStockCount,
+          manualStockCountUpdatedAt: source.manualStockCountUpdatedAt,
           taxRate: source.taxRate,
+          taxMode: source.taxMode,
           foodType: source.foodType,
           spiceLevel: source.spiceLevel,
-          sku: null, // SKUs are meant to be unique — never duplicate one verbatim
+          sku: null,
           prepTimeMinutes: source.prepTimeMinutes,
           sortOrder: source.sortOrder,
           hsnCode: source.hsnCode,
           status: source.status,
-          isAvailable: source.isAvailable,
           enableRecipeDeduction: source.enableRecipeDeduction,
         })
         .returning();
@@ -345,10 +552,11 @@ export const itemRepository = {
         }
       }
 
-      return tx.query.menuItems.findFirst({
+      const duplicate = await tx.query.menuItems.findFirst({
         where: eq(menuItems.id, newItemId),
         with: ITEM_DETAIL_RELATIONS,
       });
+      return duplicate ? withItemReadModel(duplicate) : undefined;
     });
   },
 
@@ -364,7 +572,6 @@ export const itemRepository = {
         status,
         availabilityReason: reason ?? null,
         statusChangedAt: new Date(),
-        isAvailable: status === "ACTIVE",
         updatedAt: new Date(),
       })
       .where(
@@ -375,7 +582,7 @@ export const itemRepository = {
         ),
       )
       .returning();
-    return updated;
+    return updated ? withEffectiveMenuItemAvailability(updated) : undefined;
   },
 
   async findByStatus(
@@ -384,7 +591,7 @@ export const itemRepository = {
     statuses: MenuItemStatus[],
     categoryId?: string | undefined,
   ) {
-    return db.query.menuItems.findMany({
+    const items = await db.query.menuItems.findMany({
       where: and(
         eq(menuItems.tenantId, tenantId),
         isNull(menuItems.deletedAt),
@@ -397,10 +604,9 @@ export const itemRepository = {
       orderBy: (t, { asc }) => [asc(t.sortOrder)],
       with: ITEM_DETAIL_RELATIONS,
     });
+    return items.map(withItemReadModel);
   },
 
-  // Full replace of an item's tag/allergen/modifier-group/image links — the
-  // edit form always sends the complete desired set, simpler than diffing.
   async setTags(tenantId: string, itemId: string, tagIds: string[]) {
     const item = await db.query.menuItems.findFirst({
       where: and(eq(menuItems.id, itemId), eq(menuItems.tenantId, tenantId)),
@@ -497,9 +703,6 @@ export const itemRepository = {
     return updated;
   },
 
-  // Unpublishing doesn't touch `status` — an item can go back to draft and
-  // still remember it was e.g. OUT_OF_STOCK, so re-publishing restores the
-  // same availability state rather than resetting it.
   async unpublish(tenantId: string, itemId: string) {
     const [updated] = await db
       .update(menuItems)

@@ -1,19 +1,17 @@
 import { createApiClient, type TokenStorageAdapter } from "@pos/api-client";
-import { STORAGE_KEYS } from "../constants/storage-keys";
+import { STORAGE_KEYS } from "@/shared/constants/storage-keys";
+import { clearTokens, getToken, saveTokens } from "@/features/auth/storage";
 
 const kdsStorageAdapter: TokenStorageAdapter = {
-  getAccessToken: () => sessionStorage.getItem(STORAGE_KEYS.token),
-  getRefreshToken: () => sessionStorage.getItem(STORAGE_KEYS.refresh),
+  getAccessToken: getToken,
   getTenantId: () => sessionStorage.getItem(STORAGE_KEYS.tenant),
   getBranchId: () => sessionStorage.getItem(STORAGE_KEYS.branch),
-  setTokens: (accessToken, refreshToken) => {
-    sessionStorage.setItem(STORAGE_KEYS.token, accessToken);
-    sessionStorage.setItem(STORAGE_KEYS.refresh, refreshToken);
-  },
-  clear: () => sessionStorage.clear(),
+  setAccessToken: saveTokens,
+  clear: clearTokens,
 };
 
 export const apiClient = createApiClient({
+  app: "kitchen",
   baseURL: import.meta.env["VITE_API_URL"] ?? "/api",
   timeout: 15_000,
   storage: kdsStorageAdapter,

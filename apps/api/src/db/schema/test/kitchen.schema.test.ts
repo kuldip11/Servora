@@ -6,12 +6,12 @@ import {
   orderItemModifiers,
   orderStatusHistory,
   kitchenTicketStatusEnum,
-} from "../kitchen.schema";
-function expectTable(table: any, name: string, columns: string[]) {
+} from "@/db/schema/kitchen.schema";
+const expectTable = (table: any, name: string, columns: string[]) => {
   const actual = Object.keys(table[Symbol.for("drizzle:Columns")]);
   expect(getTableConfig(table).name).toBe(name);
   expect(actual).toEqual(expect.arrayContaining(columns));
-}
+};
 describe("kitchen.schema.ts", () => {
   it("defines kitchen_tickets", () =>
     expectTable(kitchenTickets, "kitchen_tickets", [
@@ -40,7 +40,10 @@ describe("kitchen.schema.ts", () => {
       "quantity",
       "unitPrice",
       "subtotal",
+      "taxRate",
+      "pricingAttribution",
       "chefNotes",
+      "seatLabel",
       "fulfillmentType",
       "createdAt",
     ]));
@@ -67,6 +70,7 @@ describe("kitchen.schema.ts", () => {
   it("keeps kitchen ticket enum stable", () =>
     expect(kitchenTicketStatusEnum.enumValues).toEqual([
       "PENDING_PAYMENT",
+      "HELD",
       "FIRED",
       "PREPARING",
       "READY",

@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import { requireAuthPlugin } from "../../../core/auth";
+import { requireAuthPlugin } from "@/core/auth";
 import { categoryController } from "./category.controller";
 import {
   createCategoryBody,
@@ -26,7 +26,7 @@ export const menuCategoriesRouter = new Elysia({
       categoryController.update(auth, params.id, body),
     { params: categoryIdParams, body: updateCategoryBody },
   )
-  // Deactivate rather than delete (see category.service.ts#deactivate).
+
   .delete(
     "/:id",
     ({ auth, params }) => categoryController.deactivate(auth, params.id),

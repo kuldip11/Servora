@@ -1,10 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
-import { menuBranchOverridesService } from "../services/menu-branch-overrides.service";
-import { menuKeys } from "../query-keys";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
+import { menuBranchOverridesService } from "@/features/menu/services/menu-branch-overrides.service";
+import { menuKeys } from "@/features/menu/query-keys";
 
-export function useResetBranchOverride(itemId: string) {
+export const useResetBranchOverride = (itemId: string) => {
   return useMutation({
     mutationFn: (branchId: string) =>
       menuBranchOverridesService.reset(itemId, branchId),
@@ -16,4 +16,4 @@ export function useResetBranchOverride(itemId: string) {
     },
     onError: () => notifyError(undefined, "Failed to reset"),
   });
-}
+};

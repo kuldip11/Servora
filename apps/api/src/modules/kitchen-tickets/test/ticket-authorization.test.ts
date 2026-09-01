@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   assertKitchenTicketAccess,
   requireKitchenPermission,
-} from "../ticket-authorization";
+  requireKitchenStatusPermission,
+} from "@/modules/kitchen-tickets/ticket-authorization";
 const auth = (overrides: any = {}) => ({
   userId: "u1",
   tenantId: "t1",
@@ -24,6 +25,17 @@ describe("kitchen ticket authorization", () => {
     expect(() => requireKitchenPermission(auth(), "kitchen:update")).toThrow(
       /access denied|Insufficient permissions/,
     );
+  });
+
+  it("allows waiters to serve ready tickets without granting kitchen workflow access", () => {
+    const waiter = auth({ permissions: ["orders:update_status"] });
+    expect(() => requireKitchenStatusPermission(waiter, "SERVED")).not.toThrow();
+    expect(() => requireKitchenStatusPermission(waiter, "PREPARING")).toThrow(
+      /access denied|Insufficient permissions/,
+    );
+    const chef = auth({ permissions: ["kitchen:update"] });
+    expect(() => requireKitchenStatusPermission(chef, "PREPARING")).not.toThrow();
+    expect(() => requireKitchenStatusPermission(chef, "SERVED")).not.toThrow();
   });
   it("allows tenant-wide access unless a selected branch narrows it", () => {
     expect(() =>

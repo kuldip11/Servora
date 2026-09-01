@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Value } from "@sinclair/typebox/value";
-import * as mod from "../recipes.validator";
+import * as mod from "@/modules/menu/recipes/recipes.validator";
 
 describe("recipes.validator validators", () => {
   it("exports TypeBox schemas that reject an empty payload", () => {

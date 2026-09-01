@@ -48,7 +48,6 @@
       "name": "@pos/customer-app",
       "version": "0.1.0",
       "dependencies": {
-        "@pos/config": "workspace:*",
         "@pos/types": "workspace:*",
         "@pos/ui": "workspace:*",
         "lucide-react": "^0.395.0",
@@ -59,6 +58,7 @@
         "@types/react": "^19.0.0",
         "@types/react-dom": "^19.0.0",
         "@vitejs/plugin-react": "^4.3.1",
+        "@vitest/coverage-v8": "^1.6.0",
         "autoprefixer": "^10.4.19",
         "jsdom": "^24.0.0",
         "postcss": "^8.4.38",
@@ -74,7 +74,6 @@
       "dependencies": {
         "@hookform/resolvers": "^3.6.0",
         "@pos/api-client": "workspace:*",
-        "@pos/config": "workspace:*",
         "@pos/realtime": "workspace:*",
         "@pos/types": "workspace:*",
         "@pos/ui": "workspace:*",
@@ -111,7 +110,6 @@
       "dependencies": {
         "@hookform/resolvers": "^3.6.0",
         "@pos/api-client": "workspace:*",
-        "@pos/config": "workspace:*",
         "@pos/realtime": "workspace:*",
         "@pos/types": "workspace:*",
         "@pos/ui": "workspace:*",
@@ -215,6 +213,8 @@
       "name": "@pos/api-client",
       "version": "0.1.0",
       "dependencies": {
+        "@pos/types": "workspace:*",
+        "@pos/validation": "workspace:*",
         "axios": "^1.7.2",
       },
       "devDependencies": {

@@ -1,10 +1,9 @@
-import { useRealtimeEvent } from "../../../shared/lib/realtime";
-import { queryClient } from "../../../shared/lib/query-client";
-import { analyticsKeys } from "../query-keys";
-import { orderKeys } from "../../orders/query-keys";
+import { useRealtimeEvent } from "@/shared/lib/realtime";
+import { queryClient } from "@/shared/lib/query-client";
+import { analyticsKeys } from "@/features/analytics/query-keys";
+import { orderKeys } from "@/features/orders/query-keys";
 
-/** Keeps dashboard stats + the active-orders list fresh as orders come in. */
-export function useDashboardRealtimeSync() {
+export const useDashboardRealtimeSync = () => {
   useRealtimeEvent("order.created", () => {
     queryClient.invalidateQueries({ queryKey: analyticsKeys.dashboard() });
     queryClient.invalidateQueries({ queryKey: orderKeys.all });
@@ -12,4 +11,4 @@ export function useDashboardRealtimeSync() {
   useRealtimeEvent("order.updated", () => {
     queryClient.invalidateQueries({ queryKey: orderKeys.all });
   });
-}
+};

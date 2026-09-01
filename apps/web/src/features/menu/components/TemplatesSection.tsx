@@ -9,15 +9,15 @@ import {
 } from "@pos/validation";
 import { LayoutTemplate, X, Sparkles } from "lucide-react";
 import { Button, Modal, Input } from "@pos/ui";
-import { useBranches } from "../../branches/hooks/useBranches";
-import { notifySuccess } from "../../../shared/lib/notify";
-import { useMenuTemplates } from "../hooks/useMenuTemplates";
-import { useDeleteTemplate } from "../hooks/useDeleteTemplate";
-import { useApplyTemplate } from "../hooks/useApplyTemplate";
-import { useSaveTemplateFromCategory } from "../hooks/useSaveTemplateFromCategory";
+import { useBranches } from "@/features/branches/hooks/useBranches";
+import { notifySuccess } from "@/shared/lib/notify";
+import { useMenuTemplates } from "@/features/menu/hooks/useMenuTemplates";
+import { useDeleteTemplate } from "@/features/menu/hooks/useDeleteTemplate";
+import { useApplyTemplate } from "@/features/menu/hooks/useApplyTemplate";
+import { useSaveTemplateFromCategory } from "@/features/menu/hooks/useSaveTemplateFromCategory";
 import type { MenuTemplate } from "@pos/types";
 
-export function TemplatesSection() {
+export const TemplatesSection = () => {
   const [applyingTemplate, setApplyingTemplate] = useState<MenuTemplate | null>(
     null,
   );
@@ -77,7 +77,7 @@ export function TemplatesSection() {
               >
                 <Sparkles className="w-3.5 h-3.5" /> Apply
               </Button>
-              <button
+              <button type="button"
                 onClick={() => {
                   if (confirm(`Delete template "${tpl.name}"?`))
                     deleteMutation.mutate(tpl.id);
@@ -100,7 +100,7 @@ export function TemplatesSection() {
       )}
     </div>
   );
-}
+};
 
 function ApplyTemplateModal({
   template,
@@ -121,8 +121,6 @@ function ApplyTemplateModal({
     },
   });
 
-  // Same unscoped ('all') branch list the switcher and Staff page use —
-  // shares cache with them instead of a duplicate ad-hoc query.
   const { data: branches } = useBranches();
   const applyMutation = useApplyTemplate();
 
@@ -186,16 +184,13 @@ function ApplyTemplateModal({
   );
 }
 
-// Triggered from a category's "Save as Template" button in MenuPage — a
-// separate, simpler flow from applying one, so it lives in this file too
-// but isn't part of the TemplatesSection list itself.
-export function SaveTemplateModal({
+export const SaveTemplateModal = ({
   category,
   onClose,
 }: {
   category: { id: string; name: string };
   onClose: () => void;
-}) {
+}) => {
   const {
     register,
     handleSubmit,
@@ -252,4 +247,4 @@ export function SaveTemplateModal({
       </form>
     </Modal>
   );
-}
+};

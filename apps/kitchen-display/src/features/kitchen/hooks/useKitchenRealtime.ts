@@ -1,36 +1,41 @@
 import { useQueryClient } from "@tanstack/react-query";
 import type { KitchenTicket } from "@pos/types";
-import {
-  useRealtimeEvent,
-  useConnectionStatus,
-} from "../../../shared/lib/realtime";
-import { KITCHEN_TICKETS_QUERY_KEY } from "./useKitchenTickets";
+import { useRealtimeEvent, useConnectionStatus } from "@/shared/lib/realtime";
+import { filterTicketForStation } from "@/features/kitchen/utils/ticket";
+import { kitchenTicketsQueryKey } from "./useKitchenTickets";
 
-function isVisible(ticket: KitchenTicket) {
-  return (
-    ticket.status === "FIRED" ||
-    ticket.status === "PREPARING" ||
-    ticket.status === "READY"
+const isVisible = (ticket: KitchenTicket) => {
+  return ["HELD", "FIRED", "PREPARING", "READY"].includes(ticket.status);
+};
+
+export const mergeKitchenTicketIntoQueue = (
+  current: KitchenTicket[] | undefined,
+  incoming: KitchenTicket,
+  stationId?: string,
+): KitchenTicket[] => {
+  const ticket = filterTicketForStation(incoming, stationId);
+  const without = (current ?? []).filter((item) => item.id !== incoming.id);
+  if (!ticket || !isVisible(ticket)) return without;
+  return [...without, ticket].sort(
+    (a, b) =>
+      (a.firedAt ? new Date(a.firedAt).getTime() : 0) -
+      (b.firedAt ? new Date(b.firedAt).getTime() : 0),
   );
-}
+};
 
-export function useKitchenRealtime(): { connected: boolean } {
+export const useKitchenRealtime = (
+  stationId?: string,
+): { connected: boolean } => {
   const qc = useQueryClient();
   const connected = useConnectionStatus();
-
-  const upsert = (ticket: KitchenTicket) => {
-    qc.setQueryData<KitchenTicket[]>(KITCHEN_TICKETS_QUERY_KEY, (current) => {
-      if (!current) return isVisible(ticket) ? [ticket] : current;
-      const without = current.filter((item) => item.id !== ticket.id);
-      if (!isVisible(ticket)) return without;
-      return [...without, ticket].sort(
-        (a, b) => new Date(a.firedAt).getTime() - new Date(b.firedAt).getTime(),
-      );
-    });
+  const key = kitchenTicketsQueryKey(stationId);
+  const upsert = (incoming: KitchenTicket) => {
+    qc.setQueryData<KitchenTicket[]>(key, (current) =>
+      mergeKitchenTicketIntoQueue(current, incoming, stationId),
+    );
   };
-
   useRealtimeEvent("kitchen.ticket.created", (event) => upsert(event.payload));
   useRealtimeEvent("kitchen.ticket.updated", (event) => upsert(event.payload));
-
+  useRealtimeEvent("order.item.voided", (event) => upsert(event.payload));
   return { connected };
-}
+};

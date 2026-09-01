@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
-import { apiClient } from "../../../../shared/lib/api-client";
+import { apiClient } from "@/shared/lib/api-client";
 import {
   addOrderItems,
   fetchOrder,
   fetchOrders,
   updateOrderStatus,
   updateTicketStatus,
-} from "../orders";
+} from "@/features/orders/api/orders";
 
 vi.mock("../../../../shared/lib/api-client", () => ({
   apiClient: { get: vi.fn(), patch: vi.fn(), post: vi.fn() },
@@ -24,7 +24,9 @@ describe("orders API", () => {
   });
 
   it("validates mutation payloads before calling the API", async () => {
-    vi.mocked(apiClient.patch).mockResolvedValue({} as any);
+    vi.mocked(apiClient.patch).mockResolvedValue({
+      data: { data: { id: "o1", status: "PAID" } },
+    } as any);
     vi.mocked(apiClient.post).mockResolvedValue({
       data: { data: { id: "o1" } },
     } as any);
@@ -39,6 +41,7 @@ describe("orders API", () => {
     await addOrderItems(
       "o1",
       [{ menuItemId: "550e8400-e29b-41d4-a716-446655440000", quantity: 2 }],
+      [],
       "no onions",
     );
     expect(apiClient.post).toHaveBeenCalledWith("/orders/o1/items", {

@@ -16,13 +16,13 @@ interface Props {
   onSubmit: (input: CreateStaffInput) => void;
 }
 
-export function AddStaffForm({
+export const AddStaffForm = ({
   roles,
   branches,
   loading = false,
   onCancel,
   onSubmit,
-}: Props) {
+}: Props) => {
   const {
     register,
     handleSubmit,
@@ -65,4 +65,4 @@ export function AddStaffForm({
       </div>
     </form>
   );
-}
+};

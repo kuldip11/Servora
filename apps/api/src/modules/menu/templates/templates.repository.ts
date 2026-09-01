@@ -1,16 +1,11 @@
-/**
- * Menu templates repository — data access for the "templates" sub-domain
- * only. Extracted from the monolithic `menu/templates.service.ts`
- * verbatim (same queries, same transaction) — see docs/NEXT_STEPS.md.
- */
 import { eq, and, isNull } from "drizzle-orm";
-import { db } from "../../../db";
+import { db } from "@/db";
 import {
   menuTemplates,
   menuTemplateItems,
   menuCategories,
   menuItems,
-} from "../../../db/schema";
+} from "@/db/schema";
 import type { FoodType, SpiceLevel } from "@pos/types";
 
 export const templatesRepository = {
@@ -53,8 +48,6 @@ export const templatesRepository = {
     });
   },
 
-  // Snapshots a category's tenant-wide items into a new, independent
-  // template. Editing the category afterward never touches the template.
   async createFromCategory(
     tenantId: string,
     category: { name: string },
@@ -64,7 +57,16 @@ export const templatesRepository = {
       name: string;
       description: string | null;
       basePrice: string;
+      pricingMode: "FIXED" | "WEIGHT_BASED" | "OPEN";
+      weightUnit: "G" | "KG" | "LB" | "OZ" | null;
+      openPriceMin: string | null;
+      openPriceMax: string | null;
+      supportsZones: boolean;
+      zonePricingRule: "AVERAGE" | "HIGHER" | "SUM_HALF";
+      manualStockCount: number | null;
+      manualStockCountUpdatedAt: Date | null;
       taxRate: string;
+      taxMode: "INCLUSIVE" | "EXCLUSIVE" | null;
       foodType: FoodType;
       spiceLevel: SpiceLevel | null;
       prepTimeMinutes: number | null;
@@ -89,7 +91,16 @@ export const templatesRepository = {
             name: it.name,
             description: it.description,
             basePrice: it.basePrice,
+            pricingMode: it.pricingMode,
+            weightUnit: it.weightUnit,
+            openPriceMin: it.openPriceMin,
+            openPriceMax: it.openPriceMax,
+            supportsZones: it.supportsZones,
+            zonePricingRule: it.zonePricingRule,
+            manualStockCount: it.manualStockCount,
+            manualStockCountUpdatedAt: it.manualStockCountUpdatedAt,
             taxRate: it.taxRate,
+            taxMode: it.taxMode,
             foodType: it.foodType,
             spiceLevel: it.spiceLevel,
             prepTimeMinutes: it.prepTimeMinutes,
@@ -119,11 +130,6 @@ export const templatesRepository = {
     return result.length > 0;
   },
 
-  // Instantiates a template as a brand-new category + items. Items are
-  // always created as drafts (isPublished: false) — a template's prices
-  // and details are a starting point, not a promise, so a manager reviews
-  // and publishes them rather than the branch's menu changing the instant
-  // the template is applied.
   async apply(
     tenantId: string,
     template: {
@@ -133,7 +139,16 @@ export const templatesRepository = {
         name: string;
         description: string | null;
         basePrice: string;
+        pricingMode: "FIXED" | "WEIGHT_BASED" | "OPEN";
+        weightUnit: "G" | "KG" | "LB" | "OZ" | null;
+        openPriceMin: string | null;
+        openPriceMax: string | null;
+        supportsZones: boolean;
+        zonePricingRule: "AVERAGE" | "HIGHER" | "SUM_HALF";
+        manualStockCount: number | null;
+        manualStockCountUpdatedAt: Date | null;
         taxRate: string;
+        taxMode: "INCLUSIVE" | "EXCLUSIVE" | null;
         foodType: FoodType;
         spiceLevel: SpiceLevel | null;
         prepTimeMinutes: number | null;
@@ -169,16 +184,24 @@ export const templatesRepository = {
                 name: ti.name,
                 description: ti.description,
                 basePrice: ti.basePrice,
+                pricingMode: ti.pricingMode,
+                weightUnit: ti.weightUnit,
+                openPriceMin: ti.openPriceMin,
+                openPriceMax: ti.openPriceMax,
+                supportsZones: ti.supportsZones,
+                zonePricingRule: ti.zonePricingRule,
+                manualStockCount: ti.manualStockCount,
+                manualStockCountUpdatedAt: ti.manualStockCountUpdatedAt,
                 taxRate: ti.taxRate,
+                taxMode: ti.taxMode,
                 foodType: ti.foodType,
                 spiceLevel: ti.spiceLevel,
                 prepTimeMinutes: ti.prepTimeMinutes,
                 hsnCode: ti.hsnCode,
                 sortOrder: ti.sortOrder,
-                sku: null, // SKUs are meant to be unique — never carried over from a template
+                sku: null,
                 status: "ACTIVE" as const,
-                isAvailable: true,
-                isPublished: false, // draft until a manager reviews it — see function comment
+                isPublished: false,
                 publishedAt: null,
               })),
             )

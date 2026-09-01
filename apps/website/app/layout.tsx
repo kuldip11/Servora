@@ -1,4 +1,4 @@
-import { CookieConsent } from "../components/privacy/CookieConsent";
+import { CookieConsent } from "@/components/privacy/CookieConsent";
 import { Analytics } from "@/components/analytics/Analytics";
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/navigation/SiteHeader";

@@ -22,7 +22,7 @@ import {
   resolveTableBranch,
   assertTableResourceAccess,
   assertTableListScope,
-} from "../tables-authorization";
+} from "@/modules/tables/tables-authorization";
 const base: any = {
   branchId: "b1",
   tenantWide: false,

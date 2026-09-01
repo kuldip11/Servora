@@ -1,15 +1,17 @@
 import { Plus, Minus, Trash2 } from "lucide-react";
 import { Button, TextArea } from "@pos/ui";
-import { formatCurrency } from "../../../../shared/utils/format";
-import { cartItemKey, type CartItem } from "../../utils/cartTypes";
-export function OrderCart({
+import { formatCurrency } from "@/shared/utils/format";
+import { cartItemKey, type CartItem } from "@/features/orders/utils/cartTypes";
+export const OrderCart = ({
   items,
   notes,
   total,
   pending,
   canSubmit,
   validationError,
+  courseMode,
   onQty,
+  onCourse,
   onNotes,
   onSubmit,
 }: {
@@ -19,10 +21,12 @@ export function OrderCart({
   pending: boolean;
   canSubmit: boolean;
   validationError?: string;
+  courseMode: boolean;
   onQty: (key: string, delta: number) => void;
+  onCourse: (key: string, courseNumber: number) => void;
   onNotes: (v: string) => void;
   onSubmit: () => void;
-}) {
+}) => {
   return (
     <div className="flex flex-col">
       <p className="text-sm font-semibold text-text-primary mb-3">
@@ -59,6 +63,24 @@ export function OrderCart({
                       {m.quantity > 1 ? ` ×${m.quantity}` : ""}
                     </span>
                   ))}
+                  {courseMode && (
+                    <label className="mt-1 block text-[11px] text-text-secondary">
+                      Course{" "}
+                      <select
+                        className="ml-1 rounded border border-border bg-surface px-1 py-0.5"
+                        value={item.courseNumber ?? 1}
+                        onChange={(event) =>
+                          onCourse(key, Number(event.target.value))
+                        }
+                      >
+                        {[1, 2, 3, 4, 5].map((course) => (
+                          <option key={course} value={course}>
+                            {course}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
                   {item.chefNotes && (
                     <span className="text-xs text-primary block">
                       📝 {item.chefNotes}
@@ -128,4 +150,4 @@ export function OrderCart({
       </div>
     </div>
   );
-}
+};

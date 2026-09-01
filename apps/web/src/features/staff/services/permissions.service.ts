@@ -1,22 +1,11 @@
-import { apiClient } from "../../../shared/lib/api-client";
+import { createStaffApi, type PermissionDto } from "@pos/api-client";
+import { apiClient } from "@/shared/lib/api-client";
 
-export interface Permission {
-  id: string;
-  key: string;
-  module: string;
-  description?: string | null;
-}
+const staffApi = createStaffApi(apiClient);
+export type Permission = PermissionDto;
 
 export const permissionsService = {
-  async list(): Promise<Permission[]> {
-    const res = await apiClient.get("/permissions");
-    return res.data.data;
-  },
-  async forRole(roleId: string): Promise<Permission[]> {
-    const res = await apiClient.get(`/roles/${roleId}/permissions`);
-    return res.data.data;
-  },
-  async setForRole(roleId: string, permissionIds: string[]): Promise<void> {
-    await apiClient.put(`/roles/${roleId}/permissions`, { permissionIds });
-  },
+  list: staffApi.listPermissions,
+  forRole: staffApi.permissionsForRole,
+  setForRole: staffApi.setPermissionsForRole,
 };

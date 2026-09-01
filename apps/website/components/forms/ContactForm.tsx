@@ -3,7 +3,7 @@
 import { FormEvent, useRef, useState } from "react";
 import { track } from "@/lib/analytics";
 
-export function ContactForm() {
+export const ContactForm = () => {
   const [state, setState] = useState<
     "idle" | "submitting" | "success" | "error"
   >("idle");
@@ -126,4 +126,4 @@ export function ContactForm() {
       )}
     </form>
   );
-}
+};

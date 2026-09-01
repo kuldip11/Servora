@@ -1,13 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "../../../shared/lib/query-client";
-import { notifyError, notifySuccess } from "../../../shared/lib/notify";
+import { queryClient } from "@/shared/lib/query-client";
+import { notifyError, notifySuccess } from "@/shared/lib/notify";
 import {
   menuSchedulesService,
   type ScheduleFormInput,
-} from "../services/menu-schedules.service";
-import { menuKeys } from "../query-keys";
+} from "@/features/menu/services/menu-schedules.service";
+import { menuKeys } from "@/features/menu/query-keys";
 
-export function useAddSchedule(itemId: string) {
+export const useAddSchedule = (itemId: string) => {
   return useMutation({
     mutationFn: (input: ScheduleFormInput) =>
       menuSchedulesService.add(itemId, input),
@@ -19,4 +19,4 @@ export function useAddSchedule(itemId: string) {
     },
     onError: (err) => notifyError(err, "Failed to add schedule"),
   });
-}
+};

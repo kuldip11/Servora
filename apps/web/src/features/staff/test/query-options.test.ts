@@ -12,7 +12,7 @@ vi.mock("../../../store/auth", () => ({
   useAuthStore: { getState: () => ({ franchiseId: "fr-1", branchId: "br-1" }) },
 }));
 
-import { rolesListQuery, staffListQuery } from "../query-options";
+import { rolesListQuery, staffListQuery } from "@/features/staff/query-options";
 
 describe("staff query definitions", () => {
   it("binds staff to the staff service", () => {
