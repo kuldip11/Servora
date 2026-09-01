@@ -13,7 +13,6 @@ export interface ServoraAppLink {
   shortName: string;
   description: string;
   href: string;
-  detailHref: string;
   icon: LucideIcon;
 }
 
@@ -25,7 +24,6 @@ export const servoraApps: ServoraAppLink[] = [
     description:
       "Manage branches, orders, payments, inventory, staff and analytics.",
     href: appUrls.web,
-    detailHref: "/apps/management",
     icon: BarChart3,
   },
   {
@@ -35,7 +33,6 @@ export const servoraApps: ServoraAppLink[] = [
     description:
       "Run the live kitchen queue and move tickets through preparation.",
     href: appUrls.kitchen,
-    detailHref: "/apps/kitchen",
     icon: ChefHat,
   },
   {
@@ -44,7 +41,6 @@ export const servoraApps: ServoraAppLink[] = [
     shortName: "Waiter",
     description: "Take orders, follow table activity and react to ready items.",
     href: appUrls.waiter,
-    detailHref: "/apps/waiter",
     icon: UtensilsCrossed,
   },
   {
@@ -54,7 +50,6 @@ export const servoraApps: ServoraAppLink[] = [
     description:
       "Let guests browse the menu, customize items and place QR orders.",
     href: appUrls.customer,
-    detailHref: "/apps/customer",
     icon: QrCode,
   },
 ];

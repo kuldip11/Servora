@@ -13,6 +13,15 @@ export const mergeKitchenTicketIntoQueue = (
   incoming: KitchenTicket,
   stationId?: string,
 ): KitchenTicket[] => {
+  const existing = current?.find((item) => item.id === incoming.id);
+  if (
+    existing?.updatedAt &&
+    incoming.updatedAt &&
+    new Date(existing.updatedAt).getTime() >
+      new Date(incoming.updatedAt).getTime()
+  ) {
+    return current ?? [];
+  }
   const ticket = filterTicketForStation(incoming, stationId);
   const without = (current ?? []).filter((item) => item.id !== incoming.id);
   if (!ticket || !isVisible(ticket)) return without;

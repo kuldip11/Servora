@@ -38,6 +38,7 @@ import { useRefireOrderItem } from "@/features/orders/hooks/useRefireOrderItem";
 import { useSetOrderItemSeatShares } from "@/features/orders/hooks/useSetOrderItemSeatShares";
 import { useOrdersRealtimeSync } from "@/features/orders/hooks/useOrdersRealtimeSync";
 import { useAuthStore } from "@/store/auth";
+import { getRoundActionPermissions } from "@/features/orders/utils/round-actions";
 
 const STATUS_TRANSITIONS: Record<string, { label: string; next: string }[]> = {
   OPEN: [{ label: "Cancel Order", next: "CANCELLED" }],
@@ -108,11 +109,14 @@ export const OrderDetailPage = () => {
   const voidItemMutation = useVoidOrderItem(orderId);
   const compItemMutation = useCompOrderItem(orderId);
   const { has } = usePermissions();
-  const roles = useAuthStore((state) => state.user?.roles.map((role) => role.name) ?? []);
-  const management = roles.some((role) => ["OWNER", "FRANCHISE_ADMIN", "MANAGER"].includes(role));
-  const canKitchen = has("kitchen:update") || (management && has("orders:update_status"));
-  const canFire = has("kitchen:update") || (management && has("orders:update"));
-  const canServe = has("kitchen:update") || ((management || roles.includes("WAITER")) && has("orders:update_status"));
+  const roles = useAuthStore(
+    (state) => state.user?.roles.map((role) => role.name) ?? [],
+  );
+  const {
+    canFire,
+    canPrepare: canKitchen,
+    canServe,
+  } = getRoundActionPermissions(roles, has);
   const { data: cancellationReasons = [] } = useCancellationReasons();
 
   const submitLineAdjustment = (
@@ -238,7 +242,10 @@ export const OrderDetailPage = () => {
                     <Button
                       variant="primary"
                       size="sm"
-                      loading={updateTicketMutation.isPending && updateTicketMutation.variables?.ticketId === ticket.id}
+                      loading={
+                        updateTicketMutation.isPending &&
+                        updateTicketMutation.variables?.ticketId === ticket.id
+                      }
                       onClick={() =>
                         updateTicketMutation.mutate({
                           ticketId: ticket.id,
@@ -249,13 +256,50 @@ export const OrderDetailPage = () => {
                       Fire Course Now
                     </Button>
                   )}
-                  {ticket.status === "FIRED" && canKitchen && <Button variant="secondary" size="sm" loading={updateTicketMutation.isPending && updateTicketMutation.variables?.ticketId === ticket.id} onClick={() => updateTicketMutation.mutate({ ticketId: ticket.id, status: "PREPARING" })}>Start Preparing</Button>}
-                  {ticket.status === "PREPARING" && canKitchen && <Button variant="secondary" size="sm" loading={updateTicketMutation.isPending && updateTicketMutation.variables?.ticketId === ticket.id} onClick={() => updateTicketMutation.mutate({ ticketId: ticket.id, status: "READY" })}>Mark Ready</Button>}
+                  {ticket.status === "FIRED" && canKitchen && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      loading={
+                        updateTicketMutation.isPending &&
+                        updateTicketMutation.variables?.ticketId === ticket.id
+                      }
+                      onClick={() =>
+                        updateTicketMutation.mutate({
+                          ticketId: ticket.id,
+                          status: "PREPARING",
+                        })
+                      }
+                    >
+                      Start Preparing
+                    </Button>
+                  )}
+                  {ticket.status === "PREPARING" && canKitchen && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      loading={
+                        updateTicketMutation.isPending &&
+                        updateTicketMutation.variables?.ticketId === ticket.id
+                      }
+                      onClick={() =>
+                        updateTicketMutation.mutate({
+                          ticketId: ticket.id,
+                          status: "READY",
+                        })
+                      }
+                    >
+                      Mark Ready
+                    </Button>
+                  )}
                   {ticket.status === "READY" && canServe && (
                     <Button
                       variant="secondary"
                       size="sm"
-                      loading={updateTicketMutation.isPending && updateTicketMutation.variables?.ticketId === ticket.id}
+                      loading={
+                        updateTicketMutation.isPending &&
+                        updateTicketMutation.variables?.ticketId === ticket.id
+                      }
                       onClick={() =>
                         updateTicketMutation.mutate({
                           ticketId: ticket.id,

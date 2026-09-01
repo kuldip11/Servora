@@ -1,16 +1,51 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Check, Minus } from "lucide-react";
 import { PricingCta } from "@/components/marketing/PricingCta";
-
-export const metadata: Metadata = { title: "Pricing", description: "Compare Servora packages for single-location, multi-location and enterprise restaurant operations." };
-const plans = [
-  { name: "Single location", description: "For one restaurant building a connected operating workflow.", features: ["Management & POS workspace", "Kitchen Display", "Waiter App", "Customer QR ordering", "Menu, tables, staff and billing", "Inventory and operational analytics"], cta: "Discuss your restaurant" },
-  { name: "Multi-location", description: "For restaurant groups that need central context and branch flexibility.", features: ["Everything in Single location", "Multiple branches", "Branch-aware roles and access", "Branch menu and channel overrides", "Multi-branch operational context", "Rollout planning across locations"], cta: "Plan your branch setup" },
-  { name: "Enterprise", description: "For larger or more complex operating environments.", features: ["Everything in Multi-location", "Environment and deployment planning", "Integration requirements review", "Structured migration planning", "Governance and approval design", "Commercial scope by agreement"], cta: "Talk to the team" },
-];
-const rows = [
-  ["Management & POS", true, true, true], ["Kitchen, waiter and customer apps", true, true, true], ["Menu, inventory and analytics", true, true, true], ["Multi-branch context", false, true, true], ["Branch overrides", false, true, true], ["Complex integration planning", false, false, true],
-] as const;
-
-export default function Pricing(){return <section className="mx-auto max-w-7xl px-6 py-20 lg:px-8"><div className="text-center"><p className="text-sm font-semibold text-primary">Pricing</p><h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">Choose the operating scope. Confirm the quote with the team.</h1><p className="mx-auto mt-5 max-w-3xl text-lg text-text-secondary">Packages reflect restaurant complexity and rollout needs. Final pricing, provider costs, onboarding scope and commercial terms are confirmed in a tailored proposal.</p></div><div className="mt-12 grid gap-5 lg:grid-cols-3">{plans.map((plan,index)=><article key={plan.name} className={`rounded-3xl border bg-surface p-7 ${index===1?"border-primary shadow-md":"border-border"}`}>{index===1&&<span className="rounded-full bg-primary-surface px-3 py-1 text-xs font-semibold text-primary">For growing groups</span>}<h2 className="mt-4 text-2xl font-semibold">{plan.name}</h2><p className="mt-3 min-h-14 text-sm leading-6 text-text-secondary">{plan.description}</p><p className="mt-7 text-2xl font-bold">Tailored quote</p><ul className="mt-6 space-y-3">{plan.features.map(feature=><li key={feature} className="flex gap-3 text-sm"><Check className="mt-0.5 shrink-0 text-primary" size={17}/>{feature}</li>)}</ul><div className="mt-8"><PricingCta planName={plan.name} cta={plan.cta}/></div></article>)}</div><section className="mt-16 overflow-hidden rounded-3xl border border-border bg-surface"><div className="border-b border-border p-7"><h2 className="text-2xl font-semibold">Package comparison</h2><p className="mt-2 text-sm text-text-secondary">A practical starting point for the commercial conversation.</p></div><div className="overflow-x-auto"><table className="w-full min-w-[680px] text-left text-sm"><thead className="bg-surface-secondary"><tr><th className="p-4">Capability</th>{plans.map(plan=><th key={plan.name} className="p-4">{plan.name}</th>)}</tr></thead><tbody>{rows.map(([label,...values])=><tr key={label} className="border-t border-border"><th className="p-4 font-medium">{label}</th>{values.map((included,index)=><td key={`${label}-${index}`} className="p-4">{included?<Check className="text-primary" size={18}/>:<Minus className="text-text-disabled" size={18}/>}</td>)}</tr>)}</tbody></table></div></section><section className="mt-14 rounded-3xl bg-surface-secondary p-8"><h2 className="text-2xl font-semibold">What shapes your quote?</h2><div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{["Number of locations", "Required workspaces and devices", "Migration and onboarding scope", "Payment, deployment and integration needs"].map(item=><div key={item} className="rounded-xl bg-surface p-4 text-sm font-medium">{item}</div>)}</div><p className="mt-6 text-sm text-text-secondary">Need more detail first? Review the <Link href="/faq" className="font-semibold text-primary">pricing and onboarding FAQ</Link>.</p></section></section>}
+export const metadata: Metadata = {
+  title: "Pricing",
+  description:
+    "Talk to Servora about the right setup for your restaurant operation.",
+};
+export default function Pricing() {
+  return (
+    <section className="mx-auto max-w-5xl px-6 py-20 lg:px-8">
+      <div className="text-center">
+        <p className="text-sm font-semibold text-[var(--primary)]">Pricing</p>
+        <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
+          A setup that fits your restaurant.
+        </h1>
+        <p className="mx-auto mt-5 max-w-2xl text-lg text-[var(--text-secondary)]">
+          Pricing can depend on your restaurant setup, number of locations and
+          operational requirements. Talk to the team for a tailored
+          conversation.
+        </p>
+      </div>
+      <div className="mt-12 grid gap-5 md:grid-cols-3">
+        {[
+          [
+            "Single location",
+            "For an individual restaurant",
+            "Discuss your requirements",
+          ],
+          [
+            "Multi-location",
+            "For growing restaurant groups",
+            "Plan your branch setup",
+          ],
+          ["Enterprise", "For larger operations", "Talk to the team"],
+        ].map(([title, desc, cta]) => (
+          <div
+            key={title}
+            className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-7"
+          >
+            <h2 className="text-xl font-semibold">{title}</h2>
+            <p className="mt-3 min-h-12 text-sm leading-6 text-[var(--text-secondary)]">
+              {desc}
+            </p>
+            <p className="mt-7 text-2xl font-bold">Contact Sales</p>
+            <PricingCta planName={title} cta={cta} />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}

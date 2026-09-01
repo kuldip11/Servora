@@ -3,7 +3,11 @@ import { authService } from "@/features/auth/services/auth.service";
 import { useAuthStore } from "@/store/auth";
 
 const STORAGE_KEY = "servora.active-context.v1";
-type SavedContext = { membershipId: string; franchiseId: string; branchId: string };
+type SavedContext = {
+  membershipId: string;
+  franchiseId: string;
+  branchId: string;
+};
 
 const readSavedContext = (): SavedContext | null => {
   try {
@@ -25,19 +29,28 @@ const defaultBranchForMembership = (
 ): string | null => {
   const saved = readSavedContext();
   if (saved?.membershipId === membership.membershipId) {
-    if (saved.branchId === "all" && membership.roles.some((role) => role.scope === "TENANT")) return null;
-    if (membership.branches.some((branch) => branch.id === saved.branchId)) return saved.branchId;
+    if (
+      saved.branchId === "all" &&
+      membership.roles.some((role) => role.scope === "TENANT")
+    )
+      return null;
+    if (membership.branches.some((branch) => branch.id === saved.branchId))
+      return saved.branchId;
   }
-  if (membership.roles.some((role) => role.scope === "TENANT")) return null;
   return membership.branches[0]?.id ?? null;
 };
 
-export const restoreActiveContext = async (memberships: AvailableMembership[]) => {
+export const restoreActiveContext = async (
+  memberships: AvailableMembership[],
+) => {
   if (!memberships.length) return false;
   const saved = readSavedContext();
-  const membership = memberships.find((item) =>
-    item.membershipId === saved?.membershipId && item.tenant.id === saved.franchiseId,
-  ) ?? memberships[0]!;
+  const membership =
+    memberships.find(
+      (item) =>
+        item.membershipId === saved?.membershipId &&
+        item.tenant.id === saved.franchiseId,
+    ) ?? memberships[0]!;
   await activateMembershipContext(membership, memberships);
   return true;
 };

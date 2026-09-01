@@ -1,20 +1,10 @@
 import { test, expect } from "@playwright/test";
 import { modules } from "@/content/modules";
-import { appExperiences } from "@/content/app-experiences";
-import { solutions } from "@/content/solutions";
 
 const routes = [
   "/",
   "/product",
   "/apps",
-  "/workflow",
-  "/solutions",
-  "/integrations",
-  "/onboarding",
-  "/faq",
-  "/resources",
-  "/customers",
-  "/updates",
   "/pricing",
   "/book-a-demo",
   "/contact",
@@ -22,14 +12,13 @@ const routes = [
   "/legal/terms",
   "/legal/cookies",
   ...modules.map((module) => `/product/${module.slug}`),
-  ...appExperiences.map((app) => `/apps/${app.slug}`),
-  ...solutions.map((solution) => `/solutions/${solution.slug}`),
 ];
 
-test("published marketing routes resolve", async ({ request }) => {
+test("published marketing routes resolve", async ({ page }) => {
   for (const route of routes) {
-    const response = await request.get(route);
-    expect(response.status(), route).toBe(200);
+    const response = await page.goto(route);
+    expect(response?.status(), route).toBe(200);
+    await expect(page.locator("main")).toBeVisible();
   }
 });
 
@@ -42,15 +31,19 @@ test("robots and sitemap are available", async ({ request }) => {
   expect(sitemap.status()).toBe(200);
   const body = await sitemap.text();
   expect(body).toContain("/product/qr-ordering");
-  expect(body).toContain("/apps/waiter");
-  expect(body).toContain("/resources");
+  expect(body).not.toContain("/resources");
 });
 
 test("application ecosystem navigation exposes all configured apps", async ({
   page,
 }) => {
   await page.goto("/apps");
-  const destinations = appExperiences.map((app) => `/apps/${app.slug}`);
+  const destinations = [
+    process.env.NEXT_PUBLIC_WEB_APP_URL ?? "/app",
+    process.env.NEXT_PUBLIC_KITCHEN_APP_URL ?? "/kitchen",
+    process.env.NEXT_PUBLIC_WAITER_APP_URL ?? "/waiter",
+    process.env.NEXT_PUBLIC_CUSTOMER_APP_URL ?? "/order",
+  ];
   for (const href of destinations) {
     await expect(page.locator(`main a[href="${href}"]`)).toHaveCount(1);
   }

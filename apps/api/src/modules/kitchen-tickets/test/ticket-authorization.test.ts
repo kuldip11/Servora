@@ -28,16 +28,36 @@ describe("kitchen ticket authorization", () => {
   });
 
   it("allows waiters to serve ready tickets without granting kitchen workflow access", () => {
-    const waiter = auth({ roles: ["WAITER"], permissions: ["orders:update_status"] });
-    expect(() => requireKitchenStatusPermission(waiter, "SERVED")).not.toThrow();
+    const waiter = auth({
+      roles: ["WAITER"],
+      permissions: ["orders:update_status"],
+    });
+    expect(() =>
+      requireKitchenStatusPermission(waiter, "SERVED"),
+    ).not.toThrow();
     expect(() => requireKitchenStatusPermission(waiter, "PREPARING")).toThrow(
       /access denied|Insufficient permissions/,
     );
     const chef = auth({ permissions: ["kitchen:update"] });
-    expect(() => requireKitchenStatusPermission(chef, "PREPARING")).not.toThrow();
+    expect(() =>
+      requireKitchenStatusPermission(chef, "PREPARING"),
+    ).not.toThrow();
     expect(() => requireKitchenStatusPermission(chef, "SERVED")).not.toThrow();
-    expect(() => requireKitchenStatusPermission(auth({ roles: ["CASHIER"], permissions: ["orders:update_status"] }), "SERVED")).toThrow();
-    expect(() => requireKitchenStatusPermission(auth({ roles: ["MANAGER"], permissions: ["orders:update", "orders:update_status"] }), "PREPARING")).not.toThrow();
+    expect(() =>
+      requireKitchenStatusPermission(
+        auth({ roles: ["CASHIER"], permissions: ["orders:update_status"] }),
+        "SERVED",
+      ),
+    ).toThrow();
+    expect(() =>
+      requireKitchenStatusPermission(
+        auth({
+          roles: ["MANAGER"],
+          permissions: ["orders:update", "orders:update_status"],
+        }),
+        "PREPARING",
+      ),
+    ).not.toThrow();
   });
   it.each(["OWNER", "FRANCHISE_ADMIN", "MANAGER"])(
     "allows %s to progress every operational round state",
@@ -47,7 +67,9 @@ describe("kitchen ticket authorization", () => {
         permissions: ["orders:update", "orders:update_status"],
       });
       for (const status of ["FIRED", "PREPARING", "READY", "SERVED"]) {
-        expect(() => requireKitchenStatusPermission(manager, status)).not.toThrow();
+        expect(() =>
+          requireKitchenStatusPermission(manager, status),
+        ).not.toThrow();
       }
     },
   );
