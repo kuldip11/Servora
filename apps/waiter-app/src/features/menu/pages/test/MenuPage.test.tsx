@@ -77,7 +77,7 @@ const renderPage = (props: React.ComponentProps<typeof MenuPage>) => {
 describe("MenuPage", () => {
   it("renders menu shell and available item", () => {
     const html = renderPage({ onBack: vi.fn(), onOrderPlaced: vi.fn() });
-    expect(html).toContain("New Order");
+    expect(html).toContain("New order");
     expect(html).toContain("Burger");
   });
 
@@ -87,6 +87,6 @@ describe("MenuPage", () => {
       onOrderPlaced: vi.fn(),
       existingOrderId: "o1",
     });
-    expect(html).toContain("Add Items to Order");
+    expect(html).toContain("Add to order");
   });
 });

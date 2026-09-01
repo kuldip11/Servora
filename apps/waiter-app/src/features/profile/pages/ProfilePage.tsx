@@ -1,12 +1,13 @@
-import { ArrowLeft, User } from "lucide-react";
-import { Card, IconButton, ThemeSwitcher } from "@pos/ui";
+import { ArrowLeft, LogOut, User } from "lucide-react";
+import { Button, Card, IconButton, ThemeSwitcher } from "@pos/ui";
 
 interface Props {
   waiterName: string;
   onBack: () => void;
+  onLogout?: () => Promise<void>;
 }
 
-export const ProfilePage = ({ waiterName, onBack }: Props) => {
+export const ProfilePage = ({ waiterName, onBack, onLogout }: Props) => {
   return (
     <div className="flex flex-col h-full bg-background">
       <header className="flex items-center gap-3 px-4 py-3 bg-surface border-b border-border">
@@ -31,6 +32,16 @@ export const ProfilePage = ({ waiterName, onBack }: Props) => {
           </h2>
           <ThemeSwitcher label="Theme" />
         </Card>
+
+        {onLogout && (
+          <Button
+            variant="danger"
+            className="w-full rounded-xl"
+            onClick={() => void onLogout()}
+          >
+            <LogOut className="h-4 w-4" /> Sign out
+          </Button>
+        )}
       </div>
     </div>
   );

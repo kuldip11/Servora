@@ -7,13 +7,13 @@ interface Props {
 
 export const SearchBar = ({ value, onChange }: Props) => {
   return (
-    <div className="px-4 pt-3 pb-2">
+    <div className="px-4 pb-2 pt-3">
       <SearchInput
         placeholder="Search menu…"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onClear={() => onChange("")}
-        className="rounded-xl bg-surface-secondary"
+        className="min-h-12 rounded-2xl bg-surface text-base"
       />
     </div>
   );

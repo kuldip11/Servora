@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { X, ShoppingBag } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { IconButton, toast } from "@pos/ui";
 import { useRealtimeEvent } from "@/shared/lib/realtime";
 import { useCreateOrder } from "@/features/orders/hooks/useCreateOrder";
@@ -538,41 +538,40 @@ export const MenuPage = ({ onBack, onOrderPlaced, existingOrderId }: Props) => {
   const allItems =
     scopedCategories?.flatMap((c: WaiterMenuCategory) => c.menuItems ?? []) ??
     [];
+  const resolvedActiveCategory =
+    activeCategory ?? scopedCategories?.[0]?.id ?? null;
   const activeItems: OrderableMenuItem[] = (
     menuSearch.length >= 2
       ? allItems.filter((i) =>
           i.name.toLowerCase().includes(menuSearch.toLowerCase()),
         )
-      : (scopedCategories?.find((c) => c.id === activeCategory)?.menuItems ??
-        [])
+      : (scopedCategories?.find((c) => c.id === resolvedActiveCategory)
+          ?.menuItems ?? [])
   ).filter((i) => foodTypeFilter === "ALL" || i.foodType === foodTypeFilter);
 
   const isPending = addItemsMutation.isPending || createOrderMutation.isPending;
   const needsTable = !isAddingToExisting && orderType === "DINE_IN" && !tableId;
 
   return (
-    <div className="flex flex-col h-screen bg-surface-secondary">
-      {}
-      <div className="bg-surface border-b border-border px-4 py-3 flex items-center gap-3">
+    <div className="flex h-screen flex-col bg-background">
+      <div className="flex items-center gap-3 border-b border-border bg-surface px-4 py-3 safe-area-top">
         <IconButton
-          icon={X}
+          icon={ArrowLeft}
           aria-label="Close menu"
           size="lg"
           onClick={onBack}
-          className="w-9 h-9 rounded-xl bg-surface-secondary"
+          className="h-10 w-10 rounded-xl bg-surface-secondary"
         />
-        <h2 className="font-bold text-text-primary flex-1">
-          {isAddingToExisting ? "Add Items to Order" : "New Order"}
-        </h2>
-        {totalItems > 0 && (
-          <button
-            onClick={() => setShowCart(true)}
-            className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-xl text-sm font-semibold"
-          >
-            <ShoppingBag className="w-4 h-4" />
-            {totalItems} · ₹{totalPrice.toFixed(0)}
-          </button>
-        )}
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-lg font-semibold text-text-primary">
+            {isAddingToExisting ? "Add to order" : "New order"}
+          </h1>
+          <p className="text-xs text-text-secondary">
+            {isAddingToExisting
+              ? "Choose items for the next round"
+              : "Set the table, then add items"}
+          </p>
+        </div>
       </div>
 
       {}
@@ -619,7 +618,7 @@ export const MenuPage = ({ onBack, onOrderPlaced, existingOrderId }: Props) => {
       )}
 
       {}
-      <div className="bg-surface border-b border-border">
+      <div className="border-b border-border bg-background">
         {activeMenus.length > 1 && (
           <div className="px-4 pt-3">
             <label className="block text-xs font-medium text-text-secondary">
@@ -646,7 +645,7 @@ export const MenuPage = ({ onBack, onOrderPlaced, existingOrderId }: Props) => {
           foodTypeFilter={foodTypeFilter}
           onFoodTypeChange={setFoodTypeFilter}
           categories={scopedCategories}
-          activeCategory={activeCategory}
+          activeCategory={resolvedActiveCategory}
           onCategoryChange={setActiveCategory}
           menuSearch={menuSearch}
         />
@@ -692,15 +691,17 @@ export const MenuPage = ({ onBack, onOrderPlaced, existingOrderId }: Props) => {
 
       {}
       {totalItems > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-border px-4 py-4">
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface px-4 py-3 safe-area-bottom">
           <button
             onClick={() => setShowCart(true)}
-            className="w-full bg-primary text-primary-foreground py-4 rounded-2xl font-bold flex items-center justify-between px-5"
+            className="flex min-h-14 w-full items-center justify-between rounded-2xl bg-primary px-5 font-semibold text-primary-foreground shadow-lg"
           >
             <span className="w-7 h-7 bg-primary-foreground/20 rounded-full flex items-center justify-center text-xs font-bold">
               {totalItems}
             </span>
-            <span>{isAddingToExisting ? "Review & Add" : "Review Order"}</span>
+            <span>
+              {isAddingToExisting ? "Review additions" : "Review order"}
+            </span>
             <span>₹{totalPrice.toFixed(2)}</span>
           </button>
         </div>

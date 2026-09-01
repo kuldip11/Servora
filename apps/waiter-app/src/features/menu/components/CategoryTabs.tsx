@@ -20,15 +20,15 @@ export const CategoryTabs = ({
 }: Props) => {
   return (
     <>
-      <div className="flex gap-2 px-4 pb-3 overflow-x-auto">
+      <div className="flex gap-2 overflow-x-auto px-4 pb-2">
         {FOOD_TYPE_FILTERS.map((f) => (
           <button
             key={f.value}
             onClick={() => onFoodTypeChange(f.value)}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-colors ${
+            className={`min-h-9 shrink-0 whitespace-nowrap rounded-xl border px-3 text-xs font-semibold transition-colors ${
               foodTypeFilter === f.value
-                ? "bg-primary text-primary-foreground"
-                : "bg-surface-secondary text-text-secondary"
+                ? "border-primary bg-primary-surface text-primary"
+                : "border-border bg-surface text-text-secondary"
             }`}
           >
             {f.label}
@@ -36,15 +36,15 @@ export const CategoryTabs = ({
         ))}
       </div>
       {!menuSearch && (
-        <div className="flex gap-2 px-4 pb-3 overflow-x-auto">
+        <div className="flex gap-2 overflow-x-auto px-4 pb-3">
           {categories?.map((cat) => (
             <button
               key={cat.id}
               onClick={() => onCategoryChange(cat.id)}
-              className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-colors ${
+              className={`min-h-10 shrink-0 whitespace-nowrap rounded-xl border px-4 text-xs font-semibold transition-colors ${
                 activeCategory === cat.id
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-surface-secondary text-text-secondary"
+                  ? "border-primary bg-primary-surface text-primary"
+                  : "border-border bg-surface text-text-secondary"
               }`}
             >
               {cat.name}

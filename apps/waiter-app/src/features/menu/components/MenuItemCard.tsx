@@ -33,25 +33,29 @@ export const MenuItemCard = memo(function MenuItemCard({
     ] ?? FOOD_TYPE_DOT_CLASSES.VEG;
 
   return (
-    <Card padding="sm" className="rounded-2xl flex items-center gap-3">
-      <div
-        className={`w-3 h-3 rounded-sm border-2 flex-shrink-0 ${foodTypeClasses.border}`}
-      >
+    <Card
+      padding="sm"
+      className="flex min-h-[132px] flex-col rounded-2xl border-border"
+    >
+      <div className="flex items-start gap-2">
         <div
-          className={`w-1.5 h-1.5 rounded-full m-auto mt-px ${foodTypeClasses.fill}`}
-        />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-text-primary truncate">
+          className={`mt-0.5 h-3 w-3 shrink-0 rounded-sm border-2 ${foodTypeClasses.border}`}
+        >
+          <div
+            className={`m-auto mt-px h-1.5 w-1.5 rounded-full ${foodTypeClasses.fill}`}
+          />
+        </div>
+        <p className="line-clamp-2 text-sm font-semibold text-text-primary">
           {item.name}
         </p>
+      </div>
+      <div className="mt-1 min-h-8 flex-1">
         {item.description && (
-          <p className="text-xs text-text-disabled mt-0.5 line-clamp-1">
+          <p className="line-clamp-2 text-xs text-text-secondary">
             {item.description}
           </p>
         )}
-        <div className="flex items-center gap-2 mt-1">
-          <p className="text-sm font-bold text-primary">{priceLabel(item)}</p>
+        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
           {item.prepTimeMinutes != null && item.prepTimeMinutes > 0 && (
             <p className="text-xs text-text-disabled">
               ~{item.prepTimeMinutes}m
@@ -67,13 +71,14 @@ export const MenuItemCard = memo(function MenuItemCard({
           )}
         </div>
       </div>
-      <div className="flex-shrink-0">
+      <div className="mt-3 flex items-center justify-between gap-2">
+        <p className="text-sm font-semibold text-primary">{priceLabel(item)}</p>
         {singleCart ? (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               onClick={() => onQtyChange(-1)}
               aria-label={`Decrease quantity of ${item.name}`}
-              className="w-8 h-8 flex items-center justify-center bg-surface-secondary rounded-full"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-secondary"
             >
               <Minus
                 className="w-4 h-4 text-text-secondary"
@@ -86,7 +91,7 @@ export const MenuItemCard = memo(function MenuItemCard({
             <button
               onClick={onTap}
               aria-label={`Increase quantity of ${item.name}`}
-              className="w-8 h-8 flex items-center justify-center bg-primary rounded-full"
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary"
             >
               <Plus
                 className="w-4 h-4 text-primary-foreground"
@@ -98,12 +103,13 @@ export const MenuItemCard = memo(function MenuItemCard({
           <button
             onClick={onTap}
             aria-label={`Add ${item.name} to order`}
-            className="relative w-9 h-9 flex items-center justify-center bg-primary rounded-full"
+            className="relative flex h-10 min-w-16 items-center justify-center gap-1 rounded-xl bg-primary px-2 text-xs font-semibold text-primary-foreground"
           >
             <Plus
               className="w-5 h-5 text-primary-foreground"
               aria-hidden="true"
             />
+            Add
             {cartQty > 0 && (
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-warning rounded-full text-warning-foreground text-xs font-bold flex items-center justify-center">
                 {cartQty}

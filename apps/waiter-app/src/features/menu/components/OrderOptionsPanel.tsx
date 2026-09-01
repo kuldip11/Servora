@@ -1,4 +1,11 @@
-import { X, Table2, UserCircle } from "lucide-react";
+import { useState } from "react";
+import {
+  ChevronDown,
+  SlidersHorizontal,
+  X,
+  Table2,
+  UserCircle,
+} from "lucide-react";
 import { ALL_ORDER_TYPES } from "@/features/menu/constants";
 import type { LoyaltyCustomer } from "@pos/types";
 import type { RestaurantTableDto } from "@pos/api-client";
@@ -60,18 +67,30 @@ export const OrderOptionsPanel = ({
   perCoverPriceRuleId,
   onPerCoverPriceRuleChange,
 }: Props) => {
+  const [showAdvanced, setShowAdvanced] = useState(false);
   return (
-    <div className="bg-surface border-b border-border px-4 py-3 space-y-3">
+    <div className="space-y-3 border-b border-border bg-surface px-4 py-3">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-semibold text-text-primary">
+            Order details
+          </p>
+          <p className="text-xs text-text-secondary">
+            Choose service type and table first
+          </p>
+        </div>
+      </div>
       {}
       <div className="flex gap-2">
         {availableOrderTypes.map(({ value: t, label }) => (
           <button
+            type="button"
             key={t}
             onClick={() => onOrderTypeChange(t)}
-            className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-colors ${
+            className={`min-h-10 flex-1 rounded-xl border px-2 text-xs font-semibold transition-colors ${
               orderType === t
-                ? "bg-primary text-primary-foreground"
-                : "bg-surface-secondary text-text-secondary"
+                ? "border-primary bg-primary-surface text-primary"
+                : "border-border bg-surface text-text-secondary"
             }`}
           >
             {label}
@@ -96,7 +115,7 @@ export const OrderOptionsPanel = ({
               aria-label="Select table"
               value={tableId}
               onChange={(e) => onTableChange(e.target.value)}
-              className="flex-1 text-sm border border-border rounded-xl px-3 py-2 bg-surface-secondary focus:outline-none focus:ring-2 focus:ring-primary"
+              className="min-h-12 flex-1 rounded-xl border border-border bg-surface-secondary px-3 text-base focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">Select a table…</option>
               {tables
@@ -174,41 +193,56 @@ export const OrderOptionsPanel = ({
       </div>
 
       {}
-      <div className="grid gap-2 md:grid-cols-2">
-        <label className="text-xs font-medium text-text-secondary">
-          Customer group pricing
-          <select
-            className="mt-1 w-full rounded-xl border border-border bg-surface-secondary px-3 py-2 text-sm text-text-primary"
-            value={customerGroupId}
-            onChange={(event) => onCustomerGroupChange(event.target.value)}
-          >
-            <option value="">No customer group</option>
-            {customerGroups.map((group) => (
-              <option key={group.id} value={group.id}>
-                {group.name}
+      <button
+        type="button"
+        onClick={() => setShowAdvanced((value) => !value)}
+        aria-expanded={showAdvanced}
+        className="flex min-h-11 w-full items-center gap-2 rounded-xl border border-border px-3 text-left text-sm font-medium text-text-secondary"
+      >
+        <SlidersHorizontal className="h-4 w-4" />
+        Customer pricing and billing options
+        <ChevronDown
+          className={`ml-auto h-4 w-4 transition-transform ${showAdvanced ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {showAdvanced && (
+        <div className="grid gap-2 rounded-xl bg-surface-secondary p-3 md:grid-cols-2">
+          <label className="text-xs font-medium text-text-secondary">
+            Customer group pricing
+            <select
+              className="mt-1 w-full rounded-xl border border-border bg-surface-secondary px-3 py-2 text-sm text-text-primary"
+              value={customerGroupId}
+              onChange={(event) => onCustomerGroupChange(event.target.value)}
+            >
+              <option value="">No customer group</option>
+              {customerGroups.map((group) => (
+                <option key={group.id} value={group.id}>
+                  {group.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs font-medium text-text-secondary">
+            Billing mode
+            <select
+              className="mt-1 w-full rounded-xl border border-border bg-surface-secondary px-3 py-2 text-sm text-text-primary"
+              value={billingMode}
+              onChange={(event) =>
+                onBillingModeChange(
+                  event.target.value as "LINE_ITEMS" | "PER_COVER",
+                )
+              }
+            >
+              <option value="LINE_ITEMS">Line items</option>
+              <option value="PER_COVER" disabled={!perCoverRules.length}>
+                Per cover / buffet
               </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-xs font-medium text-text-secondary">
-          Billing mode
-          <select
-            className="mt-1 w-full rounded-xl border border-border bg-surface-secondary px-3 py-2 text-sm text-text-primary"
-            value={billingMode}
-            onChange={(event) =>
-              onBillingModeChange(
-                event.target.value as "LINE_ITEMS" | "PER_COVER",
-              )
-            }
-          >
-            <option value="LINE_ITEMS">Line items</option>
-            <option value="PER_COVER" disabled={!perCoverRules.length}>
-              Per cover / buffet
-            </option>
-          </select>
-        </label>
-      </div>
-      {billingMode === "PER_COVER" && (
+            </select>
+          </label>
+        </div>
+      )}
+      {showAdvanced && billingMode === "PER_COVER" && (
         <div className="grid grid-cols-2 gap-2 rounded-xl border border-primary-border bg-primary-surface p-3">
           <label className="text-xs font-medium text-text-secondary">
             Covers

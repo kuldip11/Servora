@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ClipboardList, RefreshCw, Bell } from "lucide-react";
+import { ClipboardList, RefreshCw } from "lucide-react";
 import { Spinner, IconButton, EmptyState } from "@pos/ui";
 import { useOrders } from "@/features/orders/hooks/useOrders";
 import { OrderCard } from "@/features/orders/components/OrderCard";
@@ -9,7 +9,7 @@ interface Props {
 }
 
 export const OrdersPage = ({ onSelectOrder }: Props) => {
-  const [filter, setFilter] = useState<"active" | "all">("active");
+  const [filter, setFilter] = useState<"ready" | "active" | "all">("ready");
   const { data: orders, isLoading, refetch, isFetching } = useOrders();
 
   const active =
@@ -18,16 +18,16 @@ export const OrdersPage = ({ onSelectOrder }: Props) => {
     orders?.filter((o) =>
       o.kitchenTickets?.some((t) => t.status === "READY"),
     ) ?? [];
-  const display = filter === "active" ? active : (orders ?? []);
+  const display =
+    filter === "ready" ? ready : filter === "active" ? active : (orders ?? []);
 
   return (
-    <div className="flex flex-col h-full">
-      {}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface">
+    <div className="flex h-full flex-col">
+      <div className="flex items-center justify-between px-4 pb-2 pt-4">
         <div>
-          <h2 className="font-bold text-text-primary">Orders</h2>
-          <p className="text-xs text-text-disabled">
-            {orders?.length ?? 0} total today
+          <h1 className="text-2xl font-semibold text-text-primary">Orders</h1>
+          <p className="mt-0.5 text-xs text-text-secondary">
+            {active.length} active · {orders?.length ?? 0} total today
           </p>
         </div>
         {}
@@ -40,31 +40,25 @@ export const OrdersPage = ({ onSelectOrder }: Props) => {
       </div>
 
       {}
-      <div className="flex gap-2 px-4 py-3 bg-surface border-b border-border">
-        {(["active", "all"] as const).map((f) => (
+      <div className="flex gap-2 px-4 py-3">
+        {(["ready", "active", "all"] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+            className={`min-h-10 flex-1 rounded-xl border px-3 text-xs font-semibold transition-colors ${
               filter === f
-                ? "bg-primary text-primary-foreground"
-                : "bg-surface-secondary text-text-secondary"
+                ? "border-primary bg-primary-surface text-primary"
+                : "border-border bg-surface text-text-secondary"
             }`}
           >
-            {f === "active" ? `Active (${active.length})` : "All"}
+            {f === "ready"
+              ? `Ready ${ready.length}`
+              : f === "active"
+                ? `Active ${active.length}`
+                : "All"}
           </button>
         ))}
       </div>
-
-      {}
-      {ready.length > 0 && (
-        <div className="mx-3 mt-3 bg-success-surface border border-success/20 rounded-2xl p-3 flex items-center gap-3">
-          <Bell className="w-5 h-5 text-success animate-bounce flex-shrink-0" />
-          <p className="text-sm font-semibold text-success">
-            {ready.length} order{ready.length > 1 ? "s" : ""} ready for pickup!
-          </p>
-        </div>
-      )}
 
       {}
       <div className="flex-1 overflow-y-auto">
@@ -79,11 +73,13 @@ export const OrdersPage = ({ onSelectOrder }: Props) => {
             description={
               filter === "active"
                 ? "No active orders right now"
-                : "No orders placed yet"
+                : filter === "ready"
+                  ? "Nothing is waiting to be served"
+                  : "No orders placed yet"
             }
           />
         ) : (
-          <div className="px-3 py-3 space-y-2">
+          <div className="space-y-2 px-4 pb-5 pt-1">
             {display.map((order) => (
               <OrderCard
                 key={order.id}
