@@ -56,6 +56,8 @@ export const useCustomerCart = ({
   const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
   const [selectedFulfillmentType, setSelectedFulfillmentType] =
     useState<FulfillmentType>(sessionMode);
+  const [selectedQuantity, setSelectedQuantity] = useState(1);
+  const [editingCartIndex, setEditingCartIndex] = useState<number | null>(null);
 
   const menuById = useMemo(
     () => new Map(menu.map((item) => [item.id, item] as const)),
@@ -91,6 +93,8 @@ export const useCustomerCart = ({
       );
       setSelectedOptions([]);
       setSelectedFulfillmentType(sessionMode);
+      setSelectedQuantity(1);
+      setEditingCartIndex(null);
       clearError();
     },
     [clearError, sessionMode],
@@ -101,7 +105,24 @@ export const useCustomerCart = ({
     setSelectedVariantId(undefined);
     setSelectedOptions([]);
     setSelectedFulfillmentType(sessionMode);
+    setSelectedQuantity(1);
+    setEditingCartIndex(null);
   }, [sessionMode]);
+
+  const openCartItem = useCallback(
+    (index: number) => {
+      const line = cart[index];
+      if (!line) return;
+      setSelectedItem(line.item);
+      setSelectedVariantId(line.variantId);
+      setSelectedOptions(line.selectedOptions);
+      setSelectedFulfillmentType(line.fulfillmentType);
+      setSelectedQuantity(line.quantity);
+      setEditingCartIndex(index);
+      clearError();
+    },
+    [cart, clearError],
+  );
 
   const toggleOption = useCallback(
     (
@@ -205,19 +226,24 @@ export const useCustomerCart = ({
     if (!selectedItem || !canAddSelectedItem) return;
     const newLine: CartLine = {
       item: selectedItem,
-      quantity: 1,
+      quantity: selectedQuantity,
       ...(selectedVariantId ? { variantId: selectedVariantId } : {}),
       selectedOptions: normalizeSelectedOptions(selectedOptions),
       fulfillmentType:
         sessionMode === "TAKEAWAY" ? "TAKEAWAY" : selectedFulfillmentType,
     };
-    const key = getCartLineKey(newLine);
     setCart((current) => {
+      if (editingCartIndex != null && current[editingCartIndex]) {
+        return current.map((line, index) =>
+          index === editingCartIndex ? newLine : line,
+        );
+      }
+      const key = getCartLineKey(newLine);
       const index = current.findIndex((line) => getCartLineKey(line) === key);
       if (index === -1) return [...current, newLine];
       return current.map((line, indexToUpdate) =>
         indexToUpdate === index
-          ? { ...line, quantity: line.quantity + 1 }
+          ? { ...line, quantity: line.quantity + selectedQuantity }
           : line,
       );
     });
@@ -225,9 +251,11 @@ export const useCustomerCart = ({
   }, [
     canAddSelectedItem,
     closeItem,
+    editingCartIndex,
     selectedFulfillmentType,
     selectedItem,
     selectedOptions,
+    selectedQuantity,
     selectedVariantId,
     sessionMode,
     setCart,
@@ -365,11 +393,15 @@ export const useCustomerCart = ({
     selectedVariantId,
     selectedOptions,
     selectedFulfillmentType,
+    selectedQuantity,
+    editingCartIndex,
     menuById,
     summary,
     setSelectedVariantId,
     setSelectedFulfillmentType,
+    setSelectedQuantity,
     openItem,
+    openCartItem,
     closeItem,
     toggleOption,
     changeOptionQuantity,

@@ -202,6 +202,9 @@ export const CustomerApp = () => {
           onOptionQuantity={cartState.changeOptionQuantity}
           onClose={cartState.closeItem}
           onAdd={cartState.addSelectedItem}
+          quantity={cartState.selectedQuantity}
+          onQuantityChange={cartState.setSelectedQuantity}
+          editing={cartState.editingCartIndex != null}
         />
       )}
 
@@ -218,6 +221,7 @@ export const CustomerApp = () => {
           onChange={cartState.changeQuantity}
           onComboChange={cartState.changeComboQuantity}
           onFulfillmentChange={cartState.changeFulfillment}
+          onEdit={cartState.openCartItem}
           onPlace={checkout.placeOrder}
           couponCode={checkout.couponCode}
           onCouponCodeChange={checkout.setCouponCode}

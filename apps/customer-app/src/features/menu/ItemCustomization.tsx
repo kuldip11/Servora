@@ -3,6 +3,7 @@ import { Plus, Minus } from "lucide-react";
 import { Badge, BottomSheet, Button, IconButton } from "@pos/ui";
 import type { CustomerMenuItem } from "@/api";
 import type { SelectedOption } from "@/features/cart/pricing";
+import { getLineSubtotal } from "@/features/cart/pricing";
 import { validateItemConfiguration } from "@/features/cart/configuration";
 
 import { formatMoney } from "@/shared/utils/money";
@@ -27,6 +28,9 @@ type Props = {
   fulfillmentType: "DINE_IN" | "TAKEAWAY";
   onFulfillmentTypeChange: (value: "DINE_IN" | "TAKEAWAY") => void;
   allowMixedFulfillment: boolean;
+  quantity: number;
+  onQuantityChange: (quantity: number) => void;
+  editing?: boolean;
 };
 
 export const ItemCustomization = memo(function ItemCustomization({
@@ -41,6 +45,9 @@ export const ItemCustomization = memo(function ItemCustomization({
   fulfillmentType,
   onFulfillmentTypeChange,
   allowMixedFulfillment,
+  quantity,
+  onQuantityChange,
+  editing = false,
 }: Props) {
   const [activeZone, setActiveZone] = useState<"LEFT" | "RIGHT" | "WHOLE">(
     "LEFT",
@@ -53,35 +60,62 @@ export const ItemCustomization = memo(function ItemCustomization({
   const valid = validationError === null;
   const staffPriced =
     item.pricingMode === "WEIGHT_BASED" || item.pricingMode === "OPEN";
+  const configuredTotal = getLineSubtotal({
+    item,
+    quantity,
+    ...(variantId ? { variantId } : {}),
+    selectedOptions,
+    fulfillmentType,
+  });
 
   return (
     <BottomSheet
       open
       onClose={onClose}
-      title={item.name}
+      title={editing ? "Edit choices" : "Customize"}
       description="Customize this menu item before adding it to your order."
+      maxHeight="94vh"
+      contentClassName="customer-sheet sm:left-1/2 sm:right-auto sm:w-full sm:max-w-2xl sm:-translate-x-1/2"
+      bodyClassName="customer-scrollbar-hidden px-4 pb-6 sm:px-7"
+      footerClassName="bg-background/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-7"
       footer={
-        <Button
-          size="lg"
-          className="w-full sm:w-auto"
-          disabled={!valid}
-          onClick={onAdd}
-        >
-          Add to order <Plus className="h-4 w-4" />
-        </Button>
+        <div className="flex w-full items-center gap-3">
+          <div className="flex h-12 shrink-0 items-center rounded-2xl bg-surface-secondary p-1">
+            <IconButton
+              aria-label="Decrease quantity"
+              icon={Minus}
+              size="sm"
+              disabled={quantity <= 1}
+              onClick={() => onQuantityChange(Math.max(1, quantity - 1))}
+            />
+            <span className="w-8 text-center text-sm font-bold">
+              {quantity}
+            </span>
+            <IconButton
+              aria-label="Increase quantity"
+              icon={Plus}
+              size="sm"
+              onClick={() => onQuantityChange(quantity + 1)}
+            />
+          </div>
+          <Button
+            size="lg"
+            className="h-12 flex-1 rounded-2xl"
+            disabled={!valid}
+            onClick={onAdd}
+          >
+            {editing ? "Update order" : "Add to order"} ·{" "}
+            {formatMoney(configuredTotal)}
+          </Button>
+        </div>
       }
     >
-      <div className="space-y-6">
-        {validationError && (
-          <p className="rounded-lg bg-surface-secondary p-3 text-sm text-text-secondary">
-            {validationError}
-          </p>
-        )}
+      <div className="space-y-7">
         {item.imageUrl || item.images[0]?.url ? (
           <img
             src={item.imageUrl ?? item.images[0]?.url}
             alt={item.name}
-            className="h-48 w-full rounded-lg object-cover sm:h-52"
+            className="h-52 w-full rounded-3xl object-cover sm:h-64"
             loading="lazy"
             decoding="async"
           />
@@ -89,7 +123,7 @@ export const ItemCustomization = memo(function ItemCustomization({
         <div>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-xl font-semibold text-text-primary">
+              <h2 className="customer-display text-3xl font-bold text-text-primary">
                 {item.name}
               </h2>
               {item.description && (
@@ -98,7 +132,7 @@ export const ItemCustomization = memo(function ItemCustomization({
                 </p>
               )}
             </div>
-            <span className="font-semibold text-text-primary">
+            <span className="shrink-0 font-bold text-text-primary">
               {item.pricingMode === "OPEN"
                 ? "Staff priced"
                 : item.pricingMode === "WEIGHT_BASED"
@@ -130,14 +164,19 @@ export const ItemCustomization = memo(function ItemCustomization({
 
         {item.variants.length > 0 && (
           <fieldset>
-            <legend className="mb-3 font-semibold text-text-primary">
-              Choose a size
-            </legend>
-            <div className="space-y-2">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <legend className="font-bold text-text-primary">
+                Choose a size
+              </legend>
+              <span className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#d45d24]">
+                Required
+              </span>
+            </div>
+            <div className="overflow-hidden rounded-2xl border border-border bg-surface px-4">
               {item.variants.map((variant) => (
                 <label
                   key={variant.id}
-                  className={`flex min-h-12 items-center justify-between rounded-lg border p-3 ${(variant.manualOverrideStatus ?? variant.status ?? "ACTIVE") !== "ACTIVE" ? "cursor-not-allowed opacity-50" : "cursor-pointer"} ${variantId === variant.id ? "border-primary bg-primary-surface" : "border-border"}`}
+                  className={`flex min-h-14 items-center justify-between border-b border-border py-3 last:border-b-0 ${(variant.manualOverrideStatus ?? variant.status ?? "ACTIVE") !== "ACTIVE" ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
                 >
                   <span className="flex items-center gap-3">
                     <input
@@ -188,7 +227,7 @@ export const ItemCustomization = memo(function ItemCustomization({
                   key={zone}
                   type="button"
                   onClick={() => setActiveZone(zone)}
-                  className={`rounded-lg px-3 py-2 text-xs font-semibold ${activeZone === zone ? "bg-primary text-primary-foreground" : "bg-surface-secondary text-text-secondary"}`}
+                  className={`rounded-xl px-3 py-2.5 text-xs font-semibold ${activeZone === zone ? "bg-primary text-primary-foreground" : "bg-surface-secondary text-text-secondary"}`}
                 >
                   {zone === "WHOLE"
                     ? "Whole"
@@ -216,19 +255,21 @@ export const ItemCustomization = memo(function ItemCustomization({
           .map(({ group }, groupIndex) => (
             <fieldset key={group.id}>
               <div className="mb-3 flex items-start justify-between gap-4">
-                <legend className="font-semibold text-text-primary">
+                <legend className="font-bold text-text-primary">
                   {item.displayMode === "GUIDED_BUILDER"
                     ? `Step ${groupIndex + 1}: `
                     : ""}
                   {group.name}
                 </legend>
-                <span className="text-xs text-text-secondary">
+                <span
+                  className={`text-[10px] font-extrabold uppercase tracking-[0.1em] ${group.minSelections > 0 ? "text-[#d45d24]" : "text-text-secondary"}`}
+                >
                   {group.minSelections > 0
                     ? `Choose ${group.minSelections}${group.maxSelections ? `–${group.maxSelections}` : "+"}`
                     : "Optional"}
                 </span>
               </div>
-              <div className="space-y-2">
+              <div className="overflow-hidden rounded-2xl border border-border bg-surface px-4">
                 {group.options
                   .filter((option) => option.isAvailable)
                   .map((option) => {
@@ -246,7 +287,7 @@ export const ItemCustomization = memo(function ItemCustomization({
                     return (
                       <div
                         key={option.id}
-                        className={`flex min-h-12 items-center justify-between rounded-lg border p-3 ${selected ? "border-primary bg-primary-surface" : "border-border"}`}
+                        className="flex min-h-14 items-center justify-between border-b border-border py-3 last:border-b-0"
                       >
                         <button
                           type="button"
@@ -309,7 +350,7 @@ export const ItemCustomization = memo(function ItemCustomization({
                         ) : (
                           <span
                             aria-hidden="true"
-                            className="ml-3 h-5 w-5 rounded-full border border-border"
+                            className={`ml-3 h-5 w-5 rounded-full border-2 ${selected ? "border-primary bg-primary shadow-[inset_0_0_0_4px_var(--surface)]" : "border-border"}`}
                           />
                         )}
                       </div>
@@ -321,13 +362,13 @@ export const ItemCustomization = memo(function ItemCustomization({
 
         {allowMixedFulfillment ? (
           <fieldset>
-            <legend className="mb-3 font-semibold text-text-primary">
+            <legend className="mb-3 font-bold text-text-primary">
               Fulfilment
             </legend>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                className={`rounded-lg border p-3 text-left ${fulfillmentType === "DINE_IN" ? "border-primary bg-primary-surface" : "border-border"}`}
+                className={`rounded-2xl border p-4 text-left ${fulfillmentType === "DINE_IN" ? "border-primary bg-primary-surface" : "border-border bg-surface"}`}
                 onClick={() => onFulfillmentTypeChange("DINE_IN")}
               >
                 <span className="block font-medium text-text-primary">
@@ -339,7 +380,7 @@ export const ItemCustomization = memo(function ItemCustomization({
               </button>
               <button
                 type="button"
-                className={`rounded-lg border p-3 text-left ${fulfillmentType === "TAKEAWAY" ? "border-primary bg-primary-surface" : "border-border"}`}
+                className={`rounded-2xl border p-4 text-left ${fulfillmentType === "TAKEAWAY" ? "border-primary bg-primary-surface" : "border-border bg-surface"}`}
                 onClick={() => onFulfillmentTypeChange("TAKEAWAY")}
               >
                 <span className="block font-medium text-text-primary">
