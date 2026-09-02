@@ -63,7 +63,7 @@
 }
 
 @layer components {
-.waiter-priority-strip {
+  .waiter-priority-strip {
     background: #173c2a;
   }
 
