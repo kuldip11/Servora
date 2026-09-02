@@ -85,6 +85,25 @@ describe("ticket components", () => {
     expect(h).toContain("Waiting");
     expect(h).toContain("Start Cooking");
   });
+  it("tells the kitchen to deliver a table takeaway round back to the table", () => {
+    const takeawayTicket = {
+      ...ticket,
+      items: ticket.items.map((item) => ({
+        ...item,
+        fulfillmentType: "TAKEAWAY" as const,
+      })),
+    };
+    const html = renderToStaticMarkup(
+      <TicketHeader
+        ticket={takeawayTicket}
+        statusLabel="Waiting"
+        statusTone="info"
+        statusTextClass=""
+      />,
+    );
+    expect(html).toContain("Table 12");
+    expect(html).toContain("Takeaway · pack and deliver to table");
+  });
   it("splits combo components by station while preserving the shared combo marker", () => {
     const grillChild = {
       ...ticket.items[0]!,

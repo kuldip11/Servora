@@ -1,19 +1,38 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import {
   ArrowLeft,
   ChevronRight,
   Clock3,
   Minus,
+  PackageCheck,
   Plus,
   ShoppingBag,
+  Tag,
   Utensils,
 } from "lucide-react";
-import { Button, Card, EmptyState, IconButton, TextInput } from "@pos/ui";
+import { Button, Dialog, EmptyState, IconButton, TextInput } from "@pos/ui";
 import type { CartLine } from "./pricing";
 import type { ComboCartLine } from "./combo";
 import { getLineSubtotal } from "./pricing";
-
 import { formatMoney } from "@/shared/utils/money";
+
+const lineChoices = (line: CartLine) => {
+  const variant = line.item.variants.find(
+    (value) => value.id === line.variantId,
+  );
+  const options = line.selectedOptions.flatMap((selection) => {
+    const option = line.item.modifierGroupLinks
+      .flatMap(({ group }) => group.options)
+      .find((value) => value.id === selection.optionId);
+    if (!option) return [];
+    const zone =
+      selection.zoneLabel && selection.zoneLabel !== "WHOLE"
+        ? ` (${selection.zoneLabel.toLowerCase()})`
+        : "";
+    return `${selection.quantity > 1 ? `${selection.quantity} × ` : ""}${option.name}${zone}`;
+  });
+  return [variant?.name, ...options].filter(Boolean).join(" · ");
+};
 
 export const CartView = memo(function CartView({
   cart,
@@ -26,7 +45,7 @@ export const CartView = memo(function CartView({
   onBack,
   onChange,
   onComboChange,
-  onFulfillmentChange,
+  onEdit,
   onPlace,
   couponCode,
   onCouponCodeChange,
@@ -44,261 +63,344 @@ export const CartView = memo(function CartView({
   onBack: () => void;
   onChange: (index: number, delta: number) => void;
   onComboChange: (index: number, delta: number) => void;
-  onFulfillmentChange: (index: number, value: "DINE_IN" | "TAKEAWAY") => void;
-  onPlace: () => void;
+  onEdit: (index: number) => void;
+  onPlace: (fulfillmentType: "DINE_IN" | "TAKEAWAY") => void;
   couponCode: string;
   onCouponCodeChange: (value: string) => void;
   loyaltyPhone: string;
   onLoyaltyPhoneChange: (value: string) => void;
   loading: boolean;
 }) {
+  const [rewardsOpen, setRewardsOpen] = useState(
+    Boolean(couponCode || loyaltyPhone),
+  );
+  const [fulfillmentOpen, setFulfillmentOpen] = useState(false);
+  const empty = cart.length === 0 && combos.length === 0;
+
   return (
-    <div className="fixed inset-0 z-40 overflow-y-auto overscroll-contain bg-background">
-      <div className="mx-auto min-h-screen max-w-2xl px-4 pb-8 pt-[env(safe-area-inset-top)] sm:px-6">
-        <header className="flex items-center justify-between py-5">
-          <Button variant="ghost" size="sm" onClick={onBack}>
-            <ArrowLeft className="h-4 w-4" /> Menu
-          </Button>
-          <span className="font-semibold text-text-primary">Your order</span>
-          <span className="w-16" />
-        </header>
-        <Card padding="md" className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Utensils className="h-4 w-4" />
+    <div className="customer-experience fixed inset-0 z-40 overflow-y-auto overscroll-contain bg-background text-text-primary">
+      <header className="sticky top-0 z-10 border-b border-border bg-surface/95 backdrop-blur-xl">
+        <div className="mx-auto max-w-3xl px-4 pb-4 pt-[max(1rem,env(safe-area-inset-top))] sm:px-6">
+          <div className="flex items-center gap-3">
+            <IconButton
+              aria-label="Back to menu"
+              icon={ArrowLeft}
+              variant="secondary"
+              size="lg"
+              className="rounded-full"
+              onClick={onBack}
+            />
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#d45d24]">
+                Review
+              </p>
+              <h1 className="customer-display text-3xl font-bold">
+                Your order
+              </h1>
+            </div>
           </div>
-          <div>
-            <p className="font-semibold text-text-primary">
-              {mode === "DINE_IN" ? `Table ${table}` : "Takeaway order"}
-            </p>
-            <p className="text-sm text-text-secondary">
-              {mode === "DINE_IN" ? "Dine-in self order" : "Order for pickup"}
-            </p>
+          <div className="mt-4 flex items-center justify-between rounded-2xl bg-primary-surface px-4 py-3 text-xs font-bold text-primary">
+            <span className="flex items-center gap-2">
+              <Utensils className="h-4 w-4" />
+              {mode === "DINE_IN"
+                ? `Table ${table} · Dine in`
+                : "Takeaway order"}
+            </span>
+            {!empty && (
+              <span>
+                {cart.reduce((sum, line) => sum + line.quantity, 0) +
+                  combos.reduce((sum, line) => sum + line.quantity, 0)}{" "}
+                items
+              </span>
+            )}
           </div>
-        </Card>
-        {cart.length === 0 && combos.length === 0 ? (
-          <EmptyState
-            icon={ShoppingBag}
-            title="Your order is empty"
-            description="Add something from the menu to continue."
-            action={<Button onClick={onBack}>Browse menu</Button>}
-          />
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-3xl px-4 pb-44 sm:px-6">
+        {empty ? (
+          <div className="mt-10 rounded-3xl border border-border bg-surface py-10">
+            <EmptyState
+              icon={ShoppingBag}
+              title="Your order is empty"
+              description="Add something from the menu to continue."
+              action={<Button onClick={onBack}>Browse menu</Button>}
+            />
+          </div>
         ) : (
           <>
-            <div className="mt-3 space-y-2">
+            <section
+              aria-label="Order items"
+              className="divide-y divide-border"
+            >
               {combos.map((line, index) => (
-                <Card
+                <article
                   key={`${line.combo.id}-${index}`}
-                  padding="sm"
-                  className="flex items-center gap-3"
+                  className="grid grid-cols-[64px_minmax(0,1fr)_auto] gap-3 py-5"
                 >
-                  <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-primary-surface text-sm font-bold text-primary">
-                    COMBO
+                  <div className="grid h-16 w-16 place-items-center rounded-2xl bg-[#f3dfb9] text-xs font-extrabold text-[#8b4b24]">
+                    SET
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-text-primary">
-                      {line.combo.name}
-                    </p>
-                    <p className="mt-1 text-sm text-text-secondary">
+                  <div className="min-w-0">
+                    <h2 className="font-bold">{line.combo.name}</h2>
+                    <p className="mt-1 text-xs leading-5 text-text-secondary">
                       {line.selections.reduce(
-                        (sum, value) => sum + value.optionIds.length,
+                        (sum, selection) => sum + selection.optionIds.length,
                         0,
                       )}{" "}
-                      selected components · final price recalculated at checkout
+                      selected components
                     </p>
-                  </div>
-                  <div className="flex items-center gap-1 rounded-lg bg-surface-secondary p-1">
-                    <IconButton
-                      aria-label={`Decrease ${line.combo.name}`}
-                      icon={Minus}
-                      size="sm"
-                      onClick={() => onComboChange(index, -1)}
-                    />
-                    <span className="w-5 text-center text-sm font-semibold">
-                      {line.quantity}
+                    <span className="mt-2 block text-xs font-bold text-text-primary">
+                      Price confirmed at checkout
                     </span>
-                    <IconButton
-                      aria-label={`Increase ${line.combo.name}`}
-                      icon={Plus}
-                      size="sm"
-                      variant="primary"
-                      onClick={() => onComboChange(index, 1)}
-                    />
                   </div>
-                </Card>
+                  <div className="flex flex-col items-end justify-between gap-3">
+                    <div className="flex items-center gap-1 rounded-full bg-surface-secondary p-1">
+                      <IconButton
+                        aria-label={`Decrease ${line.combo.name}`}
+                        icon={Minus}
+                        size="sm"
+                        onClick={() => onComboChange(index, -1)}
+                      />
+                      <span className="w-6 text-center text-xs font-bold">
+                        {line.quantity}
+                      </span>
+                      <IconButton
+                        aria-label={`Increase ${line.combo.name}`}
+                        icon={Plus}
+                        size="sm"
+                        variant="primary"
+                        onClick={() => onComboChange(index, 1)}
+                      />
+                    </div>
+                  </div>
+                </article>
               ))}
+
               {cart.map((line, index) => {
                 const image = line.item.imageUrl ?? line.item.images[0]?.url;
+                const choices = lineChoices(line);
                 return (
-                  <Card
+                  <article
                     key={`${line.item.id}-${line.variantId ?? "base"}-${line.selectedOptions.map((option) => `${option.optionId}:${option.zoneLabel ?? "WHOLE"}:${option.quantity}`).join(",")}`}
-                    padding="sm"
-                    className="flex items-center gap-3"
+                    className="grid grid-cols-[72px_minmax(0,1fr)_auto] gap-3 py-5"
                   >
                     {image ? (
                       <img
                         src={image}
                         alt={line.item.name}
-                        className="h-16 w-16 rounded-lg object-cover"
+                        className="h-[72px] w-[72px] rounded-2xl object-cover"
                         loading="lazy"
                         decoding="async"
                       />
                     ) : (
-                      <div
-                        aria-hidden="true"
-                        className="h-16 w-16 rounded-lg bg-surface-secondary"
-                      />
+                      <div className="grid h-[72px] w-[72px] place-items-center rounded-2xl bg-[#f3dfb9] text-[#8b4b24]">
+                        <Utensils className="h-6 w-6" />
+                      </div>
                     )}
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-text-primary">
+                    <div className="min-w-0">
+                      <h2 className="font-bold leading-tight">
                         {line.item.name}
-                      </p>
-                      <p className="mt-1 text-sm text-text-secondary">
+                      </h2>
+                      {choices && (
+                        <p className="mt-1 line-clamp-2 text-xs leading-5 text-text-secondary">
+                          {choices}
+                        </p>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => onEdit(index)}
+                        className="mt-2 block text-xs font-extrabold text-primary"
+                      >
+                        Edit choices
+                      </button>
+                    </div>
+                    <div className="flex flex-col items-end justify-between gap-3">
+                      <strong className="text-sm">
                         {formatMoney(getLineSubtotal(line))}
-                      </p>
-                      <div className="mt-2 inline-flex rounded-md bg-surface-secondary p-0.5">
-                        {mode === "DINE_IN" ? (
-                          <>
-                            <button
-                              type="button"
-                              className={`rounded px-2 py-1 text-xs font-medium ${line.fulfillmentType === "DINE_IN" ? "bg-background text-text-primary shadow-sm" : "text-text-secondary"}`}
-                              onClick={() =>
-                                onFulfillmentChange(index, "DINE_IN")
-                              }
-                            >
-                              Eat here
-                            </button>
-                            <button
-                              type="button"
-                              className={`rounded px-2 py-1 text-xs font-medium ${line.fulfillmentType === "TAKEAWAY" ? "bg-background text-text-primary shadow-sm" : "text-text-secondary"}`}
-                              onClick={() =>
-                                onFulfillmentChange(index, "TAKEAWAY")
-                              }
-                            >
-                              Takeaway
-                            </button>
-                          </>
-                        ) : (
-                          <span className="px-2 py-1 text-xs font-medium text-text-secondary">
-                            Takeaway
-                          </span>
-                        )}
+                      </strong>
+                      <div className="flex items-center gap-1 rounded-full bg-surface-secondary p-1">
+                        <IconButton
+                          aria-label={`Decrease ${line.item.name}`}
+                          icon={Minus}
+                          size="sm"
+                          onClick={() => onChange(index, -1)}
+                        />
+                        <span className="w-6 text-center text-xs font-bold">
+                          {line.quantity}
+                        </span>
+                        <IconButton
+                          aria-label={`Increase ${line.item.name}`}
+                          icon={Plus}
+                          size="sm"
+                          variant="primary"
+                          onClick={() => onChange(index, 1)}
+                        />
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 rounded-lg bg-surface-secondary p-1">
-                      <IconButton
-                        aria-label={`Decrease ${line.item.name}`}
-                        icon={Minus}
-                        size="sm"
-                        onClick={() => onChange(index, -1)}
-                      />
-                      <span className="w-5 text-center text-sm font-semibold">
-                        {line.quantity}
-                      </span>
-                      <IconButton
-                        aria-label={`Increase ${line.item.name}`}
-                        icon={Plus}
-                        size="sm"
-                        variant="primary"
-                        onClick={() => onChange(index, 1)}
-                      />
-                    </div>
-                  </Card>
+                  </article>
                 );
               })}
-            </div>
-            <Card padding="md" className="mt-5">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <TextInput
-                  label="Coupon code"
-                  placeholder="Optional"
-                  value={couponCode}
-                  onChange={(event) =>
-                    onCouponCodeChange(event.target.value.toUpperCase())
-                  }
-                />
-                <TextInput
-                  label="Loyalty phone"
-                  placeholder="Optional"
-                  inputMode="tel"
-                  value={loyaltyPhone}
-                  onChange={(event) => onLoyaltyPhoneChange(event.target.value)}
-                />
-              </div>
-              <p className="mt-2 text-xs text-text-secondary">
-                Promotions and loyalty pricing are validated by the restaurant
-                when the order is submitted; totals above are pre-discount
-                estimates.
-              </p>
-            </Card>
-            <Card padding="md" className="mt-5">
-              <div className="flex justify-between py-1 text-sm text-text-secondary">
+            </section>
+
+            <section className="mt-2">
+              {!rewardsOpen ? (
+                <button
+                  type="button"
+                  onClick={() => setRewardsOpen(true)}
+                  className="flex w-full items-center justify-between rounded-2xl border border-dashed border-border bg-surface/50 px-4 py-4 text-left text-xs text-text-secondary"
+                >
+                  <span className="flex items-center gap-2">
+                    <Tag className="h-4 w-4" /> Add coupon or loyalty reward
+                  </span>
+                  <span className="font-extrabold text-primary">Add →</span>
+                </button>
+              ) : (
+                <div className="grid gap-3 rounded-2xl border border-border bg-surface p-4 sm:grid-cols-2">
+                  <TextInput
+                    label="Coupon code"
+                    placeholder="Enter a code"
+                    value={couponCode}
+                    onChange={(event) =>
+                      onCouponCodeChange(event.target.value.toUpperCase())
+                    }
+                  />
+                  <TextInput
+                    label="Loyalty phone"
+                    placeholder="Enter your phone number"
+                    inputMode="tel"
+                    value={loyaltyPhone}
+                    onChange={(event) =>
+                      onLoyaltyPhoneChange(event.target.value)
+                    }
+                  />
+                  <p className="text-[11px] leading-5 text-text-secondary sm:col-span-2">
+                    Promotions and loyalty pricing are confirmed when your order
+                    is submitted.
+                  </p>
+                </div>
+              )}
+            </section>
+
+            <section className="mt-6 border-t border-border pt-4">
+              <div className="flex justify-between py-1.5 text-sm text-text-secondary">
                 <span>Subtotal</span>
                 <span>{formatMoney(subtotal)}</span>
               </div>
-              <div className="flex justify-between py-1 text-sm text-text-secondary">
-                <span>Tax</span>
+              <div className="flex justify-between py-1.5 text-sm text-text-secondary">
+                <span>Taxes</span>
                 <span>{formatMoney(tax)}</span>
               </div>
-              <div className="my-3 border-t border-border" />
-              <div className="flex justify-between text-lg font-semibold text-text-primary">
+              <div className="mt-2 flex justify-between py-2 text-xl font-bold">
                 <span>Total</span>
                 <span>{formatMoney(total)}</span>
               </div>
-            </Card>
-            {mode === "DINE_IN" ? (
-              <Card padding="md" className="mt-5">
-                <p className="font-semibold text-text-primary">Payment</p>
-                <div className="mt-3 flex items-center gap-3 rounded-lg border border-primary bg-primary-surface p-4">
-                  <Clock3 className="h-4 w-4 shrink-0 text-primary" />
-                  <div>
-                    <p className="font-medium text-text-primary">
-                      Pay when you're done
-                    </p>
-                    <p className="mt-1 text-xs leading-5 text-text-secondary">
-                      This table order stays open while you eat. You can order
-                      more, then settle the complete bill once you're finished.
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            ) : (
-              <Card padding="md" className="mt-5">
-                <p className="font-semibold text-text-primary">
-                  Payment required
+            </section>
+
+            <section className="mt-5 flex items-start gap-3 rounded-2xl bg-primary-surface p-4">
+              <Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <div>
+                <p className="text-sm font-bold text-text-primary">
+                  {mode === "DINE_IN" ? "Pay after dining" : "Payment required"}
                 </p>
-                <div className="mt-3 rounded-lg border border-warning bg-warning-surface p-4 text-sm text-warning">
-                  Online payment is required before your takeaway order is sent
-                  to the kitchen.
-                </div>
-              </Card>
-            )}
-            <div
+                <p className="mt-1 text-xs leading-5 text-text-secondary">
+                  {mode === "DINE_IN"
+                    ? "This round goes directly to the kitchen and stays on your table tab."
+                    : "You'll complete online payment before this order is sent to the kitchen."}
+                </p>
+              </div>
+            </section>
+          </>
+        )}
+      </main>
+
+      {!empty && (
+        <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl sm:px-6">
+          <div className="mx-auto max-w-3xl">
+            <p
               id="order-note"
-              className="mt-4 flex items-start gap-3 rounded-lg bg-surface-secondary p-4 text-sm text-text-secondary"
+              className="mb-2 text-center text-[10px] text-text-secondary"
             >
-              <Utensils className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>
-                {mode === "DINE_IN"
-                  ? "This round will be sent directly to the kitchen and added to your table tab."
-                  : "This takeaway order will be sent to the kitchen after payment is confirmed."}
-              </span>
-            </div>
+              {mode === "DINE_IN"
+                ? "Choose dine-in or takeaway next · Your table tab stays open"
+                : "Secure payment is completed before kitchen confirmation"}
+            </p>
             <Button
               aria-describedby="order-note"
               disabled={loading}
               loading={loading}
-              onClick={onPlace}
+              onClick={() =>
+                mode === "DINE_IN"
+                  ? setFulfillmentOpen(true)
+                  : onPlace("TAKEAWAY")
+              }
               size="lg"
-              className="mt-5 w-full"
+              className="h-14 w-full rounded-2xl"
             >
-              {mode === "TAKEAWAY"
-                ? "Continue to payment"
-                : "Send order to kitchen"}{" "}
+              {mode === "TAKEAWAY" ? "Continue to payment" : "Place order"}{" "}
               <ChevronRight className="h-4 w-4" />
             </Button>
-          </>
-        )}
-      </div>
+          </div>
+        </div>
+      )}
+      <Dialog
+        open={fulfillmentOpen}
+        onClose={() => setFulfillmentOpen(false)}
+        title="How should we prepare this order?"
+        description="Choose one preparation method for every item in this round."
+        size="md"
+        contentClassName="customer-dialog overflow-hidden rounded-[24px]"
+        bodyClassName="p-0"
+      >
+        <div className="customer-experience space-y-3 bg-background p-5 text-text-primary sm:p-6">
+          <p className="mb-4 text-sm leading-6 text-text-secondary">
+            This choice applies to all items in this order. You can choose
+            differently the next time you order.
+          </p>
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => {
+              setFulfillmentOpen(false);
+              onPlace("DINE_IN");
+            }}
+            className="flex w-full items-start gap-4 rounded-2xl border border-border bg-surface p-4 text-left transition hover:border-primary hover:bg-primary-surface disabled:opacity-50"
+          >
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground">
+              <Utensils className="h-5 w-5" />
+            </span>
+            <span>
+              <strong className="block text-base">Dine in</strong>
+              <span className="mt-1 block text-xs leading-5 text-text-secondary">
+                Serve everything normally at Table {table}.
+              </span>
+            </span>
+          </button>
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => {
+              setFulfillmentOpen(false);
+              onPlace("TAKEAWAY");
+            }}
+            className="flex w-full items-start gap-4 rounded-2xl border border-border bg-surface p-4 text-left transition hover:border-[#d45d24] hover:bg-[#fff1e8] disabled:opacity-50 dark:hover:bg-[#3a2419]"
+          >
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#d45d24] text-white">
+              <PackageCheck className="h-5 w-5" />
+            </span>
+            <span>
+              <strong className="block text-base">Pack for takeaway</strong>
+              <span className="mt-1 block text-xs leading-5 text-text-secondary">
+                Pack this round, deliver it to Table {table}, and keep it on the
+                same table bill.
+              </span>
+            </span>
+          </button>
+          <p className="pt-1 text-center text-[11px] leading-5 text-text-secondary">
+            Your table remains open until you request the bill.
+          </p>
+        </div>
+      </Dialog>
     </div>
   );
 });
