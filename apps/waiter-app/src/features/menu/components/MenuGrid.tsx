@@ -55,7 +55,7 @@ export const MenuGrid = ({
   onQtyChange,
 }: Props) => {
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2 pb-28">
+    <div className="scrollbar-hidden flex-1 overflow-y-auto px-3.5 pb-28 pt-2.5">
       {isLoading ? (
         <div className="flex justify-center py-12">
           <Spinner className="w-6 h-6" />
@@ -67,25 +67,27 @@ export const MenuGrid = ({
             : "No items in this category"}
         </p>
       ) : (
-        items.map((item) => {
-          const cartQty = cart
-            .filter((c) => c.menuItemId === item.id)
-            .reduce((s, c) => s + c.quantity, 0);
-          const hasOptions =
-            item.variants?.length > 0 || item.modifierGroupLinks?.length > 0;
-          const singleCart =
-            !hasOptions && cart.find((c) => c.menuItemId === item.id);
-          return (
-            <MenuGridItem
-              key={item.id}
-              item={item}
-              cartQty={cartQty}
-              singleCart={singleCart}
-              onItemTap={onItemTap}
-              onQtyChange={onQtyChange}
-            />
-          );
-        })
+        <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-3 xl:grid-cols-4">
+          {items.map((item) => {
+            const cartQty = cart
+              .filter((c) => c.menuItemId === item.id)
+              .reduce((s, c) => s + c.quantity, 0);
+            const hasOptions =
+              item.variants?.length > 0 || item.modifierGroupLinks?.length > 0;
+            const singleCart =
+              !hasOptions && cart.find((c) => c.menuItemId === item.id);
+            return (
+              <MenuGridItem
+                key={item.id}
+                item={item}
+                cartQty={cartQty}
+                singleCart={singleCart}
+                onItemTap={onItemTap}
+                onQtyChange={onQtyChange}
+              />
+            );
+          })}
+        </div>
       )}
     </div>
   );

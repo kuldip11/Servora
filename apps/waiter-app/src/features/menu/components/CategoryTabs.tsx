@@ -20,36 +20,40 @@ export const CategoryTabs = ({
 }: Props) => {
   return (
     <>
-      <div className="flex gap-2 px-4 pb-3 overflow-x-auto">
-        {FOOD_TYPE_FILTERS.map((f) => (
-          <button
-            key={f.value}
-            onClick={() => onFoodTypeChange(f.value)}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-colors ${
-              foodTypeFilter === f.value
-                ? "bg-primary text-primary-foreground"
-                : "bg-surface-secondary text-text-secondary"
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
       {!menuSearch && (
-        <div className="flex gap-2 px-4 pb-3 overflow-x-auto">
+        <div className="scrollbar-hidden flex gap-[7px] overflow-x-auto px-4 pb-3">
           {categories?.map((cat) => (
             <button
               key={cat.id}
               onClick={() => onCategoryChange(cat.id)}
-              className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-colors ${
+              className={`min-h-10 shrink-0 whitespace-nowrap rounded-xl border px-[13px] text-xs font-medium transition-colors ${
                 activeCategory === cat.id
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-surface-secondary text-text-secondary"
+                  ? "border-primary bg-primary-surface text-primary"
+                  : "border-border bg-surface text-text-secondary"
               }`}
             >
               {cat.name}
             </button>
           ))}
+          {FOOD_TYPE_FILTERS.filter((filter) => filter.value !== "ALL").map(
+            (filter) => (
+              <button
+                key={filter.value}
+                onClick={() =>
+                  onFoodTypeChange(
+                    foodTypeFilter === filter.value ? "ALL" : filter.value,
+                  )
+                }
+                className={`min-h-10 shrink-0 whitespace-nowrap rounded-xl border px-[13px] text-xs font-medium transition-colors ${
+                  foodTypeFilter === filter.value
+                    ? "border-primary bg-primary-surface text-primary"
+                    : "border-border bg-surface text-text-secondary"
+                }`}
+              >
+                {filter.label}
+              </button>
+            ),
+          )}
         </div>
       )}
     </>

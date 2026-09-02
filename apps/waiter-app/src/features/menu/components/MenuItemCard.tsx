@@ -2,8 +2,8 @@ import { memo } from "react";
 import { Plus, Minus } from "lucide-react";
 import { Card } from "@pos/ui";
 import type { CartItem } from "@/features/menu/types";
-import { FOOD_TYPE_DOT_CLASSES } from "@/features/menu/constants";
 import { priceLabel } from "@/features/menu/utils/cart";
+import { FOOD_TYPE_DOT_CLASSES } from "@/features/menu/constants";
 import type { OrderableMenuItem } from "@pos/types";
 
 interface Props {
@@ -33,82 +33,99 @@ export const MenuItemCard = memo(function MenuItemCard({
     ] ?? FOOD_TYPE_DOT_CLASSES.VEG;
 
   return (
-    <Card padding="sm" className="rounded-2xl flex items-center gap-3">
-      <div
-        className={`w-3 h-3 rounded-sm border-2 flex-shrink-0 ${foodTypeClasses.border}`}
-      >
-        <div
-          className={`w-1.5 h-1.5 rounded-full m-auto mt-px ${foodTypeClasses.fill}`}
-        />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-text-primary truncate">
-          {item.name}
-        </p>
-        {item.description && (
-          <p className="text-xs text-text-disabled mt-0.5 line-clamp-1">
-            {item.description}
-          </p>
+    <Card
+      padding="sm"
+      className="group relative flex min-h-[128px] flex-col overflow-hidden rounded-2xl border-border p-3 transition-shadow hover:shadow-md"
+    >
+      {cartQty > 0 && (
+        <span className="absolute right-2 top-2 z-10 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold text-primary-foreground">
+          {cartQty}
+        </span>
+      )}
+
+      <div className="flex min-w-0 items-start gap-2.5">
+        {item.imageUrl ? (
+          <img
+            src={item.imageUrl}
+            alt=""
+            loading="lazy"
+            className="h-12 w-12 shrink-0 rounded-xl object-cover"
+          />
+        ) : (
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary-surface text-lg font-semibold text-primary">
+            {item.name.charAt(0).toUpperCase()}
+          </span>
         )}
-        <div className="flex items-center gap-2 mt-1">
-          <p className="text-sm font-bold text-primary">{priceLabel(item)}</p>
+        <div className="min-w-0 flex-1 pr-2">
+          <div className="mb-1 flex items-start gap-1.5">
+            <span
+              className={`mt-1 flex h-3 w-3 shrink-0 items-center justify-center rounded-sm border ${foodTypeClasses.border}`}
+              aria-label={item.foodType?.replace("_", " ") ?? "Vegetarian"}
+            >
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${foodTypeClasses.fill}`}
+              />
+            </span>
+            <p className="line-clamp-2 text-sm font-semibold leading-[18px] text-text-primary">
+              {item.name}
+            </p>
+          </div>
+          {item.description && (
+            <p className="line-clamp-1 text-[11px] text-text-secondary">
+              {item.description}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-2 flex flex-1 items-end">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
           {item.prepTimeMinutes != null && item.prepTimeMinutes > 0 && (
-            <p className="text-xs text-text-disabled">
+            <p className="text-[11px] text-text-disabled">
               ~{item.prepTimeMinutes}m
             </p>
           )}
           {hasOptions && (
-            <p className="text-xs text-text-disabled">Options ▾</p>
+            <p className="text-[11px] font-medium text-primary">Customisable</p>
           )}
           {item.manualStockCount != null && item.manualStockCount <= 5 && (
-            <p className="text-xs font-semibold text-warning">
+            <p className="text-[11px] font-semibold text-warning">
               {item.manualStockCount} left
             </p>
           )}
         </div>
       </div>
-      <div className="flex-shrink-0">
+      <div className="mt-2 flex min-h-10 items-center justify-between gap-2 border-t border-divider pt-2">
+        <span className="min-w-0 truncate text-sm font-semibold text-text-primary">
+          {priceLabel(item)}
+        </span>
         {singleCart ? (
-          <div className="flex items-center gap-2">
+          <span className="flex shrink-0 items-center gap-1 rounded-xl bg-surface-secondary p-1">
             <button
               onClick={() => onQtyChange(-1)}
               aria-label={`Decrease quantity of ${item.name}`}
-              className="w-8 h-8 flex items-center justify-center bg-surface-secondary rounded-full"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-text-secondary"
             >
-              <Minus
-                className="w-4 h-4 text-text-secondary"
-                aria-hidden="true"
-              />
+              <Minus className="h-4 w-4" aria-hidden="true" />
             </button>
-            <span className="text-sm font-bold w-5 text-center">
+            <span className="w-5 text-center text-sm font-bold">
               {singleCart.quantity}
             </span>
             <button
               onClick={onTap}
               aria-label={`Increase quantity of ${item.name}`}
-              className="w-8 h-8 flex items-center justify-center bg-primary rounded-full"
+              className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"
             >
-              <Plus
-                className="w-4 h-4 text-primary-foreground"
-                aria-hidden="true"
-              />
+              <Plus className="h-4 w-4" aria-hidden="true" />
             </button>
-          </div>
+          </span>
         ) : (
           <button
             onClick={onTap}
             aria-label={`Add ${item.name} to order`}
-            className="relative w-9 h-9 flex items-center justify-center bg-primary rounded-full"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm transition-transform active:scale-95"
           >
-            <Plus
-              className="w-5 h-5 text-primary-foreground"
-              aria-hidden="true"
-            />
-            {cartQty > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-warning rounded-full text-warning-foreground text-xs font-bold flex items-center justify-center">
-                {cartQty}
-              </span>
-            )}
+            <Plus className="h-5 w-5" aria-hidden="true" />
           </button>
         )}
       </div>

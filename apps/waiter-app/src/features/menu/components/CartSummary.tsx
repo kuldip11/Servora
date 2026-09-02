@@ -1,5 +1,5 @@
-import { Send, Layers, Minus, Plus } from "lucide-react";
-import { BottomSheet, Button, TextInput } from "@pos/ui";
+import { Send, Layers, Minus, Pencil, Plus } from "lucide-react";
+import { BottomSheet, Button, SelectMenu, TextInput } from "@pos/ui";
 import type { CartItem } from "@/features/menu/types";
 import { COURSE_LABELS } from "@/features/menu/constants";
 import { cartItemKey } from "@/features/menu/utils/cart";
@@ -34,6 +34,7 @@ interface Props {
   needsTable: boolean;
   onUpdateQty: (key: string, delta: number) => void;
   onUpdateComboQty: (key: string, delta: number) => void;
+  onEditItem?: (key: string) => void;
   onSubmit: () => void;
   onClose: () => void;
 }
@@ -70,6 +71,7 @@ export const CartSummary = ({
   needsTable,
   onUpdateQty,
   onUpdateComboQty,
+  onEditItem,
   onSubmit,
   onClose,
 }: Props) => {
@@ -165,22 +167,18 @@ export const CartSummary = ({
               </span>
             </label>
             {courseMode && isAddingToExisting && (
-              <label className="mt-3 block text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                This round
-                <select
-                  className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm normal-case text-text-primary"
-                  value={roundCourseNumber}
-                  onChange={(event) =>
-                    onRoundCourseNumberChange(Number(event.target.value))
-                  }
-                >
-                  {COURSE_OPTIONS.map((course) => (
-                    <option key={course} value={course}>
-                      {courseLabel(course)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <div className="mt-3">
+                <SelectMenu
+                  label="This round"
+                  value={String(roundCourseNumber)}
+                  onChange={(value) => onRoundCourseNumberChange(Number(value))}
+                  className="rounded-xl"
+                  options={COURSE_OPTIONS.map((course) => ({
+                    value: String(course),
+                    label: courseLabel(course),
+                  }))}
+                />
+              </div>
             )}
           </div>
         )}
@@ -228,20 +226,18 @@ export const CartSummary = ({
                       selections · estimated
                     </p>
                     {courseMode && !isAddingToExisting && (
-                      <select
+                      <SelectMenu
                         aria-label={`Course for ${line.combo.name}`}
-                        className="mt-1 rounded-lg border border-border bg-surface px-2 py-1 text-xs"
-                        value={line.courseNumber ?? 1}
-                        onChange={(event) =>
-                          onUpdateComboCourse(key, Number(event.target.value))
+                        className="mt-1 min-h-9 rounded-lg py-1 text-xs"
+                        value={String(line.courseNumber ?? 1)}
+                        onChange={(value) =>
+                          onUpdateComboCourse(key, Number(value))
                         }
-                      >
-                        {COURSE_OPTIONS.map((course) => (
-                          <option key={course} value={course}>
-                            {courseLabel(course)}
-                          </option>
-                        ))}
-                      </select>
+                        options={COURSE_OPTIONS.map((course) => ({
+                          value: String(course),
+                          label: courseLabel(course),
+                        }))}
+                      />
                     )}
                   </div>
                   <p className="text-sm font-semibold text-text-primary">
@@ -323,21 +319,27 @@ export const CartSummary = ({
                         📝 {item.chefNotes}
                       </p>
                     )}
-                    {courseMode && !isAddingToExisting && (
-                      <select
-                        aria-label={`Course for ${item.name}`}
-                        className="mt-1 rounded-lg border border-border bg-surface px-2 py-1 text-xs"
-                        value={item.course ?? 1}
-                        onChange={(event) =>
-                          onUpdateCourse(key, Number(event.target.value))
-                        }
+                    {onEditItem && (
+                      <button
+                        type="button"
+                        onClick={() => onEditItem(key)}
+                        className="mt-2 inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-primary-surface px-3 text-xs font-semibold text-primary"
                       >
-                        {COURSE_OPTIONS.map((course) => (
-                          <option key={course} value={course}>
-                            {courseLabel(course)}
-                          </option>
-                        ))}
-                      </select>
+                        <Pencil className="h-3.5 w-3.5" />
+                        Edit choices
+                      </button>
+                    )}
+                    {courseMode && !isAddingToExisting && (
+                      <SelectMenu
+                        aria-label={`Course for ${item.name}`}
+                        className="mt-1 min-h-9 rounded-lg py-1 text-xs"
+                        value={String(item.course ?? 1)}
+                        onChange={(value) => onUpdateCourse(key, Number(value))}
+                        options={COURSE_OPTIONS.map((course) => ({
+                          value: String(course),
+                          label: courseLabel(course),
+                        }))}
+                      />
                     )}
                   </div>
                   <div className="text-right flex-shrink-0">

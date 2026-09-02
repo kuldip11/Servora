@@ -232,7 +232,19 @@ export const VirtualListbox = ({
       id={listboxId}
       role="listbox"
       aria-multiselectable={multiselectable || undefined}
-      style={{ maxHeight, overflowY: "auto" }}
+      onWheel={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        event.currentTarget.scrollTop += event.deltaY;
+      }}
+      onTouchMove={(event) => event.stopPropagation()}
+      style={{
+        maxHeight: `min(${maxHeight}px, calc(var(--radix-popover-content-available-height, ${maxHeight}px) - 8px))`,
+        overflowY: "auto",
+        overscrollBehavior: "contain",
+        touchAction: "pan-y",
+        WebkitOverflowScrolling: "touch",
+      }}
       className="relative outline-none py-1"
     >
       {rows.length === 0 ? (
