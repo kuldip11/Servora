@@ -160,6 +160,9 @@ export const SiteHeader = () => {
               </div>
             )}
           </div>
+          <Link href="/#interactive-demos" className="text-sm font-medium">
+            Interactive Demo
+          </Link>
           <Link href="/pricing" className="text-sm font-medium">
             Pricing
           </Link>
@@ -233,6 +236,13 @@ export const SiteHeader = () => {
               </a>
             ))}
             <div className="my-2 border-t border-[var(--border)]" />
+            <Link
+              onClick={closeMenus}
+              href="/#interactive-demos"
+              className="rounded-lg px-3 py-2.5 text-sm font-medium"
+            >
+              Interactive Demo
+            </Link>
             <Link
               onClick={closeMenus}
               href="/pricing"

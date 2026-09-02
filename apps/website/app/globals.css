@@ -3,6 +3,22 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --background: #f6f2e8;
+  --surface: #fffdf8;
+  --surface-secondary: #eee9de;
+  --text-primary: #142219;
+  --text-secondary: #657068;
+  --text-disabled: #8a938d;
+  --border: #dcd8cd;
+  --divider: #e8e3d8;
+  --primary: #174e36;
+  --primary-hover: #236c4a;
+  --primary-surface: #e1eee5;
+  --primary-border: #9fbaa8;
+  --primary-foreground: #ffffff;
+}
+
 @layer base {
   :root {
     color-scheme: light;
