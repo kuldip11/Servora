@@ -82,6 +82,7 @@ export const KitchenBoard = ({ onLogout }: Props) => {
   const readyCount = (tickets ?? []).filter(
     (ticket) => ticket.status === "READY",
   ).length;
+  const queueOverflow = (tickets?.length ?? 0) > 200;
 
   const columns = BOARD_COLUMNS.map((col) => ({
     ...col,
@@ -189,6 +190,16 @@ export const KitchenBoard = ({ onLogout }: Props) => {
         </span>
       </div>
 
+      {queueOverflow && (
+        <div
+          role="alert"
+          className="border-b border-danger/30 bg-danger-surface px-4 py-2.5 text-sm font-semibold text-danger"
+        >
+          High kitchen load: {tickets?.length ?? 0} active tickets. No tickets
+          are hidden; select a station to reduce the visible workload.
+        </div>
+      )}
+
       {}
       <Grid
         columns={{ base: 1, sm: 2, lg: 4 }}
@@ -219,12 +230,19 @@ export const KitchenBoard = ({ onLogout }: Props) => {
                 <EmptyState icon={CheckCircle2} title="No tickets" size="sm" />
               ) : (
                 col.tickets.map((ticket) => (
-                  <TicketCard
+                  <div
                     key={ticket.id}
-                    ticket={ticket}
-                    onUpdateStatus={handleUpdateStatus}
-                    isUpdating={isTicketUpdating(ticket.id)}
-                  />
+                    style={{
+                      contentVisibility: "auto",
+                      containIntrinsicSize: "320px",
+                    }}
+                  >
+                    <TicketCard
+                      ticket={ticket}
+                      onUpdateStatus={handleUpdateStatus}
+                      isUpdating={isTicketUpdating(ticket.id)}
+                    />
+                  </div>
                 ))
               )}
             </div>

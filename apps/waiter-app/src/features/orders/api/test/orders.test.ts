@@ -15,11 +15,21 @@ vi.mock("../../../../shared/lib/api-client", () => ({
 describe("orders API", () => {
   it("fetches list and detail endpoints", async () => {
     vi.mocked(apiClient.get)
-      .mockResolvedValueOnce({ data: { data: [{ id: "o1" }] } } as any)
+      .mockResolvedValueOnce({
+        data: {
+          data: [{ id: "o1" }],
+          pagination: { page: 1, limit: 25, total: 1, hasMore: false },
+        },
+      } as any)
       .mockResolvedValueOnce({ data: { data: { id: "o1" } } } as any);
-    await expect(fetchOrders()).resolves.toEqual([{ id: "o1" }]);
+    await expect(fetchOrders()).resolves.toEqual({
+      items: [{ id: "o1" }],
+      pagination: { page: 1, limit: 25, total: 1, hasMore: false },
+    });
     await expect(fetchOrder("o1")).resolves.toEqual({ id: "o1" });
-    expect(apiClient.get).toHaveBeenNthCalledWith(1, "/orders");
+    expect(apiClient.get).toHaveBeenNthCalledWith(1, "/orders", {
+      params: { page: "1", limit: "25" },
+    });
     expect(apiClient.get).toHaveBeenNthCalledWith(2, "/orders/o1");
   });
 

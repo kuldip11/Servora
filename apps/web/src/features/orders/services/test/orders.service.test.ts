@@ -47,13 +47,15 @@ describe("ordersService", () => {
     api.get.mockResolvedValue({ data: { data: ["o"] } });
     await ordersService.list({ status: "NEW", type: "DINE_IN" });
     expect(api.get).toHaveBeenCalledWith("/orders", {
-      params: { status: "NEW", type: "DINE_IN" },
+      params: { status: "NEW", type: "DINE_IN", page: "1", limit: "25" },
     });
   });
   it("lists without filters", async () => {
     api.get.mockResolvedValue({ data: { data: [] } });
     await ordersService.list({});
-    expect(api.get).toHaveBeenCalledWith("/orders");
+    expect(api.get).toHaveBeenCalledWith("/orders", {
+      params: { page: "1", limit: "25" },
+    });
   });
   it("handles detail, create, add-items, status, and ticket status", async () => {
     api.get.mockResolvedValue({ data: { data: { id: "o1" } } });

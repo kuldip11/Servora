@@ -97,6 +97,9 @@ export const OrderOptionsPanel = ({
     Boolean(selectedTable && selectedTable.status === "AVAILABLE");
   const [editingContext, setEditingContext] = useState(!contextReady);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [tableSearch, setTableSearch] = useState("");
+  const [tableStatusFilter, setTableStatusFilter] = useState("ALL");
+  const [visibleTableCount, setVisibleTableCount] = useState(30);
   const orderTypeLabel =
     availableOrderTypes.find((type) => type.value === orderType)?.label ??
     orderType.replace("_", " ");
@@ -113,6 +116,14 @@ export const OrderOptionsPanel = ({
   ]
     .filter(Boolean)
     .join(" · ");
+  const filteredTables = (tables ?? []).filter((table) => {
+    const query = tableSearch.trim().toLowerCase();
+    return (
+      (!query ||
+        `${table.name} ${table.section ?? ""}`.toLowerCase().includes(query)) &&
+      (tableStatusFilter === "ALL" || table.status === tableStatusFilter)
+    );
+  });
 
   return (
     <>
@@ -203,17 +214,101 @@ export const OrderOptionsPanel = ({
           )}
 
           {needsTable && tables && tables.length > 0 && (
-            <div>
-              <SelectMenu
-                label="Table"
-                aria-label="Select table"
-                placeholder="Select an available table…"
-                value={tableId || undefined}
-                onChange={onTableChange}
-                maxListHeight={360}
-                className="min-h-12 rounded-xl text-base"
-                options={buildTableOptions(tables)}
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                  Select table
+                </p>
+                <span className="text-xs text-text-disabled">
+                  {
+                    tables.filter((table) => table.status === "AVAILABLE")
+                      .length
+                  }{" "}
+                  available
+                </span>
+              </div>
+              <input
+                type="search"
+                value={tableSearch}
+                onChange={(event) => {
+                  setTableSearch(event.target.value);
+                  setVisibleTableCount(30);
+                }}
+                placeholder="Search table or section…"
+                aria-label="Search tables"
+                className="min-h-11 w-full rounded-xl border border-border bg-surface px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
+              <div className="scrollbar-hidden flex gap-1.5 overflow-x-auto">
+                {["ALL", "AVAILABLE", "OCCUPIED", "RESERVED", "CLEANING"].map(
+                  (status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() => {
+                        setTableStatusFilter(status);
+                        setVisibleTableCount(30);
+                      }}
+                      className={`min-h-9 shrink-0 rounded-full border px-3 text-[11px] font-semibold ${
+                        tableStatusFilter === status
+                          ? "border-primary bg-primary-surface text-primary"
+                          : "border-border bg-surface text-text-secondary"
+                      }`}
+                    >
+                      {status === "ALL"
+                        ? "All"
+                        : status.charAt(0) + status.slice(1).toLowerCase()}
+                    </button>
+                  ),
+                )}
+              </div>
+              <div
+                className="scrollbar-hidden grid max-h-72 grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-3"
+                onScroll={(event) => {
+                  const target = event.currentTarget;
+                  if (
+                    target.scrollHeight -
+                      target.scrollTop -
+                      target.clientHeight <
+                    120
+                  )
+                    setVisibleTableCount((current) =>
+                      Math.min(filteredTables.length, current + 30),
+                    );
+                }}
+              >
+                {filteredTables.slice(0, visibleTableCount).map((table) => {
+                  const status = table.status ?? "AVAILABLE";
+                  const available = status === "AVAILABLE";
+                  const selected = table.id === tableId;
+                  return (
+                    <button
+                      key={table.id}
+                      type="button"
+                      disabled={!available}
+                      onClick={() => onTableChange(table.id)}
+                      className={`min-h-20 rounded-xl border p-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-55 ${
+                        selected
+                          ? "border-primary bg-primary-surface ring-1 ring-primary"
+                          : "border-border bg-surface"
+                      }`}
+                    >
+                      <span className="block truncate text-sm font-semibold text-text-primary">
+                        {table.name}
+                      </span>
+                      <span className="mt-1 block truncate text-[11px] text-text-secondary">
+                        {available
+                          ? `${table.capacity} seats${table.section ? ` · ${table.section}` : ""}`
+                          : status.charAt(0) + status.slice(1).toLowerCase()}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              {!filteredTables.length && (
+                <p className="rounded-xl bg-surface-secondary p-3 text-center text-xs text-text-secondary">
+                  No tables match these filters.
+                </p>
+              )}
               {!tables.some((table) => table.status === "AVAILABLE") && (
                 <p className="mt-2 rounded-xl bg-warning-surface p-3 text-xs text-warning">
                   No table is currently available. Reserved, occupied, and

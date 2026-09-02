@@ -1,5 +1,5 @@
 import { usePermissions } from "@/shared/auth/permissions";
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,6 +26,9 @@ import {
   Page,
   PageHeader,
   Select,
+  SelectMenu,
+  SearchInput,
+  FilterBar,
   StatusBadge,
 } from "@pos/ui";
 import { useAuthStore } from "@/store/auth";
@@ -81,6 +84,9 @@ export const TablesPage = () => {
   const [transferReason, setTransferReason] = useState("");
   const [mergeSource, setMergeSource] = useState<RestaurantTable | null>(null);
   const [mergeTargetOrderId, setMergeTargetOrderId] = useState("");
+  const [tableSearch, setTableSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [sectionFilter, setSectionFilter] = useState("");
 
   const {
     register,
@@ -95,7 +101,7 @@ export const TablesPage = () => {
 
   const { data: branches } = useBranches({ enabled: isAggregate });
   const { data: tables, isLoading } = useTables();
-  const { data: openOrders = [] } = useOrders({ status: "OPEN" });
+  const { data: openOrders = [] } = useOrders({ status: "OPEN", limit: 100 });
   useTablesRealtimeSync();
 
   const addMutation = useCreateTable();
@@ -120,6 +126,35 @@ export const TablesPage = () => {
     },
     onError: (error) => notifyError(error, "Unable to merge tables"),
   });
+
+  const statusCounts = useMemo(
+    () =>
+      (tables ?? []).reduce<Record<string, number>>((counts, table) => {
+        counts[table.status] = (counts[table.status] ?? 0) + 1;
+        return counts;
+      }, {}),
+    [tables],
+  );
+  const sections = useMemo(
+    () =>
+      [...new Set((tables ?? []).map((table) => table.section).filter(Boolean))]
+        .sort()
+        .map((section) => ({ value: section!, label: section! })),
+    [tables],
+  );
+  const filteredTables = useMemo(() => {
+    const search = tableSearch.trim().toLowerCase();
+    return (tables ?? []).filter(
+      (table) =>
+        (!search ||
+          `${table.name} ${table.section ?? ""} ${table.branch?.name ?? ""}`
+            .toLowerCase()
+            .includes(search)) &&
+        (!statusFilter || table.status === statusFilter) &&
+        (!sectionFilter || table.section === sectionFilter),
+    );
+  }, [sectionFilter, statusFilter, tableSearch, tables]);
+  const hasTableFilters = Boolean(tableSearch || statusFilter || sectionFilter);
 
   const transferOrder = transferSource
     ? openOrders.find((order) => order.tableId === transferSource.id)
@@ -188,7 +223,7 @@ export const TablesPage = () => {
     <Page>
       <PageHeader
         title="Tables"
-        description={`${tables?.length ?? 0} tables`}
+        description={`${filteredTables.length} of ${tables?.length ?? 0} tables`}
         actions={
           <>
             {!isAggregate && (
@@ -211,17 +246,81 @@ export const TablesPage = () => {
         }
       />
 
+      <Card padding="sm">
+        <FilterBar
+          onClearAll={
+            hasTableFilters
+              ? () => {
+                  setTableSearch("");
+                  setStatusFilter("");
+                  setSectionFilter("");
+                }
+              : undefined
+          }
+        >
+          <SearchInput
+            value={tableSearch}
+            onChange={(event) => setTableSearch(event.target.value)}
+            onClear={() => setTableSearch("")}
+            placeholder="Search table or section"
+            aria-label="Search tables"
+            className="w-full sm:w-64"
+          />
+          <div className="flex max-w-full gap-1.5 overflow-x-auto py-0.5">
+            <button
+              type="button"
+              onClick={() => setStatusFilter("")}
+              className={`shrink-0 rounded-full border px-3 py-2 text-xs font-semibold ${
+                !statusFilter
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-surface text-text-secondary"
+              }`}
+            >
+              All {tables?.length ?? 0}
+            </button>
+            {TABLE_STATUS_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setStatusFilter(option.value)}
+                className={`shrink-0 rounded-full border px-3 py-2 text-xs font-semibold ${
+                  statusFilter === option.value
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-surface text-text-secondary"
+                }`}
+              >
+                {option.label} {statusCounts[option.value] ?? 0}
+              </button>
+            ))}
+          </div>
+          {sections.length > 1 && (
+            <SelectMenu
+              label="Section"
+              placeholder="All sections"
+              value={sectionFilter || undefined}
+              options={[{ value: "", label: "All sections" }, ...sections]}
+              onChange={(value) => setSectionFilter(value ?? "")}
+              className="w-44"
+            />
+          )}
+        </FilterBar>
+      </Card>
+
       {isLoading ? (
         <Grid columns={{ base: 2, sm: 3, lg: 4 }} gap="md">
           {[0, 1, 2, 3].map((i) => (
             <Card key={i} className="h-40 animate-pulse" />
           ))}
         </Grid>
-      ) : !tables?.length ? (
+      ) : !filteredTables.length ? (
         <EmptyState
           icon={Table2}
-          title="No tables yet"
-          description="Add the tables in your restaurant so waiters can assign dine-in orders to them."
+          title={hasTableFilters ? "No matching tables" : "No tables yet"}
+          description={
+            hasTableFilters
+              ? "Try a different status, section, or search term."
+              : "Add the tables in your restaurant so waiters can assign dine-in orders to them."
+          }
           action={
             has("tables:create") && (
               <Button onClick={openAdd}>
@@ -232,11 +331,14 @@ export const TablesPage = () => {
         />
       ) : isAggregate ? (
         Object.entries(
-          tables.reduce<Record<string, RestaurantTable[]>>((acc, table) => {
-            const key = table.branch?.name ?? "Unknown branch";
-            (acc[key] ??= []).push(table);
-            return acc;
-          }, {}),
+          filteredTables.reduce<Record<string, RestaurantTable[]>>(
+            (acc, table) => {
+              const key = table.branch?.name ?? "Unknown branch";
+              (acc[key] ??= []).push(table);
+              return acc;
+            },
+            {},
+          ),
         ).map(([branchName, branchTables]) => (
           <div key={branchName} className="space-y-3">
             <div className="flex items-center gap-2">
@@ -263,7 +365,7 @@ export const TablesPage = () => {
         ))
       ) : (
         <TableGrid
-          tables={tables}
+          tables={filteredTables}
           onEdit={openEdit}
           onDelete={(id, name) => {
             if (confirm(`Remove table "${name}"?`)) deleteMutation.mutate(id);
@@ -489,106 +591,137 @@ function TableGrid({
   onTransfer?: ((table: RestaurantTable) => void) | undefined;
   onMerge?: ((table: RestaurantTable) => void) | undefined;
 }) {
+  const [visibleCount, setVisibleCount] = useState(32);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => setVisibleCount(32), [tables]);
+  useEffect(() => {
+    const node = sentinelRef.current;
+    if (!node || visibleCount >= tables.length) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting)
+          setVisibleCount((current) => Math.min(tables.length, current + 32));
+      },
+      { rootMargin: "320px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [tables.length, visibleCount]);
+  const visibleTables = tables.slice(0, visibleCount);
   return (
-    <Grid columns={{ base: 2, sm: 3, lg: 4 }} gap="md">
-      {tables.map((table) => (
-        <Card
-          key={table.id}
-          className={`border-2 flex flex-col gap-3 ${TABLE_STATUS_CARD_BORDER[table.status]}`}
-        >
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-lg bg-surface-secondary flex items-center justify-center">
-                <Table2 className="w-4.5 h-4.5 text-text-secondary" />
+    <>
+      <Grid columns={{ base: 2, sm: 3, lg: 4 }} gap="md">
+        {visibleTables.map((table) => (
+          <Card
+            key={table.id}
+            className={`border-2 flex flex-col gap-3 ${TABLE_STATUS_CARD_BORDER[table.status]}`}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-lg bg-surface-secondary flex items-center justify-center">
+                  <Table2 className="w-4.5 h-4.5 text-text-secondary" />
+                </div>
+                <div>
+                  <p className="font-semibold text-text-primary">
+                    {table.name}
+                  </p>
+                  <p className="text-xs text-text-secondary flex items-center gap-1">
+                    <Users className="w-3 h-3" /> {table.capacity}
+                    {table.section && (
+                      <>
+                        <span className="mx-0.5">·</span>
+                        <MapPin className="w-3 h-3" /> {table.section}
+                      </>
+                    )}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="font-semibold text-text-primary">{table.name}</p>
-                <p className="text-xs text-text-secondary flex items-center gap-1">
-                  <Users className="w-3 h-3" /> {table.capacity}
-                  {table.section && (
-                    <>
-                      <span className="mx-0.5">·</span>
-                      <MapPin className="w-3 h-3" /> {table.section}
-                    </>
-                  )}
+              <div className="flex items-center gap-0.5">
+                <IconButton
+                  icon={QrCode}
+                  size="sm"
+                  aria-label="Show table QR code"
+                  title="Show table QR code"
+                  onClick={() => onShowQr(table)}
+                />
+                <IconButton
+                  icon={Edit2}
+                  size="sm"
+                  aria-label="Edit table"
+                  title="Edit table"
+                  onClick={() => onEdit(table)}
+                />
+                <IconButton
+                  icon={Trash2}
+                  size="sm"
+                  aria-label={
+                    table.status === "OCCUPIED"
+                      ? "Has an active order"
+                      : "Remove table"
+                  }
+                  title={
+                    table.status === "OCCUPIED"
+                      ? "Has an active order"
+                      : "Remove table"
+                  }
+                  disabled={table.status === "OCCUPIED"}
+                  onClick={() => onDelete(table.id, table.name)}
+                />
+              </div>
+            </div>
+
+            <StatusBadge
+              tone={TABLE_STATUS_TONES[table.status]}
+              label={
+                table.status.charAt(0) + table.status.slice(1).toLowerCase()
+              }
+              className="w-fit"
+            />
+
+            <Select
+              options={TABLE_STATUS_OPTIONS}
+              value={table.status}
+              onChange={(e) => onStatusChange(table.id, e.target.value)}
+              disabled={table.status === "OCCUPIED"}
+              className="text-xs py-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
+            />
+            {table.status === "OCCUPIED" && (
+              <div className="space-y-2 -mt-1">
+                <p className="text-[11px] text-text-disabled">
+                  Has an active order — frees up automatically once it's closed.
                 </p>
+                {onTransfer && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => onTransfer(table)}
+                  >
+                    Transfer
+                  </Button>
+                )}
+                {onMerge && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => onMerge(table)}
+                  >
+                    Merge
+                  </Button>
+                )}
               </div>
-            </div>
-            <div className="flex items-center gap-0.5">
-              <IconButton
-                icon={QrCode}
-                size="sm"
-                aria-label="Show table QR code"
-                title="Show table QR code"
-                onClick={() => onShowQr(table)}
-              />
-              <IconButton
-                icon={Edit2}
-                size="sm"
-                aria-label="Edit table"
-                title="Edit table"
-                onClick={() => onEdit(table)}
-              />
-              <IconButton
-                icon={Trash2}
-                size="sm"
-                aria-label={
-                  table.status === "OCCUPIED"
-                    ? "Has an active order"
-                    : "Remove table"
-                }
-                title={
-                  table.status === "OCCUPIED"
-                    ? "Has an active order"
-                    : "Remove table"
-                }
-                disabled={table.status === "OCCUPIED"}
-                onClick={() => onDelete(table.id, table.name)}
-              />
-            </div>
-          </div>
-
-          <StatusBadge
-            tone={TABLE_STATUS_TONES[table.status]}
-            label={table.status.charAt(0) + table.status.slice(1).toLowerCase()}
-            className="w-fit"
-          />
-
-          <Select
-            options={TABLE_STATUS_OPTIONS}
-            value={table.status}
-            onChange={(e) => onStatusChange(table.id, e.target.value)}
-            disabled={table.status === "OCCUPIED"}
-            className="text-xs py-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
-          />
-          {table.status === "OCCUPIED" && (
-            <div className="space-y-2 -mt-1">
-              <p className="text-[11px] text-text-disabled">
-                Has an active order — frees up automatically once it's closed.
-              </p>
-              {onTransfer && (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => onTransfer(table)}
-                >
-                  Transfer
-                </Button>
-              )}
-              {onMerge && (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => onMerge(table)}
-                >
-                  Merge
-                </Button>
-              )}
-            </div>
-          )}
-        </Card>
-      ))}
-    </Grid>
+            )}
+          </Card>
+        ))}
+      </Grid>
+      {visibleCount < tables.length && (
+        <div
+          ref={sentinelRef}
+          className="py-5 text-center text-xs text-text-secondary"
+        >
+          Loading more tables…
+        </div>
+      )}
+    </>
   );
 }
 

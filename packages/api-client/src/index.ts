@@ -8,7 +8,7 @@ export type {
   OrderAdjustmentReason,
 } from "./domains/orders";
 export { createInventoryApi } from "./domains/inventory";
-export type { LogWasteInput } from "./domains/inventory";
+export type { LogWasteInput, InventoryListFilters } from "./domains/inventory";
 export { createMenuApi } from "./domains/menu";
 export type { CreateMenuItemInput, UpdateMenuItemInput } from "./domains/menu";
 export { createCustomersApi } from "./domains/customers";
@@ -16,7 +16,7 @@ export type {
   CreateLoyaltyCustomerInput,
   CustomerGroupInput,
 } from "./domains/customers";
-export type { DomainHttpClient } from "./domains/shared";
+export type { DomainHttpClient, PaginatedResult } from "./domains/shared";
 export { createBranchesApi } from "./domains/branches";
 export type { BranchInput } from "./domains/branches";
 export { createTablesApi } from "./domains/tables";
@@ -32,6 +32,7 @@ export type {
   StaffRowDto,
   AddStaffInput,
   UpdateStaffInput,
+  StaffListFilters,
   CreateRoleInput,
 } from "./domains/staff";
 export { createBillingApi } from "./domains/billing";

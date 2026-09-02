@@ -167,10 +167,20 @@ describe("inventory service", () => {
         tenantWide: true,
         branchId: null,
       }),
-    ).resolves.toEqual([{ id: "a" }]);
+    ).resolves.toEqual({
+      items: [{ id: "a" }],
+      total: 1,
+      page: 1,
+      limit: 25,
+    });
     await expect(
       inventoryService.list({ ...baseAuth, permissions: ["inventory:read"] }),
-    ).resolves.toEqual([{ id: "b" }]);
+    ).resolves.toEqual({
+      items: [{ id: "b" }],
+      total: 1,
+      page: 1,
+      limit: 25,
+    });
     expect(findMany).toHaveBeenCalledWith("t1", "b1");
   });
 

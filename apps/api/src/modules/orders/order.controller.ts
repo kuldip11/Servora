@@ -1,6 +1,10 @@
 import type { OrderStatus } from "@pos/types";
 import type { AuthContext } from "@/core/auth";
-import { successResponse, createdResponse } from "@/core/response";
+import {
+  successResponse,
+  createdResponse,
+  paginatedResponse,
+} from "@/core/response";
 import {
   orderService,
   type CreateOrderInput,
@@ -16,10 +20,21 @@ export const orderController = {
   },
   async list(
     auth: AuthContext,
-    filters: { status?: string | undefined; type?: string | undefined },
+    filters: {
+      status?: string | undefined;
+      type?: string | undefined;
+      search?: string | undefined;
+      view?: "READY" | "ACTIVE" | "ALL" | undefined;
+      page?: number | undefined;
+      limit?: number | undefined;
+    },
   ) {
-    const orders = await orderService.list(auth, filters);
-    return successResponse(orders);
+    const result = await orderService.list(auth, filters);
+    return paginatedResponse(result.items, {
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+    });
   },
 
   async getById(auth: AuthContext, orderId: string) {

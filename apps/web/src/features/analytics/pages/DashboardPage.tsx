@@ -53,7 +53,7 @@ export const DashboardPage = () => {
     isLoading: activeOrdersLoading,
     isError: activeOrdersError,
     refetch: refetchOrders,
-  } = useOrders({ status: "OPEN" });
+  } = useOrders({ status: "OPEN", limit: 100 });
   useDashboardRealtimeSync();
   const { data: costMargins, isLoading: costMarginsLoading } =
     useCostMarginReport({

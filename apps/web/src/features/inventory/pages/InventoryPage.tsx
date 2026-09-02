@@ -22,12 +22,19 @@ import {
   PageHeader,
   Grid,
   Table,
+  FilterBar,
+  SearchInput,
+  SelectMenu,
+  Pagination,
   type Column,
 } from "@pos/ui";
 import { formatCurrency } from "@/shared/utils";
 import { useAuthStore } from "@/store/auth";
 import { useBranches } from "@/features/branches/hooks/useBranches";
-import { useInventoryItems } from "@/features/inventory/hooks/useInventoryItems";
+import {
+  useInventoryItems,
+  useLowStockItems,
+} from "@/features/inventory/hooks/useInventoryItems";
 import { useAddInventoryItem } from "@/features/inventory/hooks/useAddInventoryItem";
 import { useUpdateInventoryStock } from "@/features/inventory/hooks/useUpdateInventoryStock";
 import { useInventoryRealtimeSync } from "@/features/inventory/hooks/useInventoryRealtimeSync";
@@ -58,6 +65,10 @@ export const InventoryPage = () => {
   const [wasteReasonId, setWasteReasonId] = useState("");
   const [newWasteReason, setNewWasteReason] = useState("");
   const [wasteNotes, setWasteNotes] = useState("");
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [stockFilter, setStockFilter] = useState("");
+  const pageSize = 25;
   const {
     register: registerAdd,
     handleSubmit: handleSubmitAdd,
@@ -87,7 +98,16 @@ export const InventoryPage = () => {
 
   const { data: branches } = useBranches({ enabled: isAggregate });
 
-  const { data: items, isLoading } = useInventoryItems();
+  const { data: inventoryPage, isLoading } = useInventoryItems({
+    page,
+    limit: pageSize,
+    ...(search.trim() ? { search: search.trim() } : {}),
+    ...(stockFilter === "low" ? { lowStockOnly: true } : {}),
+  });
+  const { data: lowStock = [] } = useLowStockItems();
+  const items = inventoryPage?.items ?? [];
+  const totalItems = inventoryPage?.pagination.total ?? 0;
+  const pageCount = Math.max(1, Math.ceil(totalItems / pageSize));
   const { data: transactions } = useInventoryTransactions();
   const { data: wasteReasons } = useWasteReasons();
   const { data: recipeImpact, isLoading: recipeImpactLoading } =
@@ -146,14 +166,9 @@ export const InventoryPage = () => {
     );
   }
 
-  const lowStock = items?.filter(
-    (i) =>
-      parseFloat(String(i.currentStock)) <= parseFloat(String(i.minimumStock)),
-  );
-
   const groupedByBranch = isAggregate
     ? Object.entries(
-        (items ?? []).reduce<Record<string, InventoryItem[]>>((acc, item) => {
+        items.reduce<Record<string, InventoryItem[]>>((acc, item) => {
           const key = item.branch?.name ?? "Unknown branch";
           (acc[key] ??= []).push(item);
           return acc;
@@ -165,7 +180,7 @@ export const InventoryPage = () => {
     <Page>
       <PageHeader
         title="Inventory"
-        description={`${items?.length ?? 0} items tracked`}
+        description={`${totalItems} items tracked in the current view`}
         actions={
           has("inventory:create") && (
             <Button onClick={() => setShowAdd(true)}>
@@ -179,19 +194,19 @@ export const InventoryPage = () => {
       <Grid columns={{ base: 2, lg: 4 }} gap="md">
         <StatCard
           title="Total Items"
-          value={items?.length ?? 0}
+          value={totalItems}
           icon={Package}
           color="violet"
         />
         <StatCard
           title="Low Stock"
-          value={lowStock?.length ?? 0}
+          value={lowStock.length}
           icon={AlertTriangle}
-          color={lowStock?.length ? "red" : "emerald"}
+          color={lowStock.length ? "red" : "emerald"}
         />
       </Grid>
 
-      {!!lowStock?.length && (
+      {!!lowStock.length && (
         <Card padding="md" className="bg-danger-surface border-danger/20">
           <div className="flex items-center gap-2 mb-2">
             <AlertTriangle className="w-4 h-4 text-danger" />
@@ -210,6 +225,49 @@ export const InventoryPage = () => {
           </div>
         </Card>
       )}
+
+      <Card padding="sm">
+        <FilterBar
+          onClearAll={
+            search || stockFilter
+              ? () => {
+                  setSearch("");
+                  setStockFilter("");
+                  setPage(1);
+                }
+              : undefined
+          }
+        >
+          <SearchInput
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setPage(1);
+            }}
+            onClear={() => {
+              setSearch("");
+              setPage(1);
+            }}
+            placeholder="Search item or branch"
+            aria-label="Search inventory"
+            className="w-full sm:w-72"
+          />
+          <SelectMenu
+            label="Stock level"
+            value={stockFilter || undefined}
+            placeholder="All stock levels"
+            options={[
+              { value: "", label: "All stock levels" },
+              { value: "low", label: "Low stock only" },
+            ]}
+            onChange={(value) => {
+              setStockFilter(value ?? "");
+              setPage(1);
+            }}
+            className="w-48"
+          />
+        </FilterBar>
+      </Card>
 
       {isAggregate && groupedByBranch ? (
         <Card padding="none" className="overflow-hidden">
@@ -233,16 +291,32 @@ export const InventoryPage = () => {
               />
             </div>
           ))}
+          <Pagination
+            className="border-t border-border p-4"
+            page={page}
+            pageCount={pageCount}
+            totalItems={totalItems}
+            pageSize={pageSize}
+            onPageChange={setPage}
+          />
         </Card>
       ) : (
         <Card padding="none" className="overflow-hidden">
           <InventoryTable
-            items={items ?? []}
+            items={items}
             loading={isLoading}
             onUpdateStock={setShowUpdate}
             onLogWaste={setShowWaste}
             onViewImpact={setShowImpact}
             onAddItem={() => setShowAdd(true)}
+          />
+          <Pagination
+            className="border-t border-border p-4"
+            page={page}
+            pageCount={pageCount}
+            totalItems={totalItems}
+            pageSize={pageSize}
+            onPageChange={setPage}
           />
         </Card>
       )}

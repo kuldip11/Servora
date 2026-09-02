@@ -1,9 +1,11 @@
 import { voidDomainRequest } from "./shared";
 import {
   getDomainData,
+  getPaginatedDomainData,
   patchDomainData,
   postDomainData,
   type DomainHttpClient,
+  type PaginatedResult,
 } from "./shared";
 
 export interface PermissionDto {
@@ -55,10 +57,25 @@ export interface UpdateStaffInput {
   branchIds?: string[];
 }
 
+export interface StaffListFilters {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+}
+
 export const createStaffApi = (client: DomainHttpClient) => {
   return {
-    listStaff(): Promise<StaffRowDto[]> {
-      return getDomainData<StaffRowDto[]>(client, "/staff");
+    listStaff(
+      filters: StaffListFilters = {},
+    ): Promise<PaginatedResult<StaffRowDto>> {
+      const params: Record<string, string> = {
+        page: String(filters.page ?? 1),
+        limit: String(filters.limit ?? 25),
+      };
+      if (filters.search) params["search"] = filters.search;
+      if (filters.status) params["status"] = filters.status;
+      return getPaginatedDomainData<StaffRowDto>(client, "/staff", { params });
     },
     addStaff(input: AddStaffInput): Promise<void> {
       return voidDomainRequest(client.post("/staff", input));

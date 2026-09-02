@@ -21,6 +21,7 @@ describe("inventoryItemsQuery", () => {
       "br-1",
       "items",
     ]);
-    expect(query.queryFn).toBe(list);
+    query.queryFn?.({} as never);
+    expect(list).toHaveBeenCalledWith({});
   });
 });

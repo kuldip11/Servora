@@ -4,9 +4,9 @@ export interface SuccessResponse<T> {
 }
 
 export interface PaginationMeta {
-  skip: number;
-  take: number;
   total: number;
+  page: number;
+  limit: number;
   hasMore: boolean;
 }
 
@@ -33,12 +33,12 @@ export const listResponse = <T>(data: T[]): SuccessResponse<T[]> => ({
 
 export const paginatedResponse = <T>(
   data: T[],
-  pagination: { skip: number; take: number; total: number },
+  pagination: { page: number; limit: number; total: number },
 ): PaginatedResponse<T> => ({
   success: true,
   data,
   pagination: {
     ...pagination,
-    hasMore: pagination.skip + pagination.take < pagination.total,
+    hasMore: pagination.page * pagination.limit < pagination.total,
   },
 });

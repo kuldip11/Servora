@@ -161,7 +161,8 @@ export const OrderDetailPage = ({ orderId, onBack, onAddItems }: Props) => {
   const [mergeTargetId, setMergeTargetId] = useState("");
   const { data: mergeCandidates = [] } = useQuery({
     queryKey: ["orders", "merge-candidates"],
-    queryFn: fetchOrders,
+    queryFn: async () =>
+      (await fetchOrders({ view: "ACTIVE", limit: 100 })).items,
     enabled: showMerge,
   });
   const mergeOrder = useMutation({
