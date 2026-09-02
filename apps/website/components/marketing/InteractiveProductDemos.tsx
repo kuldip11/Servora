@@ -95,6 +95,23 @@ const CustomerDemo = () => {
   const [screen, setScreen] = useState<
     "menu" | "customize" | "cart" | "status"
   >("menu");
+  const [largeSize, setLargeSize] = useState(true);
+  const [extraMushrooms, setExtraMushrooms] = useState(true);
+  const [quantity, setQuantity] = useState(1);
+  const [cartQuantities, setCartQuantities] = useState([1, 1]);
+  const [serviceMessage, setServiceMessage] = useState<string | null>(null);
+  const [menuQuery, setMenuQuery] = useState("");
+  const [menuCategory, setMenuCategory] = useState("For you");
+  const [extras, setExtras] = useState<Record<string, boolean>>({
+    "Extra mushrooms · + ₹60": true,
+    "Chilli oil · + ₹30": false,
+    "Gluten-free crust · + ₹90": false,
+  });
+  const [couponApplied, setCouponApplied] = useState(false);
+  const customizedPrice =
+    (560 + (largeSize ? 170 : 0) + (extraMushrooms ? 60 : 0)) * quantity;
+  const cartSubtotal = 790 * cartQuantities[0]! + 380 * cartQuantities[1]!;
+  const cartTax = cartSubtotal * 0.05;
 
   return (
     <div className="mx-auto w-full max-w-[390px]">
@@ -137,21 +154,36 @@ const CustomerDemo = () => {
               <p className="mt-1 text-[10px] opacity-75">
                 Good evening — order whenever you&apos;re ready.
               </p>
-              <div className="mt-3 flex items-center gap-2 rounded-xl bg-white px-3 py-2.5 text-[10px] text-[#6d756f]">
-                <Search size={13} /> Search dishes, drinks or ingredients
-              </div>
+              <label className="mt-3 flex items-center gap-2 rounded-xl bg-white px-3 py-2.5 text-[10px] text-[#6d756f]">
+                <Search size={13} />
+                <input
+                  value={menuQuery}
+                  onChange={(event) => setMenuQuery(event.target.value)}
+                  placeholder="Search dishes, drinks or ingredients"
+                  className="min-w-0 flex-1 bg-transparent text-[10px] text-[#172019] outline-none placeholder:text-[#8a948d]"
+                />
+              </label>
             </header>
             <div className="flex gap-1.5 overflow-hidden px-3 py-3">
-              {["For you", "Starters", "Mains", "Drinks"].map((item, index) => (
-                <span
+              {["For you", "Starters", "Mains", "Drinks"].map((item) => (
+                <button
                   key={item}
-                  className={`shrink-0 rounded-full px-3 py-1.5 text-[9px] font-bold ${index === 0 ? "bg-[#174e36] text-white" : "border border-[#ddd8cd] bg-white"}`}
+                  type="button"
+                  aria-pressed={menuCategory === item}
+                  onClick={() => setMenuCategory(item)}
+                  className={`shrink-0 rounded-full px-3 py-1.5 text-[9px] font-bold transition ${menuCategory === item ? "bg-[#174e36] text-white" : "border border-[#ddd8cd] bg-white"}`}
                 >
                   {item}
-                </span>
+                </button>
               ))}
             </div>
             <main className="px-3 pb-24">
+              {(menuQuery || menuCategory !== "For you") && (
+                <div className="mb-3 rounded-xl bg-[#e1eee5] px-3 py-2 text-[9px] font-bold text-[#174e36]">
+                  Showing {menuCategory === "For you" ? "all categories" : menuCategory}
+                  {menuQuery ? ` matching “${menuQuery}”` : ""}
+                </div>
+              )}
               <h4 className="font-serif text-xl font-bold">Popular tonight</h4>
               <button
                 type="button"
@@ -255,24 +287,32 @@ const CustomerDemo = () => {
               {[
                 ["Regular · 10 inch", "₹560", false],
                 ["Large · 13 inch", "+ ₹170", true],
-              ].map(([label, price, active]) => (
-                <div
-                  key={String(label)}
-                  className="flex items-center gap-3 border-b border-[#ddd8cd] py-3 text-xs"
-                >
-                  <span
-                    className={`grid size-5 place-items-center rounded-full border-2 ${active ? "border-[#174e36]" : "border-[#c9c5bc]"}`}
+              ].map(([label, price, isLarge]) => {
+                const active = largeSize === isLarge;
+                return (
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setLargeSize(Boolean(isLarge))}
+                    key={String(label)}
+                    className="flex items-center gap-3 border-b border-[#ddd8cd] py-3 text-xs"
                   >
-                    {active && (
-                      <span className="size-2.5 rounded-full bg-[#174e36]" />
-                    )}
-                  </span>
-                  <span>{String(label)}</span>
-                  <span className="ml-auto text-[#6d756f]">
-                    {String(price)}
-                  </span>
-                </div>
-              ))}
+                    <span
+                      className={`grid size-5 place-items-center rounded-full border-2 ${active ? "border-[#174e36]" : "border-[#c9c5bc]"}`}
+                    >
+                    
+                      {active && (
+                        <span className="size-2.5 rounded-full bg-[#174e36]" />
+                      )}
+                    </span>
+                    <span>{String(label)}</span>
+                    <span className="ml-auto text-[#6d756f]">
+                      {String(price)}
+                    </span>
+                  </button>
+                );
+              })}
               <div className="mt-5 flex justify-between text-xs font-bold">
                 <span>Add something extra</span>
                 <span className="text-[#6d756f]">OPTIONAL</span>
@@ -282,27 +322,53 @@ const CustomerDemo = () => {
                 "Chilli oil · + ₹30",
                 "Gluten-free crust · + ₹90",
               ].map((label, index) => (
-                <div
+                <button
+                  type="button"
+                  aria-pressed={Boolean(extras[label])}
+                  onClick={() => {
+                    setExtras((current) => ({ ...current, [label]: !current[label] }));
+                    if (index === 0) {
+                      setExtraMushrooms((value) => !value);
+                    }
+                  }}
                   key={label}
-                  className="flex items-center gap-3 border-b border-[#ddd8cd] py-3 text-xs"
+                  className="flex w-full items-center gap-3 border-b border-[#ddd8cd] py-3 text-left text-xs"
                 >
                   <span
-                    className={`size-5 rounded-full border-2 ${index === 0 ? "border-[#174e36] bg-[#174e36] shadow-[inset_0_0_0_4px_white]" : "border-[#c9c5bc]"}`}
+                    className={`size-5 rounded-full border-2 ${extras[label] ? "border-[#174e36] bg-[#174e36] shadow-[inset_0_0_0_4px_white]" : "border-[#c9c5bc]"}`}
                   />
                   {label}
-                </div>
+                </button>
               ))}
             </div>
             <div className="absolute inset-x-0 bottom-0 flex gap-2 border-t border-[#ddd8cd] bg-[#fffdf8] p-3">
-              <div className="flex items-center gap-3 rounded-xl bg-[#eee9de] px-3 text-xs font-bold">
-                <Minus size={12} /> 1 <Plus size={12} />
+              <div className="flex items-center gap-3 rounded-xl bg-[#eee9de] px-2 text-xs font-bold">
+                
+                <button
+                  type="button"
+                  aria-label="Decrease quantity"
+                  disabled={quantity === 1}
+                  onClick={() => setQuantity((value) => Math.max(1, value - 1))}
+                  className="grid size-7 place-items-center disabled:opacity-35"
+                >
+                  <Minus size={12} />
+                </button>
+                {quantity}
+                <button
+                  type="button"
+                  aria-label="Increase quantity"
+                  onClick={() => setQuantity((value) => value + 1)}
+                  className="grid size-7 place-items-center"
+                >
+                  <Plus size={12} />
+                </button>
               </div>
               <button
                 type="button"
                 onClick={() => setScreen("cart")}
                 className="flex-1 rounded-xl bg-[#174e36] py-3 text-xs font-bold text-white"
               >
-                Add to order · ₹730
+                Add to order · ₹{customizedPrice}
               </button>
             </div>
           </div>
@@ -323,8 +389,8 @@ const CustomerDemo = () => {
               <span>2 items</span>
             </div>
             {[
-              ["Truffle mushroom pizza", "Large · Extra mushrooms", "₹790"],
-              ["Garden mezze", "Warm pita · No olives", "₹380"],
+              ["Truffle mushroom pizza", "Large · Extra mushrooms", 790],
+              ["Garden mezze", "Warm pita · No olives", 380],
             ].map(([name, meta, price], index) => (
               <div
                 key={name}
@@ -349,37 +415,77 @@ const CustomerDemo = () => {
                   </button>
                 </div>
                 <div className="text-right">
-                  <strong className="text-[10px]">{price}</strong>
+                  <strong className="text-[10px]">
+                    ₹{Number(price) * cartQuantities[index]!}
+                  </strong>
                   <div className="mt-5 flex items-center gap-2 text-[10px]">
-                    <span className="grid size-6 place-items-center rounded-full bg-[#eee9de]">
+                    <button
+                      type="button"
+                      aria-label={`Decrease ${name}`}
+                      disabled={cartQuantities[index] === 1}
+                      onClick={() =>
+                        setCartQuantities((values) =>
+                          values.map((value, itemIndex) =>
+                            itemIndex === index
+                              ? Math.max(1, value - 1)
+                              : value,
+                          ),
+                        )
+                      }
+                      className="grid size-6 place-items-center rounded-full bg-[#eee9de] disabled:opacity-35"
+                    >
                       −
-                    </span>
-                    1
-                    <span className="grid size-6 place-items-center rounded-full bg-[#eee9de]">
+
+                    </button>
+                    {cartQuantities[index]}
+                    <button
+                      type="button"
+                      aria-label={`Increase ${name}`}
+                      onClick={() =>
+                        setCartQuantities((values) =>
+                          values.map((value, itemIndex) =>
+                            itemIndex === index ? value + 1 : value,
+                          ),
+                        )
+                      }
+                      className="grid size-6 place-items-center rounded-full bg-[#eee9de]"
+                    >
                       +
-                    </span>
+                    </button>
                   </div>
                 </div>
               </div>
             ))}
-            <div className="mt-4 rounded-xl border border-dashed border-[#cfc9bd] px-3 py-3 text-[10px] text-[#6d756f]">
-              Add coupon or reward{" "}
+            <button
+              type="button"
+              onClick={() => setCouponApplied((value) => !value)}
+              className="mt-4 w-full rounded-xl border border-dashed border-[#cfc9bd] px-3 py-3 text-left text-[10px] text-[#6d756f]"
+            >
+              {couponApplied ? "WELCOME10 reward applied" : "Add coupon or reward"}
               <span className="float-right font-bold text-[#174e36]">
-                Add →
+                {couponApplied ? "Remove" : "Add →"}
               </span>
-            </div>
+            </button>
             <div className="mt-5 space-y-2 text-[10px]">
               <div className="flex justify-between text-[#6d756f]">
                 <span>Subtotal</span>
-                <span>₹1,170</span>
+                <span>₹{cartSubtotal.toFixed(0)}</span>
               </div>
               <div className="flex justify-between text-[#6d756f]">
                 <span>Taxes</span>
-                <span>₹58.50</span>
+                <span>₹{cartTax.toFixed(2)}</span>
               </div>
+              {couponApplied && (
+                <div className="flex justify-between font-bold text-[#174e36]">
+                  <span>Reward</span>
+                  <span>-₹{(cartSubtotal * 0.1).toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between pt-2 text-base font-bold">
                 <span>Total</span>
-                <span>₹1,228.50</span>
+                <span>
+                  ₹{(cartSubtotal + cartTax - (couponApplied ? cartSubtotal * 0.1 : 0)).toFixed(2)}
+                </span>
               </div>
             </div>
             <button
@@ -463,12 +569,21 @@ const CustomerDemo = () => {
                 <button
                   key={label}
                   type="button"
+                  onClick={() => setServiceMessage(`${label} request sent`)}
                   className="rounded-xl border border-[#ddd8cd] bg-white px-1 py-4 text-[9px] font-bold"
                 >
                   {label}
                 </button>
               ))}
             </div>
+            {serviceMessage && (
+              <div
+                role="status"
+                className="mt-2 rounded-xl bg-[#e1eee5] px-3 py-2 text-center text-[9px] font-bold text-[#174e36]"
+              >
+                {serviceMessage}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -478,6 +593,12 @@ const CustomerDemo = () => {
 
 const WaiterDemo = () => {
   const [screen, setScreen] = useState<"home" | "orders" | "new-order">("home");
+  const [orderFilter, setOrderFilter] = useState("Ready 3");
+  const [table, setTable] = useState(8);
+  const [cartItems, setCartItems] = useState(3);
+  const [cartTotal, setCartTotal] = useState(820);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [menuCategory, setMenuCategory] = useState("Popular");
   return (
     <div className="mx-auto w-full max-w-[390px]">
       <div
@@ -505,6 +626,21 @@ const WaiterDemo = () => {
         ))}
       </div>
       <div className="relative h-[520px] overflow-hidden rounded-[30px] border-[6px] border-[#172019] bg-[#f5f7f5] text-[#172019] shadow-2xl">
+        {notice && (
+          <div
+            role="status"
+            className="absolute inset-x-3 top-3 z-20 flex items-center justify-between rounded-xl bg-[#172019] px-3 py-2 text-[9px] font-bold text-white shadow-lg"
+          >
+            <span>{notice}</span>
+            <button
+              type="button"
+              aria-label="Dismiss message"
+              onClick={() => setNotice(null)}
+            >
+              ×
+            </button>
+          </div>
+        )}
         <header className="flex items-center justify-between bg-white px-4 pb-3 pt-8">
           <div>
             <p className="text-[9px] text-[#6d756f]">Olive & Ember</p>
@@ -556,6 +692,7 @@ const WaiterDemo = () => {
                   </span>
                   <button
                     type="button"
+                    onClick={() => setNotice(`${table} details opened`)}
                     className="rounded-lg bg-[#e8efe9] px-2 py-1.5 text-[8px] font-bold"
                   >
                     Open
@@ -576,11 +713,12 @@ const WaiterDemo = () => {
                 <span className="text-[9px] text-[#6d756f]">8 active</span>
               </div>
               <div className="mt-3 grid grid-cols-3 gap-1 rounded-xl bg-[#e9eeeb] p-1">
-                {["Ready 3", "Active 5", "All"].map((label, index) => (
+                {["Ready 3", "Active 5", "All"].map((label) => (
                   <button
                     key={label}
                     type="button"
-                    className={`rounded-lg py-2 text-[9px] font-bold ${index === 0 ? "bg-white text-[#197341] shadow-sm" : "text-[#6d756f]"}`}
+                    onClick={() => setOrderFilter(label)}
+                    className={`rounded-lg py-2 text-[9px] font-bold ${orderFilter === label ? "bg-white text-[#197341] shadow-sm" : "text-[#6d756f]"}`}
                   >
                     {label}
                   </button>
@@ -591,7 +729,11 @@ const WaiterDemo = () => {
                 ["T03", "Preparing", "#1046 · 12 min", "View"],
                 ["T09", "New order", "#1049 · 3 min", "View"],
                 ["TA", "Payment required", "#1041 · ₹920", "Open"],
-              ].map(([table, status, meta, action], index) => (
+              ]
+                .filter(([, status]) =>
+                  orderFilter === "Ready 3" ? status === "Ready to serve" : true,
+                )
+                .map(([table, status, meta, action], index) => (
                 <div
                   key={table}
                   className="mt-2 grid grid-cols-[42px_1fr_auto] items-center gap-3 rounded-xl border border-[#d9dfdb] bg-white p-3"
@@ -609,6 +751,7 @@ const WaiterDemo = () => {
                   </span>
                   <button
                     type="button"
+                    onClick={() => setNotice(`${action}: ${table} selected`)}
                     className={`rounded-lg px-2 py-1.5 text-[8px] font-bold ${index === 0 ? "bg-[#174e36] text-white" : "bg-[#e8efe9]"}`}
                   >
                     {action}
@@ -621,13 +764,14 @@ const WaiterDemo = () => {
             <>
               <div className="flex items-center justify-between rounded-xl bg-[#e5f4ea] p-3">
                 <div>
-                  <strong className="block text-xs">Table 8</strong>
+                  <strong className="block text-xs">Table {table}</strong>
                   <span className="text-[8px] text-[#6d756f]">
                     3 guests · Dine in
                   </span>
                 </div>
                 <button
                   type="button"
+                  onClick={() => setTable((value) => (value === 8 ? 10 : 8))}
                   className="text-[9px] font-bold text-[#197341]"
                 >
                   Change
@@ -637,17 +781,19 @@ const WaiterDemo = () => {
                 <Search size={12} /> Search dishes or scan code
               </div>
               <div className="mt-3 flex gap-1.5 overflow-hidden">
-                {["Popular", "Starters", "Mains", "Drinks"].map(
-                  (label, index) => (
-                    <span
-                      key={label}
-                      className={`shrink-0 rounded-full px-3 py-1.5 text-[8px] font-bold ${index === 0 ? "bg-[#174e36] text-white" : "bg-white border border-[#d9dfdb]"}`}
-                    >
-                      {label}
-                    </span>
-                  ),
-                )}
+                {["Popular", "Starters", "Mains", "Drinks"].map((label) => (
+                  <button
+                    key={label}
+                    type="button"
+                    aria-pressed={menuCategory === label}
+                    onClick={() => setMenuCategory(label)}
+                    className={`shrink-0 rounded-full px-3 py-1.5 text-[8px] font-bold ${menuCategory === label ? "bg-[#174e36] text-white" : "border border-[#d9dfdb] bg-white"}`}
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
+              <p className="mt-2 text-[8px] font-bold text-[#197341]">Browsing: {menuCategory}</p>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 {[
                   ["Butter Chicken", "₹420", "from-[#edca7e] to-[#c66f31]"],
@@ -658,6 +804,13 @@ const WaiterDemo = () => {
                   <button
                     key={name}
                     type="button"
+                    onClick={() => {
+                      setCartItems((value) => value + 1);
+                      setCartTotal(
+                        (value) => value + Number(price.replace(/\D/g, "")),
+                      );
+                      setNotice(`${name} added to the order`);
+                    }}
                     className="overflow-hidden rounded-xl border border-[#d9dfdb] bg-white p-2 text-left"
                   >
                     <span
@@ -673,9 +826,12 @@ const WaiterDemo = () => {
               </div>
               <button
                 type="button"
+                onClick={() => setNotice("Order review opened")}
                 className="sticky bottom-1 mt-3 flex w-full justify-between rounded-xl bg-[#174e36] px-4 py-3 text-[10px] font-bold text-white"
               >
-                <span>3 items · ₹820</span>
+                <span>
+                  {cartItems} items · ₹{cartTotal}
+                </span>
                 <span>Review order →</span>
               </button>
             </>
@@ -822,6 +978,16 @@ const WebDemo = () => {
   const [section, setSection] = useState<
     "overview" | "business" | "orders" | "menu"
   >("overview");
+  const [notice, setNotice] = useState<string | null>(null);
+  const [franchiseCreated, setFranchiseCreated] = useState(false);
+  const [selectedMenuItem, setSelectedMenuItem] = useState<string | null>(null);
+  const [branch, setBranch] = useState("All branches");
+  const [orderStatuses, setOrderStatuses] = useState<Record<string, string>>({
+    "#1048": "Preparing",
+    "#1047": "Ready",
+    "#1046": "Payment required",
+    "#1045": "Served",
+  });
   const content = useMemo(
     () =>
       ({
@@ -839,10 +1005,34 @@ const WebDemo = () => {
     [section],
   );
   return (
-    <div className="overflow-hidden rounded-2xl border-[5px] border-[#172019] bg-[#f8faf8] text-[#172019] shadow-2xl">
+    <div className="relative overflow-hidden rounded-2xl border-[5px] border-[#172019] bg-[#f8faf8] text-[#172019] shadow-2xl">
+      {notice && (
+        <div
+          role="status"
+          className="absolute right-3 top-12 z-20 flex items-center gap-2 rounded-lg bg-[#172019] px-3 py-2 text-[8px] font-bold text-white shadow-lg"
+        >
+          <span>{notice}</span>
+          <button
+            type="button"
+            aria-label="Dismiss message"
+            onClick={() => setNotice(null)}
+          >
+            ×
+          </button>
+        </div>
+      )}
       <header className="flex items-center justify-between border-b border-[#dfe6e1] px-4 py-3 text-[10px] font-bold">
         <span>servora · Olive & Ember</span>
-        <span className="text-[#6e7a72]">All branches</span>
+        <select
+          aria-label="Branch"
+          value={branch}
+          onChange={(event) => setBranch(event.target.value)}
+          className="rounded-md bg-transparent text-[#6e7a72] outline-none"
+        >
+          <option>All branches</option>
+          <option>Connaught Place</option>
+          <option>South Delhi</option>
+        </select>
       </header>
       <div className="grid min-h-[390px] grid-cols-[96px_1fr] sm:grid-cols-[130px_1fr]">
         <aside className="border-r border-[#dfe6e1] bg-[#f1f5f2] p-2">
@@ -926,19 +1116,36 @@ const WebDemo = () => {
                       Olive & Ember Group
                     </strong>
                   </div>
-                  <button className="text-[9px] font-bold text-[#174e36]">
+                  <button
+                    type="button"
+                    onClick={() => setNotice("Business editor opened")}
+                    className="text-[9px] font-bold text-[#174e36]"
+                  >
                     Edit
                   </button>
                 </div>
                 <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                  <button className="rounded-lg bg-[#edf3ef] p-3 text-left text-[9px]">
+                  <button
+                    type="button"
+                    onClick={() => setNotice("Delhi Franchise details opened")}
+                    className="rounded-lg bg-[#edf3ef] p-3 text-left text-[9px]"
+                  >
                     <strong className="block">Delhi Franchise</strong>
                     <span className="text-[#6e7a72]">
                       2 branches · View details
                     </span>
                   </button>
-                  <button className="rounded-lg border border-dashed border-[#b9c5bd] p-3 text-left text-[9px] font-bold text-[#174e36]">
-                    + Create franchise
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFranchiseCreated(true);
+                      setNotice("North Region Franchise created");
+                    }}
+                    className="rounded-lg border border-dashed border-[#b9c5bd] p-3 text-left text-[9px] font-bold text-[#174e36]"
+                  >
+                    {franchiseCreated
+                      ? "✓ North Region Franchise"
+                      : "+ Create franchise"}
                   </button>
                 </div>
               </div>
@@ -946,7 +1153,13 @@ const WebDemo = () => {
                 <strong>Branches</strong>
                 <div className="mt-2 flex justify-between rounded-lg bg-[#f1f5f2] p-3">
                   <span>Connaught Place</span>
-                  <span className="font-bold text-[#23724d]">Open · Edit</span>
+                  <button
+                    type="button"
+                    onClick={() => setNotice("Connaught Place branch opened")}
+                    className="font-bold text-[#23724d]"
+                  >
+                    Open · Edit
+                  </button>
                 </div>
               </div>
             </div>
@@ -954,25 +1167,41 @@ const WebDemo = () => {
           {section === "orders" && (
             <div className="mt-4 overflow-hidden rounded-xl border border-[#dfe6e1] bg-white">
               {[
-                ["#1048", "Table 12", "Preparing", "₹1,228"],
-                ["#1047", "Table 08", "Ready", "₹1,640"],
-                ["#1046", "Takeaway", "Payment required", "₹920"],
-                ["#1045", "Table 03", "Served", "₹2,180"],
-              ].map((row, index) => (
-                <div
-                  key={row[0]}
-                  className="grid grid-cols-4 gap-2 border-b border-[#e8ece9] p-3 text-[8px] last:border-0"
-                >
-                  <strong>{row[0]}</strong>
-                  <span>{row[1]}</span>
-                  <span
-                    className={index === 1 ? "font-bold text-[#23724d]" : ""}
+                ["#1048", "Table 12", "₹1,228"],
+                ["#1047", "Table 08", "₹1,640"],
+                ["#1046", "Takeaway", "₹920"],
+                ["#1045", "Table 03", "₹2,180"],
+              ].map(([id, tableLabel, total]) => {
+                const status = orderStatuses[id] ?? "Preparing";
+                const nextStatus =
+                  status === "Preparing"
+                    ? "Ready"
+                    : status === "Ready"
+                      ? "Served"
+                      : status;
+                return (
+                  <button
+                    type="button"
+                    key={id}
+                    onClick={() => {
+                      setOrderStatuses((current) => ({ ...current, [id]: nextStatus }));
+                      setNotice(
+                        nextStatus === status
+                          ? `${id} opened`
+                          : `${id} moved to ${nextStatus}`,
+                      );
+                    }}
+                    className="grid w-full grid-cols-4 gap-2 border-b border-[#e8ece9] p-3 text-left text-[8px] last:border-0 hover:bg-[#f6faf7]"
                   >
-                    {row[2]}
-                  </span>
-                  <span className="text-right">{row[3]}</span>
-                </div>
-              ))}
+                    <strong>{id}</strong>
+                    <span>{tableLabel}</span>
+                    <span className={status === "Ready" ? "font-bold text-[#23724d]" : ""}>
+                      {status}
+                    </span>
+                    <span className="text-right">{total}</span>
+                  </button>
+                );
+              })}
             </div>
           )}
           {section === "menu" && (
@@ -984,8 +1213,13 @@ const WebDemo = () => {
                 ["Berry cooler", "Drinks · ₹220", "Low stock"],
               ].map(([name, meta, status]) => (
                 <button
+                  type="button"
                   key={name}
-                  className="rounded-xl border border-[#dfe6e1] bg-white p-3 text-left"
+                  onClick={() => {
+                    setSelectedMenuItem(name);
+                    setNotice(`${name} selected for editing`);
+                  }}
+                  className={`rounded-xl border bg-white p-3 text-left ${selectedMenuItem === name ? "border-[#174e36] ring-2 ring-[#dfeee4]" : "border-[#dfe6e1]"}`}
                 >
                   <strong className="block text-[9px]">{name}</strong>
                   <span className="mt-1 block text-[7px] text-[#6e7a72]">
