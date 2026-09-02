@@ -14,23 +14,35 @@ const main = async (): Promise<void> => {
   const preset = parsePreset(process.argv.slice(2));
   const config = resolvePreset(preset);
   console.log(`🌱 Seeding Servora demo data (${preset})...`);
+  console.log(
+    `   Conservative dataset estimate: ${config.estimatedSizeMb} MB${preset === "small" ? " (250 MB maximum)" : ""}`,
+  );
   console.log("1/8 Resetting previous demo data...");
   await resetDemoData();
-  console.log("2/8 Seeding organization, franchises, branches, RBAC and staff...");
+  console.log(
+    "2/8 Seeding organization, franchises, branches, RBAC and staff...",
+  );
   const ctx = await seedOrganization(config);
   console.log("3/8 Seeding restaurant tables and kitchen stations...");
   await seedTablesAndStations(config, ctx);
-  console.log("4/8 Seeding published menus, categories, items, variants and modifiers...");
+  console.log(
+    "4/8 Seeding published menus, categories, items, variants and modifiers...",
+  );
   await seedMenus(config, ctx);
   console.log("5/8 Seeding customers, loyalty tiers and promotions...");
   await seedCustomersAndPromotions(config, ctx);
   console.log("6/8 Seeding branch inventory and opening stock activity...");
   await seedInventory(config, ctx);
-  console.log(`7/8 Generating ${config.historyDays} days of realistic orders, KDS tickets, bills and payments...`);
+  console.log(
+    `7/8 Generating ${config.historyDays} days of realistic orders, KDS tickets, bills and payments...`,
+  );
   const generated = await seedOrders(config, ctx);
   console.log("8/8 Verifying seeded tenant data...");
   await verifyDemoSeed(ctx);
-  const branches = Object.values(ctx.branchIds).reduce((sum, ids) => sum + ids.length, 0);
+  const branches = Object.values(ctx.branchIds).reduce(
+    (sum, ids) => sum + ids.length,
+    0,
+  );
   console.log("✅ Servora demo seed complete!");
   console.log(`   Franchises: ${Object.keys(ctx.tenantIds).length}`);
   console.log(`   Branches: ${branches}`);

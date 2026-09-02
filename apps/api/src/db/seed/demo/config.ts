@@ -2,19 +2,65 @@ import { buildBrands } from "./data/brands";
 import type { DemoConfig, DemoPreset } from "./types";
 
 export const resolvePreset = (preset: DemoPreset): DemoConfig => {
-  if (preset === "stress") return {
-    preset, historyDays: 365, ordersPerBranchPerDay: 55, customersPerTenant: 12000,
-    tablesPerBranch: 28, inventoryItemsPerBranch: 90, staffPerBranch: 14,
-    brands: buildBrands(12, 180),
-  };
-  if (preset === "demo") return {
-    preset, historyDays: 365, ordersPerBranchPerDay: 22, customersPerTenant: 2500,
-    tablesPerBranch: 24, inventoryItemsPerBranch: 70, staffPerBranch: 10,
-    brands: buildBrands(6, 160),
-  };
-  return {
-    preset, historyDays: 30, ordersPerBranchPerDay: 5, customersPerTenant: 80,
-    tablesPerBranch: 10, inventoryItemsPerBranch: 24, staffPerBranch: 4,
-    brands: buildBrands(2, 40),
-  };
+  const config: DemoConfig =
+    preset === "demo"
+      ? {
+          preset,
+          historyDays: 365,
+          ordersPerBranchPerDay: 22,
+          customersPerTenant: 2500,
+          tablesPerBranch: 24,
+          inventoryItemsPerBranch: 70,
+          staffPerBranch: 10,
+          brands: buildBrands(6, 160),
+          estimatedSizeMb: 0,
+        }
+      : {
+          preset,
+          historyDays: 30,
+          ordersPerBranchPerDay: 5,
+          customersPerTenant: 80,
+          tablesPerBranch: 10,
+          inventoryItemsPerBranch: 24,
+          staffPerBranch: 4,
+          brands: buildBrands(2, 40),
+          estimatedSizeMb: 0,
+        };
+  config.estimatedSizeMb = estimateSeedSizeMb(config);
+  if (preset === "small" && config.estimatedSizeMb > SMALL_PRESET_MAX_MB) {
+    throw new Error(
+      `Small preset estimate (${config.estimatedSizeMb} MB) exceeds ${SMALL_PRESET_MAX_MB} MB`,
+    );
+  }
+  return config;
 };
+
+/** Conservative heap/database payload estimate. The real seed is normally much smaller. */
+export const estimateSeedSizeMb = (config: DemoConfig): number => {
+  const branches = config.brands.reduce(
+    (sum, brand) => sum + brand.branchCount,
+    0,
+  );
+  const weekdayOrders =
+    branches * config.historyDays * config.ordersPerBranchPerDay;
+  const weekendAllowance = weekdayOrders * 0.12;
+  const liveOrders = branches * 6;
+  const orders = weekdayOrders + weekendAllowance + liveOrders;
+  const orderGraphBytes = orders * 72_000;
+  const customerBytes =
+    config.brands.length * config.customersPerTenant * 1_200;
+  const catalogBytes =
+    config.brands.reduce((sum, brand) => sum + brand.menuItemCount, 0) * 4_000;
+  const operationsBytes =
+    branches *
+    (config.inventoryItemsPerBranch * 1_500 +
+      config.tablesPerBranch * 800 +
+      config.staffPerBranch * 2_000);
+  return Math.ceil(
+    (orderGraphBytes + customerBytes + catalogBytes + operationsBytes) /
+      1024 /
+      1024,
+  );
+};
+
+export const SMALL_PRESET_MAX_MB = 250;

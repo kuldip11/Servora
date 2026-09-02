@@ -1,4 +1,4 @@
-export type DemoPreset = "small" | "demo" | "stress";
+export type DemoPreset = "small" | "demo";
 
 export type BrandSeed = {
   key: string;
@@ -20,6 +20,7 @@ export type DemoConfig = {
   inventoryItemsPerBranch: number;
   staffPerBranch: number;
   brands: BrandSeed[];
+  estimatedSizeMb: number;
 };
 
 export type SeedContext = {
