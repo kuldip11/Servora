@@ -2,11 +2,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "@pos/ui";
 import { extractApiError } from "@pos/api-client";
-import {
-  login,
-  fetchMemberships,
-  fetchMe,
-} from "@/features/auth/api/login";
+import { login, fetchMemberships, fetchMe } from "@/features/auth/api/login";
 import {
   saveTokens,
   saveProfile,
@@ -40,17 +36,21 @@ export const useLogin = (onLogin: () => void): UseLoginResult => {
 
   const activate = async (membership: AvailableMembership) => {
     setActiveMembership(membership);
-    const branchId = membership.roles.some((role) => role.scope === "TENANT")
-      ? null
-      : (membership.branches[0]?.id ?? null);
-    saveContext(membership.tenant.id, branchId);
-    const activeUser = await fetchMe();
-    saveProfile(activeUser);
-    if (branchId || membership.roles.some((role) => role.scope === "TENANT")) {
+    const activeBranches = membership.branches.filter(
+      (branch) => branch.isActive !== false,
+    );
+    if (!activeBranches.length) {
+      throw new Error("No active branch is assigned to this waiter account.");
+    }
+    if (activeBranches.length === 1) {
+      saveContext(membership.tenant.id, activeBranches[0]!.id);
+      const activeUser = await fetchMe();
+      saveProfile(activeUser);
       onLogin();
       return;
     }
-    setBranches(membership.branches);
+    saveContext(membership.tenant.id, null);
+    setBranches(activeBranches);
     setStep("branch");
   };
 

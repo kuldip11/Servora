@@ -9,13 +9,12 @@ describe("HomePage", () => {
   it("renders empty state", () => {
     const html = renderToStaticMarkup(
       <HomePage
-        waiterName="Asha"
         onNewOrder={vi.fn()}
         onViewOrders={vi.fn()}
         onSelectOrder={vi.fn()}
       />,
     );
-    expect(html).toContain("Asha");
+    expect(html).toContain("Good evening");
     expect(html).toContain("All caught up");
   });
 });

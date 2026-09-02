@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { IconButton } from "@pos/ui";
 import type { Order } from "@pos/types";
 import { StatusBadge } from "./StatusBadge";
@@ -11,20 +11,19 @@ interface Props {
 
 export const OrderDetailHeader = ({ order, onBack }: Props) => {
   return (
-    <div className="bg-surface border-b border-border px-4 py-3 flex items-center gap-3">
-      {}
+    <div className="flex items-center gap-3 border-b border-border bg-surface px-4 py-3 safe-area-top">
       <IconButton
-        icon={X}
+        icon={ArrowLeft}
         aria-label="Back to Orders"
         size="lg"
-        className="w-9 h-9 rounded-xl bg-surface-secondary hover:bg-surface-secondary"
+        className="h-10 w-10 rounded-xl bg-surface-secondary hover:bg-surface-secondary"
         onClick={onBack}
       />
-      <div className="flex-1">
-        <h2 className="font-bold text-text-primary">
+      <div className="min-w-0 flex-1">
+        <h1 className="truncate text-lg font-semibold text-text-primary">
           {shortOrderId(order.id)}
-        </h2>
-        <p className="text-xs text-text-disabled">
+        </h1>
+        <p className="truncate text-xs text-text-secondary">
           {order.type?.replace("_", " ")}
           {order.table ? ` · Table ${order.table.name}` : ""}
         </p>

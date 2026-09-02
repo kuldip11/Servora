@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { apiClient } from "@/shared/lib/api-client";
-import { fetchMemberships, login } from "@/features/auth/api/login";
+import {
+  fetchMemberships,
+  login,
+  resolveWaiterContext,
+} from "@/features/auth/api/login";
 
 vi.mock("../../../../shared/lib/api-client", () => ({
   apiClient: { get: vi.fn(), post: vi.fn() },
@@ -29,5 +33,28 @@ describe("auth API", () => {
     } as any);
     await expect(fetchMemberships()).resolves.toEqual([{ id: "m1" }]);
     expect(apiClient.get).toHaveBeenCalledWith("/auth/memberships");
+  });
+
+  it("restores a valid tenant and branch context before scoped requests", () => {
+    const memberships = [
+      {
+        membershipId: "m1",
+        tenant: { id: "t1", name: "Business 1" },
+        roles: [],
+        branches: [
+          { id: "b1", name: "Branch 1", isActive: true },
+          { id: "b2", name: "Branch 2", isActive: true },
+        ],
+      },
+    ] as any;
+
+    expect(resolveWaiterContext(memberships, "t1", "b2")).toEqual({
+      tenantId: "t1",
+      branchId: "b2",
+    });
+    expect(resolveWaiterContext(memberships, null, null)).toEqual({
+      tenantId: "t1",
+      branchId: "b1",
+    });
   });
 });

@@ -1,11 +1,9 @@
 import { memo } from "react";
-import { Bell, ChevronRight } from "lucide-react";
+import { Bell, ReceiptText } from "lucide-react";
 import { Card } from "@pos/ui";
 import type { Order } from "@pos/types";
-import { StatusBadge } from "./StatusBadge";
 import {
   shortOrderId,
-  formatCurrency,
   isOrderReady,
 } from "@/features/orders/utils/orderHelpers";
 
@@ -22,6 +20,19 @@ export const OrderCard = memo(function OrderCard({
   variant = "detailed",
 }: Props) {
   const ready = isOrderReady(order);
+  const tableName =
+    order.table?.name ?? (order.type === "TAKEAWAY" ? "TA" : "Order");
+  const elapsedMinutes = order.createdAt
+    ? Math.max(
+        0,
+        Math.floor((Date.now() - new Date(order.createdAt).getTime()) / 60000),
+      )
+    : null;
+  const attentionLabel = ready
+    ? "Ready to serve"
+    : order.status === "BILL_REQUESTED"
+      ? "Bill requested"
+      : "In progress";
 
   if (variant === "compact") {
     return (
@@ -29,33 +40,36 @@ export const OrderCard = memo(function OrderCard({
         as="button"
         onClick={() => onSelect(order.id)}
         padding="md"
-        className={`w-full text-left rounded-2xl flex items-center gap-3 active:scale-95 transition-transform ${
+        className={`grid min-h-[72px] w-full grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl text-left transition-transform active:scale-[0.98] ${
           ready ? "border-success ring-1 ring-success/30" : ""
         }`}
       >
-        {ready && (
-          <Bell className="w-4 h-4 text-success animate-bounce flex-shrink-0" />
-        )}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-mono font-bold text-sm text-text-primary">
-              {shortOrderId(order.id)}
-            </span>
-            {order.table && (
-              <span className="text-xs text-text-disabled">
-                Table {order.table.name}
-              </span>
-            )}
-          </div>
-          <p className="text-xs text-text-disabled mt-0.5">
-            {order.items?.length ?? 0} items ·{" "}
-            {formatCurrency(order.totalAmount)}
-          </p>
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <StatusBadge status={order.status} />
-          <ChevronRight className="w-4 h-4 text-text-disabled" />
-        </div>
+        <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-secondary text-xs font-semibold text-text-primary">
+          {tableName}
+        </span>
+        <span className="min-w-0">
+          <strong
+            className={`flex items-center gap-1.5 truncate text-sm font-medium ${ready ? "text-success" : order.status === "BILL_REQUESTED" ? "text-warning" : "text-text-primary"}`}
+          >
+            {ready ? (
+              <Bell className="h-4 w-4 shrink-0" />
+            ) : order.status === "BILL_REQUESTED" ? (
+              <ReceiptText className="h-4 w-4 shrink-0" />
+            ) : null}
+            {attentionLabel}
+          </strong>
+          <span className="mt-1 block truncate text-xs text-text-secondary">
+            {shortOrderId(order.id)} · {order.items?.length ?? 0} items
+            {elapsedMinutes !== null ? ` · ${elapsedMinutes} min` : ""}
+          </span>
+        </span>
+        <span className="flex min-h-[38px] items-center gap-1 rounded-xl bg-primary-surface px-3 text-xs font-medium text-primary">
+          {ready
+            ? "Serve"
+            : order.status === "BILL_REQUESTED"
+              ? "Open"
+              : "View"}
+        </span>
       </Card>
     );
   }
@@ -64,48 +78,26 @@ export const OrderCard = memo(function OrderCard({
     <Card
       as="button"
       onClick={() => onSelect(order.id)}
-      padding="md"
-      className={`w-full text-left rounded-2xl active:scale-95 transition-transform ${
-        ready ? "border-success ring-1 ring-success/30" : ""
-      }`}
+      padding="sm"
+      className="grid min-h-[70px] w-full grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-[11px] rounded-2xl text-left transition-transform active:scale-[0.98]"
     >
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          {ready && <Bell className="w-4 h-4 text-success animate-bounce" />}
-          <span className="font-mono font-bold text-sm text-text-primary">
-            {shortOrderId(order.id)}
-          </span>
-          {order.table && (
-            <span className="text-xs bg-surface-secondary text-text-secondary px-2 py-0.5 rounded-full">
-              Table {order.table.name}
-            </span>
-          )}
-        </div>
-        <StatusBadge status={order.status} />
-      </div>
-      <div className="space-y-0.5 mb-2">
-        {order.items?.slice(0, 2).map((item) => (
-          <p key={item.id} className="text-xs text-text-secondary">
-            {item.quantity}× {item.menuItemName}
-          </p>
-        ))}
-        {(order.items?.length ?? 0) > 2 && (
-          <p className="text-xs text-text-disabled">
-            +{(order.items?.length ?? 0) - 2} more
-          </p>
-        )}
-      </div>
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-text-disabled">
-          {order.type?.replace("_", " ")}
+      <span className="flex h-11 w-11 items-center justify-center rounded-[13px] bg-surface-secondary text-xs font-medium text-text-primary">
+        {tableName}
+      </span>
+      <span className="min-w-0">
+        <strong
+          className={`block truncate text-sm font-medium ${ready ? "text-success" : order.status === "BILL_REQUESTED" ? "text-warning" : "text-text-primary"}`}
+        >
+          {attentionLabel}
+        </strong>
+        <span className="mt-1 block truncate text-xs text-text-secondary">
+          {shortOrderId(order.id)} · {order.items?.length ?? 0} items
+          {elapsedMinutes !== null ? ` · ${elapsedMinutes} min` : ""}
         </span>
-        <div className="flex items-center gap-1.5">
-          <span className="text-sm font-bold text-text-primary">
-            {formatCurrency(order.totalAmount)}
-          </span>
-          <ChevronRight className="w-4 h-4 text-text-disabled" />
-        </div>
-      </div>
+      </span>
+      <span className="flex min-h-[38px] items-center rounded-xl bg-primary-surface px-3 text-xs font-medium text-primary">
+        {ready ? "Serve" : order.status === "BILL_REQUESTED" ? "Open" : "View"}
+      </span>
     </Card>
   );
 });

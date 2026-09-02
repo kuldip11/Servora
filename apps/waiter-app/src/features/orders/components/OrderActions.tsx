@@ -34,13 +34,13 @@ export const OrderActions = ({
   if (!canRequestBill && !canAddItems && !canCancel) return null;
 
   return (
-    <div className="bg-surface border-t border-border px-4 py-4 space-y-2">
+    <div className="space-y-2 border-t border-border bg-surface px-4 py-3 safe-area-bottom">
       {}
       {canRequestBill && (
         <button
           onClick={onRequestBill}
           disabled={isUpdatingStatus}
-          className="w-full py-4 bg-warning text-warning-foreground font-bold rounded-2xl flex items-center justify-center gap-2 active:opacity-80 disabled:opacity-60"
+          className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-warning font-semibold text-warning-foreground active:opacity-80 disabled:opacity-60"
         >
           <Receipt className="w-5 h-5" />
           {isUpdatingStatus ? "Updating…" : "Request Bill"}
@@ -53,7 +53,11 @@ export const OrderActions = ({
       )}
       {}
       {canAddItems && (
-        <Button onClick={onAddItems} size="lg" className="w-full rounded-2xl">
+        <Button
+          onClick={onAddItems}
+          size="lg"
+          className="min-h-12 w-full rounded-xl"
+        >
           <Plus className="w-4 h-4" />
           Add More Items
         </Button>
@@ -63,7 +67,7 @@ export const OrderActions = ({
           onClick={onTransfer}
           variant="secondary"
           size="lg"
-          className="w-full rounded-2xl"
+          className="min-h-12 w-full rounded-xl"
         >
           Transfer Table
         </Button>
@@ -73,7 +77,7 @@ export const OrderActions = ({
           onClick={onSplit}
           variant="secondary"
           size="lg"
-          className="w-full rounded-2xl"
+          className="min-h-12 w-full rounded-xl"
         >
           Split Bill
         </Button>
@@ -83,7 +87,7 @@ export const OrderActions = ({
           onClick={onMerge}
           variant="secondary"
           size="lg"
-          className="w-full rounded-2xl"
+          className="min-h-12 w-full rounded-xl"
         >
           Merge Table
         </Button>
@@ -96,7 +100,7 @@ export const OrderActions = ({
               onCancel();
             }
           }}
-          className="w-full py-3 text-danger font-semibold text-sm rounded-2xl border border-danger/20 active:bg-danger-surface"
+          className="min-h-11 w-full rounded-xl border border-danger/20 text-sm font-semibold text-danger active:bg-danger-surface"
         >
           Cancel Order
         </button>

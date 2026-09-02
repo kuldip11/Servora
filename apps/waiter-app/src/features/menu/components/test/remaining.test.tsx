@@ -31,6 +31,7 @@ const cart: any = [
     course: 1,
     quantity: 2,
     unitPrice: 120,
+    variantId: "v1",
     variantName: "Large",
   },
 ];
@@ -92,6 +93,7 @@ describe("remaining menu components", () => {
         needsTable
         onUpdateQty={vi.fn()}
         onUpdateComboQty={vi.fn()}
+        onEditItem={vi.fn()}
         onSubmit={vi.fn()}
         onClose={vi.fn()}
       />,
@@ -99,12 +101,13 @@ describe("remaining menu components", () => {
     expect(html).toContain("Burger");
     expect(html).toContain("₹240.00");
     expect(html).toContain("Select a table");
+    expect(html).toContain("Edit choices");
   });
 
   it("renders search input", () => {
     expect(
       renderToStaticMarkup(<SearchBar value="burger" onChange={vi.fn()} />),
-    ).toContain("Search menu");
+    ).toContain("Search dishes or scan code");
   });
 
   it("renders customiser with variants and modifiers", () => {
@@ -114,6 +117,20 @@ describe("remaining menu components", () => {
     expect(html).toContain("Large");
     expect(html).toContain("Extras");
     expect(html).toContain("Cheese");
+  });
+
+  it("restores a configured cart line for editing", () => {
+    const html = renderToStaticMarkup(
+      <ItemCustomiser
+        item={item}
+        existingCartItem={cart[0]}
+        onConfirm={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(html).toContain("Update Item");
+    expect(html).toContain("Large");
+    expect(html).toContain("Hot");
   });
 
   it("renders build-your-own items as a guided step flow", () => {

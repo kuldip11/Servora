@@ -6,8 +6,7 @@ import {
 import { Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { Home, ClipboardList, Plus, LogOut, Settings } from "lucide-react";
-import { IconButton } from "@pos/ui";
+import { Home, ClipboardList, Plus } from "lucide-react";
 import {
   LoginPage,
   getToken,
@@ -23,6 +22,7 @@ import { OrderDetailPage } from "@/features/orders/pages/OrderDetailPage";
 import { ProfilePage } from "@/features/profile/pages/ProfilePage";
 import { useWaiterAttention } from "@/features/orders/hooks/useWaiterAttention";
 import { useConnectionStatus } from "@/shared/lib/realtime";
+import { useMyBranch } from "@/features/menu/hooks/useMyBranch";
 
 const AuthBoundary = () => {
   const [loggedIn, setLoggedIn] = useState<boolean | null>(() =>
@@ -61,41 +61,41 @@ const AppLayout = ({ children }: { children?: ReactNode }) => {
   });
   const isHome = pathname === "/";
   const isOrders = pathname === "/orders" || pathname.startsWith("/orders/");
+  const isMenu = pathname === "/menu";
   const connected = useConnectionStatus();
+  const { data: branch } = useMyBranch();
+  const waiterName = getWaiterName();
   useWaiterAttention();
 
-  async function handleLogout() {
-    try {
-      await logoutSession();
-    } finally {
-      logout();
-      navigate({ to: "/" });
-      window.location.reload();
-    }
-  }
-
   return (
-    <div className="flex flex-col h-screen bg-background">
-      <div className="absolute left-4 top-4 z-10 rounded-full bg-surface/80 px-2.5 py-1 text-[11px] font-semibold text-text-secondary shadow-sm backdrop-blur">
-        <span
-          className={`mr-1.5 inline-block h-2 w-2 rounded-full ${connected ? "bg-success" : "bg-warning"}`}
-        />
-        {connected ? "Live" : "Reconnecting"}
-      </div>
-      <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
-        <IconButton
-          icon={Settings}
-          aria-label="Profile and settings"
+    <div className="flex h-screen flex-col bg-background shadow-sm">
+      <header className="flex items-center justify-between gap-3 border-b border-divider bg-surface px-[18px] pb-3.5 pt-[18px] safe-area-top">
+        <div className="min-w-0">
+          <p className="flex items-center gap-1.5 text-[11px] font-medium text-text-secondary">
+            <span
+              className={`inline-block h-2 w-2 rounded-full ${connected ? "bg-success" : "bg-warning"}`}
+            />
+            {branch?.name ?? "Current branch"} ·{" "}
+            {connected ? "Live" : "Reconnecting"}
+          </p>
+          <p className="mt-0.5 truncate text-base font-medium text-text-primary">
+            {waiterName}&apos;s service
+          </p>
+        </div>
+        <button
+          type="button"
+          aria-label="Open profile"
           onClick={() => navigate({ to: "/profile" })}
-          className="w-9 h-9 rounded-full bg-surface/80 backdrop-blur shadow-sm text-text-secondary hover:bg-surface-secondary/80"
-        />
-        <IconButton
-          icon={LogOut}
-          aria-label="Log out"
-          onClick={() => void handleLogout()}
-          className="w-9 h-9 rounded-full bg-surface/80 backdrop-blur shadow-sm text-text-secondary hover:bg-surface-secondary/80"
-        />
-      </div>
+          className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full bg-primary-surface text-sm font-medium text-primary"
+        >
+          {waiterName
+            .split(" ")
+            .slice(0, 2)
+            .map((part) => part[0])
+            .join("")
+            .toUpperCase() || "W"}
+        </button>
+      </header>
 
       <div className="flex-1 overflow-hidden flex flex-col">
         {children ?? <Outlet />}
@@ -103,33 +103,32 @@ const AppLayout = ({ children }: { children?: ReactNode }) => {
 
       <nav
         aria-label="Primary"
-        className="bg-surface border-t border-border flex"
+        className="grid grid-cols-3 border-t border-border bg-surface safe-area-bottom"
       >
         <button
           onClick={() => navigate({ to: "/" })}
           aria-current={isHome ? "page" : undefined}
-          className={`flex-1 flex flex-col items-center gap-1 py-3 text-xs font-medium ${isHome ? "text-primary" : "text-text-disabled"}`}
+          className={`flex min-h-16 flex-col items-center justify-center gap-1 text-xs font-medium ${isHome ? "text-primary" : "text-text-secondary"}`}
         >
           <Home className="w-5 h-5" />
           Home
         </button>
         <button
-          onClick={() => navigate({ to: "/menu" })}
-          aria-label="Create new order"
-          className="flex-1 flex flex-col items-center gap-1 py-3 text-xs font-medium text-text-disabled"
-        >
-          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center -mt-5 shadow-md">
-            <Plus className="w-5 h-5 text-primary-foreground" />
-          </div>
-          <span className="mt-0.5">Order</span>
-        </button>
-        <button
           onClick={() => navigate({ to: "/orders" })}
           aria-current={isOrders ? "page" : undefined}
-          className={`flex-1 flex flex-col items-center gap-1 py-3 text-xs font-medium ${isOrders ? "text-primary" : "text-text-disabled"}`}
+          className={`flex min-h-16 flex-col items-center justify-center gap-1 text-xs font-medium ${isOrders ? "text-primary" : "text-text-secondary"}`}
         >
           <ClipboardList className="w-5 h-5" />
           Orders
+        </button>
+        <button
+          onClick={() => navigate({ to: "/menu" })}
+          aria-label="Create new order"
+          aria-current={isMenu ? "page" : undefined}
+          className={`flex min-h-16 flex-col items-center justify-center gap-1 text-xs font-medium ${isMenu ? "text-primary" : "text-text-secondary"}`}
+        >
+          <Plus className="h-5 w-5" />
+          <span>New order</span>
         </button>
       </nav>
     </div>
@@ -148,7 +147,6 @@ const homeRoute = createRoute({
     return (
       <AppLayout>
         <HomePage
-          waiterName={getWaiterName()}
           onNewOrder={() => navigate({ to: "/menu" })}
           onViewOrders={() => navigate({ to: "/orders" })}
           onSelectOrder={(orderId) =>
@@ -166,16 +164,18 @@ const menuRoute = createRoute({
   component: () => {
     const navigate = useNavigate();
     return (
-      <MenuPage
-        onBack={() => navigate({ to: "/" })}
-        onOrderPlaced={(orderId) =>
-          navigate({
-            to: "/orders/$orderId",
-            params: { orderId },
-            replace: true,
-          })
-        }
-      />
+      <AppLayout>
+        <MenuPage
+          onBack={() => navigate({ to: "/" })}
+          onOrderPlaced={(orderId) =>
+            navigate({
+              to: "/orders/$orderId",
+              params: { orderId },
+              replace: true,
+            })
+          }
+        />
+      </AppLayout>
     );
   },
 });
@@ -246,6 +246,15 @@ const profileRoute = createRoute({
       <ProfilePage
         waiterName={getWaiterName()}
         onBack={() => navigate({ to: "/" })}
+        onLogout={async () => {
+          try {
+            await logoutSession();
+          } finally {
+            logout();
+            navigate({ to: "/" });
+            window.location.reload();
+          }
+        }}
       />
     );
   },
