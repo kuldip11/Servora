@@ -23,6 +23,9 @@ export interface BottomSheetProps {
   footer?: ReactNode | undefined;
 
   description?: string | undefined;
+  contentClassName?: string | undefined;
+  bodyClassName?: string | undefined;
+  footerClassName?: string | undefined;
 }
 
 export const BottomSheet = ({
@@ -33,6 +36,9 @@ export const BottomSheet = ({
   maxHeight = "85vh",
   footer,
   description,
+  contentClassName,
+  bodyClassName,
+  footerClassName,
 }: BottomSheetProps) => {
   return (
     <RadixDialog.Root open={open} onOpenChange={(next) => !next && onClose()}>
@@ -44,6 +50,7 @@ export const BottomSheet = ({
             overlayPanelClasses,
             bottomSheetAnimationClasses,
             "fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-xl",
+            contentClassName,
           )}
           style={{ maxHeight }}
         >
@@ -67,9 +74,18 @@ export const BottomSheet = ({
               {description}
             </RadixDialog.Description>
           )}
-          <div className="flex-1 overflow-y-auto px-6 pb-6">{children}</div>
+          <div
+            className={cn("flex-1 overflow-y-auto px-6 pb-6", bodyClassName)}
+          >
+            {children}
+          </div>
           {footer && (
-            <div className="px-6 py-4 border-t border-border shrink-0 flex justify-end gap-2">
+            <div
+              className={cn(
+                "px-6 py-4 border-t border-border shrink-0 flex justify-end gap-2",
+                footerClassName,
+              )}
+            >
               {footer}
             </div>
           )}

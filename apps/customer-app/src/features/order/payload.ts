@@ -4,8 +4,10 @@ import { normalizeSelectedOptions } from "@/features/cart/configuration";
 
 export const createOrderPayload = (
   cart: CartLine[],
+  fulfillmentType: "DINE_IN" | "TAKEAWAY",
 ): CreateCustomerOrderInput => {
   return {
+    fulfillmentType,
     items: cart.map((line) => ({
       menuItemId: line.item.id,
       quantity: line.quantity,
@@ -13,7 +15,7 @@ export const createOrderPayload = (
       ...(line.selectedOptions.length
         ? { selectedOptions: normalizeSelectedOptions(line.selectedOptions) }
         : {}),
-      fulfillmentType: line.fulfillmentType,
+      fulfillmentType,
     })),
   };
 };

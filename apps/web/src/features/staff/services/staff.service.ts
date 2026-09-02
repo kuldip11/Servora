@@ -2,6 +2,7 @@ import {
   createStaffApi,
   type StaffRowDto,
   type UpdateStaffInput,
+  type StaffListFilters,
 } from "@pos/api-client";
 import { apiClient } from "@/shared/lib/api-client";
 
@@ -18,7 +19,7 @@ export interface StaffFormInput {
 }
 
 export const staffService = {
-  list: staffApi.listStaff,
+  list: (filters: StaffListFilters = {}) => staffApi.listStaff(filters),
   async add(input: StaffFormInput): Promise<void> {
     await staffApi.addStaff({
       firstName: input.firstName,

@@ -27,12 +27,18 @@ const auth = {
 } as any;
 describe("inventory controller", () => {
   it("delegates list and wraps a success response", async () => {
-    list.mockResolvedValue([{ id: "i1" }]);
+    list.mockResolvedValue({
+      items: [{ id: "i1" }],
+      total: 1,
+      page: 1,
+      limit: 25,
+    });
     await expect(inventoryController.list(auth)).resolves.toEqual({
       success: true,
       data: [{ id: "i1" }],
+      pagination: { page: 1, limit: 25, total: 1, hasMore: false },
     });
-    expect(list).toHaveBeenCalledWith(auth);
+    expect(list).toHaveBeenCalledWith(auth, {});
   });
   it("delegates create with a created response", async () => {
     const input = {

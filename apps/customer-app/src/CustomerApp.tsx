@@ -62,25 +62,12 @@ export const CustomerApp = () => {
 
   const visibleItems = useMemo(() => {
     const query = search.trim().toLowerCase();
-    const selectedCategory = categories.find((item) => item.name === category);
-    const popularItems = menu.filter((item) =>
-      item.tagLinks.some((tag) => tag.tag.name.toLowerCase() === "popular"),
-    );
-    return menu.filter((item, index) => {
-      const categoryMatch =
-        category === "Popular"
-          ? popularItems.length
-            ? item.tagLinks.some(
-                (tag) => tag.tag.name.toLowerCase() === "popular",
-              )
-            : index < 6
-          : item.categoryId === selectedCategory?.id;
-      const searchMatch =
+    return menu.filter(
+      (item) =>
         !query ||
-        `${item.name} ${item.description ?? ""}`.toLowerCase().includes(query);
-      return categoryMatch && searchMatch;
-    });
-  }, [menu, categories, category, search]);
+        `${item.name} ${item.description ?? ""}`.toLowerCase().includes(query),
+    );
+  }, [menu, search]);
 
   const handleMenu = useCallback(() => setView("menu"), []);
   const handleCart = useCallback(() => setView("cart"), []);
@@ -189,9 +176,6 @@ export const CustomerApp = () => {
 
       {cartState.selectedItem && (
         <ItemCustomization
-          allowMixedFulfillment={session.mode === "DINE_IN"}
-          fulfillmentType={cartState.selectedFulfillmentType}
-          onFulfillmentTypeChange={cartState.setSelectedFulfillmentType}
           item={cartState.selectedItem}
           selectedOptions={cartState.selectedOptions}
           {...(cartState.selectedVariantId
@@ -202,6 +186,9 @@ export const CustomerApp = () => {
           onOptionQuantity={cartState.changeOptionQuantity}
           onClose={cartState.closeItem}
           onAdd={cartState.addSelectedItem}
+          quantity={cartState.selectedQuantity}
+          onQuantityChange={cartState.setSelectedQuantity}
+          editing={cartState.editingCartIndex != null}
         />
       )}
 
@@ -217,7 +204,7 @@ export const CustomerApp = () => {
           onBack={handleMenu}
           onChange={cartState.changeQuantity}
           onComboChange={cartState.changeComboQuantity}
-          onFulfillmentChange={cartState.changeFulfillment}
+          onEdit={cartState.openCartItem}
           onPlace={checkout.placeOrder}
           couponCode={checkout.couponCode}
           onCouponCodeChange={checkout.setCouponCode}

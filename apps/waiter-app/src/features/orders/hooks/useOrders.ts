@@ -1,5 +1,10 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import type { Order } from "@pos/types";
+import type { OrdersListFilters } from "@pos/api-client";
 import { useRealtimeEvent } from "@/shared/lib/realtime";
 import { fetchOrders } from "@/features/orders/api/orders";
 import {
@@ -11,24 +16,16 @@ import {
   shouldApplyRealtime,
 } from "@/features/orders/utils/realtime";
 
-export const useOrders = () => {
+export const useOrders = (filters: OrdersListFilters) => {
   const qc = useQueryClient();
   const query = useQuery({
-    queryKey: orderKeys.all,
-    queryFn: fetchOrders,
+    queryKey: orderKeys.list(filters),
+    queryFn: () => fetchOrders(filters),
     refetchInterval: ORDERS_POLL_INTERVAL_MS,
   });
 
   const upsert = (order: Order) => {
-    qc.setQueryData<Order[]>(orderKeys.all, (current) => {
-      if (!current) return [order];
-      const index = current.findIndex((item) => item.id === order.id);
-      if (index < 0) return [order, ...current];
-      if (!shouldApplyRealtime(current[index], order)) return current;
-      const next = [...current];
-      next[index] = order;
-      return next;
-    });
+    void qc.invalidateQueries({ queryKey: orderKeys.all });
     qc.setQueryData<Order>(orderKeys.detail(order.id), (current) =>
       shouldApplyRealtime(current, order) ? order : current,
     );
@@ -37,19 +34,7 @@ export const useOrders = () => {
   useRealtimeEvent("order.created", (event) => upsert(event.payload));
   useRealtimeEvent("order.updated", (event) => upsert(event.payload));
   useRealtimeEvent("kitchen.ticket.updated", (event) => {
-    qc.setQueryData<Order[]>(orderKeys.all, (current) =>
-      current?.map((order) =>
-        order.id !== event.payload.orderId
-          ? order
-          : {
-              ...order,
-              kitchenTickets: mergeRealtimeTicket(
-                order.kitchenTickets ?? [],
-                event.payload,
-              ),
-            },
-      ),
-    );
+    void qc.invalidateQueries({ queryKey: orderKeys.all });
     qc.setQueryData<Order>(
       orderKeys.detail(event.payload.orderId),
       (current) =>
@@ -65,5 +50,79 @@ export const useOrders = () => {
     );
   });
 
+  return { ...query, data: query.data?.items };
+};
+
+export const useOrdersPage = (filters: OrdersListFilters) => {
+  const qc = useQueryClient();
+  const query = useQuery({
+    queryKey: orderKeys.list(filters),
+    queryFn: () => fetchOrders(filters),
+    refetchInterval: ORDERS_POLL_INTERVAL_MS,
+  });
+
+  const sync = (order: Order) => {
+    void qc.invalidateQueries({ queryKey: orderKeys.all });
+    qc.setQueryData<Order>(orderKeys.detail(order.id), (current) =>
+      shouldApplyRealtime(current, order) ? order : current,
+    );
+  };
+  useRealtimeEvent("order.created", (event) => sync(event.payload));
+  useRealtimeEvent("order.updated", (event) => sync(event.payload));
+  useRealtimeEvent("kitchen.ticket.updated", (event) => {
+    void qc.invalidateQueries({ queryKey: orderKeys.all });
+    qc.setQueryData<Order>(
+      orderKeys.detail(event.payload.orderId),
+      (current) =>
+        current
+          ? {
+              ...current,
+              kitchenTickets: mergeRealtimeTicket(
+                current.kitchenTickets ?? [],
+                event.payload,
+              ),
+            }
+          : current,
+    );
+  });
+  return query;
+};
+
+export const useInfiniteOrders = (filters: Omit<OrdersListFilters, "page">) => {
+  const qc = useQueryClient();
+  const query = useInfiniteQuery({
+    queryKey: orderKeys.list({ ...filters, mode: "infinite" }),
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
+      fetchOrders({ ...filters, page: pageParam, limit: filters.limit ?? 20 }),
+    getNextPageParam: (lastPage) =>
+      lastPage.pagination.hasMore ? lastPage.pagination.page + 1 : undefined,
+    refetchInterval: ORDERS_POLL_INTERVAL_MS,
+  });
+
+  const sync = (order: Order) => {
+    void qc.invalidateQueries({ queryKey: orderKeys.all });
+    qc.setQueryData<Order>(orderKeys.detail(order.id), (current) =>
+      shouldApplyRealtime(current, order) ? order : current,
+    );
+  };
+  useRealtimeEvent("order.created", (event) => sync(event.payload));
+  useRealtimeEvent("order.updated", (event) => sync(event.payload));
+  useRealtimeEvent("kitchen.ticket.updated", (event) => {
+    void qc.invalidateQueries({ queryKey: orderKeys.all });
+    qc.setQueryData<Order>(
+      orderKeys.detail(event.payload.orderId),
+      (current) =>
+        current
+          ? {
+              ...current,
+              kitchenTickets: mergeRealtimeTicket(
+                current.kitchenTickets ?? [],
+                event.payload,
+              ),
+            }
+          : current,
+    );
+  });
   return query;
 };

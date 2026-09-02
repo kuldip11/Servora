@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { SelectMenu } from "../SelectMenu";
@@ -20,6 +20,13 @@ describe("SelectMenu", () => {
       />,
     );
     await user.click(screen.getByRole("combobox", { name: "Choice" }));
+    const listbox = screen.getByRole("listbox");
+    expect(listbox.style.maxHeight).toContain(
+      "--radix-popover-content-available-height",
+    );
+    expect(listbox.style.overflowY).toBe("auto");
+    fireEvent.wheel(listbox, { deltaY: 48 });
+    expect(listbox.scrollTop).toBe(48);
     await user.click(screen.getByRole("option", { name: "Two" }));
     expect(onChange).toHaveBeenCalledWith("two");
   });

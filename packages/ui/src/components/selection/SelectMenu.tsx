@@ -144,11 +144,16 @@ export const SelectMenu = ({
         <Popover.Portal>
           <Popover.Content
             align="start"
+            side="bottom"
             sideOffset={4}
+            collisionPadding={12}
+            sticky="always"
             className={cn(
               popoverContentClasses,
-              "w-[var(--radix-popover-trigger-width)]",
+              "w-[var(--radix-popover-trigger-width)] max-h-[var(--radix-popover-content-available-height)]",
             )}
+            onWheel={(event) => event.stopPropagation()}
+            onTouchMove={(event) => event.stopPropagation()}
             onOpenAutoFocus={(e) => e.preventDefault()}
           >
             <VirtualListbox

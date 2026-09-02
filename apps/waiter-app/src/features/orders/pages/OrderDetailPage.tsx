@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Spinner, IconButton, Button, Input, Modal } from "@pos/ui";
+import { Spinner, IconButton, Button, Input, Modal, SelectMenu } from "@pos/ui";
 import { X } from "lucide-react";
 import { useOrder } from "@/features/orders/hooks/useOrder";
 import { useUpdateOrderStatus } from "@/features/orders/hooks/useUpdateOrderStatus";
@@ -161,7 +161,8 @@ export const OrderDetailPage = ({ orderId, onBack, onAddItems }: Props) => {
   const [mergeTargetId, setMergeTargetId] = useState("");
   const { data: mergeCandidates = [] } = useQuery({
     queryKey: ["orders", "merge-candidates"],
-    queryFn: fetchOrders,
+    queryFn: async () =>
+      (await fetchOrders({ view: "ACTIVE", limit: 100 })).items,
     enabled: showMerge,
   });
   const mergeOrder = useMutation({
@@ -348,20 +349,19 @@ export const OrderDetailPage = ({ orderId, onBack, onAddItems }: Props) => {
         title="Split bill"
       >
         <div className="space-y-4">
-          <label className="block text-sm font-medium">
-            Split mode
-            <select
-              className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2"
-              value={splitMode}
-              onChange={(event) =>
-                setSplitMode(event.target.value as "EVEN" | "ITEM" | "SEAT")
-              }
-            >
-              <option value="EVEN">Even split</option>
-              <option value="ITEM">Assign items</option>
-              <option value="SEAT">By seat / diner</option>
-            </select>
-          </label>
+          <SelectMenu
+            label="Split mode"
+            value={splitMode}
+            onChange={(value) =>
+              setSplitMode(value as "EVEN" | "ITEM" | "SEAT")
+            }
+            className="min-h-11 rounded-xl"
+            options={[
+              { value: "EVEN", label: "Even split" },
+              { value: "ITEM", label: "Assign items" },
+              { value: "SEAT", label: "By seat / diner" },
+            ]}
+          />
           {splitMode !== "SEAT" && (
             <Input
               label="Number of bills"
@@ -373,21 +373,18 @@ export const OrderDetailPage = ({ orderId, onBack, onAddItems }: Props) => {
             />
           )}
           {splitMode === "SEAT" && (
-            <label className="block text-sm font-medium">
-              Shared items
-              <select
-                className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2"
-                value={sharedStrategy}
-                onChange={(event) =>
-                  setSharedStrategy(
-                    event.target.value as "EVEN_SPLIT" | "MANUAL",
-                  )
-                }
-              >
-                <option value="EVEN_SPLIT">Balance across seats</option>
-                <option value="MANUAL">Assign manually</option>
-              </select>
-            </label>
+            <SelectMenu
+              label="Shared items"
+              value={sharedStrategy}
+              onChange={(value) =>
+                setSharedStrategy(value as "EVEN_SPLIT" | "MANUAL")
+              }
+              className="min-h-11 rounded-xl"
+              options={[
+                { value: "EVEN_SPLIT", label: "Balance across seats" },
+                { value: "MANUAL", label: "Assign manually" },
+              ]}
+            />
           )}
           {splitMode === "ITEM" && (
             <div className="max-h-64 space-y-2 overflow-y-auto">
@@ -403,25 +400,24 @@ export const OrderDetailPage = ({ orderId, onBack, onAddItems }: Props) => {
                     className="flex items-center justify-between gap-3 rounded-md border border-border p-2 text-sm"
                   >
                     {item.quantity}× {item.menuItemName}
-                    <select
-                      className="rounded-md border border-border bg-surface px-2 py-1"
-                      value={itemBills[item.id] ?? 0}
-                      onChange={(event) =>
+                    <SelectMenu
+                      aria-label={`Bill for ${item.menuItemName}`}
+                      className="w-28 rounded-xl"
+                      value={String(itemBills[item.id] ?? 0)}
+                      onChange={(value) =>
                         setItemBills((current) => ({
                           ...current,
-                          [item.id]: Number(event.target.value),
+                          [item.id]: Number(value),
                         }))
                       }
-                    >
-                      {Array.from(
+                      options={Array.from(
                         { length: Number(splitWays) || 2 },
-                        (_, index) => (
-                          <option key={index} value={index}>
-                            Bill {index + 1}
-                          </option>
-                        ),
+                        (_, index) => ({
+                          value: String(index),
+                          label: `Bill ${index + 1}`,
+                        }),
                       )}
-                    </select>
+                    />
                   </label>
                 ))}
             </div>
@@ -471,29 +467,26 @@ export const OrderDetailPage = ({ orderId, onBack, onAddItems }: Props) => {
         title="Merge table"
       >
         <div className="space-y-4">
-          <label className="block text-sm font-medium">
-            Merge billing into
-            <select
-              className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2"
-              value={mergeTargetId}
-              onChange={(event) => setMergeTargetId(event.target.value)}
-            >
-              <option value="">Select another open table</option>
-              {mergeCandidates
-                .filter(
-                  (candidate) =>
-                    candidate.id !== orderId &&
-                    candidate.status === "OPEN" &&
-                    candidate.type === "DINE_IN" &&
-                    !candidate.mergedIntoOrderId,
-                )
-                .map((candidate) => (
-                  <option key={candidate.id} value={candidate.id}>
-                    {candidate.table?.name ?? `Order ${candidate.id.slice(-8)}`}
-                  </option>
-                ))}
-            </select>
-          </label>
+          <SelectMenu
+            label="Merge billing into"
+            placeholder="Select another open table"
+            value={mergeTargetId || undefined}
+            onChange={setMergeTargetId}
+            className="min-h-11 rounded-xl"
+            options={mergeCandidates
+              .filter(
+                (candidate) =>
+                  candidate.id !== orderId &&
+                  candidate.status === "OPEN" &&
+                  candidate.type === "DINE_IN" &&
+                  !candidate.mergedIntoOrderId,
+              )
+              .map((candidate) => ({
+                value: candidate.id,
+                label:
+                  candidate.table?.name ?? `Order ${candidate.id.slice(-8)}`,
+              }))}
+          />
           <p className="text-xs text-text-secondary">
             Kitchen tickets stay separate; only billing is combined.
           </p>
@@ -674,26 +667,34 @@ export const OrderDetailPage = ({ orderId, onBack, onAddItems }: Props) => {
         title="Transfer table"
       >
         <div className="space-y-4">
-          <label className="block text-sm font-medium">
-            Destination
-            <select
-              className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2"
-              value={destinationTableId}
-              onChange={(event) => setDestinationTableId(event.target.value)}
-            >
-              <option value="">Select an available table</option>
-              {tables
-                .filter(
-                  (table) =>
-                    table.status === "AVAILABLE" && table.id !== order.tableId,
-                )
-                .map((table) => (
-                  <option key={table.id} value={table.id}>
-                    {table.name}
-                  </option>
-                ))}
-            </select>
-          </label>
+          <SelectMenu
+            label="Destination"
+            placeholder="Select an available table"
+            value={destinationTableId || undefined}
+            onChange={setDestinationTableId}
+            className="min-h-11 rounded-xl"
+            options={tables
+              .filter((table) => table.id !== order.tableId)
+              .sort((left, right) =>
+                left.status === right.status
+                  ? left.name.localeCompare(right.name)
+                  : left.status === "AVAILABLE"
+                    ? -1
+                    : 1,
+              )
+              .map((table) => ({
+                value: table.id,
+                label: table.name,
+                description:
+                  table.status === "AVAILABLE"
+                    ? `${table.capacity} seats`
+                    : table.status.charAt(0) +
+                      table.status.slice(1).toLowerCase(),
+                group:
+                  table.status === "AVAILABLE" ? "Available" : "Unavailable",
+                disabled: table.status !== "AVAILABLE",
+              }))}
+          />
           <Input
             label="Reason (optional)"
             value={transferReason}

@@ -37,24 +37,41 @@ export const ComboCustomization = memo(function ComboCustomization({
     <BottomSheet
       open
       onClose={onClose}
-      title={combo.name}
+      title="Build a set meal"
       description={
         combo.description ??
         "Complete each combo choice before adding it to your order."
       }
+      maxHeight="94vh"
+      contentClassName="customer-sheet sm:left-1/2 sm:right-auto sm:w-full sm:max-w-2xl sm:-translate-x-1/2"
+      bodyClassName="customer-scrollbar-hidden px-4 pb-6 sm:px-7"
+      footerClassName="bg-background/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-7"
       footer={
         <Button
           size="lg"
           disabled={!valid}
           onClick={onAdd}
-          className="w-full sm:w-auto"
+          className="h-12 w-full rounded-2xl"
         >
           Add combo · est. {formatMoney(estimate.subtotal)}
         </Button>
       }
     >
-      <div className="space-y-6">
-        <p className="rounded-lg bg-primary-surface p-3 text-sm text-primary">
+      <div className="space-y-7">
+        <div>
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#d45d24]">
+            Build your set meal
+          </p>
+          <h2 className="customer-display mt-1 text-3xl font-bold text-text-primary">
+            {combo.name}
+          </h2>
+          {combo.description && (
+            <p className="mt-2 text-sm leading-6 text-text-secondary">
+              {combo.description}
+            </p>
+          )}
+        </div>
+        <p className="rounded-2xl bg-primary-surface p-4 text-sm leading-6 text-primary">
           Combo prices shown here are estimates. Final pricing is recalculated
           by the restaurant when you place the order.
         </p>
@@ -68,17 +85,17 @@ export const ComboCustomization = memo(function ComboCustomization({
             return (
               <fieldset key={slot.id}>
                 <div className="mb-3 flex items-center justify-between gap-3">
-                  <legend className="font-semibold text-text-primary">
+                  <legend className="font-bold text-text-primary">
                     Step {index + 1}: {slot.name}
                   </legend>
-                  <span className="text-xs text-text-secondary">
+                  <span className="text-[10px] font-extrabold uppercase tracking-[0.1em] text-[#d45d24]">
                     Choose {slot.minSelections}
                     {slot.maxSelections !== slot.minSelections
                       ? `–${slot.maxSelections}`
                       : ""}
                   </span>
                 </div>
-                <div className="space-y-2">
+                <div className="overflow-hidden rounded-2xl border border-border bg-surface px-4">
                   {slot.options.map((option) => {
                     const item = menuById.get(option.menuItemId);
                     if (!item) return null;
@@ -93,7 +110,7 @@ export const ComboCustomization = memo(function ComboCustomization({
                         type="button"
                         key={option.id}
                         onClick={() => onToggle(slot.id, option.id)}
-                        className={`flex w-full items-center justify-between rounded-lg border p-3 text-left ${selected ? "border-primary bg-primary-surface" : "border-border bg-surface"}`}
+                        className="flex min-h-14 w-full items-center justify-between border-b border-border py-3 text-left last:border-b-0"
                       >
                         <span>
                           <span className="block font-medium text-text-primary">
@@ -108,7 +125,7 @@ export const ComboCustomization = memo(function ComboCustomization({
                         </span>
                         <span
                           aria-hidden="true"
-                          className={`h-5 w-5 rounded-full border ${selected ? "border-primary bg-primary" : "border-border"}`}
+                          className={`h-5 w-5 rounded-full border-2 ${selected ? "border-primary bg-primary shadow-[inset_0_0_0_4px_var(--surface)]" : "border-border"}`}
                         />
                       </button>
                     );

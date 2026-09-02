@@ -22,13 +22,15 @@ describe("response helpers", () => {
   });
   it("calculates hasMore from pagination", () => {
     expect(
-      paginatedResponse([1], { skip: 0, take: 1, total: 2 }).pagination.hasMore,
+      paginatedResponse([1], { page: 1, limit: 1, total: 2 }).pagination
+        .hasMore,
     ).toBe(true);
     expect(
-      paginatedResponse([1], { skip: 1, take: 1, total: 2 }).pagination.hasMore,
+      paginatedResponse([1], { page: 2, limit: 1, total: 2 }).pagination
+        .hasMore,
     ).toBe(false);
     expect(
-      paginatedResponse([], { skip: 0, take: 0, total: 1 }).pagination.hasMore,
-    ).toBe(true);
+      paginatedResponse([], { page: 1, limit: 1, total: 0 }).pagination.hasMore,
+    ).toBe(false);
   });
 });

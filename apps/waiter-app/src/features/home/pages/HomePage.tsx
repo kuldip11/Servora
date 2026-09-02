@@ -1,7 +1,6 @@
 import {
   ShoppingBag,
   Bell,
-  ChevronRight,
   CheckCircle2,
   Droplets,
   ReceiptText,
@@ -18,19 +17,17 @@ import { useOrders } from "@/features/orders/hooks/useOrders";
 import { OrderCard } from "@/features/orders/components/OrderCard";
 
 interface Props {
-  waiterName: string;
   onNewOrder: () => void;
   onViewOrders: () => void;
   onSelectOrder: (id: string) => void;
 }
 
 export const HomePage = ({
-  waiterName,
   onNewOrder,
   onViewOrders,
   onSelectOrder,
 }: Props) => {
-  const { data: orders } = useOrders();
+  const { data: orders } = useOrders({ view: "ACTIVE", limit: 100 });
   const [requests, setRequests] = useState<
     Array<{ id: string; tableId: string; type: string; status: string }>
   >([]);
@@ -76,122 +73,118 @@ export const HomePage = ({
   const ready = active.filter((o) =>
     o.kitchenTickets?.some((t) => t.status === "READY"),
   );
+  const billRequested = active.filter((o) => o.status === "BILL_REQUESTED");
+  const tableLabel = (tableId: string) =>
+    tableId.length <= 8 ? tableId : tableId.slice(-4).toUpperCase();
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto">
-      {}
-      <div className="bg-primary px-5 pt-10 pb-8">
-        <p className="text-primary-foreground text-xs font-medium">
-          Welcome back
-        </p>
-        <h1 className="text-2xl font-bold text-primary-foreground mt-0.5">
-          {waiterName}
-        </h1>
-        {ready.length > 0 && (
-          <div className="mt-3 flex items-center gap-2 bg-primary-foreground/20 rounded-xl px-3 py-2">
-            <Bell className="w-4 h-4 text-primary-foreground animate-bounce" />
-            <p className="text-primary-foreground text-sm font-semibold">
-              {ready.length} order{ready.length > 1 ? "s" : ""} ready for pickup
-            </p>
+    <div className="mx-auto h-full w-full max-w-2xl overflow-y-auto px-3.5 pb-6 pt-3.5 md:px-6 md:pt-6">
+      <h1 className="text-[22px] font-medium text-text-primary">
+        Good evening
+      </h1>
+
+      <div className="waiter-priority-strip mt-3.5 grid grid-cols-3 overflow-hidden rounded-[18px] text-white">
+        {[
+          [ready.length, "Ready now"],
+          [requests.length, "Requests"],
+          [active.length, "Active tables"],
+        ].map(([value, label], index) => (
+          <div
+            key={String(label)}
+            className={`px-2 py-4 text-center ${index ? "border-l border-primary-foreground/15" : ""}`}
+          >
+            <strong className="block text-[22px] font-medium">{value}</strong>
+            <span className="text-[11px] text-white/80">{label}</span>
           </div>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={onNewOrder}
+        className="mt-3 flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-primary font-medium text-primary-foreground shadow-sm active:scale-[0.98]"
+      >
+        <ShoppingBag className="h-5 w-5" /> Start new order
+      </button>
+
+      <div className="mb-2 mt-6 flex items-center justify-between px-1">
+        <h2 className="text-sm font-medium text-text-primary">
+          Needs attention
+        </h2>
+        {active.length > 0 && (
+          <button
+            type="button"
+            onClick={onViewOrders}
+            className="min-h-10 px-2 text-xs font-semibold text-primary"
+          >
+            View all
+          </button>
         )}
       </div>
 
-      {requests.length > 0 && (
-        <div className="px-4 pt-3">
-          <div className="rounded-2xl border border-warning/30 bg-surface p-4 shadow-sm">
-            <div className="flex items-center gap-2">
-              <Bell className="w-4 h-4 text-warning" />
-              <p className="font-bold text-sm">Customer requests</p>
-              <span className="ml-auto rounded-full bg-warning/10 px-2 py-0.5 text-xs font-semibold">
-                {requests.length}
+      <div className="space-y-2">
+        {ready.slice(0, 3).map((order) => (
+          <OrderCard
+            key={`ready-${order.id}`}
+            order={order}
+            onSelect={onSelectOrder}
+            variant="compact"
+          />
+        ))}
+
+        {requests.slice(0, 3).map((request) => (
+          <Card
+            key={request.id}
+            padding="sm"
+            className="grid min-h-[72px] grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl"
+          >
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-warning-surface text-warning">
+              {request.type === "WATER" ? (
+                <Droplets className="h-5 w-5" />
+              ) : request.type === "BILL" ? (
+                <ReceiptText className="h-5 w-5" />
+              ) : (
+                <Utensils className="h-5 w-5" />
+              )}
+            </span>
+            <span className="min-w-0">
+              <strong className="block truncate text-sm font-semibold">
+                {request.type.replace("_", " ").toLowerCase()} requested
+              </strong>
+              <span className="text-xs text-text-secondary">
+                Table {tableLabel(request.tableId)} · just now
               </span>
-            </div>
-            <div className="mt-3 space-y-2">
-              {requests.slice(0, 3).map((request) => (
-                <div
-                  key={request.id}
-                  className="flex items-center gap-3 rounded-xl bg-background px-3 py-2"
-                >
-                  <span className="text-primary">
-                    {request.type === "WATER" ? (
-                      <Droplets className="w-4 h-4" />
-                    ) : request.type === "BILL" ? (
-                      <ReceiptText className="w-4 h-4" />
-                    ) : (
-                      <Utensils className="w-4 h-4" />
-                    )}
-                  </span>
-                  <span className="flex-1 text-sm font-medium">
-                    Table request ·{" "}
-                    {request.type.replace("_", " ").toLowerCase()}
-                  </span>
-                  <button
-                    onClick={() => void resolveRequest(request.id)}
-                    className="text-xs font-semibold text-primary"
-                  >
-                    Done
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+            </span>
+            <button
+              type="button"
+              onClick={() => void resolveRequest(request.id)}
+              className="min-h-10 rounded-xl bg-primary-surface px-3 text-xs font-semibold text-primary"
+            >
+              Done
+            </button>
+          </Card>
+        ))}
 
-      <div className="px-4 -mt-4 space-y-3 pb-6">
-        {}
-        <Card
-          as="button"
-          onClick={onNewOrder}
-          padding="md"
-          className="w-full rounded-2xl flex items-center gap-4 shadow-md active:scale-95 transition-transform"
-        >
-          <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center flex-shrink-0">
-            <ShoppingBag className="w-6 h-6 text-primary-foreground" />
-          </div>
-          <div className="text-left flex-1">
-            <p className="font-bold text-text-primary">New Order</p>
-            <p className="text-xs text-text-secondary">
-              Browse menu · select variants & modifiers
-            </p>
-          </div>
-          <ChevronRight className="w-5 h-5 text-text-disabled" />
-        </Card>
+        {billRequested
+          .filter((order) => !ready.some((item) => item.id === order.id))
+          .slice(0, 2)
+          .map((order) => (
+            <OrderCard
+              key={`bill-${order.id}`}
+              order={order}
+              onSelect={onSelectOrder}
+              variant="compact"
+            />
+          ))}
 
-        {}
-        {active.length > 0 ? (
-          <div>
-            <div className="flex items-center justify-between mb-2 px-1">
-              <p className="text-sm font-semibold text-text-secondary">
-                Active Orders
-              </p>
-              <button
-                onClick={onViewOrders}
-                className="text-xs text-primary font-medium"
-              >
-                See all
-              </button>
-            </div>
-            <div className="space-y-2">
-              {active.slice(0, 4).map((order) => (
-                <OrderCard
-                  key={order.id}
-                  order={order}
-                  onSelect={onSelectOrder}
-                  variant="compact"
-                />
-              ))}
-            </div>
-          </div>
-        ) : (
+        {!ready.length && !requests.length && !billRequested.length && (
           <Card padding="lg" className="rounded-2xl text-center">
-            <CheckCircle2 className="w-10 h-10 text-success mx-auto mb-2" />
+            <CheckCircle2 className="mx-auto mb-2 h-10 w-10 text-success" />
             <p className="text-sm font-semibold text-text-secondary">
               All caught up!
             </p>
-            <p className="text-xs text-text-disabled mt-1">
-              No active orders right now
+            <p className="mt-1 text-xs text-text-disabled">
+              Nothing needs your attention right now
             </p>
           </Card>
         )}

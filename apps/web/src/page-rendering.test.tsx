@@ -68,7 +68,23 @@ vi.mock("./features/analytics/hooks/useCostMarginReport", () => ({
   useCostMarginReport: () => ({ data: [], isLoading: false }),
 }));
 vi.mock("./features/orders/hooks/useOrders", () => ({
-  useOrders: () => ({ data: [], isLoading: false }),
+  useOrders: () => ({
+    data: [],
+    isLoading: false,
+  }),
+
+  useOrdersPage: () => ({
+    data: {
+      items: [],
+      pagination: {
+        page: 1,
+        pageSize: 20,
+        total: 0,
+        totalPages: 0,
+      },
+    },
+    isLoading: false,
+  }),
 }));
 vi.mock("./features/orders/hooks/useOrdersRealtimeSync", () => ({
   useOrdersRealtimeSync: () => undefined,
@@ -100,7 +116,8 @@ vi.mock("./features/branches/components/BranchFormModal", () => ({
 }));
 
 vi.mock("./features/inventory/hooks/useInventoryItems", () => ({
-  useInventoryItems: () => ({ data: [], isLoading: false }),
+  useInventoryItems: () => ({ data: undefined, isLoading: false }),
+  useLowStockItems: () => ({ data: [], isLoading: false }),
 }));
 vi.mock("./features/inventory/hooks/useAddInventoryItem", () => ({
   useAddInventoryItem: () => ({ mutate: vi.fn(), isPending: false }),
@@ -148,7 +165,15 @@ vi.mock("./features/tables/components/TableFormModal", () => ({
 }));
 
 vi.mock("./features/staff/hooks/useStaff", () => ({
-  useStaff: () => ({ data: [], isLoading: false }),
+  useStaff: () => ({ data: {
+  items: [],
+  pagination: {
+    page: 1,
+    pageSize: 20,
+    total: 0,
+    totalPages: 0,
+  },
+}, isLoading: false }),
 }));
 vi.mock("./features/staff/hooks/useRoles", () => ({
   useRoles: () => ({ data: [], isLoading: false }),

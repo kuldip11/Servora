@@ -82,7 +82,12 @@ describe("staff service", () => {
     findMany.mockResolvedValue([{ id: "u2" }]);
     await expect(
       staffService.list({ ...base, permissions: ["staff:read"] }),
-    ).resolves.toEqual([{ id: "u2" }]);
+    ).resolves.toEqual({
+      items: [{ id: "u2" }],
+      total: 1,
+      page: 1,
+      limit: 25,
+    });
     expect(findMany).toHaveBeenCalledWith("t1", "b1", undefined, "admin");
   });
   it("falls back to the active auth branch when branchIds are omitted", async () => {

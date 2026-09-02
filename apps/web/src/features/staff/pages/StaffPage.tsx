@@ -9,6 +9,10 @@ import {
   StatusBadge,
   Page,
   PageHeader,
+  Pagination,
+  SearchInput,
+  SelectMenu,
+  FilterBar,
   Table,
   type Column,
   type StatusTone,
@@ -41,8 +45,20 @@ export const StaffPage = () => {
   const { has } = usePermissions();
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<StaffRow | null>(null);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const pageSize = 25;
 
-  const { data: staff, isLoading } = useStaff();
+  const { data: staffResult, isLoading } = useStaff({
+    page,
+    limit: pageSize,
+    search: search.trim(),
+    status: statusFilter,
+  });
+  const staff = staffResult?.items ?? [];
+  const staffTotal = staffResult?.pagination.total ?? 0;
+  const pageCount = Math.max(1, Math.ceil(staffTotal / pageSize));
   const { data: rolesData } = useRoles();
   const { data: branches } = useBranches();
 
@@ -189,7 +205,7 @@ export const StaffPage = () => {
     <Page>
       <PageHeader
         title="Staff"
-        description={`${staff?.length ?? 0} team members`}
+        description={`${staffTotal.toLocaleString()} team members`}
         actions={
           has("staff:create") && (
             <Button onClick={() => setShowAdd(true)}>
@@ -200,10 +216,55 @@ export const StaffPage = () => {
         }
       />
 
+      <Card padding="sm">
+        <FilterBar
+          onClearAll={
+            search || statusFilter
+              ? () => {
+                  setSearch("");
+                  setStatusFilter("");
+                  setPage(1);
+                }
+              : undefined
+          }
+        >
+          <SearchInput
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setPage(1);
+            }}
+            onClear={() => {
+              setSearch("");
+              setPage(1);
+            }}
+            placeholder="Search name or email"
+            aria-label="Search staff"
+            className="w-full sm:w-72"
+          />
+          <SelectMenu
+            label="Status"
+            value={statusFilter || undefined}
+            placeholder="All statuses"
+            options={[
+              { value: "", label: "All statuses" },
+              { value: "ACTIVE", label: "Active" },
+              { value: "INACTIVE", label: "Inactive" },
+              { value: "SUSPENDED", label: "Suspended" },
+            ]}
+            onChange={(value) => {
+              setStatusFilter(value ?? "");
+              setPage(1);
+            }}
+            className="w-44"
+          />
+        </FilterBar>
+      </Card>
+
       <Card padding="none" className="overflow-hidden">
         <Table
           columns={columns}
-          data={staff ?? []}
+          data={staff}
           getRowId={(member) => member.id}
           loading={isLoading}
           emptyIcon={Users}
@@ -216,6 +277,14 @@ export const StaffPage = () => {
               </Button>
             )
           }
+        />
+        <Pagination
+          className="border-t border-border p-4"
+          page={page}
+          pageCount={pageCount}
+          totalItems={staffTotal}
+          pageSize={pageSize}
+          onPageChange={setPage}
         />
       </Card>
 

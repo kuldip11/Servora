@@ -20,6 +20,9 @@ export interface DialogProps {
   preventDismiss?: boolean | undefined;
 
   description?: string | undefined;
+  contentClassName?: string | undefined;
+  bodyClassName?: string | undefined;
+  footerClassName?: string | undefined;
 }
 
 const SIZE_CLASSES = {
@@ -47,6 +50,9 @@ export const Dialog = ({
   footer,
   preventDismiss,
   description,
+  contentClassName,
+  bodyClassName,
+  footerClassName,
 }: DialogProps) => {
   return (
     <RadixDialog.Root open={open} onOpenChange={(next) => !next && onClose()}>
@@ -63,6 +69,7 @@ export const Dialog = ({
             "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
             "w-[calc(100vw-2rem)] rounded-xl flex flex-col max-h-[85vh]",
             SIZE_CLASSES[size],
+            contentClassName,
           )}
         >
           <OverlayHeader
@@ -78,9 +85,16 @@ export const Dialog = ({
               {description}
             </RadixDialog.Description>
           )}
-          <div className="p-6 overflow-y-auto">{children}</div>
+          <div className={cn("p-6 overflow-y-auto", bodyClassName)}>
+            {children}
+          </div>
           {footer && (
-            <div className="px-6 py-4 border-t border-border shrink-0 flex justify-end gap-2">
+            <div
+              className={cn(
+                "px-6 py-4 border-t border-border shrink-0 flex justify-end gap-2",
+                footerClassName,
+              )}
+            >
               {footer}
             </div>
           )}

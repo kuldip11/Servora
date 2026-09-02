@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { OrderableMenuItem, OrderableMenuVariant } from "@pos/types";
 import type { CartItem } from "@/features/menu/types";
-import { cartItemKey, priceLabel } from "@/features/menu/utils/cart";
+import {
+  cartItemKey,
+  priceLabel,
+  replaceCartItem,
+} from "@/features/menu/utils/cart";
 
 const menuItem = (
   overrides: Partial<OrderableMenuItem> = {},
@@ -71,5 +75,37 @@ describe("cart helpers", () => {
     };
     const b: CartItem = { ...a, modifiers: [a.modifiers[1]!, a.modifiers[0]!] };
     expect(cartItemKey(a)).toBe(cartItemKey(b));
+  });
+
+  it("replaces an edited configuration and merges matching cart lines", () => {
+    const small: CartItem = {
+      menuItemId: "m1",
+      name: "Item",
+      basePrice: 10,
+      variantId: "small",
+      variantName: "Small",
+      modifiers: [],
+      quantity: 1,
+      chefNotes: "",
+      unitPrice: 10,
+    };
+    const large: CartItem = {
+      ...small,
+      variantId: "large",
+      variantName: "Large",
+      quantity: 2,
+      unitPrice: 15,
+    };
+
+    const replaced = replaceCartItem([small], cartItemKey(small), large);
+    expect(replaced).toEqual([large]);
+
+    const merged = replaceCartItem(
+      [small, { ...large, quantity: 1 }],
+      cartItemKey(small),
+      large,
+    );
+    expect(merged).toHaveLength(1);
+    expect(merged[0]?.quantity).toBe(3);
   });
 });

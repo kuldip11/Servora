@@ -30,7 +30,8 @@ describe("createOrderPayload", () => {
       },
     ];
 
-    expect(createOrderPayload(cart)).toEqual({
+    expect(createOrderPayload(cart, "DINE_IN")).toEqual({
+      fulfillmentType: "DINE_IN",
       items: [
         { menuItemId: "item-1", quantity: 2, fulfillmentType: "DINE_IN" },
       ],
@@ -51,7 +52,8 @@ describe("createOrderPayload", () => {
       },
     ];
 
-    expect(createOrderPayload(cart)).toEqual({
+    expect(createOrderPayload(cart, "TAKEAWAY")).toEqual({
+      fulfillmentType: "TAKEAWAY",
       items: [
         {
           menuItemId: "item-1",
@@ -61,7 +63,7 @@ describe("createOrderPayload", () => {
             { optionId: "a", quantity: 2 },
             { optionId: "z", quantity: 1 },
           ],
-          fulfillmentType: "DINE_IN",
+          fulfillmentType: "TAKEAWAY",
         },
       ],
     });

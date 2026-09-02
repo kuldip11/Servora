@@ -158,59 +158,62 @@ export const useCustomerCheckout = ({
     storageScope,
   ]);
 
-  const placeOrder = useCallback(async () => {
-    if (!session || (cart.length === 0 && comboCart.length === 0) || loading)
-      return;
-    try {
-      setLoading(true);
-      setError(null);
-      const regularPayload = createOrderPayload(cart);
-      const order = await createCustomerOrder(session.token, {
-        ...regularPayload,
-        ...(comboCart.length
-          ? {
-              combos: comboCart.map((line) => ({
-                comboId: line.combo.id,
-                quantity: line.quantity,
-                selections: line.selections,
-              })),
-            }
-          : {}),
-        ...(couponCode.trim() ? { couponCode: couponCode.trim() } : {}),
-        ...(loyaltyPhone.trim() ? { loyaltyPhone: loyaltyPhone.trim() } : {}),
-      });
-      setPlacedOrder(order);
+  const placeOrder = useCallback(
+    async (fulfillmentType: "DINE_IN" | "TAKEAWAY") => {
+      if (!session || (cart.length === 0 && comboCart.length === 0) || loading)
+        return;
+      try {
+        setLoading(true);
+        setError(null);
+        const regularPayload = createOrderPayload(cart, fulfillmentType);
+        const order = await createCustomerOrder(session.token, {
+          ...regularPayload,
+          ...(comboCart.length
+            ? {
+                combos: comboCart.map((line) => ({
+                  comboId: line.combo.id,
+                  quantity: line.quantity,
+                  selections: line.selections,
+                })),
+              }
+            : {}),
+          ...(couponCode.trim() ? { couponCode: couponCode.trim() } : {}),
+          ...(loyaltyPhone.trim() ? { loyaltyPhone: loyaltyPhone.trim() } : {}),
+        });
+        setPlacedOrder(order);
 
-      if (session.mode === "TAKEAWAY") {
-        await startTakeawayPayment(order);
+        if (session.mode === "TAKEAWAY") {
+          await startTakeawayPayment(order);
+        }
+
+        if (storageScope) clearPersistedCart(storageScope);
+        clearCart();
+        setCouponCode("");
+        onPlaced();
+      } catch (error) {
+        setError(
+          error instanceof Error ? error.message : "Unable to place order",
+        );
+      } finally {
+        setLoading(false);
       }
-
-      if (storageScope) clearPersistedCart(storageScope);
-      clearCart();
-      setCouponCode("");
-      onPlaced();
-    } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "Unable to place order",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [
-    cart,
-    clearCart,
-    comboCart,
-    couponCode,
-    loading,
-    loyaltyPhone,
-    onPlaced,
-    session,
-    setError,
-    setLoading,
-    setPlacedOrder,
-    startTakeawayPayment,
-    storageScope,
-  ]);
+    },
+    [
+      cart,
+      clearCart,
+      comboCart,
+      couponCode,
+      loading,
+      loyaltyPhone,
+      onPlaced,
+      session,
+      setError,
+      setLoading,
+      setPlacedOrder,
+      startTakeawayPayment,
+      storageScope,
+    ],
+  );
 
   return {
     couponCode,

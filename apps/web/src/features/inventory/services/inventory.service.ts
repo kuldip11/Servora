@@ -1,5 +1,6 @@
 import { createInventoryApi } from "@pos/api-client";
 import { apiClient } from "@/shared/lib/api-client";
+import type { InventoryListFilters, PaginatedResult } from "@pos/api-client";
 import type {
   InventoryItem,
   InventoryRecipeImpact,
@@ -27,8 +28,13 @@ export interface StockUpdateInput {
 const inventoryApi = createInventoryApi(apiClient);
 
 export const inventoryService = {
-  list(): Promise<InventoryItem[]> {
-    return inventoryApi.list();
+  list(
+    filters: InventoryListFilters = {},
+  ): Promise<PaginatedResult<InventoryItem>> {
+    return inventoryApi.list(filters);
+  },
+  lowStock(): Promise<InventoryItem[]> {
+    return inventoryApi.lowStock();
   },
   async add(input: InventoryItemFormInput): Promise<void> {
     await inventoryApi.create({

@@ -5,8 +5,16 @@ import { inventoryService } from "@/features/inventory/services/inventory.servic
 
 describe("inventoryService", () => {
   it("lists inventory", async () => {
-    api.get.mockResolvedValue({ data: { data: ["i"] } });
-    await expect(inventoryService.list()).resolves.toEqual(["i"]);
+    api.get.mockResolvedValue({
+      data: {
+        data: ["i"],
+        pagination: { page: 1, limit: 25, total: 1, hasMore: false },
+      },
+    });
+    await expect(inventoryService.list()).resolves.toEqual({
+      items: ["i"],
+      pagination: { page: 1, limit: 25, total: 1, hasMore: false },
+    });
   });
   it("loads recipe impact for an inventory item", async () => {
     const impact = {

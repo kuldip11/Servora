@@ -19,6 +19,11 @@ export const TicketHeader = ({
   const tableName = order?.table?.name;
   const orderTypeLabel = order?.type?.replace("_", " ").toLowerCase();
   const isTakeaway = order?.type === "TAKEAWAY";
+  const tableTakeaway =
+    Boolean(tableName) &&
+    ticket.items.some(
+      (item) => (item.fulfillmentType ?? "DINE_IN") === "TAKEAWAY",
+    );
 
   return (
     <div className="flex items-start justify-between">
@@ -43,7 +48,13 @@ export const TicketHeader = ({
           )}
         </p>
         <p className="text-xs text-text-secondary mt-0.5">
-          {tableName ? orderTypeLabel : isTakeaway ? "Pickup order" : null}
+          {tableName
+            ? tableTakeaway
+              ? "Takeaway · pack and deliver to table"
+              : orderTypeLabel
+            : isTakeaway
+              ? "Pickup order"
+              : null}
         </p>
       </div>
       <div className="text-right">

@@ -41,6 +41,9 @@ const customerComboOrder = t.Object({
 });
 
 export const createCustomerOrderBody = t.Object({
+  fulfillmentType: t.Optional(
+    t.Union([t.Literal("DINE_IN"), t.Literal("TAKEAWAY")]),
+  ),
   items: t.Optional(t.Array(customerOrderItem, { minItems: 1, maxItems: 100 })),
   combos: t.Optional(
     t.Array(customerComboOrder, { minItems: 1, maxItems: 50 }),

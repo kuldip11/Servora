@@ -59,11 +59,41 @@ export class AppError extends Error {
 
   static unwrap(error: unknown): AppError | undefined {
     const seen = new Set<unknown>();
-    let current = error;
-    while (current && typeof current === "object" && !seen.has(current)) {
+    const pending: unknown[] = [error];
+    while (pending.length) {
+      const current = pending.shift();
+      if (!current || typeof current !== "object" || seen.has(current))
+        continue;
       if (current instanceof AppError) return current;
+      // Runtime adapters may wrap or clone thrown errors, which breaks
+      // `instanceof` even though the complete application-error shape remains.
+      // Rehydrate that shape so intended 4xx statuses never degrade to 500.
+      const candidate = current as Record<string, unknown>;
+      if (
+        typeof candidate["statusCode"] === "number" &&
+        candidate["statusCode"] >= 400 &&
+        candidate["statusCode"] <= 599 &&
+        typeof candidate["code"] === "string" &&
+        Object.values(ErrorCode).includes(candidate["code"] as ErrorCode) &&
+        typeof candidate["message"] === "string"
+      ) {
+        return new AppError(
+          {
+            code: candidate["code"] as ErrorCode,
+            message: candidate["message"],
+            details:
+              candidate["details"] && typeof candidate["details"] === "object"
+                ? (candidate["details"] as Record<string, unknown>)
+                : undefined,
+          },
+          candidate["statusCode"],
+        );
+      }
       seen.add(current);
-      current = "cause" in current ? (current as { cause?: unknown }).cause : undefined;
+      for (const key of ["cause", "error", "original", "value"] as const) {
+        if (key in current)
+          pending.push((current as Record<string, unknown>)[key]);
+      }
     }
     return undefined;
   }

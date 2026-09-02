@@ -1,5 +1,6 @@
 export const orderKeys = {
   all: ["orders"] as const,
+  list: (filters: object) => ["orders", filters] as const,
   detail: (id: string) => ["order", id] as const,
 };
 

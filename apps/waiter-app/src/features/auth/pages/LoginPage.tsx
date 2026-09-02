@@ -28,24 +28,26 @@ export const LoginPage = ({ onLogin }: Props) => {
           </p>
         </div>
       </div>
-      <div className="bg-surface rounded-t-3xl px-6 pt-8 pb-10 shadow-2xl">
-        {auth.step === "credentials" ? (
-          <LoginForm
-            onSubmit={auth.submitCredentials}
-            loading={auth.isLoading}
-          />
-        ) : auth.step === "membership" ? (
-          <MembershipSelector
-            memberships={auth.memberships}
-            onSelect={auth.selectMembership}
-          />
-        ) : (
-          <BranchSelector
-            branches={auth.branches}
-            onSelect={auth.selectBranchForMembership}
-            onBack={auth.resetToCredentials}
-          />
-        )}
+      <div className="rounded-t-3xl bg-surface px-6 pb-10 pt-8 shadow-2xl">
+        <div className="mx-auto w-full max-w-md">
+          {auth.step === "credentials" ? (
+            <LoginForm
+              onSubmit={auth.submitCredentials}
+              loading={auth.isLoading}
+            />
+          ) : auth.step === "membership" ? (
+            <MembershipSelector
+              memberships={auth.memberships}
+              onSelect={auth.selectMembership}
+            />
+          ) : (
+            <BranchSelector
+              branches={auth.branches}
+              onSelect={auth.selectBranchForMembership}
+              onBack={auth.resetToCredentials}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

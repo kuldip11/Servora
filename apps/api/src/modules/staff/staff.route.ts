@@ -1,4 +1,4 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { requireAuthPlugin } from "@/core/auth";
 import { staffController } from "./staff.controller";
 import {
@@ -9,7 +9,14 @@ import {
 
 export const staffRouter = new Elysia()
   .use(requireAuthPlugin())
-  .get("/api/staff/", ({ auth }) => staffController.list(auth))
+  .get("/api/staff/", ({ auth, query }) => staffController.list(auth, query), {
+    query: t.Object({
+      page: t.Optional(t.Integer({ minimum: 1 })),
+      limit: t.Optional(t.Integer({ minimum: 1, maximum: 100 })),
+      search: t.Optional(t.String({ maxLength: 100 })),
+      status: t.Optional(t.String()),
+    }),
+  })
   .post(
     "/api/staff/",
     ({ auth, body, set }) => {
