@@ -1,4 +1,4 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { requireAuthPlugin } from "@/core/auth";
 import { inventoryController } from "./inventory.controller";
 import {
@@ -14,7 +14,18 @@ export const inventoryRouter = new Elysia()
 
   .use(requireAuthPlugin())
 
-  .get("/api/inventory/items", ({ auth }) => inventoryController.list(auth))
+  .get(
+    "/api/inventory/items",
+    ({ auth, query }) => inventoryController.list(auth, query),
+    {
+      query: t.Object({
+        page: t.Optional(t.Integer({ minimum: 1 })),
+        limit: t.Optional(t.Integer({ minimum: 1, maximum: 100 })),
+        search: t.Optional(t.String({ maxLength: 100 })),
+        lowStockOnly: t.Optional(t.BooleanString()),
+      }),
+    },
+  )
   .post(
     "/api/inventory/items",
     ({ auth, body, set }) => {

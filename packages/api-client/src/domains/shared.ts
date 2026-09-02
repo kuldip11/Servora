@@ -1,5 +1,5 @@
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
-import type { ApiResponse } from "@pos/types";
+import type { ApiResponse, PaginatedResponse } from "@pos/types";
 
 export type DomainHttpClient = Pick<
   AxiosInstance,
@@ -24,6 +24,23 @@ export async function getDomainData<T>(
       ? await client.get<ApiResponse<T>>(url)
       : await client.get<ApiResponse<T>>(url, config),
   );
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  pagination: PaginatedResponse<T>["pagination"];
+}
+
+export async function getPaginatedDomainData<T>(
+  client: DomainHttpClient,
+  url: string,
+  config?: AxiosRequestConfig,
+): Promise<PaginatedResult<T>> {
+  const response =
+    config === undefined
+      ? await client.get<PaginatedResponse<T>>(url)
+      : await client.get<PaginatedResponse<T>>(url, config);
+  return { items: response.data.data, pagination: response.data.pagination };
 }
 
 export async function postDomainData<T>(

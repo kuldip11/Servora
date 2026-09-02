@@ -19,11 +19,19 @@ const input = {
 
 describe("staffService", () => {
   it("lists, adds, removes and updates staff", async () => {
-    api.get.mockResolvedValue({ data: { data: ["s"] } });
+    api.get.mockResolvedValue({
+      data: {
+        data: ["s"],
+        pagination: { page: 1, limit: 25, total: 1, hasMore: false },
+      },
+    });
     api.post.mockResolvedValue({});
     api.patch.mockResolvedValue({});
     api.delete.mockResolvedValue({});
-    await expect(staffService.list()).resolves.toEqual(["s"]);
+    await expect(staffService.list()).resolves.toEqual({
+      items: ["s"],
+      pagination: { page: 1, limit: 25, total: 1, hasMore: false },
+    });
     await staffService.add(input);
     await staffService.remove("s1");
     await staffService.updateStatus("s1", "ACTIVE");

@@ -3,10 +3,13 @@ import { staffService } from "./services/staff.service";
 import { rolesService } from "./services/roles.service";
 import { staffKeys, roleKeys } from "./query-keys";
 
-export const staffListQuery = () => {
+import type { StaffListFilters } from "@pos/api-client";
+
+export const staffListQuery = (filters: StaffListFilters = {}) => {
+  const hasFilters = Object.keys(filters).length > 0;
   return queryOptions({
-    queryKey: staffKeys.list(),
-    queryFn: staffService.list,
+    queryKey: hasFilters ? [...staffKeys.list(), filters] : staffKeys.list(),
+    queryFn: () => staffService.list(filters),
   });
 };
 

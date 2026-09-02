@@ -3,6 +3,7 @@ const { tx, db } = vi.hoisted(() => {
   const tx: any = { insert: vi.fn(), select: vi.fn(), update: vi.fn() };
   const db: any = {
     transaction: vi.fn(async (fn: any) => fn(tx)),
+    select: vi.fn(),
     query: { orders: { findFirst: vi.fn(), findMany: vi.fn() } },
   };
   return { tx, db };
@@ -34,6 +35,11 @@ const item = {
 beforeEach(() => {
   vi.resetAllMocks();
   db.transaction.mockImplementation(async (fn: any) => fn(tx));
+  db.select.mockReturnValue({
+    from: vi.fn().mockReturnValue({
+      where: vi.fn().mockResolvedValue([{ total: 0 }]),
+    }),
+  });
   tx.query = {
     menuItemVariants: { findFirst: vi.fn().mockResolvedValue(undefined) },
     menuItems: {
@@ -130,7 +136,7 @@ describe("order repository", () => {
     db.query.orders.findMany.mockResolvedValue([]);
     await expect(
       orderRepository.findMany("t1", "b1", { status: "OPEN", type: "DINE_IN" }),
-    ).resolves.toEqual([]);
+    ).resolves.toEqual({ items: [], total: 0, page: 1, limit: 25 });
     tx.select.mockReturnValue({
       from: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue([]) }),
     });

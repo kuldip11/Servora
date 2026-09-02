@@ -62,25 +62,12 @@ export const CustomerApp = () => {
 
   const visibleItems = useMemo(() => {
     const query = search.trim().toLowerCase();
-    const selectedCategory = categories.find((item) => item.name === category);
-    const popularItems = menu.filter((item) =>
-      item.tagLinks.some((tag) => tag.tag.name.toLowerCase() === "popular"),
-    );
-    return menu.filter((item, index) => {
-      const categoryMatch =
-        category === "Popular"
-          ? popularItems.length
-            ? item.tagLinks.some(
-                (tag) => tag.tag.name.toLowerCase() === "popular",
-              )
-            : index < 6
-          : item.categoryId === selectedCategory?.id;
-      const searchMatch =
+    return menu.filter(
+      (item) =>
         !query ||
-        `${item.name} ${item.description ?? ""}`.toLowerCase().includes(query);
-      return categoryMatch && searchMatch;
-    });
-  }, [menu, categories, category, search]);
+        `${item.name} ${item.description ?? ""}`.toLowerCase().includes(query),
+    );
+  }, [menu, search]);
 
   const handleMenu = useCallback(() => setView("menu"), []);
   const handleCart = useCallback(() => setView("cart"), []);

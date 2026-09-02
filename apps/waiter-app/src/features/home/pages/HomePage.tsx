@@ -27,7 +27,7 @@ export const HomePage = ({
   onViewOrders,
   onSelectOrder,
 }: Props) => {
-  const { data: orders } = useOrders();
+  const { data: orders } = useOrders({ view: "ACTIVE", limit: 100 });
   const [requests, setRequests] = useState<
     Array<{ id: string; tableId: string; type: string; status: string }>
   >([]);

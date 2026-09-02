@@ -22,7 +22,8 @@ type IngredientDraft = {
 export const SubRecipeManager = () => {
   const queryClient = useQueryClient();
   const { data: subRecipes } = useSubRecipes();
-  const { data: inventory } = useInventoryItems();
+  const { data: inventoryPage } = useInventoryItems({ limit: 100 });
+  const inventory = inventoryPage?.items;
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [yieldQuantity, setYieldQuantity] = useState("1");
@@ -140,7 +141,8 @@ export const SubRecipeManager = () => {
                 {row.yieldQuantity} {row.yieldUnit}
                 {row.yieldPercent ? ` · ${row.yieldPercent}% yield` : ""}
               </span>
-              <button type="button"
+              <button
+                type="button"
                 aria-label={`Delete ${row.name}`}
                 onClick={() => remove.mutate(row.id)}
                 className="text-text-disabled hover:text-danger"
@@ -292,7 +294,8 @@ export const SubRecipeManager = () => {
                     </option>
                   ))}
                 </select>
-                <button type="button"
+                <button
+                  type="button"
                   onClick={() =>
                     setIngredients((prev) => prev.filter((_, i) => i !== index))
                   }

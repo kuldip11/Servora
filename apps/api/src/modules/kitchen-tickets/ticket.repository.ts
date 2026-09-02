@@ -1,7 +1,7 @@
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, isNull, or } from "drizzle-orm";
 import type { KitchenTicketStatus } from "@pos/types";
 import { db } from "@/db";
-import { kitchenTickets } from "@/db/schema";
+import { kitchenTickets, orderItems } from "@/db/schema";
 import type { TicketTimestampPatch } from "./ticket-status.machine";
 
 function projectStation<
@@ -28,6 +28,12 @@ export const ticketRepository = {
       with: {
         course: true,
         items: {
+          where: stationId
+            ? or(
+                isNull(orderItems.stationId),
+                eq(orderItems.stationId, stationId),
+              )
+            : undefined,
           with: { modifiers: true, station: true, comboSlotOption: true },
         },
         order: { with: { table: true } },

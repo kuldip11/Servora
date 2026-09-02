@@ -9,7 +9,13 @@ import type {
   CreateInventoryItemInput,
   UpdateInventoryStockInput,
 } from "@pos/validation";
-import { getDomainData, postDomainData, type DomainHttpClient } from "./shared";
+import {
+  getDomainData,
+  getPaginatedDomainData,
+  postDomainData,
+  type DomainHttpClient,
+  type PaginatedResult,
+} from "./shared";
 
 export interface LogWasteInput {
   quantity: number;
@@ -17,10 +23,33 @@ export interface LogWasteInput {
   notes?: string;
 }
 
+export interface InventoryListFilters {
+  page?: number;
+  limit?: number;
+  search?: string;
+  lowStockOnly?: boolean;
+}
+
 export const createInventoryApi = (client: DomainHttpClient) => {
   return {
-    list(): Promise<InventoryItem[]> {
-      return getDomainData<InventoryItem[]>(client, "/inventory/items");
+    list(
+      filters: InventoryListFilters = {},
+    ): Promise<PaginatedResult<InventoryItem>> {
+      const params: Record<string, string> = {
+        page: String(filters.page ?? 1),
+        limit: String(filters.limit ?? 25),
+      };
+      if (filters.search) params["search"] = filters.search;
+      if (filters.lowStockOnly) params["lowStockOnly"] = "true";
+      return getPaginatedDomainData<InventoryItem>(client, "/inventory/items", {
+        params,
+      });
+    },
+    lowStock(): Promise<InventoryItem[]> {
+      return getDomainData<InventoryItem[]>(
+        client,
+        "/inventory/alerts/low-stock",
+      );
     },
     create(input: CreateInventoryItemInput): Promise<InventoryItem> {
       return postDomainData<InventoryItem>(client, "/inventory/items", input);

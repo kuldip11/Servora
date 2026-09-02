@@ -1,5 +1,5 @@
 import { usePermissions } from "@/shared/auth/permissions";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Plus, Eye, ShoppingBag } from "lucide-react";
 import {
@@ -13,6 +13,7 @@ import {
   Toolbar,
   Page,
   Card,
+  Pagination,
   type Column,
   type SortState,
   BUTTON_VARIANT_CLASSES,
@@ -22,7 +23,7 @@ import {
   getOrderStatusColor,
   getOrderStatusLabel,
 } from "@/shared/utils/order-status";
-import { useOrders } from "@/features/orders/hooks/useOrders";
+import { useOrdersPage } from "@/features/orders/hooks/useOrders";
 import { useOrdersRealtimeSync } from "@/features/orders/hooks/useOrdersRealtimeSync";
 import { CreateOrderModal } from "@/features/orders/components/CreateOrderModal";
 import type { Order } from "@pos/types";
@@ -56,20 +57,33 @@ export const OrdersPage = () => {
   const [typeFilter, setTypeFilter] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [sort, setSort] = useState<SortState | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const { data: orders, isLoading } = useOrders({
+  useEffect(() => {
+    const timer = window.setTimeout(
+      () => setDebouncedSearch(search.trim()),
+      300,
+    );
+    return () => window.clearTimeout(timer);
+  }, [search]);
+
+  const {
+    data: result,
+    isLoading,
+    isFetching,
+  } = useOrdersPage({
     status: statusFilter,
     type: typeFilter,
+    search: debouncedSearch,
+    page,
+    limit: pageSize,
   });
   useOrdersRealtimeSync();
-
-  const filtered = useMemo(
-    () =>
-      orders?.filter(
-        (o) => !search || o.id.toLowerCase().includes(search.toLowerCase()),
-      ) ?? [],
-    [orders, search],
-  );
+  const orders = result?.items ?? [];
+  const total = result?.pagination.total ?? 0;
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
   const hasActiveFilters =
     search !== "" || statusFilter !== "" || typeFilter !== "";
@@ -190,12 +204,18 @@ export const OrdersPage = () => {
   );
 
   return (
-    <Page>
-      <Card padding="none">
+    <Page
+      contained={false}
+      className="mx-auto h-full min-h-0 w-full max-w-screen-xl overflow-hidden px-4 py-4 sm:px-6 lg:px-8"
+    >
+      <Card
+        padding="none"
+        className="flex min-h-0 flex-1 flex-col overflow-hidden"
+      >
         <div className="p-md border-b border-border">
           <Toolbar
             title="Orders"
-            subtitle={`${orders?.length ?? 0} total orders`}
+            subtitle={`${total.toLocaleString()} total orders`}
             actions={
               has("orders:create") && (
                 <Button onClick={() => setShowCreate(true)}>
@@ -213,6 +233,7 @@ export const OrdersPage = () => {
                     setSearch("");
                     setStatusFilter("");
                     setTypeFilter("");
+                    setPage(1);
                   }
                 : undefined
             }
@@ -220,37 +241,50 @@ export const OrdersPage = () => {
             <SearchInput
               placeholder="Search order ID..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onClear={() => setSearch("")}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              onClear={() => {
+                setSearch("");
+                setPage(1);
+              }}
               className="max-w-xs"
             />
             <SelectMenu
               label="Status filter"
               options={ORDER_STATUS_OPTIONS}
               value={statusFilter}
-              onChange={(v) => setStatusFilter(v ?? "")}
+              onChange={(v) => {
+                setStatusFilter(v ?? "");
+                setPage(1);
+              }}
               className="w-44"
             />
             <SelectMenu
               label="Order type filter"
               options={ORDER_TYPE_OPTIONS}
               value={typeFilter}
-              onChange={(v) => setTypeFilter(v ?? "")}
+              onChange={(v) => {
+                setTypeFilter(v ?? "");
+                setPage(1);
+              }}
               className="w-40"
             />
           </FilterBar>
         </div>
 
-        <div className="p-md">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-md">
           <DataGrid
             columns={columns}
-            data={filtered}
+            data={orders}
             getRowId={(row) => row.id}
-            loading={isLoading}
+            loading={isLoading || (isFetching && orders.length === 0)}
             sort={sort}
             onSortChange={setSort}
             rowHeight={52}
-            maxHeight="640px"
+            maxHeight="100%"
+            className="min-h-0 flex-1"
             emptyIcon={ShoppingBag}
             emptyTitle="No orders found"
             emptyDescription="Create a new order or adjust your filters."
@@ -259,6 +293,18 @@ export const OrdersPage = () => {
                 <Plus className="w-4 h-4" /> New Order
               </Button>
             }
+          />
+          <Pagination
+            className="border-t border-border px-2 pt-4 mt-4"
+            page={page}
+            pageCount={pageCount}
+            totalItems={total}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={(next) => {
+              setPageSize(next);
+              setPage(1);
+            }}
           />
         </div>
       </Card>

@@ -1,4 +1,4 @@
-import { memo, useCallback } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Spinner } from "@pos/ui";
 import type { CartItem } from "@/features/menu/types";
 import { cartItemKey } from "@/features/menu/utils/cart";
@@ -54,6 +54,23 @@ export const MenuGrid = ({
   onItemTap,
   onQtyChange,
 }: Props) => {
+  const [visibleCount, setVisibleCount] = useState(24);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => setVisibleCount(24), [items, menuSearch]);
+  useEffect(() => {
+    const node = sentinelRef.current;
+    if (!node || visibleCount >= items.length) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting)
+          setVisibleCount((current) => Math.min(items.length, current + 24));
+      },
+      { rootMargin: "300px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [items.length, visibleCount]);
+  const visibleItems = items.slice(0, visibleCount);
   return (
     <div className="scrollbar-hidden flex-1 overflow-y-auto px-3.5 pb-28 pt-2.5">
       {isLoading ? (
@@ -68,7 +85,7 @@ export const MenuGrid = ({
         </p>
       ) : (
         <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-3 xl:grid-cols-4">
-          {items.map((item) => {
+          {visibleItems.map((item) => {
             const cartQty = cart
               .filter((c) => c.menuItemId === item.id)
               .reduce((s, c) => s + c.quantity, 0);
@@ -87,6 +104,14 @@ export const MenuGrid = ({
               />
             );
           })}
+        </div>
+      )}
+      {visibleCount < items.length && (
+        <div
+          ref={sentinelRef}
+          className="py-5 text-center text-xs text-text-secondary"
+        >
+          Loading more menu items…
         </div>
       )}
     </div>

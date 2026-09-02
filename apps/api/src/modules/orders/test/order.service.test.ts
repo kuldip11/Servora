@@ -277,10 +277,20 @@ beforeEach(() => {
 
 describe("order service", () => {
   it("enforces list/get authorization and resource scope", async () => {
-    findMany.mockResolvedValue([{ id: "o1" }]);
+    findMany.mockResolvedValue({
+      items: [{ id: "o1" }],
+      total: 1,
+      page: 1,
+      limit: 25,
+    });
     await expect(
       orderService.list(auth(), { status: "OPEN" }),
-    ).resolves.toEqual([{ id: "o1" }]);
+    ).resolves.toEqual({
+      items: [{ id: "o1" }],
+      total: 1,
+      page: 1,
+      limit: 25,
+    });
     findById.mockResolvedValue(undefined);
     await expect(orderService.getById(auth(), "o1")).rejects.toThrow(
       "Order with id o1 not found",

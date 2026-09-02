@@ -1,5 +1,9 @@
 import type { AuthContext } from "@/core/auth";
-import { successResponse, createdResponse } from "@/core/response";
+import {
+  successResponse,
+  createdResponse,
+  paginatedResponse,
+} from "@/core/response";
 import {
   staffService,
   type CreateStaffInput,
@@ -7,9 +11,21 @@ import {
 } from "./staff.service";
 
 export const staffController = {
-  async list(auth: AuthContext) {
-    const staffList = await staffService.list(auth);
-    return successResponse(staffList);
+  async list(
+    auth: AuthContext,
+    filters: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      status?: string;
+    } = {},
+  ) {
+    const result = await staffService.list(auth, filters);
+    return paginatedResponse(result.items, {
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+    });
   },
 
   async create(auth: AuthContext, input: CreateStaffInput) {

@@ -23,12 +23,18 @@ beforeEach(() => {
 });
 describe("staff controller", () => {
   it("delegates list/create/update and uses response envelopes", async () => {
-    list.mockResolvedValue([{ id: "m1" }]);
+    list.mockResolvedValue({
+      items: [{ id: "m1" }],
+      total: 1,
+      page: 1,
+      limit: 25,
+    });
     create.mockResolvedValue({ id: "m1" });
     update.mockResolvedValue({ id: "m1", firstName: "New" });
     expect(await staffController.list(auth)).toEqual({
       success: true,
       data: [{ id: "m1" }],
+      pagination: { page: 1, limit: 25, total: 1, hasMore: false },
     });
     expect(
       await staffController.create(auth, { firstName: "A" } as any),
@@ -36,7 +42,7 @@ describe("staff controller", () => {
     expect(
       await staffController.update(auth, "u2", { firstName: "New" }),
     ).toEqual({ success: true, data: { id: "m1", firstName: "New" } });
-    expect(list).toHaveBeenCalledWith(auth);
+    expect(list).toHaveBeenCalledWith(auth, {});
     expect(create).toHaveBeenCalledWith(auth, { firstName: "A" });
     expect(update).toHaveBeenCalledWith(auth, "u2", { firstName: "New" });
   });

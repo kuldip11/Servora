@@ -44,7 +44,9 @@ const validateRole = async (auth: AuthContext, roleId: string) => {
   const role = await staffRepository.findRoleById(roleId, auth.tenantId);
   if (!role) throw new ValidationError("Invalid role");
   if (role.scope === "GLOBAL") {
-    throw new ForbiddenError("Global roles cannot be assigned from a franchise");
+    throw new ForbiddenError(
+      "Global roles cannot be assigned from a franchise",
+    );
   }
   if (role.scope === "TENANT" && !auth.tenantWide) {
     throw new ForbiddenError(
@@ -76,14 +78,41 @@ const validateBranches = async (auth: AuthContext, branchIds: string[]) => {
 };
 
 export const staffService = {
-  async list(auth: AuthContext) {
+  async list(
+    auth: AuthContext,
+    filters: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      status?: string;
+    } = {},
+  ) {
     requirePermission(auth, "staff:read");
-    return staffRepository.findMany(
+    const rows = await staffRepository.findMany(
       auth.tenantId,
       auth.branchId,
       auth.tenantWide ? undefined : auth.authorizedBranchIds,
       auth.userId,
     );
+    const search = filters.search?.trim().toLowerCase();
+    const filtered = rows.filter((member) => {
+      const matchesSearch =
+        !search ||
+        `${member.firstName ?? ""} ${member.lastName ?? ""} ${member.email ?? ""}`
+          .toLowerCase()
+          .includes(search);
+      return (
+        matchesSearch && (!filters.status || member.status === filters.status)
+      );
+    });
+    const page = Math.max(1, filters.page ?? 1);
+    const limit = Math.min(100, Math.max(1, filters.limit ?? 25));
+    return {
+      items: filtered.slice((page - 1) * limit, page * limit),
+      total: filtered.length,
+      page,
+      limit,
+    };
   },
 
   async create(auth: AuthContext, input: CreateStaffInput) {
@@ -255,8 +284,7 @@ export const staffService = {
     const roles = await staffRepository.findAllRoles(auth.tenantId);
     return roles.filter(
       (role) =>
-        role.scope !== "GLOBAL" &&
-        (auth.tenantWide || role.scope === "BRANCH"),
+        role.scope !== "GLOBAL" && (auth.tenantWide || role.scope === "BRANCH"),
     );
   },
 };

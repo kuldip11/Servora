@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { Card, Page, PageHeader, Badge } from "@pos/ui";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { Card, Page, PageHeader, Badge, Button } from "@pos/ui";
 import { ShieldCheck } from "lucide-react";
 import { auditService } from "@/features/audit/services/audit.service";
 import { useState } from "react";
@@ -27,23 +27,46 @@ const formatMetadata = (metadata: string | null) => {
 export const AuditLogPage = () => {
   const [entityType, setEntityType] = useState("");
   const [changeType, setChangeType] = useState("");
+  const pageSize = 50;
   const {
-    data = [],
+    data: auditPages,
     isLoading,
     isError,
-  } = useQuery({
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: ["audit", "list"],
-    queryFn: () => auditService.list(100),
+    initialPageParam: undefined as string | undefined,
+    queryFn: ({ pageParam }) => auditService.list(pageSize, pageParam),
+    getNextPageParam: (lastPage) =>
+      lastPage.length === pageSize
+        ? lastPage[lastPage.length - 1]?.createdAt
+        : undefined,
   });
-  const { data: menuHistory = [], isLoading: menuHistoryLoading } = useQuery({
+  const {
+    data: menuPages,
+    isLoading: menuHistoryLoading,
+    hasNextPage: hasMoreMenuHistory,
+    fetchNextPage: fetchMoreMenuHistory,
+    isFetchingNextPage: isFetchingMoreMenuHistory,
+  } = useInfiniteQuery({
     queryKey: ["audit", "menu-history", entityType, changeType],
-    queryFn: () =>
+    initialPageParam: undefined as string | undefined,
+    queryFn: ({ pageParam }) =>
       auditService.menuHistory({
         ...(entityType ? { entityType } : {}),
         ...(changeType ? { changeType } : {}),
-        limit: 100,
+        ...(pageParam ? { before: pageParam } : {}),
+        limit: pageSize,
       }),
+    getNextPageParam: (lastPage) =>
+      lastPage.length === pageSize
+        ? lastPage[lastPage.length - 1]?.changedAt
+        : undefined,
   });
+  const data = auditPages?.pages.flat() ?? [];
+  const menuHistory = menuPages?.pages.flat() ?? [];
 
   return (
     <Page>
@@ -112,6 +135,17 @@ export const AuditLogPage = () => {
                 </span>
               </div>
             ))}
+            {hasNextPage && (
+              <div className="flex justify-center pt-4">
+                <Button
+                  variant="secondary"
+                  loading={isFetchingNextPage}
+                  onClick={() => fetchNextPage()}
+                >
+                  Load older activity
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </Card>
@@ -189,6 +223,17 @@ export const AuditLogPage = () => {
                 </pre>
               </div>
             ))}
+            {hasMoreMenuHistory && (
+              <div className="flex justify-center pt-4">
+                <Button
+                  variant="secondary"
+                  loading={isFetchingMoreMenuHistory}
+                  onClick={() => fetchMoreMenuHistory()}
+                >
+                  Load older menu changes
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </Card>

@@ -29,12 +29,21 @@ const auth = {
 
 describe("order controller", () => {
   it("wraps list, detail, and inventory responses", async () => {
-    list.mockResolvedValue([{ id: "o1" }]);
+    list.mockResolvedValue({
+      items: [{ id: "o1" }],
+      total: 1,
+      page: 1,
+      limit: 25,
+    });
     getById.mockResolvedValue({ id: "o1" });
     getInventoryImpact.mockResolvedValue([{ item: "x" }]);
     await expect(
       orderController.list(auth, { status: "OPEN" }),
-    ).resolves.toEqual({ success: true, data: [{ id: "o1" }] });
+    ).resolves.toEqual({
+      success: true,
+      data: [{ id: "o1" }],
+      pagination: { total: 1, page: 1, limit: 25, hasMore: false },
+    });
     await expect(orderController.getById(auth, "o1")).resolves.toEqual({
       success: true,
       data: { id: "o1" },

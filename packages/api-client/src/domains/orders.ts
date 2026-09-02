@@ -8,14 +8,20 @@ import type {
 } from "@pos/validation";
 import {
   getDomainData,
+  getPaginatedDomainData,
   patchDomainData,
   postDomainData,
   type DomainHttpClient,
+  type PaginatedResult,
 } from "./shared";
 
 export interface OrdersListFilters {
   status?: string;
   type?: string;
+  search?: string;
+  view?: "READY" | "ACTIVE" | "ALL";
+  page?: number;
+  limit?: number;
 }
 
 export interface OrderAdjustmentReason {
@@ -26,13 +32,15 @@ export interface OrderAdjustmentReason {
 
 export const createOrdersApi = (client: DomainHttpClient) => {
   return {
-    list(filters: OrdersListFilters = {}): Promise<Order[]> {
+    list(filters: OrdersListFilters = {}): Promise<PaginatedResult<Order>> {
       const params: Record<string, string> = {};
       if (filters.status) params["status"] = filters.status;
       if (filters.type) params["type"] = filters.type;
-      return Object.keys(params).length
-        ? getDomainData<Order[]>(client, "/orders", { params })
-        : getDomainData<Order[]>(client, "/orders");
+      if (filters.search) params["search"] = filters.search;
+      if (filters.view && filters.view !== "ALL") params["view"] = filters.view;
+      params["page"] = String(filters.page ?? 1);
+      params["limit"] = String(filters.limit ?? 25);
+      return getPaginatedDomainData<Order>(client, "/orders", { params });
     },
     get(orderId: string): Promise<Order> {
       return getDomainData<Order>(client, `/orders/${orderId}`);

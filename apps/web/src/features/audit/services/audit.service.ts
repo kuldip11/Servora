@@ -25,8 +25,8 @@ export interface MenuHistoryEntry {
 }
 
 export const auditService = {
-  async list(limit = 50): Promise<AuditEntry[]> {
-    return auditApi.list<AuditEntry[]>({ limit });
+  async list(limit = 50, before?: string): Promise<AuditEntry[]> {
+    return auditApi.list<AuditEntry[]>({ limit, before });
   },
   async menuHistory(
     filters: {
@@ -34,6 +34,7 @@ export const auditService = {
       changeType?: string;
       entityId?: string;
       limit?: number;
+      before?: string;
     } = {},
   ): Promise<MenuHistoryEntry[]> {
     return auditApi.menuHistory<MenuHistoryEntry[]>(filters);

@@ -1,4 +1,15 @@
-import { eq, and, desc, asc, sql, inArray, gte, isNull } from "drizzle-orm";
+import {
+  eq,
+  and,
+  desc,
+  asc,
+  sql,
+  inArray,
+  gte,
+  isNull,
+  exists,
+  count,
+} from "drizzle-orm";
 import type { OrderStatus, OrderType } from "@pos/types";
 import { db } from "@/db";
 import { DomainRuleError } from "@/core/errors";
@@ -380,28 +391,64 @@ export const orderRepository = {
   async findMany(
     tenantId: string,
     branchId: string | null | undefined,
-    filters?: { status?: string | undefined; type?: string | undefined },
+    filters?: {
+      status?: string | undefined;
+      type?: string | undefined;
+      search?: string | undefined;
+      view?: "READY" | "ACTIVE" | "ALL" | undefined;
+      page?: number | undefined;
+      limit?: number | undefined;
+    },
   ) {
-    return db.query.orders.findMany({
-      where: and(
-        eq(orders.tenantId, tenantId),
-        branchId ? eq(orders.branchId, branchId) : undefined,
-        filters?.status
-          ? eq(orders.status, filters.status as OrderStatus)
-          : undefined,
-        filters?.type ? eq(orders.type, filters.type as OrderType) : undefined,
-      ),
-      with: {
-        items: true,
-        kitchenTickets: {
-          columns: { id: true, status: true, ticketNumber: true },
+    const page = Math.max(1, filters?.page ?? 1);
+    const limit = Math.min(100, Math.max(1, filters?.limit ?? 25));
+    const search = filters?.search?.trim();
+    const where = and(
+      eq(orders.tenantId, tenantId),
+      branchId ? eq(orders.branchId, branchId) : undefined,
+      filters?.status
+        ? eq(orders.status, filters.status as OrderStatus)
+        : undefined,
+      filters?.type ? eq(orders.type, filters.type as OrderType) : undefined,
+      search
+        ? sql`${orders.id}::text ILIKE ${`%${search.replace(/^#/, "")}%`}`
+        : undefined,
+      filters?.view === "ACTIVE"
+        ? inArray(orders.status, ["OPEN", "BILL_REQUESTED"])
+        : undefined,
+      filters?.view === "READY"
+        ? exists(
+            db
+              .select({ value: sql`1` })
+              .from(kitchenTickets)
+              .where(
+                and(
+                  eq(kitchenTickets.orderId, orders.id),
+                  eq(kitchenTickets.status, "READY"),
+                ),
+              ),
+          )
+        : undefined,
+    );
+    const [rows, totals] = await Promise.all([
+      db.query.orders.findMany({
+        where,
+        with: {
+          items: true,
+          kitchenTickets: {
+            columns: { id: true, status: true, ticketNumber: true },
+          },
+          table: true,
+          createdByUser: true,
+          payments: true,
         },
-        table: true,
-        createdByUser: true,
-        payments: true,
-      },
-      orderBy: desc(orders.createdAt),
-    });
+        orderBy: desc(orders.createdAt),
+        limit,
+        offset: (page - 1) * limit,
+      }),
+      db.select({ total: count() }).from(orders).where(where),
+    ]);
+    return { items: rows, total: totals[0]?.total ?? 0, page, limit };
   },
 
   async updateStatus(

@@ -17,13 +17,37 @@ import type {
 } from "./inventory.types";
 
 export const inventoryStockService = {
-  async list(auth: AuthContext) {
+  async list(
+    auth: AuthContext,
+    filters: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      lowStockOnly?: boolean;
+    } = {},
+  ) {
     requireInventoryPermission(auth, "inventory:read");
-    if (auth.tenantWide && !auth.branchId) {
-      return inventoryRepository.findAllBranches(auth.tenantId);
-    }
-    const branchId = resolveInventoryBranch(auth);
-    return inventoryRepository.findMany(auth.tenantId, branchId);
+    const rows =
+      auth.tenantWide && !auth.branchId
+        ? await inventoryRepository.findAllBranches(auth.tenantId)
+        : await inventoryRepository.findMany(
+            auth.tenantId,
+            resolveInventoryBranch(auth),
+          );
+    const search = filters.search?.trim().toLowerCase();
+    const filtered = rows.filter((item) => {
+      const matchesSearch = !search || item.name.toLowerCase().includes(search);
+      const lowStock = Number(item.currentStock) <= Number(item.minimumStock);
+      return matchesSearch && (!filters.lowStockOnly || lowStock);
+    });
+    const page = Math.max(1, filters.page ?? 1);
+    const limit = Math.min(100, Math.max(1, filters.limit ?? 25));
+    return {
+      items: filtered.slice((page - 1) * limit, page * limit),
+      total: filtered.length,
+      page,
+      limit,
+    };
   },
 
   async create(auth: AuthContext, input: CreateInventoryItemInput) {
