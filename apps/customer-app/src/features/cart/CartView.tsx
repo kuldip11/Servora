@@ -4,12 +4,13 @@ import {
   ChevronRight,
   Clock3,
   Minus,
+  PackageCheck,
   Plus,
   ShoppingBag,
   Tag,
   Utensils,
 } from "lucide-react";
-import { Button, EmptyState, IconButton, TextInput } from "@pos/ui";
+import { Button, Dialog, EmptyState, IconButton, TextInput } from "@pos/ui";
 import type { CartLine } from "./pricing";
 import type { ComboCartLine } from "./combo";
 import { getLineSubtotal } from "./pricing";
@@ -44,7 +45,6 @@ export const CartView = memo(function CartView({
   onBack,
   onChange,
   onComboChange,
-  onFulfillmentChange,
   onEdit,
   onPlace,
   couponCode,
@@ -63,9 +63,8 @@ export const CartView = memo(function CartView({
   onBack: () => void;
   onChange: (index: number, delta: number) => void;
   onComboChange: (index: number, delta: number) => void;
-  onFulfillmentChange: (index: number, value: "DINE_IN" | "TAKEAWAY") => void;
   onEdit: (index: number) => void;
-  onPlace: () => void;
+  onPlace: (fulfillmentType: "DINE_IN" | "TAKEAWAY") => void;
   couponCode: string;
   onCouponCodeChange: (value: string) => void;
   loyaltyPhone: string;
@@ -75,6 +74,7 @@ export const CartView = memo(function CartView({
   const [rewardsOpen, setRewardsOpen] = useState(
     Boolean(couponCode || loyaltyPhone),
   );
+  const [fulfillmentOpen, setFulfillmentOpen] = useState(false);
   const empty = cart.length === 0 && combos.length === 0;
 
   return (
@@ -207,28 +207,6 @@ export const CartView = memo(function CartView({
                           {choices}
                         </p>
                       )}
-                      {mode === "DINE_IN" && (
-                        <div className="mt-2 inline-flex rounded-full bg-surface-secondary p-0.5 text-[10px] font-bold">
-                          <button
-                            type="button"
-                            className={`rounded-full px-2.5 py-1 ${line.fulfillmentType === "DINE_IN" ? "bg-surface text-text-primary shadow-sm" : "text-text-secondary"}`}
-                            onClick={() =>
-                              onFulfillmentChange(index, "DINE_IN")
-                            }
-                          >
-                            Eat here
-                          </button>
-                          <button
-                            type="button"
-                            className={`rounded-full px-2.5 py-1 ${line.fulfillmentType === "TAKEAWAY" ? "bg-surface text-text-primary shadow-sm" : "text-text-secondary"}`}
-                            onClick={() =>
-                              onFulfillmentChange(index, "TAKEAWAY")
-                            }
-                          >
-                            Takeaway
-                          </button>
-                        </div>
-                      )}
                       <button
                         type="button"
                         onClick={() => onEdit(index)}
@@ -344,25 +322,85 @@ export const CartView = memo(function CartView({
               className="mb-2 text-center text-[10px] text-text-secondary"
             >
               {mode === "DINE_IN"
-                ? "Sent directly to the kitchen · Pay when you're finished"
+                ? "Choose dine-in or takeaway next · Your table tab stays open"
                 : "Secure payment is completed before kitchen confirmation"}
             </p>
             <Button
               aria-describedby="order-note"
               disabled={loading}
               loading={loading}
-              onClick={onPlace}
+              onClick={() =>
+                mode === "DINE_IN"
+                  ? setFulfillmentOpen(true)
+                  : onPlace("TAKEAWAY")
+              }
               size="lg"
               className="h-14 w-full rounded-2xl"
             >
-              {mode === "TAKEAWAY"
-                ? "Continue to payment"
-                : "Send order to kitchen"}{" "}
+              {mode === "TAKEAWAY" ? "Continue to payment" : "Place order"}{" "}
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
       )}
+      <Dialog
+        open={fulfillmentOpen}
+        onClose={() => setFulfillmentOpen(false)}
+        title="How should we prepare this order?"
+        description="Choose one preparation method for every item in this round."
+        size="md"
+        contentClassName="customer-dialog overflow-hidden rounded-[24px]"
+        bodyClassName="p-0"
+      >
+        <div className="customer-experience space-y-3 bg-background p-5 text-text-primary sm:p-6">
+          <p className="mb-4 text-sm leading-6 text-text-secondary">
+            This choice applies to all items in this order. You can choose
+            differently the next time you order.
+          </p>
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => {
+              setFulfillmentOpen(false);
+              onPlace("DINE_IN");
+            }}
+            className="flex w-full items-start gap-4 rounded-2xl border border-border bg-surface p-4 text-left transition hover:border-primary hover:bg-primary-surface disabled:opacity-50"
+          >
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground">
+              <Utensils className="h-5 w-5" />
+            </span>
+            <span>
+              <strong className="block text-base">Dine in</strong>
+              <span className="mt-1 block text-xs leading-5 text-text-secondary">
+                Serve everything normally at Table {table}.
+              </span>
+            </span>
+          </button>
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => {
+              setFulfillmentOpen(false);
+              onPlace("TAKEAWAY");
+            }}
+            className="flex w-full items-start gap-4 rounded-2xl border border-border bg-surface p-4 text-left transition hover:border-[#d45d24] hover:bg-[#fff1e8] disabled:opacity-50 dark:hover:bg-[#3a2419]"
+          >
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#d45d24] text-white">
+              <PackageCheck className="h-5 w-5" />
+            </span>
+            <span>
+              <strong className="block text-base">Pack for takeaway</strong>
+              <span className="mt-1 block text-xs leading-5 text-text-secondary">
+                Pack this round, deliver it to Table {table}, and keep it on the
+                same table bill.
+              </span>
+            </span>
+          </button>
+          <p className="pt-1 text-center text-[11px] leading-5 text-text-secondary">
+            Your table remains open until you request the bill.
+          </p>
+        </div>
+      </Dialog>
     </div>
   );
 });

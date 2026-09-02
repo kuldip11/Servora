@@ -48,6 +48,7 @@ export type CustomerOrder = {
 };
 
 export type CreateCustomerOrderInput = {
+  fulfillmentType?: "DINE_IN" | "TAKEAWAY";
   items?: Array<{
     menuItemId: string;
     variantId?: string;

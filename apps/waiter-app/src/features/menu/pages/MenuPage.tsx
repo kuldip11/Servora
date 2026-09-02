@@ -589,7 +589,7 @@ export const MenuPage = ({ onBack, onOrderPlaced, existingOrderId }: Props) => {
 
   return (
     <div
-      className={`${isAddingToExisting ? "h-screen" : "h-full"} relative flex flex-col bg-background`}
+      className={`${isAddingToExisting ? "waiter-shell h-screen" : "h-full"} relative flex flex-col bg-background`}
     >
       {isAddingToExisting && (
         <div className="flex items-center gap-3 border-b border-border bg-surface px-4 py-3 safe-area-top">

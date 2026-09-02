@@ -70,7 +70,8 @@
     display: none;
   }
 
-  .customer-sheet {
+  .customer-sheet,
+  .customer-dialog {
     --background: #f6f1e7;
     --surface: #fffdf8;
     --surface-secondary: #eee9de;
@@ -86,7 +87,8 @@
     border-radius: 28px 28px 0 0;
   }
 
-  [data-theme="dark"] .customer-sheet {
+  [data-theme="dark"] .customer-sheet,
+  [data-theme="dark"] .customer-dialog {
     --background: #101612;
     --surface: #18201b;
     --surface-secondary: #202a23;

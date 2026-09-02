@@ -54,8 +54,6 @@ export const useCustomerCart = ({
     string | undefined
   >();
   const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
-  const [selectedFulfillmentType, setSelectedFulfillmentType] =
-    useState<FulfillmentType>(sessionMode);
   const [selectedQuantity, setSelectedQuantity] = useState(1);
   const [editingCartIndex, setEditingCartIndex] = useState<number | null>(null);
 
@@ -92,7 +90,6 @@ export const useCustomerCart = ({
         item.variants.length === 1 ? item.variants[0]?.id : undefined,
       );
       setSelectedOptions([]);
-      setSelectedFulfillmentType(sessionMode);
       setSelectedQuantity(1);
       setEditingCartIndex(null);
       clearError();
@@ -104,7 +101,6 @@ export const useCustomerCart = ({
     setSelectedItem(null);
     setSelectedVariantId(undefined);
     setSelectedOptions([]);
-    setSelectedFulfillmentType(sessionMode);
     setSelectedQuantity(1);
     setEditingCartIndex(null);
   }, [sessionMode]);
@@ -116,7 +112,6 @@ export const useCustomerCart = ({
       setSelectedItem(line.item);
       setSelectedVariantId(line.variantId);
       setSelectedOptions(line.selectedOptions);
-      setSelectedFulfillmentType(line.fulfillmentType);
       setSelectedQuantity(line.quantity);
       setEditingCartIndex(index);
       clearError();
@@ -229,8 +224,7 @@ export const useCustomerCart = ({
       quantity: selectedQuantity,
       ...(selectedVariantId ? { variantId: selectedVariantId } : {}),
       selectedOptions: normalizeSelectedOptions(selectedOptions),
-      fulfillmentType:
-        sessionMode === "TAKEAWAY" ? "TAKEAWAY" : selectedFulfillmentType,
+      fulfillmentType: sessionMode,
     };
     setCart((current) => {
       if (editingCartIndex != null && current[editingCartIndex]) {
@@ -252,7 +246,6 @@ export const useCustomerCart = ({
     canAddSelectedItem,
     closeItem,
     editingCartIndex,
-    selectedFulfillmentType,
     selectedItem,
     selectedOptions,
     selectedQuantity,
@@ -369,17 +362,6 @@ export const useCustomerCart = ({
     [setCart],
   );
 
-  const changeFulfillment = useCallback(
-    (index: number, value: FulfillmentType) => {
-      setCart((current) =>
-        current.map((line, currentIndex) =>
-          currentIndex === index ? { ...line, fulfillmentType: value } : line,
-        ),
-      );
-    },
-    [setCart],
-  );
-
   const clearCart = useCallback(() => {
     setCart([]);
     setComboCart([]);
@@ -392,13 +374,11 @@ export const useCustomerCart = ({
     selectedItem,
     selectedVariantId,
     selectedOptions,
-    selectedFulfillmentType,
     selectedQuantity,
     editingCartIndex,
     menuById,
     summary,
     setSelectedVariantId,
-    setSelectedFulfillmentType,
     setSelectedQuantity,
     openItem,
     openCartItem,
@@ -412,7 +392,6 @@ export const useCustomerCart = ({
     addSelectedCombo,
     changeComboQuantity,
     changeQuantity,
-    changeFulfillment,
     clearCart,
   };
 };

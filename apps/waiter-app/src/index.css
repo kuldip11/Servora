@@ -63,6 +63,10 @@
 }
 
 @layer components {
+  .waiter-shell {
+    @apply mx-auto w-full max-w-[1180px];
+  }
+
   .waiter-priority-strip {
     background: #173c2a;
   }

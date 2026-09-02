@@ -68,7 +68,7 @@ const AppLayout = ({ children }: { children?: ReactNode }) => {
   useWaiterAttention();
 
   return (
-    <div className="flex h-screen flex-col bg-background shadow-sm">
+    <div className="waiter-shell flex h-screen flex-col bg-background shadow-sm">
       <header className="flex items-center justify-between gap-3 border-b border-divider bg-surface px-[18px] pb-3.5 pt-[18px] safe-area-top">
         <div className="min-w-0">
           <p className="flex items-center gap-1.5 text-[11px] font-medium text-text-secondary">

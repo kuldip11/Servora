@@ -25,9 +25,6 @@ type Props = {
   ) => void;
   onClose: () => void;
   onAdd: () => void;
-  fulfillmentType: "DINE_IN" | "TAKEAWAY";
-  onFulfillmentTypeChange: (value: "DINE_IN" | "TAKEAWAY") => void;
-  allowMixedFulfillment: boolean;
   quantity: number;
   onQuantityChange: (quantity: number) => void;
   editing?: boolean;
@@ -42,9 +39,6 @@ export const ItemCustomization = memo(function ItemCustomization({
   onOptionQuantity,
   onClose,
   onAdd,
-  fulfillmentType,
-  onFulfillmentTypeChange,
-  allowMixedFulfillment,
   quantity,
   onQuantityChange,
   editing = false,
@@ -65,7 +59,7 @@ export const ItemCustomization = memo(function ItemCustomization({
     quantity,
     ...(variantId ? { variantId } : {}),
     selectedOptions,
-    fulfillmentType,
+    fulfillmentType: "DINE_IN",
   });
 
   return (
@@ -360,39 +354,6 @@ export const ItemCustomization = memo(function ItemCustomization({
             </fieldset>
           ))}
 
-        {allowMixedFulfillment ? (
-          <fieldset>
-            <legend className="mb-3 font-bold text-text-primary">
-              Fulfilment
-            </legend>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                className={`rounded-2xl border p-4 text-left ${fulfillmentType === "DINE_IN" ? "border-primary bg-primary-surface" : "border-border bg-surface"}`}
-                onClick={() => onFulfillmentTypeChange("DINE_IN")}
-              >
-                <span className="block font-medium text-text-primary">
-                  Eat here
-                </span>
-                <span className="text-xs text-text-secondary">
-                  Serve at the table
-                </span>
-              </button>
-              <button
-                type="button"
-                className={`rounded-2xl border p-4 text-left ${fulfillmentType === "TAKEAWAY" ? "border-primary bg-primary-surface" : "border-border bg-surface"}`}
-                onClick={() => onFulfillmentTypeChange("TAKEAWAY")}
-              >
-                <span className="block font-medium text-text-primary">
-                  Takeaway
-                </span>
-                <span className="text-xs text-text-secondary">
-                  Pack for takeaway
-                </span>
-              </button>
-            </div>
-          </fieldset>
-        ) : null}
         {validationError && (
           <p role="alert" className="text-sm text-danger">
             {validationError}

@@ -189,9 +189,6 @@ export const CustomerApp = () => {
 
       {cartState.selectedItem && (
         <ItemCustomization
-          allowMixedFulfillment={session.mode === "DINE_IN"}
-          fulfillmentType={cartState.selectedFulfillmentType}
-          onFulfillmentTypeChange={cartState.setSelectedFulfillmentType}
           item={cartState.selectedItem}
           selectedOptions={cartState.selectedOptions}
           {...(cartState.selectedVariantId
@@ -220,7 +217,6 @@ export const CustomerApp = () => {
           onBack={handleMenu}
           onChange={cartState.changeQuantity}
           onComboChange={cartState.changeComboQuantity}
-          onFulfillmentChange={cartState.changeFulfillment}
           onEdit={cartState.openCartItem}
           onPlace={checkout.placeOrder}
           couponCode={checkout.couponCode}
