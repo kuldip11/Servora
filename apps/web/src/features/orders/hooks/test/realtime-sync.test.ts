@@ -48,10 +48,9 @@ describe("order realtime synchronization", () => {
       ["orders", "o1"],
       created,
     );
-    const listUpdater = queryClient.setQueryData.mock.calls.find(
-      (call) => call[0] === listQueryKey,
-    )?.[1] as (current: (typeof created)[] | undefined) => unknown;
-    expect(listUpdater([])).toEqual([created]);
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["orders", "list"],
+    });
 
     handlers.get("order.updated")?.({
       type: "order.updated",

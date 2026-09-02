@@ -102,6 +102,12 @@ export const compOrderItemBody = voidOrderItemBody;
 export const orderListQuery = t.Object({
   status: t.Optional(t.String()),
   type: t.Optional(t.String()),
+  search: t.Optional(t.String({ maxLength: 100 })),
+  view: t.Optional(
+    t.Union([t.Literal("READY"), t.Literal("ACTIVE"), t.Literal("ALL")]),
+  ),
+  page: t.Optional(t.Integer({ minimum: 1 })),
+  limit: t.Optional(t.Integer({ minimum: 1, maximum: 100 })),
 });
 
 export const refireOrderItemBody = t.Object({

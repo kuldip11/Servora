@@ -11,7 +11,14 @@ import { orderRepository } from "./order.repository";
 export const orderQueryService = {
   async list(
     auth: AuthContext,
-    filters?: { status?: string | undefined; type?: string | undefined },
+    filters?: {
+      status?: string | undefined;
+      type?: string | undefined;
+      search?: string | undefined;
+      view?: "READY" | "ACTIVE" | "ALL" | undefined;
+      page?: number | undefined;
+      limit?: number | undefined;
+    },
   ) {
     requireOrdersPermission(auth, "orders:read");
     assertOrderListScope(auth);

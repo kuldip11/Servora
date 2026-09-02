@@ -1,4 +1,4 @@
-import { queryOptions } from "@tanstack/react-query";
+import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import {
   ordersService,
   type OrdersListFilters,
@@ -9,6 +9,7 @@ export const ordersListQuery = (filters: OrdersListFilters) => {
   return queryOptions({
     queryKey: orderKeys.list(filters),
     queryFn: () => ordersService.list(filters),
+    placeholderData: keepPreviousData,
   });
 };
 

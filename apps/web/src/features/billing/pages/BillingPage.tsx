@@ -9,12 +9,13 @@ import {
   Modal,
   Page,
   PageHeader,
+  Pagination,
   Select,
   Table,
   type Column,
 } from "@pos/ui";
 import { formatCurrency, formatTime } from "@/shared/utils/format";
-import { useOrders } from "@/features/orders/hooks/useOrders";
+import { useOrdersPage } from "@/features/orders/hooks/useOrders";
 import { useCollectPayment } from "@/features/billing/hooks/useCollectPayment";
 import type { Bill, Order } from "@pos/types";
 import { createPaymentSchema } from "@pos/validation";
@@ -135,6 +136,8 @@ const BillItemSummary = ({
 };
 
 export const BillingPage = () => {
+  const [page, setPage] = useState(1);
+  const pageSize = 25;
   const [payModal, setPayModal] = useState<Order | null>(null);
   const [payForm, setPayForm] = useState({
     method: "CASH",
@@ -152,9 +155,14 @@ export const BillingPage = () => {
   const [selectedBillId, setSelectedBillId] = useState("");
   const { has } = usePermissions();
 
-  const { data: billableOrders, isLoading } = useOrders({
+  const { data: billableResult, isLoading } = useOrdersPage({
     status: "BILL_REQUESTED",
+    page,
+    limit: pageSize,
   });
+  const billableOrders = billableResult?.items ?? [];
+  const billableTotal = billableResult?.pagination.total ?? 0;
+  const pageCount = Math.max(1, Math.ceil(billableTotal / pageSize));
   const payMutation = useCollectPayment();
   const { data: orderBills = [] } = useQuery<Bill[]>({
     queryKey: ["billing", "order", payModal?.id],
@@ -343,21 +351,37 @@ export const BillingPage = () => {
   ];
 
   return (
-    <Page>
+    <Page
+      contained={false}
+      className="mx-auto h-full min-h-0 w-full max-w-screen-xl overflow-hidden px-4 py-4 sm:px-6 lg:px-8"
+    >
       <PageHeader
         title="Billing"
         description="Process payments for tabs where the bill has been requested"
       />
 
-      <Card padding="none" className="overflow-hidden">
+      <Card
+        padding="none"
+        className="flex min-h-0 flex-1 flex-col overflow-hidden"
+      >
         <Table
           columns={columns}
-          data={billableOrders ?? []}
+          data={billableOrders}
           getRowId={(order) => order.id}
           loading={isLoading}
           emptyIcon={Receipt}
           emptyTitle="No pending payments"
           emptyDescription="Tabs will appear here once the waiter requests the bill."
+          maxHeight="100%"
+          className="min-h-0 flex-1"
+        />
+        <Pagination
+          className="border-t border-border p-4"
+          page={page}
+          pageCount={pageCount}
+          totalItems={billableTotal}
+          pageSize={pageSize}
+          onPageChange={setPage}
         />
       </Card>
 

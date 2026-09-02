@@ -1,5 +1,9 @@
 import type { AuthContext } from "@/core/auth";
-import { successResponse, createdResponse } from "@/core/response";
+import {
+  successResponse,
+  createdResponse,
+  paginatedResponse,
+} from "@/core/response";
 import {
   inventoryService,
   type CreateInventoryItemInput,
@@ -7,9 +11,21 @@ import {
 } from "./inventory.service";
 
 export const inventoryController = {
-  async list(auth: AuthContext) {
-    const items = await inventoryService.list(auth);
-    return successResponse(items);
+  async list(
+    auth: AuthContext,
+    filters: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      lowStockOnly?: boolean;
+    } = {},
+  ) {
+    const result = await inventoryService.list(auth, filters);
+    return paginatedResponse(result.items, {
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+    });
   },
 
   async create(auth: AuthContext, input: CreateInventoryItemInput) {

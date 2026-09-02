@@ -36,7 +36,8 @@ export const RecipeBuilder = ({ item }: { item: MenuItem }) => {
   const [rows, setRows] = useState<Row[]>([]);
   const [dirty, setDirty] = useState(false);
   const { data: recipe, isLoading } = useMenuItemRecipe(itemId);
-  const { data: inventoryItems } = useInventoryItems();
+  const { data: inventoryPage } = useInventoryItems({ limit: 100 });
+  const inventoryItems = inventoryPage?.items;
   const { data: subRecipes } = useSubRecipes();
   const saveMutation = useSaveRecipe(itemId);
   const modifierOptions = (item.modifierGroupLinks ?? []).flatMap((link) =>

@@ -144,6 +144,67 @@ let app = new Elysia()
       };
     }
     return { status: "ready", checks, timestamp: new Date().toISOString() };
+  })
+  // Error hooks must be registered before route plugins so failures from route
+  // handlers and scoped auth derives inherit the shared status-code mapper.
+  .onError((context) => {
+    const { code, error, set } = context;
+    const requestContext =
+      "requestContext" in context
+        ? (context as unknown as { requestContext?: RequestContext })
+            .requestContext
+        : undefined;
+
+    const appError = AppError.unwrap(error);
+    if (appError) {
+      rootLogger.warn(`API Error: ${appError.code}`, {
+        requestId: requestContext?.requestId,
+        statusCode: appError.statusCode,
+        message: appError.message,
+        details: appError.details,
+      });
+      set.status = appError.statusCode;
+      return appError.toJSON();
+    }
+
+    rootLogger.error(
+      `Unhandled API error: ${code}`,
+      error instanceof Error ? error : undefined,
+      { requestId: requestContext?.requestId },
+    );
+
+    if (code === "VALIDATION") {
+      set.status = 400;
+      return {
+        success: false,
+        code: "VALIDATION_ERROR",
+        message: "Invalid request data",
+        details: error.message,
+      };
+    }
+    if (code === "NOT_FOUND") {
+      set.status = 404;
+      return { success: false, code: "NOT_FOUND", message: "Route not found" };
+    }
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      (error as { code?: unknown }).code === "23505"
+    ) {
+      set.status = 409;
+      return {
+        success: false,
+        code: "CONFLICT",
+        message: "The requested resource conflicts with an existing record",
+      };
+    }
+    set.status = 500;
+    return {
+      success: false,
+      code: "INTERNAL_ERROR",
+      message: "Internal server error",
+    };
   }) as unknown as WidenedElysia;
 
 app = app
@@ -194,71 +255,6 @@ app = app
   .use(razorpayWebhookRouter)
   .use(realtimeRouter)
   .use(customerRealtimeRouter) as unknown as WidenedElysia;
-
-app = app.onError((context) => {
-  const { code, error, set } = context;
-  const requestContext =
-    "requestContext" in context
-      ? (context as unknown as { requestContext?: RequestContext })
-          .requestContext
-      : undefined;
-
-  const appError = AppError.unwrap(error);
-  if (appError) {
-    rootLogger.warn(`API Error: ${appError.code}`, {
-      requestId: requestContext?.requestId,
-      statusCode: appError.statusCode,
-      message: appError.message,
-      details: appError.details,
-    });
-    set.status = appError.statusCode;
-    return appError.toJSON();
-  }
-
-  rootLogger.error(
-    `Unhandled API error: ${code}`,
-    error instanceof Error ? error : undefined,
-    {
-      requestId: requestContext?.requestId,
-    },
-  );
-
-  if (code === "VALIDATION") {
-    set.status = 400;
-    return {
-      success: false,
-      code: "VALIDATION_ERROR",
-      message: "Invalid request data",
-      details: error.message,
-    };
-  }
-
-  if (code === "NOT_FOUND") {
-    set.status = 404;
-    return { success: false, code: "NOT_FOUND", message: "Route not found" };
-  }
-
-  if (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: unknown }).code === "23505"
-  ) {
-    set.status = 409;
-    return {
-      success: false,
-      code: "CONFLICT",
-      message: "The requested resource conflicts with an existing record",
-    };
-  }
-
-  set.status = 500;
-  return {
-    success: false,
-    code: "INTERNAL_ERROR",
-    message: "Internal server error",
-  };
-}) as unknown as WidenedElysia;
 
 const port = env.PORT;
 

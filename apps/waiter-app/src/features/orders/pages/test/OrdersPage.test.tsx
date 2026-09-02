@@ -2,11 +2,14 @@ import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 vi.mock("../../hooks/useOrders", () => ({
-  useOrders: vi.fn(() => ({
-    data: [],
+  useInfiniteOrders: vi.fn(() => ({
+    data: { pages: [{ items: [], pagination: { total: 0 } }] },
     isLoading: false,
     refetch: vi.fn(),
     isFetching: false,
+    hasNextPage: false,
+    fetchNextPage: vi.fn(),
+    isFetchingNextPage: false,
   })),
 }));
 import { OrdersPage } from "@/features/orders/pages/OrdersPage";

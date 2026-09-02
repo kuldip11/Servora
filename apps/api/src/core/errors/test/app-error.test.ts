@@ -62,4 +62,18 @@ describe("AppError hierarchy", () => {
     expect(AppError.isAppError(new Error("x"))).toBe(false);
     expect(AppError.isAppError({ code: ErrorCode.FORBIDDEN })).toBe(false);
   });
+
+  it("recovers the status from runtime-wrapped and cloned errors", () => {
+    const recovered = AppError.unwrap({
+      cause: undefined,
+      error: {
+        name: "UnauthorizedError",
+        statusCode: 401,
+        code: "UNAUTHORIZED",
+        message: "Invalid or expired token",
+      },
+    });
+    expect(recovered?.statusCode).toBe(401);
+    expect(recovered?.code).toBe(ErrorCode.UNAUTHORIZED);
+  });
 });

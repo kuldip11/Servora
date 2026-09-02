@@ -1,4 +1,9 @@
-import { createBillingApi, createOrdersApi } from "@pos/api-client";
+import {
+  createBillingApi,
+  createOrdersApi,
+  type OrdersListFilters,
+  type PaginatedResult,
+} from "@pos/api-client";
 import { apiClient } from "@/shared/lib/api-client";
 import type { CancellationReason, Order } from "@pos/types";
 import {
@@ -32,8 +37,10 @@ export interface AddOrderComboInput {
   selections: Array<{ slotId: string; optionIds: string[] }>;
 }
 
-export const fetchOrders = async (): Promise<Order[]> => {
-  return ordersApi.list();
+export const fetchOrders = async (
+  filters: OrdersListFilters = {},
+): Promise<PaginatedResult<Order>> => {
+  return ordersApi.list(filters);
 };
 
 export const fetchOrder = async (orderId: string): Promise<Order> => {

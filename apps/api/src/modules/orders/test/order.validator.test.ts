@@ -35,7 +35,16 @@ describe("order validators", () => {
     expect(Value.Check(orderIdParams, { id: "o1" })).toBe(true);
     expect(Value.Check(orderIdParams, {})).toBe(false);
     expect(
-      Value.Check(orderListQuery, { status: "OPEN", type: "DINE_IN" }),
+      Value.Check(orderListQuery, {
+        status: "OPEN",
+        type: "DINE_IN",
+        view: "ACTIVE",
+        search: "ABC123",
+        page: 2,
+        limit: 50,
+      }),
     ).toBe(true);
+    expect(Value.Check(orderListQuery, { page: 0, limit: 101 })).toBe(false);
+    expect(Value.Check(orderListQuery, { view: "UNKNOWN" })).toBe(false);
   });
 });
