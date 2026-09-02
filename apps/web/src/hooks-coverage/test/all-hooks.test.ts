@@ -12,6 +12,7 @@ vi.mock("@tanstack/react-query", () => ({
   useMutation: vi.fn((config: unknown) => config),
   useQuery: vi.fn((config: unknown) => config),
   queryOptions: vi.fn((config: unknown) => config),
+  keepPreviousData: vi.fn((previousData: unknown) => previousData),
 }));
 
 vi.mock("../../shared/lib/query-client", () => ({
