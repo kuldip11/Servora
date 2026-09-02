@@ -17,14 +17,12 @@ import { useOrders } from "@/features/orders/hooks/useOrders";
 import { OrderCard } from "@/features/orders/components/OrderCard";
 
 interface Props {
-  waiterName: string;
   onNewOrder: () => void;
   onViewOrders: () => void;
   onSelectOrder: (id: string) => void;
 }
 
 export const HomePage = ({
-  waiterName,
   onNewOrder,
   onViewOrders,
   onSelectOrder,
@@ -80,11 +78,12 @@ export const HomePage = ({
     tableId.length <= 8 ? tableId : tableId.slice(-4).toUpperCase();
 
   return (
-    <div className="h-full overflow-y-auto px-4 pb-6 pt-4">
-      <p className="text-sm text-text-secondary">Good evening,</p>
-      <h1 className="text-2xl font-semibold text-text-primary">{waiterName}</h1>
+    <div className="mx-auto h-full w-full max-w-2xl overflow-y-auto px-3.5 pb-6 pt-3.5 md:px-6 md:pt-6">
+      <h1 className="text-[22px] font-medium text-text-primary">
+        Good evening
+      </h1>
 
-      <div className="mt-4 grid grid-cols-3 overflow-hidden rounded-2xl bg-primary text-primary-foreground">
+      <div className="waiter-priority-strip mt-3.5 grid grid-cols-3 overflow-hidden rounded-[18px] text-white">
         {[
           [ready.length, "Ready now"],
           [requests.length, "Requests"],
@@ -94,10 +93,8 @@ export const HomePage = ({
             key={String(label)}
             className={`px-2 py-4 text-center ${index ? "border-l border-primary-foreground/15" : ""}`}
           >
-            <strong className="block text-2xl font-semibold">{value}</strong>
-            <span className="text-[11px] text-primary-foreground/75">
-              {label}
-            </span>
+            <strong className="block text-[22px] font-medium">{value}</strong>
+            <span className="text-[11px] text-white/80">{label}</span>
           </div>
         ))}
       </div>
@@ -105,13 +102,13 @@ export const HomePage = ({
       <button
         type="button"
         onClick={onNewOrder}
-        className="mt-3 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary font-semibold text-primary-foreground shadow-sm active:scale-[0.98]"
+        className="mt-3 flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-primary font-medium text-primary-foreground shadow-sm active:scale-[0.98]"
       >
         <ShoppingBag className="h-5 w-5" /> Start new order
       </button>
 
       <div className="mb-2 mt-6 flex items-center justify-between px-1">
-        <h2 className="text-sm font-semibold text-text-primary">
+        <h2 className="text-sm font-medium text-text-primary">
           Needs attention
         </h2>
         {active.length > 0 && (

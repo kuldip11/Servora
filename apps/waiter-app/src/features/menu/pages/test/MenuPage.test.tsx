@@ -77,8 +77,10 @@ const renderPage = (props: React.ComponentProps<typeof MenuPage>) => {
 describe("MenuPage", () => {
   it("renders menu shell and available item", () => {
     const html = renderPage({ onBack: vi.fn(), onOrderPlaced: vi.fn() });
-    expect(html).toContain("New order");
+    expect(html).toContain("Set order details");
     expect(html).toContain("Burger");
+    expect(html).toContain("md:grid-cols-[minmax(0,1fr)_320px]");
+    expect(html).toContain("Current order");
   });
 
   it("renders existing-order mode", () => {

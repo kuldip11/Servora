@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
-import { IconButton, toast } from "@pos/ui";
+import { IconButton, SelectMenu, toast } from "@pos/ui";
 import { useRealtimeEvent } from "@/shared/lib/realtime";
 import { useCreateOrder } from "@/features/orders/hooks/useCreateOrder";
 import { useAddOrderItems } from "@/features/orders/hooks/useAddOrderItems";
@@ -21,12 +21,13 @@ import type {
 } from "@/features/menu/combo";
 import { comboLineKey, estimateComboSubtotal } from "@/features/menu/combo";
 import { addOrderItemsSchema, createOrderSchema } from "@pos/validation";
-import { cartItemKey } from "@/features/menu/utils/cart";
+import { cartItemKey, replaceCartItem } from "@/features/menu/utils/cart";
 import { ItemCustomiser } from "@/features/menu/components/ItemCustomiser";
 import { SearchBar } from "@/features/menu/components/SearchBar";
 import { CategoryTabs } from "@/features/menu/components/CategoryTabs";
 import { MenuGrid } from "@/features/menu/components/MenuGrid";
 import { OrderOptionsPanel } from "@/features/menu/components/OrderOptionsPanel";
+import { TabletOrderRail } from "@/features/menu/components/TabletOrderRail";
 import { CartSummary } from "@/features/menu/components/CartSummary";
 import { ComboCustomiser } from "@/features/menu/components/ComboCustomiser";
 import { apiClient } from "@/shared/lib/api-client";
@@ -89,6 +90,8 @@ export const MenuPage = ({ onBack, onOrderPlaced, existingOrderId }: Props) => {
   const [showCart, setShowCart] = useState(false);
   const [customising, setCustomising] = useState<{
     item: OrderableMenuItem;
+    existingCartItem?: CartItem;
+    originalKey?: string;
   } | null>(null);
   const [customerSearch, setCustomerSearch] = useState("");
   const [menuSearch, setMenuSearch] = useState("");
@@ -278,6 +281,38 @@ export const MenuPage = ({ onBack, onOrderPlaced, existingOrderId }: Props) => {
       return [...prev, newItem];
     });
     toast({ title: `${newItem.name} added`, tone: "success", duration: 1000 });
+  }
+
+  function confirmCustomisedItem(newItem: CartItem) {
+    const originalKey = customising?.originalKey;
+    if (!originalKey) {
+      addOrIncrementItem(newItem);
+      return;
+    }
+
+    setCart((previous) => replaceCartItem(previous, originalKey, newItem));
+    toast({
+      title: `${newItem.name} updated`,
+      tone: "success",
+      duration: 1000,
+    });
+  }
+
+  function editCartItem(key: string) {
+    const existingCartItem = cart.find((item) => cartItemKey(item) === key);
+    if (!existingCartItem) return;
+    const menuItem = allItems.find(
+      (item) => item.id === existingCartItem.menuItemId,
+    );
+    if (!menuItem) {
+      toast({
+        title: "This menu item is no longer available to edit",
+        tone: "danger",
+      });
+      return;
+    }
+    setShowCart(false);
+    setCustomising({ item: menuItem, existingCartItem, originalKey: key });
   }
 
   function updateQty(key: string, delta: number) {
@@ -553,26 +588,28 @@ export const MenuPage = ({ onBack, onOrderPlaced, existingOrderId }: Props) => {
   const needsTable = !isAddingToExisting && orderType === "DINE_IN" && !tableId;
 
   return (
-    <div className="flex h-screen flex-col bg-background">
-      <div className="flex items-center gap-3 border-b border-border bg-surface px-4 py-3 safe-area-top">
-        <IconButton
-          icon={ArrowLeft}
-          aria-label="Close menu"
-          size="lg"
-          onClick={onBack}
-          className="h-10 w-10 rounded-xl bg-surface-secondary"
-        />
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-lg font-semibold text-text-primary">
-            {isAddingToExisting ? "Add to order" : "New order"}
-          </h1>
-          <p className="text-xs text-text-secondary">
-            {isAddingToExisting
-              ? "Choose items for the next round"
-              : "Set the table, then add items"}
-          </p>
+    <div
+      className={`${isAddingToExisting ? "waiter-shell h-screen" : "h-full"} relative flex flex-col bg-background`}
+    >
+      {isAddingToExisting && (
+        <div className="flex items-center gap-3 border-b border-border bg-surface px-4 py-3 safe-area-top">
+          <IconButton
+            icon={ArrowLeft}
+            aria-label="Close menu"
+            size="lg"
+            onClick={onBack}
+            className="h-10 w-10 rounded-xl bg-surface-secondary"
+          />
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-lg font-medium text-text-primary">
+              Add to order
+            </h1>
+            <p className="text-xs text-text-secondary">
+              Choose items for the next round
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {}
       {!isAddingToExisting && (
@@ -617,92 +654,107 @@ export const MenuPage = ({ onBack, onOrderPlaced, existingOrderId }: Props) => {
         />
       )}
 
-      {}
-      <div className="border-b border-border bg-background">
-        {activeMenus.length > 1 && (
-          <div className="px-4 pt-3">
-            <label className="block text-xs font-medium text-text-secondary">
-              Menu
-              <select
-                className="mt-1 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary"
-                value={selectedMenuId}
-                onChange={(event) => {
-                  setSelectedMenuId(event.target.value);
-                  setActiveCategory(null);
-                }}
-              >
-                {activeMenus.map((menu) => (
-                  <option key={menu.id} value={menu.id}>
-                    {menu.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+      <div className="grid min-h-0 flex-1 md:grid-cols-[minmax(0,1fr)_320px] lg:grid-cols-[minmax(0,1fr)_340px]">
+        <section className="flex min-h-0 min-w-0 flex-col">
+          <div className="shrink-0 border-b border-border bg-background">
+            {activeMenus.length > 1 && (
+              <div className="px-4 pt-3">
+                <SelectMenu
+                  label="Menu"
+                  value={selectedMenuId || undefined}
+                  onChange={(value) => {
+                    setSelectedMenuId(value);
+                    setActiveCategory(null);
+                  }}
+                  className="min-h-11 rounded-xl"
+                  options={activeMenus.map((menu) => ({
+                    value: menu.id,
+                    label: menu.name,
+                  }))}
+                />
+              </div>
+            )}
+            <SearchBar value={menuSearch} onChange={setMenuSearch} />
+            <CategoryTabs
+              foodTypeFilter={foodTypeFilter}
+              onFoodTypeChange={setFoodTypeFilter}
+              categories={scopedCategories}
+              activeCategory={resolvedActiveCategory}
+              onCategoryChange={setActiveCategory}
+              menuSearch={menuSearch}
+            />
           </div>
-        )}
-        <SearchBar value={menuSearch} onChange={setMenuSearch} />
-        <CategoryTabs
-          foodTypeFilter={foodTypeFilter}
-          onFoodTypeChange={setFoodTypeFilter}
-          categories={scopedCategories}
-          activeCategory={resolvedActiveCategory}
-          onCategoryChange={setActiveCategory}
-          menuSearch={menuSearch}
+
+          {!isAddingToExisting && activeCombos.length > 0 && (
+            <section className="bg-surface border-b border-border px-4 py-3">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-disabled">
+                Combos
+              </p>
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {activeCombos.map((combo) => (
+                  <button
+                    key={combo.id}
+                    type="button"
+                    onClick={() => openCombo(combo)}
+                    className="min-w-48 rounded-xl border border-border bg-surface-secondary p-3 text-left"
+                  >
+                    <span className="block text-sm font-semibold text-text-primary">
+                      {combo.name}
+                    </span>
+                    <span className="mt-1 block text-xs text-text-secondary">
+                      {combo.pricePolicy === "FIXED"
+                        ? `₹${Number(combo.fixedPrice ?? 0).toFixed(2)}`
+                        : `${Number(combo.percentOff ?? 0)}% off components`}{" "}
+                      · customize
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {}
+          <MenuGrid
+            items={activeItems}
+            cart={cart}
+            isLoading={menuLoading}
+            menuSearch={menuSearch}
+            onItemTap={handleItemTap}
+            onQtyChange={updateQty}
+          />
+        </section>
+
+        <TabletOrderRail
+          cart={cart}
+          combos={comboCart}
+          totalItems={totalItems}
+          totalPrice={totalPrice}
+          isAddingToExisting={isAddingToExisting}
+          onUpdateQty={updateQty}
+          onUpdateComboQty={updateComboQty}
+          onEditItem={editCartItem}
+          onReview={() => setShowCart(true)}
         />
       </div>
 
-      {!isAddingToExisting && activeCombos.length > 0 && (
-        <section className="bg-surface border-b border-border px-4 py-3">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-disabled">
-            Combos
-          </p>
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {activeCombos.map((combo) => (
-              <button
-                key={combo.id}
-                type="button"
-                onClick={() => openCombo(combo)}
-                className="min-w-48 rounded-xl border border-border bg-surface-secondary p-3 text-left"
-              >
-                <span className="block text-sm font-semibold text-text-primary">
-                  {combo.name}
-                </span>
-                <span className="mt-1 block text-xs text-text-secondary">
-                  {combo.pricePolicy === "FIXED"
-                    ? `₹${Number(combo.fixedPrice ?? 0).toFixed(2)}`
-                    : `${Number(combo.percentOff ?? 0)}% off components`}{" "}
-                  · customize
-                </span>
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {}
-      <MenuGrid
-        items={activeItems}
-        cart={cart}
-        isLoading={menuLoading}
-        menuSearch={menuSearch}
-        onItemTap={handleItemTap}
-        onQtyChange={updateQty}
-      />
-
       {}
       {totalItems > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface px-4 py-3 safe-area-bottom">
+        <div className="absolute inset-x-0 bottom-0 z-30 bg-transparent px-3.5 py-3 safe-area-bottom md:hidden">
           <button
             onClick={() => setShowCart(true)}
-            className="flex min-h-14 w-full items-center justify-between rounded-2xl bg-primary px-5 font-semibold text-primary-foreground shadow-lg"
+            className="waiter-cart-bar flex min-h-[58px] w-full items-center justify-between rounded-[17px] px-[15px] font-medium text-white shadow-lg"
           >
-            <span className="w-7 h-7 bg-primary-foreground/20 rounded-full flex items-center justify-center text-xs font-bold">
-              {totalItems}
+            <span className="text-left">
+              <small className="block text-xs font-normal text-white/75">
+                {totalItems} {totalItems === 1 ? "item" : "items"}
+              </small>
+              <strong className="block text-[15px] font-medium">
+                ₹{totalPrice.toFixed(2)}
+              </strong>
             </span>
-            <span>
-              {isAddingToExisting ? "Review additions" : "Review order"}
+            <span className="flex min-h-10 items-center rounded-xl bg-white px-3.5 text-xs font-medium text-[#173c2a]">
+              {isAddingToExisting ? "Review additions" : "Review order"} →
             </span>
-            <span>₹{totalPrice.toFixed(2)}</span>
           </button>
         </div>
       )}
@@ -711,8 +763,11 @@ export const MenuPage = ({ onBack, onOrderPlaced, existingOrderId }: Props) => {
       {customising && (
         <ItemCustomiser
           item={customising.item}
+          {...(customising.existingCartItem
+            ? { existingCartItem: customising.existingCartItem }
+            : {})}
           courseMode={courseMode && !isAddingToExisting}
-          onConfirm={addOrIncrementItem}
+          onConfirm={confirmCustomisedItem}
           onClose={() => setCustomising(null)}
         />
       )}
@@ -766,6 +821,7 @@ export const MenuPage = ({ onBack, onOrderPlaced, existingOrderId }: Props) => {
           needsTable={needsTable}
           onUpdateQty={updateQty}
           onUpdateComboQty={updateComboQty}
+          onEditItem={editCartItem}
           onSubmit={handleSubmit}
           onClose={() => setShowCart(false)}
         />

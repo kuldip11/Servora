@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { ClipboardList, RefreshCw } from "lucide-react";
-import { Spinner, IconButton, EmptyState } from "@pos/ui";
+import { ClipboardList } from "lucide-react";
+import { Spinner, EmptyState } from "@pos/ui";
 import { useOrders } from "@/features/orders/hooks/useOrders";
 import { OrderCard } from "@/features/orders/components/OrderCard";
 
@@ -10,7 +10,7 @@ interface Props {
 
 export const OrdersPage = ({ onSelectOrder }: Props) => {
   const [filter, setFilter] = useState<"ready" | "active" | "all">("ready");
-  const { data: orders, isLoading, refetch, isFetching } = useOrders();
+  const { data: orders, isLoading } = useOrders();
 
   const active =
     orders?.filter((o) => ["OPEN", "BILL_REQUESTED"].includes(o.status)) ?? [];
@@ -22,30 +22,18 @@ export const OrdersPage = ({ onSelectOrder }: Props) => {
     filter === "ready" ? ready : filter === "active" ? active : (orders ?? []);
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between px-4 pb-2 pt-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-text-primary">Orders</h1>
-          <p className="mt-0.5 text-xs text-text-secondary">
-            {active.length} active · {orders?.length ?? 0} total today
-          </p>
-        </div>
-        {}
-        <IconButton
-          icon={RefreshCw}
-          aria-label="Refresh orders"
-          onClick={() => refetch()}
-          className={isFetching ? "animate-spin" : ""}
-        />
+    <div className="mx-auto flex h-full w-full max-w-3xl flex-col">
+      <div className="px-3.5 pb-1 pt-3.5">
+        <h1 className="text-[22px] font-medium text-text-primary">Orders</h1>
       </div>
 
       {}
-      <div className="flex gap-2 px-4 py-3">
+      <div className="flex gap-[7px] px-3.5 py-3">
         {(["ready", "active", "all"] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`min-h-10 flex-1 rounded-xl border px-3 text-xs font-semibold transition-colors ${
+            className={`min-h-10 flex-1 rounded-xl border px-3 text-xs font-medium transition-colors ${
               filter === f
                 ? "border-primary bg-primary-surface text-primary"
                 : "border-border bg-surface text-text-secondary"
@@ -79,7 +67,7 @@ export const OrdersPage = ({ onSelectOrder }: Props) => {
             }
           />
         ) : (
-          <div className="space-y-2 px-4 pb-5 pt-1">
+          <div className="space-y-2 px-3.5 pb-5 pt-1">
             {display.map((order) => (
               <OrderCard
                 key={order.id}

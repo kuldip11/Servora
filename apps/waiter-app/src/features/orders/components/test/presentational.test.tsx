@@ -89,7 +89,7 @@ describe("order presentational components", () => {
     );
     expect(
       renderToStaticMarkup(<OrderCard order={order} onSelect={vi.fn()} />),
-    ).toContain("+1 more");
+    ).toContain("3 items");
     expect(
       renderToStaticMarkup(
         <OrderCard order={order} onSelect={vi.fn()} variant="compact" />,

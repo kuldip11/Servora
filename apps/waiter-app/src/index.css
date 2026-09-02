@@ -3,6 +3,48 @@
 @tailwind components;
 @tailwind utilities;
 
+/* The waiter workspace has its own service-floor visual language. */
+:root,
+[data-theme="light"] {
+  --background: #f5f7f5;
+  --surface: #ffffff;
+  --surface-secondary: #edf1ee;
+  --text-primary: #17201c;
+  --text-secondary: #5d6862;
+  --text-disabled: #76817b;
+  --border: #d9dfdb;
+  --divider: #e8ece9;
+  --primary: #237b4b;
+  --primary-hover: #1b673d;
+  --primary-surface: #e5f4ea;
+  --primary-border: #a9d7bb;
+  --primary-foreground: #ffffff;
+  --success: #087443;
+  --success-surface: #e5f4ea;
+  --warning: #9a5d00;
+  --warning-surface: #fff2d5;
+}
+
+[data-theme="dark"] {
+  --background: #151c18;
+  --surface: #1b241f;
+  --surface-secondary: #2a342e;
+  --text-primary: #f0f6f2;
+  --text-secondary: #abb8b1;
+  --text-disabled: #929f98;
+  --border: #36423b;
+  --divider: #2a342e;
+  --primary: #49a975;
+  --primary-hover: #5bbb84;
+  --primary-surface: #294034;
+  --primary-border: #3d6b50;
+  --primary-foreground: #ffffff;
+  --success: #75d69d;
+  --success-surface: #294034;
+  --warning: #f2bd62;
+  --warning-surface: #463719;
+}
+
 @layer base {
   html,
   body,
@@ -17,5 +59,36 @@
   }
   :where(a, button, input, select, textarea, [tabindex]):focus-visible {
     @apply outline-2 outline-offset-2 outline-primary;
+  }
+}
+
+@layer components {
+  .waiter-shell {
+    @apply mx-auto w-full max-w-[1180px];
+  }
+
+  .waiter-priority-strip {
+    background: #173c2a;
+  }
+
+  .waiter-cart-bar {
+    background: #173c2a;
+  }
+
+  [data-theme="dark"] .waiter-priority-strip {
+    background: #22543a;
+  }
+
+  [data-theme="dark"] .waiter-cart-bar {
+    background: #2a5d40;
+  }
+
+  .scrollbar-hidden {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
   }
 }

@@ -61,14 +61,15 @@ const AppLayout = ({ children }: { children?: ReactNode }) => {
   });
   const isHome = pathname === "/";
   const isOrders = pathname === "/orders" || pathname.startsWith("/orders/");
+  const isMenu = pathname === "/menu";
   const connected = useConnectionStatus();
   const { data: branch } = useMyBranch();
   const waiterName = getWaiterName();
   useWaiterAttention();
 
   return (
-    <div className="flex flex-col h-screen bg-background">
-      <header className="flex items-center justify-between gap-3 border-b border-divider bg-surface px-4 py-3 safe-area-top">
+    <div className="waiter-shell flex h-screen flex-col bg-background shadow-sm">
+      <header className="flex items-center justify-between gap-3 border-b border-divider bg-surface px-[18px] pb-3.5 pt-[18px] safe-area-top">
         <div className="min-w-0">
           <p className="flex items-center gap-1.5 text-[11px] font-medium text-text-secondary">
             <span
@@ -77,7 +78,7 @@ const AppLayout = ({ children }: { children?: ReactNode }) => {
             {branch?.name ?? "Current branch"} ·{" "}
             {connected ? "Live" : "Reconnecting"}
           </p>
-          <p className="mt-0.5 truncate text-base font-semibold text-text-primary">
+          <p className="mt-0.5 truncate text-base font-medium text-text-primary">
             {waiterName}&apos;s service
           </p>
         </div>
@@ -85,7 +86,7 @@ const AppLayout = ({ children }: { children?: ReactNode }) => {
           type="button"
           aria-label="Open profile"
           onClick={() => navigate({ to: "/profile" })}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary-surface text-sm font-semibold text-primary"
+          className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full bg-primary-surface text-sm font-medium text-primary"
         >
           {waiterName
             .split(" ")
@@ -113,20 +114,21 @@ const AppLayout = ({ children }: { children?: ReactNode }) => {
           Home
         </button>
         <button
-          onClick={() => navigate({ to: "/menu" })}
-          aria-label="Create new order"
-          className="flex min-h-16 flex-col items-center justify-center gap-1 text-xs font-medium text-text-secondary"
-        >
-          <Plus className="h-5 w-5" />
-          <span>New order</span>
-        </button>
-        <button
           onClick={() => navigate({ to: "/orders" })}
           aria-current={isOrders ? "page" : undefined}
           className={`flex min-h-16 flex-col items-center justify-center gap-1 text-xs font-medium ${isOrders ? "text-primary" : "text-text-secondary"}`}
         >
           <ClipboardList className="w-5 h-5" />
           Orders
+        </button>
+        <button
+          onClick={() => navigate({ to: "/menu" })}
+          aria-label="Create new order"
+          aria-current={isMenu ? "page" : undefined}
+          className={`flex min-h-16 flex-col items-center justify-center gap-1 text-xs font-medium ${isMenu ? "text-primary" : "text-text-secondary"}`}
+        >
+          <Plus className="h-5 w-5" />
+          <span>New order</span>
         </button>
       </nav>
     </div>
@@ -145,7 +147,6 @@ const homeRoute = createRoute({
     return (
       <AppLayout>
         <HomePage
-          waiterName={getWaiterName()}
           onNewOrder={() => navigate({ to: "/menu" })}
           onViewOrders={() => navigate({ to: "/orders" })}
           onSelectOrder={(orderId) =>
@@ -163,16 +164,18 @@ const menuRoute = createRoute({
   component: () => {
     const navigate = useNavigate();
     return (
-      <MenuPage
-        onBack={() => navigate({ to: "/" })}
-        onOrderPlaced={(orderId) =>
-          navigate({
-            to: "/orders/$orderId",
-            params: { orderId },
-            replace: true,
-          })
-        }
-      />
+      <AppLayout>
+        <MenuPage
+          onBack={() => navigate({ to: "/" })}
+          onOrderPlaced={(orderId) =>
+            navigate({
+              to: "/orders/$orderId",
+              params: { orderId },
+              replace: true,
+            })
+          }
+        />
+      </AppLayout>
     );
   },
 });

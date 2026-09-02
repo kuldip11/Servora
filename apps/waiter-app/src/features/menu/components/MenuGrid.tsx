@@ -55,7 +55,7 @@ export const MenuGrid = ({
   onQtyChange,
 }: Props) => {
   return (
-    <div className="flex-1 overflow-y-auto px-4 pb-28 pt-3">
+    <div className="scrollbar-hidden flex-1 overflow-y-auto px-3.5 pb-28 pt-2.5">
       {isLoading ? (
         <div className="flex justify-center py-12">
           <Spinner className="w-6 h-6" />
@@ -67,7 +67,7 @@ export const MenuGrid = ({
             : "No items in this category"}
         </p>
       ) : (
-        <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-3 xl:grid-cols-4">
           {items.map((item) => {
             const cartQty = cart
               .filter((c) => c.menuItemId === item.id)

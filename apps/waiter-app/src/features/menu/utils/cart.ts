@@ -20,3 +20,21 @@ export const cartItemKey = (item: CartItem) => {
     .sort()
     .join(",")}`;
 };
+
+export const replaceCartItem = (
+  cart: CartItem[],
+  originalKey: string,
+  replacement: CartItem,
+): CartItem[] => {
+  const remaining = cart.filter((item) => cartItemKey(item) !== originalKey);
+  const replacementKey = cartItemKey(replacement);
+  const matching = remaining.find(
+    (item) => cartItemKey(item) === replacementKey,
+  );
+  if (!matching) return [...remaining, replacement];
+  return remaining.map((item) =>
+    cartItemKey(item) === replacementKey
+      ? { ...item, quantity: item.quantity + replacement.quantity }
+      : item,
+  );
+};

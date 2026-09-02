@@ -4,7 +4,11 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { CategoryTabs } from "@/features/menu/components/CategoryTabs";
 import { MenuItemCard } from "@/features/menu/components/MenuItemCard";
 import { MenuGrid } from "@/features/menu/components/MenuGrid";
-import { OrderOptionsPanel } from "@/features/menu/components/OrderOptionsPanel";
+import {
+  buildTableOptions,
+  OrderOptionsPanel,
+} from "@/features/menu/components/OrderOptionsPanel";
+import { TabletOrderRail } from "@/features/menu/components/TabletOrderRail";
 
 const item: any = {
   id: "m1",
@@ -74,7 +78,7 @@ describe("menu presentational components", () => {
           onQtyChange={vi.fn()}
         />,
       ),
-    ).toContain("Options");
+    ).toContain("Customisable");
     expect(
       renderToStaticMarkup(
         <MenuItemCard
@@ -143,5 +147,70 @@ describe("menu presentational components", () => {
       />,
     );
     expect(html).toContain("Dine In");
+  });
+
+  it("renders the tablet order rail with live totals", () => {
+    const html = renderToStaticMarkup(
+      <TabletOrderRail
+        cart={[
+          {
+            menuItemId: "m1",
+            name: "Burger",
+            basePrice: 150,
+            modifiers: [],
+            quantity: 2,
+            chefNotes: "",
+            unitPrice: 150,
+          },
+        ]}
+        combos={[]}
+        totalItems={2}
+        totalPrice={300}
+        isAddingToExisting={false}
+        onUpdateQty={vi.fn()}
+        onUpdateComboQty={vi.fn()}
+        onEditItem={vi.fn()}
+        onReview={vi.fn()}
+      />,
+    );
+    expect(html).toContain("Current order");
+    expect(html).toContain("Burger");
+    expect(html).toContain("₹300.00");
+  });
+
+  it("allows only available tables to be selected", () => {
+    const options = buildTableOptions([
+      {
+        id: "free",
+        name: "Table 1",
+        capacity: 4,
+        status: "AVAILABLE",
+        isActive: true,
+      },
+      {
+        id: "reserved",
+        name: "Table 2",
+        capacity: 2,
+        status: "RESERVED",
+        isActive: true,
+      },
+      {
+        id: "occupied",
+        name: "Table 3",
+        capacity: 6,
+        status: "OCCUPIED",
+        isActive: true,
+      },
+    ] as any);
+
+    expect(options.find((option) => option.value === "free")?.disabled).toBe(
+      false,
+    );
+    expect(
+      options.find((option) => option.value === "reserved")?.disabled,
+    ).toBe(true);
+    expect(
+      options.find((option) => option.value === "occupied")?.disabled,
+    ).toBe(true);
   });
 });
