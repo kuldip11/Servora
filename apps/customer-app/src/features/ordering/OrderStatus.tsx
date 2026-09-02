@@ -1,8 +1,16 @@
-import { Check, Clock3, ReceiptText, WifiOff, BellRing } from "lucide-react";
-import { Badge, Button, Card } from "@pos/ui";
+import {
+  BellRing,
+  Check,
+  ChevronDown,
+  Clock3,
+  Droplets,
+  ReceiptText,
+  UtensilsCrossed,
+  WifiOff,
+} from "lucide-react";
+import { Badge, Button } from "@pos/ui";
 import type { CustomerOrder, CustomerRequestType } from "@/api";
 import { formatMoney } from "@/shared/utils/money";
-
 import { CUSTOMER_ORDER_TICKET_STEPS } from "./constants";
 
 const statusLabel = (status: string) => {
@@ -20,6 +28,13 @@ const orderStatusLabel = (status: string) => {
   if (status === "PENDING_PAYMENT") return "Payment required";
   return "Open";
 };
+
+const serviceRequest = [
+  { type: "CALL_WAITER", label: "Call waiter", icon: BellRing },
+  { type: "WATER", label: "Water", icon: Droplets },
+  { type: "CUTLERY", label: "Cutlery", icon: UtensilsCrossed },
+  { type: "BILL", label: "Request bill", icon: ReceiptText },
+] as const;
 
 export const OrderStatus = ({
   order,
@@ -59,107 +74,206 @@ export const OrderStatus = ({
     order.status === "CLOSED" ||
     order.status === "CANCELLED";
   const ready = latestStatus === "READY";
+  const pendingPayment = order.payments?.some(
+    (payment) => payment.method === "RAZORPAY" && payment.status === "PENDING",
+  );
 
   return (
-    <main className="min-h-screen bg-background px-4 py-6 text-text-primary sm:px-6">
-      <div className="mx-auto w-full max-w-2xl pb-8">
-        <header className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.14em] text-text-secondary">
-              {table === "Takeaway" ? "Takeaway" : `Table ${table}`}
-            </p>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-              Your order
-            </h1>
-            <p className="mt-1 text-sm text-text-secondary">
-              Follow every kitchen update in one place.
-            </p>
-          </div>
-          <Badge variant={live ? "success" : "default"}>
-            {live ? (
-              "Live updates"
-            ) : (
-              <span className="flex items-center gap-1">
-                <WifiOff className="h-3 w-3" /> Reconnecting
-              </span>
-            )}
-          </Badge>
-        </header>
-
-        {ready && !terminal && (
-          <Card
-            padding="md"
-            className="mt-5 border-success/30 bg-success-surface"
-          >
-            <div className="flex items-center gap-3">
-              <BellRing className="h-5 w-5 text-success" />
-              <div>
-                <p className="font-semibold text-success">Your food is ready</p>
-                <p className="mt-0.5 text-sm text-text-secondary">
-                  {mode === "DINE_IN"
-                    ? "Your waiter has been notified."
-                    : "Your takeaway order is ready for pickup."}
-                </p>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        <Card padding="md" className="mt-5">
+    <main className="customer-experience min-h-screen bg-background pb-28 text-text-primary">
+      <header className="bg-[#174d34] px-4 pb-28 pt-[max(1.5rem,env(safe-area-inset-top))] text-white sm:px-6">
+        <div className="mx-auto max-w-3xl">
           <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm text-text-secondary">Order status</p>
-              <p className="mt-1 text-lg font-semibold">
-                {orderStatusLabel(order.status)}
-              </p>
-            </div>
-            <ReceiptText
-              className="h-5 w-5 text-text-secondary"
-              aria-hidden="true"
-            />
-          </div>
-          {!terminal && (
-            <>
-              <div
-                className="mt-6 grid grid-cols-4 gap-2"
-                aria-label={`Latest kitchen status: ${statusLabel(latestStatus)}`}
-              >
-                {CUSTOMER_ORDER_TICKET_STEPS.map((step, index) => (
-                  <div key={step} className="text-center">
-                    <div
-                      className={`mx-auto flex h-9 w-9 items-center justify-center rounded-full ${index <= activeStep ? "bg-primary text-primary-foreground" : "bg-surface-secondary text-text-secondary"}`}
-                    >
-                      {index < activeStep ? (
-                        <Check className="h-4 w-4" />
-                      ) : index === activeStep ? (
-                        <Clock3 className="h-4 w-4" />
-                      ) : (
-                        <span className="text-xs">{index + 1}</span>
-                      )}
-                    </div>
-                    <p className="mt-2 text-[11px] font-medium text-text-secondary">
-                      {step === "FIRED"
-                        ? "Received"
-                        : step[0] + step.slice(1).toLowerCase()}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              <p className="mt-5 text-center text-sm font-medium">
-                {statusLabel(latestStatus)} · Estimated {estimatedTime}
-              </p>
-            </>
-          )}
-        </Card>
-
-        <Card padding="md" className="mt-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold">Items</h2>
-            <span className="text-sm text-text-secondary">
-              {formatMoney(Number(order.totalAmount))}
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-white/65">
+              {table === "Takeaway" ? "Takeaway" : `Table ${table}`} · Order #
+              {order.id.slice(-6).toUpperCase()}
+            </p>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-[10px] font-extrabold">
+              {live ? (
+                <>
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#69df94]" />{" "}
+                  Live
+                </>
+              ) : (
+                <>
+                  <WifiOff className="h-3 w-3" /> Reconnecting
+                </>
+              )}
             </span>
           </div>
-          <div className="mt-4 space-y-4">
+          <h1 className="customer-display mt-6 text-4xl font-bold leading-none sm:text-5xl">
+            {terminal
+              ? order.status === "CANCELLED"
+                ? "Order cancelled."
+                : "All done."
+              : ready
+                ? mode === "DINE_IN"
+                  ? "It's ready."
+                  : "Ready for pickup."
+                : latestStatus === "PREPARING"
+                  ? "It's cooking."
+                  : "Order received."}
+          </h1>
+          <p className="mt-3 text-sm text-white/70">
+            {terminal
+              ? `This order is ${orderStatusLabel(order.status).toLowerCase()}.`
+              : ready
+                ? mode === "DINE_IN"
+                  ? "Your waiter has been notified."
+                  : "Come by the pickup counter whenever you're ready."
+                : "Your order is moving through the kitchen."}
+          </p>
+        </div>
+      </header>
+
+      <div className="mx-auto -mt-20 max-w-3xl px-4 sm:px-6">
+        {!terminal && (
+          <section className="rounded-3xl bg-surface p-5 shadow-[0_16px_35px_rgba(7,35,20,0.18)] sm:p-6">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <p className="text-xs text-text-secondary">Estimated ready</p>
+                <p className="customer-display mt-1 text-2xl font-bold">
+                  {estimatedTime}
+                </p>
+              </div>
+              <p className="text-[10px] text-text-secondary">
+                Updated just now
+              </p>
+            </div>
+            <div
+              className="relative mt-7 grid grid-cols-4"
+              aria-label={`Latest kitchen status: ${statusLabel(latestStatus)}`}
+            >
+              <div className="absolute left-[12.5%] right-[12.5%] top-3 h-0.5 bg-border" />
+              <div
+                className="absolute left-[12.5%] top-3 h-0.5 bg-primary transition-all"
+                style={{ width: `${(activeStep / 3) * 75}%` }}
+              />
+              {CUSTOMER_ORDER_TICKET_STEPS.map((step, index) => (
+                <div
+                  key={step}
+                  className={`relative z-[1] text-center ${index === activeStep ? "text-text-primary" : "text-text-secondary"}`}
+                >
+                  <div
+                    className={`mx-auto grid h-6 w-6 place-items-center rounded-full border-[3px] border-surface text-[10px] ${index <= activeStep ? "bg-primary text-primary-foreground" : "bg-border text-text-secondary"}`}
+                  >
+                    {index < activeStep ? <Check className="h-3 w-3" /> : null}
+                  </div>
+                  <p className="mt-2 text-[9px] font-bold sm:text-[10px]">
+                    {step === "FIRED"
+                      ? "Received"
+                      : step === "PREPARING"
+                        ? "Cooking"
+                        : step[0] + step.slice(1).toLowerCase()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {ready && !terminal && (
+          <section className="mt-4 flex items-center gap-3 rounded-2xl border border-success/30 bg-success-surface p-4">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-success text-success-foreground">
+              <BellRing className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="font-bold text-success">Your food is ready</p>
+              <p className="mt-0.5 text-xs text-text-secondary">
+                {mode === "DINE_IN"
+                  ? "Your waiter will bring it to the table."
+                  : "Show this screen at the pickup counter."}
+              </p>
+            </div>
+          </section>
+        )}
+
+        {pendingPayment && onPay && (
+          <section className="mt-4 rounded-2xl border border-primary bg-primary-surface p-4">
+            <p className="font-bold">Complete payment</p>
+            <p className="mt-1 text-xs leading-5 text-text-secondary">
+              Payment is required before this takeaway order can enter the
+              kitchen.
+            </p>
+            <Button
+              variant="primary"
+              size="lg"
+              className="mt-3 w-full rounded-2xl"
+              onClick={onPay}
+              disabled={payBusy}
+            >
+              {payBusy
+                ? "Opening payment…"
+                : `Pay ${formatMoney(Number(order.totalAmount))}`}
+            </Button>
+          </section>
+        )}
+
+        <section className="mt-5 rounded-2xl border border-border bg-surface p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#d45d24]">
+                Current round
+              </p>
+              <p className="mt-1 font-bold">
+                {order.items?.length ?? 0} items · {statusLabel(latestStatus)}
+              </p>
+            </div>
+            <Badge variant={ready ? "success" : "default"}>
+              {latestStatus.replace(/_/g, " ")}
+            </Badge>
+          </div>
+          <p className="mt-3 text-xs leading-5 text-text-secondary">
+            {(order.items ?? [])
+              .slice(0, 3)
+              .map((item) => `${item.quantity} × ${item.menuItemName}`)
+              .join(" · ")}
+          </p>
+        </section>
+
+        <section id="customer-service" className="scroll-mt-4 pt-7">
+          <div className="mb-3 flex items-end justify-between">
+            <h2 className="customer-display text-2xl font-bold">
+              Need anything?
+            </h2>
+            <span className="text-xs text-text-secondary">
+              We'll notify the team
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {serviceRequest
+              .filter(({ type }) => mode === "DINE_IN" || type !== "BILL")
+              .map(({ type, label, icon: Icon }) => (
+                <button
+                  key={type}
+                  type="button"
+                  disabled={requestBusy}
+                  onClick={() => onRequest(type)}
+                  className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-3 text-xs font-bold transition hover:border-primary/40 hover:bg-primary-surface disabled:opacity-50"
+                >
+                  <Icon className="h-5 w-5 text-primary" />
+                  {label}
+                </button>
+              ))}
+          </div>
+          {requestMessage && (
+            <p
+              role="status"
+              className="mt-3 rounded-2xl bg-primary-surface px-4 py-3 text-sm text-primary"
+            >
+              {requestMessage}
+            </p>
+          )}
+        </section>
+
+        <details className="group mt-7 rounded-2xl border border-border bg-surface">
+          <summary className="flex cursor-pointer list-none items-center justify-between p-4 font-bold">
+            <span>Order details</span>
+            <span className="flex items-center gap-2 text-sm text-text-secondary">
+              {formatMoney(Number(order.totalAmount))}
+              <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+            </span>
+          </summary>
+          <div className="border-t border-border px-4 pb-4">
             {(["DINE_IN", "TAKEAWAY"] as const).map((fulfillmentType) => {
               const items =
                 order.items?.filter(
@@ -167,35 +281,27 @@ export const OrderStatus = ({
                 ) ?? [];
               if (!items.length) return null;
               return (
-                <div key={fulfillmentType}>
-                  <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-text-secondary">
-                    <span>
-                      {fulfillmentType === "DINE_IN" ? "Eat here" : "Takeaway"}
-                    </span>
-                    <span className="h-px flex-1 bg-border" />
-                  </div>
-                  <div className="divide-y divide-border">
+                <div key={fulfillmentType} className="pt-4">
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-text-secondary">
+                    {fulfillmentType === "DINE_IN" ? "Eat here" : "Takeaway"}
+                  </p>
+                  <div className="mt-2 divide-y divide-border">
                     {items.map((item) => (
                       <div
                         key={item.id}
-                        className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0"
+                        className="flex items-start justify-between gap-4 py-3"
                       >
                         <div className="min-w-0">
-                          <p className="font-medium">
+                          <p className="text-sm font-bold">
                             {item.quantity} × {item.menuItemName}
                           </p>
                           {item.variantName && (
-                            <p className="mt-0.5 text-xs text-text-secondary">
+                            <p className="mt-1 text-xs text-text-secondary">
                               {item.variantName}
                             </p>
                           )}
-                          {item.chefNotes && (
-                            <p className="mt-1 text-xs text-text-secondary">
-                              Note: {item.chefNotes}
-                            </p>
-                          )}
                           {item.modifiers?.length > 0 && (
-                            <p className="mt-1 text-xs text-text-secondary">
+                            <p className="mt-1 text-xs leading-5 text-text-secondary">
                               {item.modifiers
                                 .map(
                                   (modifier) =>
@@ -205,7 +311,7 @@ export const OrderStatus = ({
                             </p>
                           )}
                         </div>
-                        <span className="shrink-0 text-sm font-medium">
+                        <span className="shrink-0 text-sm font-bold">
                           {formatMoney(Number(item.subtotal))}
                         </span>
                       </div>
@@ -214,55 +320,40 @@ export const OrderStatus = ({
                 </div>
               );
             })}
-          </div>
-          <div className="mt-4 border-t border-border pt-4 text-sm">
-            <div className="flex justify-between">
-              <span className="text-text-secondary">Subtotal</span>
-              <span>{formatMoney(Number(order.subtotal))}</span>
-            </div>
-            <div className="mt-2 flex justify-between">
-              <span className="text-text-secondary">
-                {order.items.some((item) => item.taxMode === "INCLUSIVE")
-                  ? order.items.some((item) => item.taxMode === "EXCLUSIVE")
-                    ? "Tax (mixed included/exclusive)"
-                    : "Tax included"
-                  : "Tax"}
-              </span>
-              <span>{formatMoney(Number(order.taxAmount))}</span>
-            </div>
-            {Number(order.discountAmount) > 0 && (
-              <div className="mt-2 flex justify-between text-success">
-                <span>Discount</span>
-                <span>-{formatMoney(Number(order.discountAmount))}</span>
+            <div className="mt-2 border-t border-border pt-3 text-sm">
+              <div className="flex justify-between py-1 text-text-secondary">
+                <span>Subtotal</span>
+                <span>{formatMoney(Number(order.subtotal))}</span>
               </div>
-            )}
-            {Number(order.serviceChargeAmount ?? 0) > 0 && (
-              <div className="mt-2 flex justify-between">
-                <span className="text-text-secondary">Service charge</span>
-                <span>{formatMoney(Number(order.serviceChargeAmount))}</span>
+              <div className="flex justify-between py-1 text-text-secondary">
+                <span>Tax</span>
+                <span>{formatMoney(Number(order.taxAmount))}</span>
               </div>
-            )}
-            {Math.abs(Number(order.roundingAdjustment ?? 0)) >= 0.005 && (
-              <div className="mt-2 flex justify-between">
-                <span className="text-text-secondary">Rounding</span>
-                <span>{formatMoney(Number(order.roundingAdjustment))}</span>
+              {Number(order.discountAmount) > 0 && (
+                <div className="flex justify-between py-1 text-success">
+                  <span>Discount</span>
+                  <span>-{formatMoney(Number(order.discountAmount))}</span>
+                </div>
+              )}
+              <div className="mt-2 flex justify-between text-base font-bold">
+                <span>Total</span>
+                <span>{formatMoney(Number(order.totalAmount))}</span>
               </div>
-            )}
-            <div className="mt-2 flex justify-between text-base font-semibold">
-              <span>Total</span>
-              <span>{formatMoney(Number(order.totalAmount))}</span>
             </div>
           </div>
-        </Card>
+        </details>
 
         {order.kitchenTickets.length > 1 && (
-          <Card padding="md" className="mt-4">
-            <h2 className="font-semibold">Kitchen rounds</h2>
-            <div className="mt-3 space-y-2">
+          <details className="group mt-3 rounded-2xl border border-border bg-surface">
+            <summary className="flex cursor-pointer list-none items-center justify-between p-4 font-bold">
+              <span>Kitchen rounds</span>
+              <ChevronDown className="h-4 w-4 text-text-secondary transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="space-y-2 border-t border-border p-4">
               {order.kitchenTickets.map((ticket) => (
                 <div
                   key={ticket.id}
-                  className="flex items-center justify-between rounded-lg bg-surface-secondary px-3 py-2 text-sm"
+                  className="flex items-center justify-between rounded-xl bg-surface-secondary px-3 py-2 text-sm"
                 >
                   <span>Round {ticket.ticketNumber}</span>
                   <Badge
@@ -273,92 +364,46 @@ export const OrderStatus = ({
                 </div>
               ))}
             </div>
-          </Card>
+          </details>
         )}
-
-        {order.payments?.some(
-          (payment) =>
-            payment.method === "RAZORPAY" && payment.status === "PENDING",
-        ) &&
-          onPay && (
-            <Card
-              padding="md"
-              className="mt-4 border-primary bg-primary-surface"
-            >
-              <div>
-                <p className="font-semibold">Payment required</p>
-                <p className="mt-1 text-sm text-text-secondary">
-                  Complete payment to release this takeaway order to the
-                  kitchen.
-                </p>
-              </div>
-              <Button
-                variant="primary"
-                size="lg"
-                className="mt-3 w-full"
-                onClick={onPay}
-                disabled={payBusy}
-              >
-                {payBusy
-                  ? "Opening payment…"
-                  : `Pay ${formatMoney(Number(order.totalAmount))}`}
-              </Button>
-            </Card>
-          )}
-
-        <Card padding="md" className="mt-4">
-          <h2 className="font-semibold">Need anything?</h2>
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            {(
-              [
-                "CALL_WAITER",
-                "WATER",
-                "CUTLERY",
-                "BILL",
-              ] as CustomerRequestType[]
-            )
-              .filter((type) => mode === "DINE_IN" || type !== "BILL")
-              .map((type) => (
-                <Button
-                  key={type}
-                  variant="secondary"
-                  disabled={requestBusy}
-                  onClick={() => onRequest(type)}
-                >
-                  {type === "CALL_WAITER"
-                    ? "Call waiter"
-                    : type === "BILL"
-                      ? "Request bill"
-                      : type[0] + type.slice(1).toLowerCase()}
-                </Button>
-              ))}
-          </div>
-          {requestMessage && (
-            <p role="status" className="mt-3 text-sm text-text-secondary">
-              {requestMessage}
-            </p>
-          )}
-        </Card>
 
         {!terminal && mode === "DINE_IN" && (
           <Button
             variant="primary"
             size="lg"
             onClick={onMenu}
-            className="mt-4 w-full"
+            className="mt-5 w-full rounded-2xl"
           >
             Order more
           </Button>
         )}
-        <Button
-          variant="outline"
-          size="lg"
-          onClick={onMenu}
-          className="mt-2 w-full"
-        >
-          Back to menu
-        </Button>
       </div>
+
+      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface/95 px-6 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl">
+        <div className="mx-auto grid max-w-sm grid-cols-3">
+          <button
+            type="button"
+            onClick={onMenu}
+            className="flex flex-col items-center gap-1 py-1 text-[10px] font-bold text-text-secondary"
+          >
+            <UtensilsCrossed className="h-5 w-5" /> Menu
+          </button>
+          <span className="flex flex-col items-center gap-1 py-1 text-[10px] font-bold text-primary">
+            <Clock3 className="h-5 w-5" /> Order
+          </span>
+          <button
+            type="button"
+            onClick={() =>
+              document
+                .getElementById("customer-service")
+                ?.scrollIntoView({ behavior: "smooth" })
+            }
+            className="flex flex-col items-center gap-1 py-1 text-[10px] font-bold text-text-secondary"
+          >
+            <BellRing className="h-5 w-5" /> Service
+          </button>
+        </div>
+      </nav>
     </main>
   );
 };

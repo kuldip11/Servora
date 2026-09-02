@@ -27,8 +27,10 @@ import {
   type StoredOrderLineForRepricing,
 } from "@/modules/orders/active-order-pricing";
 import { isBillableOrderItem } from "@/modules/orders/order-item-billing";
+import { resolveCustomerRoundFulfillment } from "./customer-order.helpers";
 
 export type CreateCustomerOrderInput = {
+  fulfillmentType?: "DINE_IN" | "TAKEAWAY";
   items?: OrderItemInput[];
   combos?: ComboOrderSelection[];
   notes?: string;
@@ -43,12 +45,13 @@ export const customerOrderService = {
     customerRequestId?: string,
   ) {
     const session = await customerSessionService.getSession(token);
+    const roundFulfillmentType = resolveCustomerRoundFulfillment(
+      session.mode,
+      input.fulfillmentType,
+    );
     const normalizedItems = (input.items ?? []).map((item) => ({
       ...item,
-      fulfillmentType:
-        session.mode === "TAKEAWAY"
-          ? ("TAKEAWAY" as const)
-          : (item.fulfillmentType ?? "DINE_IN"),
+      fulfillmentType: roundFulfillmentType,
     }));
     if (normalizedItems.length === 0 && !input.combos?.length) {
       throw new ValidationError("Order requires at least one item or combo");
@@ -88,7 +91,7 @@ export const customerOrderService = {
     }
 
     const asOf = new Date();
-    const pricingContext = {
+    const tablePricingContext = {
       tenantId: session.tenantId,
       branchId: session.branchId,
       channel: "CUSTOMER_QR" as const,
@@ -96,12 +99,19 @@ export const customerOrderService = {
       asOf,
       ...(associatedCustomerId ? { customerId: associatedCustomerId } : {}),
     };
+    const roundPricingContext = {
+      ...tablePricingContext,
+      fulfillmentType: roundFulfillmentType,
+    };
 
     const regular = await pricingPipeline.price(
-      pricingContext,
+      roundPricingContext,
       normalizedItems,
     );
-    const combo = await priceComboOrders(pricingContext, input.combos ?? []);
+    const combo = await priceComboOrders(
+      roundPricingContext,
+      input.combos ?? [],
+    );
     const unresolvedLines = [...regular.lines, ...combo.lines];
     const realLines = unresolvedLines.flatMap((line) =>
       line.menuItemId === null
@@ -113,7 +123,7 @@ export const customerOrderService = {
       session.tenantId,
       session.branchId,
       "CUSTOMER_QR",
-      session.mode,
+      roundFulfillmentType,
       asOf,
     );
     for (const line of realLines) {
@@ -128,7 +138,7 @@ export const customerOrderService = {
         session.branchId,
         {
           channel: "CUSTOMER_QR",
-          fulfillmentType: session.mode,
+          fulfillmentType: roundFulfillmentType,
           asOf,
         },
       );
@@ -160,7 +170,7 @@ export const customerOrderService = {
     let newFinalLines: PricedLine[];
     if (existing) {
       const whole = await finalizeWholeActiveOrder(
-        pricingContext,
+        tablePricingContext,
         existing.items.filter((item) =>
           isBillableOrderItem(item),
         ) as StoredOrderLineForRepricing[],
@@ -178,7 +188,7 @@ export const customerOrderService = {
       newFinalLines = whole.newLines;
     } else {
       promoted = await pricingPipeline.finalize(
-        pricingContext,
+        roundPricingContext,
         unresolvedLines,
         {
           ...(input.couponCode ? { couponCode: input.couponCode } : {}),
@@ -190,7 +200,7 @@ export const customerOrderService = {
     const resolved = await snapshotOrderLines(session.tenantId, newFinalLines, {
       branchId: session.branchId,
       channel: "CUSTOMER_QR",
-      fulfillmentType: session.mode,
+      fulfillmentType: roundFulfillmentType,
       asOf,
     });
     const subtotal = promoted.subtotal;
@@ -317,7 +327,7 @@ export const customerOrderService = {
               );
             }
             const concurrentContext = {
-              ...pricingContext,
+              ...tablePricingContext,
               ...(concurrentCustomerId
                 ? { customerId: concurrentCustomerId }
                 : {}),
@@ -352,7 +362,7 @@ export const customerOrderService = {
               {
                 branchId: session.branchId,
                 channel: "CUSTOMER_QR",
-                fulfillmentType: session.mode,
+                fulfillmentType: roundFulfillmentType,
                 asOf,
               },
             );

@@ -4,6 +4,7 @@ import {
   canTransition,
   KITCHEN_TICKET_TRANSITIONS,
 } from "@/modules/kitchen-tickets/ticket-status.machine";
+import { resolveCustomerRoundFulfillment } from "@/modules/customer/customer-order.helpers";
 
 describe("customer ordering end-to-end contract", () => {
   it("keeps a dine-in tab open while rounds are added", () => {
@@ -33,5 +34,20 @@ describe("customer ordering end-to-end contract", () => {
     expect(canTransition("PREPARING", "READY")).toBe(true);
     expect(canTransition("READY", "SERVED")).toBe(true);
     expect(canTransition("FIRED", "READY")).toBe(false);
+  });
+
+  it("lets a table session submit a takeaway round without becoming a pickup order", () => {
+    expect(resolveCustomerRoundFulfillment("DINE_IN", "TAKEAWAY")).toBe(
+      "TAKEAWAY",
+    );
+    expect(resolveCustomerRoundFulfillment("DINE_IN", "DINE_IN")).toBe(
+      "DINE_IN",
+    );
+  });
+
+  it("keeps public takeaway sessions takeaway-only", () => {
+    expect(resolveCustomerRoundFulfillment("TAKEAWAY", "DINE_IN")).toBe(
+      "TAKEAWAY",
+    );
   });
 });
