@@ -77,6 +77,8 @@ let app = new Elysia()
         "X-Tenant-Slug",
         "X-Branch-Id",
         "X-Servora-App",
+        "X-Customer-Session",
+        "X-Customer-Request-ID",
       ],
       methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
     }),
