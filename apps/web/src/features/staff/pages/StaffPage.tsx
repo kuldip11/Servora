@@ -1,5 +1,5 @@
 import { usePermissions } from "@/shared/auth/permissions";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Users, Trash2, UserCheck, UserX, Pencil } from "lucide-react";
 import {
   Button,
@@ -47,13 +47,23 @@ export const StaffPage = () => {
   const [editing, setEditing] = useState<StaffRow | null>(null);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const pageSize = 25;
+  const [activeTab, setActiveTab] = useState<"team" | "roles">("team");
+  const [pageSize, setPageSize] = useState(25);
+
+  useEffect(() => {
+    const timer = window.setTimeout(
+      () => setDebouncedSearch(search.trim()),
+      300,
+    );
+    return () => window.clearTimeout(timer);
+  }, [search]);
 
   const { data: staffResult, isLoading } = useStaff({
     page,
     limit: pageSize,
-    search: search.trim(),
+    search: debouncedSearch,
     status: statusFilter,
   });
   const staff = staffResult?.items ?? [];
@@ -207,6 +217,7 @@ export const StaffPage = () => {
         title="Staff"
         description={`${staffTotal.toLocaleString()} team members`}
         actions={
+          activeTab === "team" &&
           has("staff:create") && (
             <Button onClick={() => setShowAdd(true)}>
               <Plus className="w-4 h-4" />
@@ -216,83 +227,108 @@ export const StaffPage = () => {
         }
       />
 
-      <Card padding="sm">
-        <FilterBar
-          onClearAll={
-            search || statusFilter
-              ? () => {
-                  setSearch("");
-                  setStatusFilter("");
-                  setPage(1);
-                }
-              : undefined
-          }
-        >
-          <SearchInput
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value);
-              setPage(1);
-            }}
-            onClear={() => {
-              setSearch("");
-              setPage(1);
-            }}
-            placeholder="Search name or email"
-            aria-label="Search staff"
-            className="w-full sm:w-72"
-          />
-          <SelectMenu
-            label="Status"
-            value={statusFilter || undefined}
-            placeholder="All statuses"
-            options={[
-              { value: "", label: "All statuses" },
-              { value: "ACTIVE", label: "Active" },
-              { value: "INACTIVE", label: "Inactive" },
-              { value: "SUSPENDED", label: "Suspended" },
-            ]}
-            onChange={(value) => {
-              setStatusFilter(value ?? "");
-              setPage(1);
-            }}
-            className="w-44"
-          />
-        </FilterBar>
-      </Card>
+      <div className="flex gap-1 border-b border-border">
+        {(["team", "roles"] as const).map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            onClick={() => setActiveTab(tab)}
+            className={`border-b-2 px-4 py-2.5 text-sm font-semibold capitalize ${activeTab === tab ? "border-primary text-primary" : "border-transparent text-text-secondary"}`}
+          >
+            {tab === "team" ? "Team" : "Roles & permissions"}
+          </button>
+        ))}
+      </div>
 
-      <Card padding="none" className="overflow-hidden">
-        <Table
-          columns={columns}
-          data={staff}
-          getRowId={(member) => member.id}
-          loading={isLoading}
-          emptyIcon={Users}
-          emptyTitle="No staff members"
-          emptyDescription="Add your team to get started."
-          emptyAction={
-            has("staff:create") && (
-              <Button onClick={() => setShowAdd(true)}>
-                <Plus className="w-4 h-4" /> Add Staff
-              </Button>
-            )
-          }
-        />
-        <Pagination
-          className="border-t border-border p-4"
-          page={page}
-          pageCount={pageCount}
-          totalItems={staffTotal}
-          pageSize={pageSize}
-          onPageChange={setPage}
-        />
-      </Card>
+      {activeTab === "team" && (
+        <Card padding="sm">
+          <FilterBar
+            onClearAll={
+              search && statusFilter
+                ? () => {
+                    setSearch("");
+                    setStatusFilter("");
+                    setPage(1);
+                  }
+                : undefined
+            }
+          >
+            <SearchInput
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
+              onClear={() => {
+                setSearch("");
+                setPage(1);
+              }}
+              placeholder="Search name or email"
+              aria-label="Search staff"
+              className="w-full sm:w-72"
+            />
+            <SelectMenu
+              aria-label="Filter staff by status"
+              valuePrefix="Status"
+              value={statusFilter || undefined}
+              placeholder="All statuses"
+              options={[
+                { value: "", label: "All statuses" },
+                { value: "ACTIVE", label: "Active" },
+                { value: "INACTIVE", label: "Inactive" },
+                { value: "SUSPENDED", label: "Suspended" },
+              ]}
+              onChange={(value) => {
+                setStatusFilter(value ?? "");
+                setPage(1);
+              }}
+              className="w-44"
+            />
+          </FilterBar>
+        </Card>
+      )}
 
-      <RoleManager
-        roles={rolesData ?? []}
-        canManage={has("roles:create")}
-        canManagePermissions={has("roles:assign_permissions")}
-      />
+      {activeTab === "team" && (
+        <Card padding="none" className="overflow-hidden">
+          <Table
+            columns={columns}
+            data={staff}
+            getRowId={(member) => member.id}
+            loading={isLoading}
+            maxHeight="min(55vh, 36rem)"
+            emptyIcon={Users}
+            emptyTitle="No staff members"
+            emptyDescription="Add your team to get started."
+            emptyAction={
+              has("staff:create") && (
+                <Button onClick={() => setShowAdd(true)}>
+                  <Plus className="w-4 h-4" /> Add Staff
+                </Button>
+              )
+            }
+          />
+          <Pagination
+            className="border-t border-border p-4"
+            page={page}
+            pageCount={pageCount}
+            totalItems={staffTotal}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={(next) => {
+              setPageSize(next);
+              setPage(1);
+            }}
+          />
+        </Card>
+      )}
+
+      {activeTab === "roles" && (
+        <RoleManager
+          roles={rolesData ?? []}
+          canManage={has("roles:create")}
+          canManagePermissions={has("roles:assign_permissions")}
+        />
+      )}
 
       <Modal
         open={showAdd}

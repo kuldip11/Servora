@@ -398,6 +398,8 @@ export const orderRepository = {
       view?: "READY" | "ACTIVE" | "ALL" | undefined;
       page?: number | undefined;
       limit?: number | undefined;
+      sortBy?: "id" | "total" | "createdAt" | undefined;
+      sortDirection?: "asc" | "desc" | undefined;
     },
   ) {
     const page = Math.max(1, filters?.page ?? 1);
@@ -430,6 +432,14 @@ export const orderRepository = {
           )
         : undefined,
     );
+    const sortColumn =
+      filters?.sortBy === "id"
+        ? orders.id
+        : filters?.sortBy === "total"
+          ? orders.totalAmount
+          : orders.createdAt;
+    const orderBy =
+      filters?.sortDirection === "asc" ? asc(sortColumn) : desc(sortColumn);
     const [rows, totals] = await Promise.all([
       db.query.orders.findMany({
         where,
@@ -442,7 +452,7 @@ export const orderRepository = {
           createdByUser: true,
           payments: true,
         },
-        orderBy: desc(orders.createdAt),
+        orderBy,
         limit,
         offset: (page - 1) * limit,
       }),

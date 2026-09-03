@@ -3,6 +3,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* SearchInput provides its own accessible clear action. */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
 @layer base {
   html,
   body,
