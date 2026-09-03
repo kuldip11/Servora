@@ -19,9 +19,14 @@ export const FilterBar = ({
     <div className={cn("flex items-center gap-3 flex-wrap", className)}>
       {children}
       {onClearAll && (
-        <Button variant="ghost" size="sm" onClick={onClearAll}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onClearAll}
+          aria-label="Reset all filters"
+        >
           <X aria-hidden="true" className="w-3.5 h-3.5" />
-          Clear filters
+          Reset
         </Button>
       )}
     </div>

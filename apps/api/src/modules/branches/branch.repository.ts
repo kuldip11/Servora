@@ -1,7 +1,7 @@
 import { eq, and, notInArray, inArray, sql } from "drizzle-orm";
 import type { OrderType } from "@pos/types";
 import { db } from "@/db";
-import { branches, orders } from "@/db/schema";
+import { branches, customerSessions, orders } from "@/db/schema";
 import { compact } from "@/lib/object-utils";
 
 export type BranchCapabilities = {
@@ -96,15 +96,31 @@ export const branchRepository = {
   },
 
   async regenerateTakeawayQr(tenantId: string, id: string) {
-    const [regenerated] = await db
-      .update(branches)
-      .set({
-        publicTakeawayQrToken: sql`gen_random_uuid()`,
-        updatedAt: new Date(),
-      })
-      .where(and(eq(branches.id, id), eq(branches.tenantId, tenantId)))
-      .returning();
-    return regenerated;
+    return db.transaction(async (tx) => {
+      const now = new Date();
+      const [regenerated] = await tx
+        .update(branches)
+        .set({
+          publicTakeawayQrToken: sql`gen_random_uuid()`,
+          updatedAt: now,
+        })
+        .where(and(eq(branches.id, id), eq(branches.tenantId, tenantId)))
+        .returning();
+      if (regenerated) {
+        await tx
+          .update(customerSessions)
+          .set({ active: false, updatedAt: now })
+          .where(
+            and(
+              eq(customerSessions.tenantId, tenantId),
+              eq(customerSessions.branchId, id),
+              eq(customerSessions.mode, "TAKEAWAY"),
+              eq(customerSessions.active, true),
+            ),
+          );
+      }
+      return regenerated;
+    });
   },
 
   async update(

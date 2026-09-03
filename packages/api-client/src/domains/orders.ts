@@ -22,6 +22,8 @@ export interface OrdersListFilters {
   view?: "READY" | "ACTIVE" | "ALL";
   page?: number;
   limit?: number;
+  sortBy?: "id" | "total" | "createdAt";
+  sortDirection?: "asc" | "desc";
 }
 
 export interface OrderAdjustmentReason {
@@ -40,6 +42,9 @@ export const createOrdersApi = (client: DomainHttpClient) => {
       if (filters.view && filters.view !== "ALL") params["view"] = filters.view;
       params["page"] = String(filters.page ?? 1);
       params["limit"] = String(filters.limit ?? 25);
+      if (filters.sortBy) params["sortBy"] = filters.sortBy;
+      if (filters.sortDirection)
+        params["sortDirection"] = filters.sortDirection;
       return getPaginatedDomainData<Order>(client, "/orders", { params });
     },
     get(orderId: string): Promise<Order> {

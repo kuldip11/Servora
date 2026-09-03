@@ -27,6 +27,8 @@ export const orderController = {
       view?: "READY" | "ACTIVE" | "ALL" | undefined;
       page?: number | undefined;
       limit?: number | undefined;
+      sortBy?: "id" | "total" | "createdAt" | undefined;
+      sortDirection?: "asc" | "desc" | undefined;
     },
   ) {
     const result = await orderService.list(auth, filters);

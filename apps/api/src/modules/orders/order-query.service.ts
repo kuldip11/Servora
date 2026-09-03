@@ -18,6 +18,8 @@ export const orderQueryService = {
       view?: "READY" | "ACTIVE" | "ALL" | undefined;
       page?: number | undefined;
       limit?: number | undefined;
+      sortBy?: "id" | "total" | "createdAt" | undefined;
+      sortDirection?: "asc" | "desc" | undefined;
     },
   ) {
     requireOrdersPermission(auth, "orders:read");

@@ -13,7 +13,9 @@ describe("FilterBar", () => {
       </FilterBar>,
     );
     expect(screen.getByLabelText("Search")).toBeVisible();
-    await user.click(screen.getByRole("button", { name: /clear filters/i }));
+    await user.click(
+      screen.getByRole("button", { name: /reset all filters/i }),
+    );
     expect(onClearAll).toHaveBeenCalledTimes(1);
   });
   it("omits the clear action when no handler is supplied", () => {
@@ -23,7 +25,7 @@ describe("FilterBar", () => {
       </FilterBar>,
     );
     expect(
-      screen.queryByRole("button", { name: /clear filters/i }),
+      screen.queryByRole("button", { name: /reset all filters/i }),
     ).not.toBeInTheDocument();
   });
 });

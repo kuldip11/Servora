@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, Card, Page, PageHeader, Spinner } from "@pos/ui";
+import {
+  Badge,
+  Button,
+  Card,
+  Page,
+  PageHeader,
+  SearchInput,
+  Spinner,
+} from "@pos/ui";
 import { createAvailabilityApi } from "@pos/api-client";
 import { apiClient, extractApiError } from "@/shared/lib/api-client";
 
@@ -33,6 +41,7 @@ export const AvailabilityDashboardPage = () => {
   const [channel, setChannel] = useState("UNSCOPED");
   const [fulfillmentType, setFulfillmentType] = useState("UNSCOPED");
   const [cause, setCause] = useState("");
+  const [search, setSearch] = useState("");
   const [rows, setRows] = useState<AvailabilityRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -64,15 +73,24 @@ export const AvailabilityDashboardPage = () => {
 
   const grouped = useMemo(() => {
     const groups = new Map<string, AvailabilityRow[]>();
+    const query = search.trim().toLowerCase();
     for (const row of rows) {
-      const values = groups.get(row.cause) ?? [];
+      if (
+        query &&
+        !`${row.name} ${row.branchName ?? ""} ${row.reason}`
+          .toLowerCase()
+          .includes(query)
+      )
+        continue;
+      const key = `${row.entityType}:${row.entityId}:${row.branchId}:${row.cause}:${row.reason}`;
+      const values = groups.get(key) ?? [];
       values.push(row);
-      groups.set(row.cause, values);
+      groups.set(key, values);
     }
-    return [...groups.entries()].sort(([left], [right]) =>
-      left.localeCompare(right),
+    return [...groups.values()].sort((left, right) =>
+      left[0]!.name.localeCompare(right[0]!.name),
     );
-  }, [rows]);
+  }, [rows, search]);
 
   return (
     <Page>
@@ -80,14 +98,21 @@ export const AvailabilityDashboardPage = () => {
         title="Live availability"
         description="Authoritative unavailable items, variants, and modifiers across branches, channels, and fulfillment types."
         actions={
-          <Badge variant={rows.length ? "warning" : "success"}>
-            {rows.length} unavailable scopes
+          <Badge variant={grouped.length ? "warning" : "success"}>
+            {grouped.length} actionable exceptions
           </Badge>
         }
       />
 
       <Card>
-        <div className="grid gap-3 md:grid-cols-4 md:items-end">
+        <div className="grid gap-3 md:grid-cols-5 md:items-end">
+          <SearchInput
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            onClear={() => setSearch("")}
+            placeholder="Search item or branch"
+            aria-label="Search availability exceptions"
+          />
           <label className="text-sm font-medium text-text-primary">
             Channel
             <select
@@ -158,49 +183,47 @@ export const AvailabilityDashboardPage = () => {
         </Card>
       ) : (
         <div className="space-y-4">
-          {grouped.map(([groupCause, groupRows]) => (
-            <Card key={groupCause}>
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <h2 className="font-semibold text-text-primary">
-                  {groupCause.replace(/_/g, " ")}
-                </h2>
-                <Badge variant="warning">{groupRows.length}</Badge>
-              </div>
-              <div className="divide-y divide-divider">
-                {groupRows.map((row) => (
-                  <div
-                    key={`${row.entityType}:${row.entityId}:${row.branchId}:${row.channel}:${row.fulfillmentType}`}
-                    className="grid gap-2 py-3 text-sm md:grid-cols-[2fr_1fr_1fr_2fr]"
-                  >
-                    <div>
-                      <p className="font-medium text-text-primary">
-                        {row.name}
-                      </p>
-                      <p className="text-xs text-text-secondary">
-                        {row.entityType.replace(/_/g, " ")} · {row.status}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-xs text-text-disabled">Branch</span>
-                      <p className="text-text-secondary">
-                        {row.branchName ?? row.branchId}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-xs text-text-disabled">Scope</span>
-                      <p className="text-text-secondary">
-                        {row.channel} · {row.fulfillmentType}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-xs text-text-disabled">Why</span>
-                      <p className="text-text-secondary">{row.reason}</p>
-                    </div>
+          {grouped.map((groupRows) => {
+            const row = groupRows[0]!;
+            const scopes = [
+              ...new Set(
+                groupRows.map(
+                  (item) => `${item.channel} · ${item.fulfillmentType}`,
+                ),
+              ),
+            ];
+            return (
+              <Card
+                key={`${row.entityId}:${row.branchId}:${row.cause}:${row.reason}`}
+              >
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="font-semibold text-text-primary">
+                      {row.name}
+                    </h2>
+                    <p className="text-xs text-text-secondary">
+                      {row.entityType.replace(/_/g, " ")} ·{" "}
+                      {row.branchName ?? "Current branch"}
+                    </p>
                   </div>
-                ))}
-              </div>
-            </Card>
-          ))}
+                  <Badge variant="warning">
+                    {row.status.replace(/_/g, " ")}
+                  </Badge>
+                </div>
+                <div className="rounded-lg bg-surface-secondary p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-text-disabled">
+                    Why
+                  </p>
+                  <p className="mt-1 text-sm text-text-primary">{row.reason}</p>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {scopes.map((scope) => (
+                    <Badge key={scope}>{scope.replace(/_/g, " ")}</Badge>
+                  ))}
+                </div>
+              </Card>
+            );
+          })}
         </div>
       )}
     </Page>

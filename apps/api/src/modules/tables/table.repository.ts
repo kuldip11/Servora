@@ -48,17 +48,33 @@ export const tableRepository = {
   },
 
   async regenerateQrToken(tenantId: string, id: string) {
-    const [updated] = await db
-      .update(restaurantTables)
-      .set({ publicQrToken: crypto.randomUUID(), updatedAt: new Date() })
-      .where(
-        and(
-          eq(restaurantTables.id, id),
-          eq(restaurantTables.tenantId, tenantId),
-        ),
-      )
-      .returning();
-    return updated;
+    return db.transaction(async (tx) => {
+      const now = new Date();
+      const [updated] = await tx
+        .update(restaurantTables)
+        .set({ publicQrToken: crypto.randomUUID(), updatedAt: now })
+        .where(
+          and(
+            eq(restaurantTables.id, id),
+            eq(restaurantTables.tenantId, tenantId),
+          ),
+        )
+        .returning();
+
+      if (updated) {
+        await tx
+          .update(customerSessions)
+          .set({ active: false, updatedAt: now })
+          .where(
+            and(
+              eq(customerSessions.tenantId, tenantId),
+              eq(customerSessions.tableId, id),
+              eq(customerSessions.active, true),
+            ),
+          );
+      }
+      return updated;
+    });
   },
 
   async update(

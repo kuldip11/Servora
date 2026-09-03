@@ -13,7 +13,7 @@ export interface DialogProps {
   title: string;
   children: ReactNode;
 
-  size?: "sm" | "md" | "lg" | "xl" | undefined;
+  size?: "sm" | "md" | "lg" | "xl" | "full" | undefined;
 
   footer?: ReactNode | undefined;
 
@@ -30,6 +30,7 @@ const SIZE_CLASSES = {
   md: "max-w-md",
   lg: "max-w-lg",
   xl: "max-w-2xl",
+  full: "max-w-7xl h-[calc(100vh-2rem)]",
 };
 
 const dialogAnimationClasses = cn(

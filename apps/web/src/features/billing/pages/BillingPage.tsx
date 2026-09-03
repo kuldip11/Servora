@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Receipt, CreditCard, Scissors } from "lucide-react";
+import { Receipt, CreditCard, Scissors, Printer } from "lucide-react";
 import {
   Badge,
   Button,
@@ -11,6 +11,7 @@ import {
   PageHeader,
   Pagination,
   Select,
+  StatusBadge,
   Table,
   type Column,
 } from "@pos/ui";
@@ -25,6 +26,7 @@ import { notifyError, notifySuccess } from "@/shared/lib/notify";
 import { usePermissions } from "@/shared/auth/permissions";
 
 import { PAYMENT_METHODS } from "@/features/billing/constants";
+import { printBills } from "@/features/billing/utils/print-bills";
 
 type BillAssignment = NonNullable<Bill["itemAssignments"]>[number];
 
@@ -137,8 +139,12 @@ const BillItemSummary = ({
 
 export const BillingPage = () => {
   const [page, setPage] = useState(1);
-  const pageSize = 25;
+  const [pageSize, setPageSize] = useState(25);
   const [payModal, setPayModal] = useState<Order | null>(null);
+  const [printModal, setPrintModal] = useState<Order | null>(null);
+  const [selectedPrintBillIds, setSelectedPrintBillIds] = useState<Set<string>>(
+    new Set(),
+  );
   const [payForm, setPayForm] = useState({
     method: "CASH",
     amount: "",
@@ -164,11 +170,49 @@ export const BillingPage = () => {
   const billableTotal = billableResult?.pagination.total ?? 0;
   const pageCount = Math.max(1, Math.ceil(billableTotal / pageSize));
   const payMutation = useCollectPayment();
+  const activeBillingOrder = payModal ?? printModal;
   const { data: orderBills = [] } = useQuery<Bill[]>({
-    queryKey: ["billing", "order", payModal?.id],
-    queryFn: () => billingService.getOrderBills(payModal!.id),
-    enabled: !!payModal,
+    queryKey: ["billing", "order", activeBillingOrder?.id],
+    queryFn: () => billingService.getOrderBills(activeBillingOrder!.id),
+    enabled: !!activeBillingOrder,
   });
+  const unpaidBills = orderBills.filter((bill) => {
+    const paid = (bill.payments ?? [])
+      .filter((payment) => payment.status === "SUCCESS")
+      .reduce((sum, payment) => sum + Number(payment.amount), 0);
+    return Number(bill.totalAmount) - paid > 0.005;
+  });
+  const printableBills: Bill[] =
+    orderBills.length || !activeBillingOrder
+      ? orderBills
+      : [
+          {
+            id: `order-${activeBillingOrder.id}`,
+            orderId: activeBillingOrder.id,
+            splitLabel: "Whole order",
+            subtotal: Number(activeBillingOrder.subtotal),
+            taxAmount: Number(activeBillingOrder.taxAmount),
+            discountAmount: Number(activeBillingOrder.discountAmount ?? 0),
+            serviceChargeAmount: Number(
+              activeBillingOrder.serviceChargeAmount ?? 0,
+            ),
+            roundingAdjustment: 0,
+            totalAmount: Number(activeBillingOrder.totalAmount),
+            gstNumber: null,
+            payments: [],
+            createdAt: activeBillingOrder.createdAt,
+            itemAssignments: (activeBillingOrder.items ?? []).map((item) => ({
+              id: `preview-${item.id}`,
+              billId: `order-${activeBillingOrder.id}`,
+              orderItemId: item.id,
+              orderItem: {
+                menuItemId: item.menuItemId,
+                menuItemName: item.menuItemName,
+                quantity: item.quantity,
+              },
+            })),
+          },
+        ];
   const splitMutation = useMutation({
     mutationFn: ({
       orderId,
@@ -276,19 +320,19 @@ export const BillingPage = () => {
 
   const columns: Column<Order>[] = [
     {
-      id: "order",
-      header: "Order",
+      id: "table",
+      header: "Guest / Fulfilment",
       cell: (order) => (
-        <span className="font-mono text-xs font-semibold text-text-secondary">
-          #{order.id.slice(-8).toUpperCase()}
-        </span>
-      ),
-    },
-    {
-      id: "type",
-      header: "Type",
-      cell: (order) => (
-        <Badge variant="default">{order.type?.replace("_", " ")}</Badge>
+        <div>
+          <p className="font-semibold text-text-primary">
+            {order.table?.name
+              ? `Table ${order.table.name}`
+              : order.type?.replace("_", " ")}
+          </p>
+          <p className="font-mono text-[11px] text-text-disabled">
+            #{order.id.slice(-8).toUpperCase()}
+          </p>
+        </div>
       ),
     },
     {
@@ -310,6 +354,32 @@ export const BillingPage = () => {
           {formatCurrency(parseFloat(String(order.totalAmount)))}
         </span>
       ),
+    },
+    {
+      id: "paid",
+      header: "Paid",
+      align: "right",
+      cell: (order) => {
+        const paid = (order.payments ?? [])
+          .filter((payment) => payment.status === "SUCCESS")
+          .reduce((sum, payment) => sum + Number(payment.amount), 0);
+        return <span className="text-success">{formatCurrency(paid)}</span>;
+      },
+    },
+    {
+      id: "outstanding",
+      header: "Outstanding",
+      align: "right",
+      cell: (order) => {
+        const paid = (order.payments ?? [])
+          .filter((payment) => payment.status === "SUCCESS")
+          .reduce((sum, payment) => sum + Number(payment.amount), 0);
+        return (
+          <span className="font-bold text-warning">
+            {formatCurrency(Math.max(0, Number(order.totalAmount) - paid))}
+          </span>
+        );
+      },
     },
     {
       id: "time",
@@ -344,6 +414,17 @@ export const BillingPage = () => {
           <Button size="sm" onClick={() => openPayModal(order)}>
             <CreditCard className="w-3.5 h-3.5" />
             Collect Payment
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => {
+              setPrintModal(order);
+              setSelectedPrintBillIds(new Set());
+            }}
+          >
+            <Printer className="w-3.5 h-3.5" />
+            Print Bill
           </Button>
         </div>
       ),
@@ -382,8 +463,103 @@ export const BillingPage = () => {
           totalItems={billableTotal}
           pageSize={pageSize}
           onPageChange={setPage}
+          onPageSizeChange={(next) => {
+            setPageSize(next);
+            setPage(1);
+          }}
         />
       </Card>
+
+      <Modal
+        open={!!printModal}
+        onClose={() => setPrintModal(null)}
+        title="Preview and print bills"
+        size="md"
+      >
+        {printModal && (
+          <div className="space-y-4">
+            <div>
+              <p className="text-lg font-semibold text-text-primary">
+                {printModal.table?.name
+                  ? `Table ${printModal.table.name}`
+                  : printModal.type.replace("_", " ")}
+              </p>
+              <p className="text-xs text-text-secondary">
+                Order #{printModal.id.slice(-8).toUpperCase()} · Select one or
+                more bills
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {printableBills.map((bill, index) => {
+                const paid = (bill.payments ?? [])
+                  .filter((payment) => payment.status === "SUCCESS")
+                  .reduce((sum, payment) => sum + Number(payment.amount), 0);
+                const due = Math.max(0, Number(bill.totalAmount) - paid);
+                const selected = selectedPrintBillIds.has(bill.id);
+                return (
+                  <label
+                    key={bill.id}
+                    className={`cursor-pointer rounded-xl border p-4 ${selected ? "border-primary bg-primary-surface" : "border-border bg-surface"}`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-text-primary">
+                          {bill.splitLabel ?? `Bill ${index + 1}`}
+                        </p>
+                        <p className="mt-1 text-xl font-bold text-text-primary">
+                          {formatCurrency(Number(bill.totalAmount))}
+                        </p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={selected}
+                        onChange={(event) => {
+                          const next = new Set(selectedPrintBillIds);
+                          if (event.target.checked) next.add(bill.id);
+                          else next.delete(bill.id);
+                          setSelectedPrintBillIds(next);
+                        }}
+                        aria-label={`Select ${bill.splitLabel ?? `Bill ${index + 1}`}`}
+                      />
+                    </div>
+                    <StatusBadge
+                      label={
+                        due <= 0.005 ? "Paid" : `${formatCurrency(due)} due`
+                      }
+                      tone={due <= 0.005 ? "success" : "warning"}
+                    />
+                  </label>
+                );
+              })}
+            </div>
+            <div className="flex flex-wrap justify-end gap-2">
+              <Button
+                variant="secondary"
+                onClick={() =>
+                  setSelectedPrintBillIds(
+                    new Set(printableBills.map((bill) => bill.id)),
+                  )
+                }
+              >
+                Select all
+              </Button>
+              <Button
+                disabled={!selectedPrintBillIds.size}
+                onClick={() =>
+                  printBills(
+                    printModal,
+                    printableBills.filter((bill) =>
+                      selectedPrintBillIds.has(bill.id),
+                    ),
+                  )
+                }
+              >
+                <Printer className="h-4 w-4" /> Print selected
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {}
       <Modal
@@ -521,9 +697,9 @@ export const BillingPage = () => {
                 {
                   value: "",
                   label:
-                    orderBills.length > 1 ? "Select a bill" : "Whole order",
+                    unpaidBills.length > 1 ? "Select a bill" : "Whole order",
                 },
-                ...orderBills.map((bill, index) => ({
+                ...unpaidBills.map((bill, index) => ({
                   value: bill.id,
                   label: `${bill.splitLabel ?? `Bill ${index + 1}`} — ${formatCurrency(Number(bill.totalAmount))}`,
                 })),
