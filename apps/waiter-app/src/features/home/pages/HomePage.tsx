@@ -29,18 +29,38 @@ export const HomePage = ({
 }: Props) => {
   const { data: orders } = useOrders({ view: "ACTIVE", limit: 100 });
   const [requests, setRequests] = useState<
-    Array<{ id: string; tableId: string; type: string; status: string }>
+    Array<{
+      id: string;
+      tableId: string;
+      orderId: string | null;
+      type: string;
+      status: string;
+    }>
   >([]);
   useEffect(() => {
-    void customersApi
-      .listRequests<{
-        id: string;
-        tableId: string;
-        type: string;
-        status: string;
-      }>()
-      .then((response) => setRequests(response))
-      .catch(() => undefined);
+    let active = true;
+    const refresh = () => {
+      void customersApi
+        .listRequests<{
+          id: string;
+          tableId: string;
+          orderId: string | null;
+          type: string;
+          status: string;
+        }>()
+        .then((response) => {
+          if (active) setRequests(response);
+        })
+        .catch(() => undefined);
+    };
+    refresh();
+    const interval = window.setInterval(refresh, 10_000);
+    window.addEventListener("focus", refresh);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refresh);
+    };
   }, []);
   useRealtimeEvent("customer.request.created", (event) => {
     setRequests((current) =>
@@ -50,6 +70,7 @@ export const HomePage = ({
             {
               id: event.payload.id,
               tableId: event.payload.tableId,
+              orderId: event.payload.orderId,
               type: event.payload.type,
               status: event.payload.status,
             },
@@ -74,6 +95,12 @@ export const HomePage = ({
     o.kitchenTickets?.some((t) => t.status === "READY"),
   );
   const billRequested = active.filter((o) => o.status === "BILL_REQUESTED");
+  const visibleRequests = requests.filter(
+    (request) =>
+      request.type !== "BILL" ||
+      !request.orderId ||
+      !billRequested.some((order) => order.id === request.orderId),
+  );
   const tableLabel = (tableId: string) =>
     tableId.length <= 8 ? tableId : tableId.slice(-4).toUpperCase();
 
@@ -86,7 +113,7 @@ export const HomePage = ({
       <div className="waiter-priority-strip mt-3.5 grid grid-cols-3 overflow-hidden rounded-[18px] text-white">
         {[
           [ready.length, "Ready now"],
-          [requests.length, "Requests"],
+          [visibleRequests.length, "Requests"],
           [active.length, "Active tables"],
         ].map(([value, label], index) => (
           <div
@@ -132,7 +159,7 @@ export const HomePage = ({
           />
         ))}
 
-        {requests.slice(0, 3).map((request) => (
+        {visibleRequests.slice(0, 3).map((request) => (
           <Card
             key={request.id}
             padding="sm"
@@ -177,7 +204,7 @@ export const HomePage = ({
             />
           ))}
 
-        {!ready.length && !requests.length && !billRequested.length && (
+        {!ready.length && !visibleRequests.length && !billRequested.length && (
           <Card padding="lg" className="rounded-2xl text-center">
             <CheckCircle2 className="mx-auto mb-2 h-10 w-10 text-success" />
             <p className="text-sm font-semibold text-text-secondary">

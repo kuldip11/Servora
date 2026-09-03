@@ -249,7 +249,8 @@ export const TablesPage = () => {
       <Card padding="sm">
         <FilterBar
           onClearAll={
-            hasTableFilters
+            [tableSearch, statusFilter, sectionFilter].filter(Boolean).length >
+            1
               ? () => {
                   setTableSearch("");
                   setStatusFilter("");
@@ -295,7 +296,8 @@ export const TablesPage = () => {
           </div>
           {sections.length > 1 && (
             <SelectMenu
-              label="Section"
+              aria-label="Filter tables by section"
+              valuePrefix="Section"
               placeholder="All sections"
               value={sectionFilter || undefined}
               options={[{ value: "", label: "All sections" }, ...sections]}

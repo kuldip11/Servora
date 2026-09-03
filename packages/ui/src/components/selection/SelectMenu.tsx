@@ -25,6 +25,7 @@ export interface SelectMenuProps {
   value: string | undefined;
   onChange: (value: string) => void;
   label?: string | undefined;
+  valuePrefix?: string | undefined;
 
   "aria-label"?: string | undefined;
   placeholder?: string | undefined;
@@ -43,6 +44,7 @@ export const SelectMenu = ({
   value,
   onChange,
   label,
+  valuePrefix,
   "aria-label": ariaLabel,
   placeholder = "Select…",
   hint,
@@ -136,7 +138,9 @@ export const SelectMenu = ({
                 !selectedOption && "text-text-secondary",
               )}
             >
-              {selectedOption?.label ?? placeholder}
+              {selectedOption
+                ? `${valuePrefix ? `${valuePrefix}: ` : ""}${selectedOption.label}`
+                : placeholder}
             </span>
             <ChevronDown className="w-4 h-4 text-text-secondary shrink-0" />
           </button>

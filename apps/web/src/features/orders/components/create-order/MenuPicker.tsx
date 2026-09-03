@@ -1,5 +1,6 @@
+import { useState } from "react";
 import type { MenuCategory, MenuItem, FoodType } from "@pos/types";
-import { Select } from "@pos/ui";
+import { SearchInput, Select } from "@pos/ui";
 import { formatCurrency } from "@/shared/utils/format";
 
 export const FOOD_TYPE_FILTERS: { value: FoodType | "ALL"; label: string }[] = [
@@ -44,10 +45,14 @@ export const MenuPicker = ({
   onItemClick: (item: MenuItem) => void;
   emptyMessage?: string | undefined;
 }) => {
+  const [search, setSearch] = useState("");
+  const normalizedSearch = search.trim().toLowerCase();
   const visible = categories?.map((c) => ({
     ...c,
     menuItems: (c.menuItems ?? []).filter(
-      (i) => filter === "ALL" || i.foodType === filter,
+      (i) =>
+        (filter === "ALL" || i.foodType === filter) &&
+        (!normalizedSearch || i.name.toLowerCase().includes(normalizedSearch)),
     ),
   }));
   return (
@@ -87,6 +92,14 @@ export const MenuPicker = ({
           )}
         </div>
       )}
+      <SearchInput
+        value={search}
+        onChange={(event) => setSearch(event.target.value)}
+        onClear={() => setSearch("")}
+        placeholder="Search menu items"
+        aria-label="Search menu items"
+        className="mb-3"
+      />
       <div className="flex items-center gap-2 mb-3">
         {FOOD_TYPE_FILTERS.map((f) => (
           <button
@@ -98,7 +111,7 @@ export const MenuPicker = ({
           </button>
         ))}
       </div>
-      <div className="space-y-4 max-h-80 overflow-y-auto pr-1">
+      <div className="max-h-80 space-y-4 overflow-y-auto pr-1 lg:max-h-[calc(100vh-30rem)]">
         {!categories?.flatMap((c) => c.menuItems ?? []).length && (
           <p className="text-sm text-text-disabled text-center py-6">
             {emptyMessage ?? "No menu items available for this order."}

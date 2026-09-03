@@ -46,7 +46,7 @@ describe("AvailabilityDashboardPage", () => {
     render(<AvailabilityDashboardPage />);
 
     expect(await screen.findByText("Dal")).toBeTruthy();
-    expect(screen.getByText("CUSTOMER_QR · DELIVERY")).toBeTruthy();
+    expect(screen.getByText("CUSTOMER QR · DELIVERY")).toBeTruthy();
     expect(api.get).toHaveBeenCalledWith(
       "/menu/availability/dashboard",
       expect.objectContaining({

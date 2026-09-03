@@ -33,9 +33,11 @@ export const CreateOrderModal = ({ onClose }: { onClose: () => void }) => {
   const [notes, setNotes] = useState("");
   const [items, setItems] = useState<CartItem[]>([]);
   const [foodTypeFilter, setFoodTypeFilter] = useState<FoodType | "ALL">("ALL");
-  const [customising, setCustomising] = useState<{ item: MenuItem } | null>(
-    null,
-  );
+  const [customising, setCustomising] = useState<{
+    item: MenuItem;
+    existing?: CartItem;
+    originalKey?: string;
+  } | null>(null);
   const [validationError, setValidationError] = useState("");
   const [selectedMenuId, setSelectedMenuId] = useState("");
   const [courseMode, setCourseMode] = useState(false);
@@ -117,6 +119,26 @@ export const CreateOrderModal = ({ onClose }: { onClose: () => void }) => {
     });
   }
 
+  function editCartItem(item: CartItem) {
+    const menuItem = scopedCategories
+      ?.flatMap((category) => category.menuItems ?? [])
+      .find((candidate) => candidate.id === item.menuItemId);
+    if (!menuItem) return;
+    setCustomising({
+      item: menuItem,
+      existing: item,
+      originalKey: cartItemKey(item),
+    });
+  }
+
+  function replaceCartItem(originalKey: string, updated: CartItem) {
+    setItems((current) =>
+      current.map((item) =>
+        cartItemKey(item) === originalKey ? updated : item,
+      ),
+    );
+  }
+
   function updateCourse(key: string, courseNumber: number) {
     setItems((prev) =>
       prev.map((item) =>
@@ -175,7 +197,14 @@ export const CreateOrderModal = ({ onClose }: { onClose: () => void }) => {
   }
 
   return (
-    <Modal open title="New Order" onClose={onClose} size="xl">
+    <Modal
+      open
+      title="New Order"
+      description="Create an order and review its items before submitting"
+      onClose={onClose}
+      size="full"
+      bodyClassName="flex-1 min-h-0 overflow-y-auto lg:overflow-hidden"
+    >
       {courseSequencingAvailable && (
         <label className="mb-4 flex items-center gap-2 rounded-md border border-border bg-surface-secondary px-3 py-2 text-sm text-text-secondary">
           <input
@@ -201,8 +230,8 @@ export const CreateOrderModal = ({ onClose }: { onClose: () => void }) => {
           </span>
         </label>
       )}
-      <div className="grid grid-cols-2 gap-6">
-        <div className="space-y-3">
+      <div className="grid min-h-0 grid-cols-1 gap-5 lg:h-full lg:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
+        <div className="min-h-0 space-y-3 lg:overflow-hidden">
           {activeMenus.length > 1 && (
             <label className="block text-sm font-medium">
               Menu
@@ -254,6 +283,7 @@ export const CreateOrderModal = ({ onClose }: { onClose: () => void }) => {
           validationError={validationError}
           courseMode={courseMode}
           onQty={updateQty}
+          onEdit={editCartItem}
           onCourse={updateCourse}
           onNotes={setNotes}
           onSubmit={handleSubmit}
@@ -263,8 +293,15 @@ export const CreateOrderModal = ({ onClose }: { onClose: () => void }) => {
       {customising && (
         <ItemCustomizerModal
           item={customising.item}
+          {...(customising.existing
+            ? { existingCartItem: customising.existing }
+            : {})}
           courseMode={courseMode}
-          onConfirm={addOrIncrementItem}
+          onConfirm={(item) =>
+            customising.originalKey
+              ? replaceCartItem(customising.originalKey, item)
+              : addOrIncrementItem(item)
+          }
           onClose={() => setCustomising(null)}
         />
       )}

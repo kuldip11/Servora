@@ -25,7 +25,12 @@ export const availabilityController = {
   ) {
     requirePermission(auth, "menu:read");
     const branches = auth.branchId
-      ? [{ id: auth.branchId }]
+      ? [
+          (await branchRepository.findById(auth.tenantId, auth.branchId)) ?? {
+            id: auth.branchId,
+            name: "Current branch",
+          },
+        ]
       : await branchRepository.findMany(
           auth.tenantId,
           undefined,
@@ -38,10 +43,7 @@ export const availabilityController = {
       new Date(),
     );
     const branchNames = new Map(
-      branches.map(
-        (branch) =>
-          [branch.id, "name" in branch ? branch.name : branch.id] as const,
-      ),
+      branches.map((branch) => [branch.id, branch.name] as const),
     );
     return successResponse({
       ...dashboard,

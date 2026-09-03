@@ -31,17 +31,25 @@ export const staffRepository = {
       },
     });
 
-    const scoped = authorizedBranchIds
-      ? branchId
-        ? memberships.filter((membership) =>
-            membership.branches.some((item) => item.branchId === branchId),
+    const appliesToBranch = (
+      membership: (typeof memberships)[number],
+      id: string,
+    ) =>
+      membership.branches.some((item) => item.branchId === id) ||
+      membership.roles.some((item) => item.role.scope === "TENANT");
+    const scoped = branchId
+      ? memberships.filter((membership) =>
+          appliesToBranch(membership, branchId),
+        )
+      : authorizedBranchIds
+        ? memberships.filter(
+            (membership) =>
+              membership.roles.some((item) => item.role.scope === "TENANT") ||
+              membership.branches.some((item) =>
+                authorizedBranchIds.includes(item.branchId),
+              ),
           )
-        : memberships.filter((membership) =>
-            membership.branches.some((item) =>
-              authorizedBranchIds.includes(item.branchId),
-            ),
-          )
-      : memberships;
+        : memberships;
 
     return scoped
       .filter(

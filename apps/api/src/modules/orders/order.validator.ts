@@ -108,6 +108,10 @@ export const orderListQuery = t.Object({
   ),
   page: t.Optional(t.Integer({ minimum: 1 })),
   limit: t.Optional(t.Integer({ minimum: 1, maximum: 100 })),
+  sortBy: t.Optional(
+    t.Union([t.Literal("id"), t.Literal("total"), t.Literal("createdAt")]),
+  ),
+  sortDirection: t.Optional(t.Union([t.Literal("asc"), t.Literal("desc")])),
 });
 
 export const refireOrderItemBody = t.Object({

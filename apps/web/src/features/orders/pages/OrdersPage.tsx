@@ -8,7 +8,7 @@ import {
   StatusBadge,
   SearchInput,
   SelectMenu,
-  DataGrid,
+  Table,
   FilterBar,
   Toolbar,
   Page,
@@ -79,28 +79,38 @@ export const OrdersPage = () => {
     search: debouncedSearch,
     page,
     limit: pageSize,
+    ...(sort?.columnId === "time"
+      ? { sortBy: "createdAt" as const }
+      : sort?.columnId === "total" || sort?.columnId === "id"
+        ? { sortBy: sort.columnId }
+        : {}),
+    ...(sort?.direction ? { sortDirection: sort.direction } : {}),
   });
   useOrdersRealtimeSync();
   const orders = result?.items ?? [];
   const total = result?.pagination.total ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
-  const hasActiveFilters =
-    search !== "" || statusFilter !== "" || typeFilter !== "";
-
   const columns: Column<Order>[] = useMemo(
     () => [
       {
         id: "id",
-        header: "Order ID",
+        header: "Order",
         sortable: true,
         sortValue: (row) => row.id,
         width: "140px",
         sticky: "left",
         cell: (row) => (
-          <span className="font-mono text-xs font-semibold text-text-primary">
-            #{row.id.slice(-8).toUpperCase()}
-          </span>
+          <div>
+            <p className="font-semibold text-text-primary">
+              {row.table?.name
+                ? `Table ${row.table.name}`
+                : row.type?.replace("_", " ")}
+            </p>
+            <p className="font-mono text-[11px] text-text-disabled">
+              #{row.id.slice(-8).toUpperCase()}
+            </p>
+          </div>
         ),
       },
       {
@@ -114,17 +124,6 @@ export const OrdersPage = () => {
             dot={false}
           />
         ),
-      },
-      {
-        id: "table",
-        header: "Table",
-        width: "90px",
-        cell: (row) =>
-          row.table ? (
-            row.table.name
-          ) : (
-            <span className="text-text-disabled">—</span>
-          ),
       },
       {
         id: "kitchen",
@@ -228,7 +227,7 @@ export const OrdersPage = () => {
           <FilterBar
             className="mt-4"
             onClearAll={
-              hasActiveFilters
+              [search, statusFilter, typeFilter].filter(Boolean).length > 1
                 ? () => {
                     setSearch("");
                     setStatusFilter("");
@@ -252,7 +251,8 @@ export const OrdersPage = () => {
               className="max-w-xs"
             />
             <SelectMenu
-              label="Status filter"
+              aria-label="Filter orders by status"
+              valuePrefix="Status"
               options={ORDER_STATUS_OPTIONS}
               value={statusFilter}
               onChange={(v) => {
@@ -262,7 +262,8 @@ export const OrdersPage = () => {
               className="w-44"
             />
             <SelectMenu
-              label="Order type filter"
+              aria-label="Filter orders by type"
+              valuePrefix="Type"
               options={ORDER_TYPE_OPTIONS}
               value={typeFilter}
               onChange={(v) => {
@@ -275,14 +276,16 @@ export const OrdersPage = () => {
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-md">
-          <DataGrid
+          <Table
             columns={columns}
             data={orders}
             getRowId={(row) => row.id}
             loading={isLoading || (isFetching && orders.length === 0)}
             sort={sort}
-            onSortChange={setSort}
-            rowHeight={52}
+            onSortChange={(next) => {
+              setSort(next);
+              setPage(1);
+            }}
             maxHeight="100%"
             className="min-h-0 flex-1"
             emptyIcon={ShoppingBag}

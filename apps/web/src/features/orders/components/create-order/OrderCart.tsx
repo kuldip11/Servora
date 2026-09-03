@@ -1,4 +1,4 @@
-import { Plus, Minus, Trash2 } from "lucide-react";
+import { Plus, Minus, Trash2, Pencil } from "lucide-react";
 import { Button, TextArea } from "@pos/ui";
 import { formatCurrency } from "@/shared/utils/format";
 import { cartItemKey, type CartItem } from "@/features/orders/utils/cartTypes";
@@ -11,6 +11,7 @@ export const OrderCart = ({
   validationError,
   courseMode,
   onQty,
+  onEdit,
   onCourse,
   onNotes,
   onSubmit,
@@ -23,12 +24,13 @@ export const OrderCart = ({
   validationError?: string;
   courseMode: boolean;
   onQty: (key: string, delta: number) => void;
+  onEdit: (item: CartItem) => void;
   onCourse: (key: string, courseNumber: number) => void;
   onNotes: (v: string) => void;
   onSubmit: () => void;
 }) => {
   return (
-    <div className="flex flex-col">
+    <div className="flex min-h-0 flex-col rounded-xl border border-border bg-surface p-4 lg:h-full">
       <p className="text-sm font-semibold text-text-primary mb-3">
         Order Items ({items.length})
       </p>
@@ -37,7 +39,7 @@ export const OrderCart = ({
           Click menu items to add
         </div>
       ) : (
-        <div className="flex-1 space-y-2 overflow-y-auto max-h-64 pr-1">
+        <div className="max-h-64 flex-1 space-y-2 overflow-y-auto pr-1 lg:max-h-none">
           {items.map((item) => {
             const key = cartItemKey(item);
             return (
@@ -89,8 +91,19 @@ export const OrderCart = ({
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <button
+                    type="button"
+                    onClick={() => onEdit(item)}
+                    className="flex h-9 w-9 items-center justify-center rounded-md text-text-secondary hover:bg-surface"
+                    aria-label={`Edit ${item.menuItemName}`}
+                    title="Edit item"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => onQty(key, -1)}
-                    className="w-6 h-6 flex items-center justify-center rounded text-text-secondary hover:bg-surface-secondary"
+                    className="flex h-9 w-9 items-center justify-center rounded-md text-text-secondary hover:bg-surface"
+                    aria-label={`Decrease ${item.menuItemName} quantity`}
                   >
                     <Minus className="w-3 h-3" />
                   </button>
@@ -98,8 +111,10 @@ export const OrderCart = ({
                     {item.quantity}
                   </span>
                   <button
+                    type="button"
                     onClick={() => onQty(key, 1)}
-                    className="w-6 h-6 flex items-center justify-center rounded text-text-secondary hover:bg-surface-secondary"
+                    className="flex h-9 w-9 items-center justify-center rounded-md text-text-secondary hover:bg-surface"
+                    aria-label={`Increase ${item.menuItemName} quantity`}
                   >
                     <Plus className="w-3 h-3" />
                   </button>
@@ -108,8 +123,10 @@ export const OrderCart = ({
                   {formatCurrency(item.unitPrice * item.quantity)}
                 </span>
                 <button
+                  type="button"
                   onClick={() => onQty(key, -item.quantity)}
-                  className="text-text-disabled hover:text-danger flex-shrink-0"
+                  className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md text-text-disabled hover:bg-danger-surface hover:text-danger"
+                  aria-label={`Remove ${item.menuItemName}`}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>

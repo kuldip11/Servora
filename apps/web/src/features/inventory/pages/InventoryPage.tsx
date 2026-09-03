@@ -1,5 +1,5 @@
 import { usePermissions } from "@/shared/auth/permissions";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -8,7 +8,14 @@ import {
   type CreateInventoryItemInput,
   type UpdateInventoryStockInput,
 } from "@pos/validation";
-import { Plus, AlertTriangle, Package, Building2, History } from "lucide-react";
+import {
+  Plus,
+  AlertTriangle,
+  Package,
+  Building2,
+  History,
+  MoreHorizontal,
+} from "lucide-react";
 import {
   Button,
   Card,
@@ -26,6 +33,8 @@ import {
   SearchInput,
   SelectMenu,
   Pagination,
+  DropdownMenu,
+  IconButton,
   type Column,
 } from "@pos/ui";
 import { formatCurrency } from "@/shared/utils";
@@ -67,8 +76,16 @@ export const InventoryPage = () => {
   const [wasteNotes, setWasteNotes] = useState("");
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [stockFilter, setStockFilter] = useState("");
-  const pageSize = 25;
+  const [pageSize, setPageSize] = useState(25);
+  useEffect(() => {
+    const timer = window.setTimeout(
+      () => setDebouncedSearch(search.trim()),
+      300,
+    );
+    return () => window.clearTimeout(timer);
+  }, [search]);
   const {
     register: registerAdd,
     handleSubmit: handleSubmitAdd,
@@ -101,7 +118,7 @@ export const InventoryPage = () => {
   const { data: inventoryPage, isLoading } = useInventoryItems({
     page,
     limit: pageSize,
-    ...(search.trim() ? { search: search.trim() } : {}),
+    ...(debouncedSearch ? { search: debouncedSearch } : {}),
     ...(stockFilter === "low" ? { lowStockOnly: true } : {}),
   });
   const { data: lowStock = [] } = useLowStockItems();
@@ -229,7 +246,7 @@ export const InventoryPage = () => {
       <Card padding="sm">
         <FilterBar
           onClearAll={
-            search || stockFilter
+            search && stockFilter
               ? () => {
                   setSearch("");
                   setStockFilter("");
@@ -253,7 +270,8 @@ export const InventoryPage = () => {
             className="w-full sm:w-72"
           />
           <SelectMenu
-            label="Stock level"
+            aria-label="Filter inventory by stock level"
+            valuePrefix="Stock"
             value={stockFilter || undefined}
             placeholder="All stock levels"
             options={[
@@ -298,6 +316,10 @@ export const InventoryPage = () => {
             totalItems={totalItems}
             pageSize={pageSize}
             onPageChange={setPage}
+            onPageSizeChange={(next) => {
+              setPageSize(next);
+              setPage(1);
+            }}
           />
         </Card>
       ) : (
@@ -317,6 +339,10 @@ export const InventoryPage = () => {
             totalItems={totalItems}
             pageSize={pageSize}
             onPageChange={setPage}
+            onPageSizeChange={(next) => {
+              setPageSize(next);
+              setPage(1);
+            }}
           />
         </Card>
       )}
@@ -746,28 +772,28 @@ function InventoryTable({
       header: "",
       align: "right",
       cell: (item) => (
-        <div className="flex justify-end gap-2">
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => onViewImpact(item)}
-          >
-            Recipe Impact
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => onLogWaste(item)}
-          >
-            Log Waste
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => onUpdateStock(item)}
-          >
+        <div className="flex justify-end gap-1">
+          <Button size="sm" onClick={() => onUpdateStock(item)}>
             Update Stock
           </Button>
+          <DropdownMenu
+            align="end"
+            trigger={
+              <IconButton
+                icon={MoreHorizontal}
+                size="sm"
+                variant="ghost"
+                aria-label={`More actions for ${item.name}`}
+              />
+            }
+            items={[
+              { label: "Log waste", onSelect: () => onLogWaste(item) },
+              {
+                label: "Recipe impact",
+                onSelect: () => onViewImpact(item),
+              },
+            ]}
+          />
         </div>
       ),
     },
@@ -779,6 +805,7 @@ function InventoryTable({
       data={items}
       getRowId={(item) => item.id}
       loading={loading}
+      maxHeight="min(55vh, 36rem)"
       emptyIcon={Package}
       emptyTitle="No inventory items"
       emptyDescription="Start tracking your ingredients and supplies."
