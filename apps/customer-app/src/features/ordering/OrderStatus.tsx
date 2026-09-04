@@ -20,13 +20,10 @@ const statusLabel = (status: string) => {
   return "Order received";
 };
 
-const orderStatusLabel = (status: string) => {
-  if (status === "BILL_REQUESTED") return "Bill requested";
+const orderStatusLabel = (status: "PAID" | "CLOSED" | "CANCELLED") => {
   if (status === "PAID") return "Paid";
   if (status === "CLOSED") return "Completed";
-  if (status === "CANCELLED") return "Cancelled";
-  if (status === "PENDING_PAYMENT") return "Payment required";
-  return "Open";
+  return "Cancelled";
 };
 
 const serviceRequest = [
