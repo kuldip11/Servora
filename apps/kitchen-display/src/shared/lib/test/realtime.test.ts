@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  createRealtimeClient: vi.fn(() => ({ id: "client" })),
+  createRealtimeClient: vi.fn<[unknown], { id: string }>(() => ({ id: "client" })),
   useRealtime: vi.fn(),
   useRealtimeEvent: vi.fn(),
   useRealtimeConnection: vi.fn(() => true),
@@ -41,8 +41,7 @@ describe("realtime", () => {
   });
 
   it("creates the client with context getters and exposes all hook wrappers", () => {
-    const config = mocks.createRealtimeClient.mock.calls[0]?.[0];
-    expect(config).toBeDefined();
+    const config = mocks.createRealtimeClient.mock.calls[0]![0] as { getTenantId: () => string | null; getBranchId: () => string | null };
     sessionStorage.setItem("kds_tenant", "tenant-1");
     sessionStorage.setItem("kds_branch", "branch-1");
     expect(config.getTenantId()).toBe("tenant-1");

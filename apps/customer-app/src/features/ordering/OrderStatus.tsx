@@ -112,7 +112,7 @@ export const OrderStatus = ({
           </h1>
           <p className="mt-3 text-sm text-white/70">
             {terminal
-              ? `This order is ${orderStatusLabel(order.status).toLowerCase()}.`
+              ? `This order is ${orderStatusLabel(order.status as "PAID" | "CLOSED" | "CANCELLED").toLowerCase()}.`
               : ready
                 ? mode === "DINE_IN"
                   ? "Your waiter has been notified."
